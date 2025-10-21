@@ -17,36 +17,25 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import styles from '@styles/index';
 
-type notificationType = 'fallback-authentication-successful' | 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
+// TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string 
+type notificationType = 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
 
+// TODO: remove, as this data will actually come from the SCENARIOS file
 type NotificationData = {
-    headerTitle?: TranslationPaths;
-    title: TranslationPaths;
-    content: TranslationPaths;
     illustration: React.FC<SvgProps>;
     iconWidth: number;
     iconHeight: number;
     padding: ViewStyle;
 } | undefined;
 
+// TODO: remove, as this data will actually come from the SCENARIOS file
 const getNotificationData = (notificationType: string): NotificationData => {
     const styles = useThemeStyles();
     switch (notificationType) {
-        case 'fallback-authentication-successful':
-            return {
-                title: 'multiFactorAuthentication.notifications.successfulAuthenticationTitle',
-                content: 'multiFactorAuthentication.notifications.successfulFallbackAuthenticationContent',
-                illustration: Illustrations.OpenPadlock,
-                iconWidth: variables.openPadlockWidth,
-                iconHeight: variables.openPadlockHeight,
-                padding: styles.p2,
-            };
         case 'authentication-successful':
             return {
-                title: 'multiFactorAuthentication.notifications.successfulAuthenticationTitle',
-                content: 'multiFactorAuthentication.notifications.successfulAuthenticationContent',
                 illustration: Illustrations.OpenPadlock,
                 iconWidth: variables.openPadlockWidth,
                 iconHeight: variables.openPadlockHeight,
@@ -54,19 +43,6 @@ const getNotificationData = (notificationType: string): NotificationData => {
             };
         case 'authentication-failed':
             return {
-                headerTitle: 'multiFactorAuthentication.notifications.failedAuthenticationHeaderTitle',
-                title: 'multiFactorAuthentication.notifications.failedAuthenticationTitle',
-                content: 'multiFactorAuthentication.notifications.failedAuthenticationContent',
-                illustration: Illustrations.HumptyDumpty,
-                iconWidth: variables.humptyDumptyWidth,
-                iconHeight: variables.humptyDumptyHeight,
-                padding: styles.p0,
-            };
-        case 'registration-failed':
-            return {
-                headerTitle: 'multiFactorAuthentication.notifications.failedAuthenticationHeaderTitle',
-                title: 'multiFactorAuthentication.notifications.failedAuthenticationTitle',
-                content: 'multiFactorAuthentication.notifications.failedRegistrationContent',
                 illustration: Illustrations.HumptyDumpty,
                 iconWidth: variables.humptyDumptyWidth,
                 iconHeight: variables.humptyDumptyHeight,
@@ -74,9 +50,6 @@ const getNotificationData = (notificationType: string): NotificationData => {
             };
         case 'transaction-approved':
             return {
-                headerTitle: 'multiFactorAuthentication.notifications.approvedTransactionHeaderTitle',
-                title: 'multiFactorAuthentication.notifications.approvedTransactionTitle',
-                content: 'multiFactorAuthentication.notifications.approvedTransactionContent',
                 illustration: Illustrations.ApprovedTransactionHand,
                 iconWidth: variables.transactionHandWidth,
                 iconHeight: variables.transactionHandHeight,
@@ -84,8 +57,6 @@ const getNotificationData = (notificationType: string): NotificationData => {
             };
         case 'transaction-denied':
             return {
-                title: 'multiFactorAuthentication.notifications.deniedTransactionTitle',
-                content: 'multiFactorAuthentication.notifications.deniedTransactionContent',
                 illustration: Illustrations.DeniedTransactionHand,
                 iconWidth: variables.transactionHandWidth,
                 iconHeight: variables.transactionHandHeight,
@@ -93,32 +64,9 @@ const getNotificationData = (notificationType: string): NotificationData => {
             };
         case 'you-ran-out-of-time':
             return {
-                headerTitle: 'multiFactorAuthentication.notifications.deniedTransactionTitle',
-                title: 'multiFactorAuthentication.notifications.youRunOutOfTimeTitle',
-                content: 'multiFactorAuthentication.notifications.youRunOutOfTimeContent',
                 illustration: Illustrations.RunOutOfTime,
                 iconWidth: variables.runOutOfTimeWidth,
                 iconHeight: variables.runOutOfTimeHeight,
-                padding: styles.p0,
-            };
-        case 'couldnt-send-magic-code':
-            return {
-                headerTitle: 'multiFactorAuthentication.notifications.deniedTransactionTitle',
-                title: 'multiFactorAuthentication.notifications.couldntSendMagicCodeTitle',
-                content: 'multiFactorAuthentication.notifications.couldntSendMagicCodeContent',
-                illustration: Illustrations.HumptyDumpty,
-                iconWidth: variables.humptyDumptyWidth,
-                iconHeight: variables.humptyDumptyHeight,
-                padding: styles.p0,
-            };
-        case 'couldnt-send-sms-code':
-            return {
-                headerTitle: 'multiFactorAuthentication.notifications.deniedTransactionTitle',
-                title: 'multiFactorAuthentication.notifications.couldntSendSMSCodeTitle',
-                content: 'multiFactorAuthentication.notifications.couldntSendSMSCodeContent',
-                illustration: Illustrations.HumptyDumpty,
-                iconWidth: variables.humptyDumptyWidth,
-                iconHeight: variables.humptyDumptyHeight,
                 padding: styles.p0,
             };
         default:
@@ -130,7 +78,11 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
 
+    // TODO: replace with notification which gets the actual data from SCENARIO file
     const data = getNotificationData(route.params.notificationType);
+
+    // data2  // TODO: replace with the correct data from MFAcontext
+    const {headerTitle, title, content} = {headerTitle: "headerTitle", title: "Title", content: "Content"};
 
     if (!data) {
         return <NotFoundPage/>;
@@ -139,7 +91,7 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
     return (
         <ScreenWrapper testID={multiFactorAuthenticationNotificationPage.displayName}>
             <HeaderWithBackButton
-                title={translate(data.headerTitle ? data.headerTitle : data.title)}
+                title={headerTitle}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
@@ -149,10 +101,10 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
                     contentFitImage="fill"
                     iconWidth = {data.iconWidth}
                     iconHeight = {data.iconHeight}
-                    title={translate(data.title)}
-                    subtitle={translate(data.content)}
+                    title={title}
+                    subtitle={content}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={data.padding}
+                    containerStyle={styles.p1} // "sometimes maybe good sometimes maybe bad" - we can either decide on one padding for all those screens or get that from MFAcontext
                     testID={multiFactorAuthenticationNotificationPage.displayName}
                 />
             </View>
