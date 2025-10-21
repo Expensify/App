@@ -50,15 +50,7 @@ function useOptions() {
     const {contacts} = useContactImport();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const {
-        selectedOptions,
-        setSelectedOptions,
-        searchTerm,
-        setSearchTerm,
-        debouncedSearchTerm,
-        toggleSelection,
-        availableOptions,
-    } = useSearchSelector({
+    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
