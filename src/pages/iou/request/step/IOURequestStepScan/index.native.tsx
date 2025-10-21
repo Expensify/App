@@ -40,7 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -58,7 +58,6 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
@@ -79,6 +78,7 @@ import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
@@ -130,7 +130,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
-    const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
@@ -238,11 +237,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            // eslint-disable-next-line deprecation/deprecation
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
@@ -250,7 +245,6 @@ function IOURequestStepScan({
                     return;
                 }
 
-                setCameraKey((prev) => prev + 1);
                 refreshCameraPermissionStatus();
             });
 
@@ -548,17 +542,17 @@ function IOURequestStepScan({
      */
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            if (!file.uri) {
+            if (!file?.uri) {
                 return;
             }
 
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, file.type, true);
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, undefined, true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const dismissMultiScanEducationalPopup = () => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);
@@ -580,7 +574,7 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
@@ -597,7 +591,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
-            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
+            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true);
         });
 
         if (shouldSkipConfirmation) {
@@ -696,24 +690,33 @@ function IOURequestStepScan({
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
-                            // react-native-vision-camera always returns JPEG format for camera captures
-                            // See: https://github.com/mrousavy/react-native-vision-camera/issues/2357#issuecomment-1882633998
-                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            if (isEditing) {
-                                updateScanAndNavigate(photo, source);
-                                return;
-                            }
+                            readFileAsync(
+                                source,
+                                filename,
+                                (file) => {
+                                    if (isEditing) {
+                                        updateScanAndNavigate(file, source);
+                                        return;
+                                    }
 
-                            const newReceiptFiles = [...receiptFiles, {file: photo, source, transactionID}];
-                            setReceiptFiles(newReceiptFiles);
+                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+                                    setReceiptFiles(newReceiptFiles);
 
-                            if (isMultiScanEnabled) {
-                                setDidCapturePhoto(false);
-                                return;
-                            }
+                                    if (isMultiScanEnabled) {
+                                        setDidCapturePhoto(false);
+                                        return;
+                                    }
 
-                            submitReceipts(newReceiptFiles);
+                                    submitReceipts(newReceiptFiles);
+                                },
+                                () => {
+                                    setDidCapturePhoto(false);
+                                    showCameraAlert();
+                                    Log.warn('Error reading photo');
+                                },
+                            );
                         });
                     })
                     .catch((error: string) => {
@@ -811,7 +814,6 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={styles.flex1}>
                                     <NavigationAwareCamera
-                                        key={cameraKey}
                                         ref={camera}
                                         device={device}
                                         style={styles.flex1}
