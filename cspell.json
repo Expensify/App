@@ -767,7 +767,8 @@
         "Dtype",
         "Areport",
         "mple",
-        "Selec"
+        "Selec",
+        "setuptools"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
