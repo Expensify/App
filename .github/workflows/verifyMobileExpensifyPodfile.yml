@@ -19,6 +19,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
 
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh verifyMobileExpensify
