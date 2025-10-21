@@ -67,6 +67,9 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
             shouldUseScrollView={SubStep !== NetSuiteTokenInputForm}
+            shouldEnableMaxHeight={false}
+            shouldEnableKeyboardAvoidingView={false}
+            shouldAvoidScrollOnVirtualViewport={false}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

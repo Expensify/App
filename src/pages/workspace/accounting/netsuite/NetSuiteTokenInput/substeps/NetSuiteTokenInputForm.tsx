@@ -52,19 +52,20 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     );
 
     return (
-        <View style={[styles.flexGrow1, styles.ph5]}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
-
-            <FormProvider
-                formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
-                style={styles.flexGrow1}
-                validate={validate}
-                onSubmit={connectPolicy}
-                submitButtonText={translate('common.confirm')}
-                shouldValidateOnBlur
-                shouldValidateOnChange
-                addBottomSafeAreaPadding
-            >
+        <FormProvider
+            formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
+            style={styles.flexGrow1}
+            validate={validate}
+            onSubmit={connectPolicy}
+            submitButtonText={translate('common.confirm')}
+            submitButtonStyles={[styles.ph5]}
+            shouldValidateOnBlur
+            shouldValidateOnChange
+            shouldUseScrollView
+            addBottomSafeAreaPadding
+        >
+            <View style={styles.ph5}>
+                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
                 {formInputs.map((formInput, index) => (
                     <View
                         style={styles.mb4}
@@ -90,8 +91,8 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                         )}
                     </View>
                 ))}
-            </FormProvider>
-        </View>
+            </View>
+        </FormProvider>
     );
 }
 
