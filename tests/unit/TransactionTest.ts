@@ -470,6 +470,68 @@ describe('Transaction', () => {
 
             mockAPIWrite.mockRestore();
         });
+
+        it('should work with data from useOnyx hook', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await waitForBatchedUpdates();
+
+            // When using useOnyx to get the data
+            const {result: allReportsResult} = renderHook(() => useOnyx(ONYXKEYS.COLLECTION.REPORT));
+            const {result: allTransactionsResult} = renderHook(() => useOnyx(ONYXKEYS.COLLECTION.TRANSACTION));
+            const {result: allTransactionViolationsResult} = renderHook(() => useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS));
+
+            await waitFor(() => {
+                expect(allReportsResult.current[0]).toBeDefined();
+                expect(allTransactionsResult.current[0]).toBeDefined();
+            });
+
+            // When changing transactions report using data from useOnyx
+            await act(async () => {
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
+                    reportID: FAKE_NEW_REPORT_ID,
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    allReportsCollection: allReportsResult.current[0] ?? {},
+                    allTransactionsCollection: allTransactionsResult.current[0] ?? {},
+                    allTransactionViolationsCollection: allTransactionViolationsResult.current[0] ?? {},
+                });
+                await waitForBatchedUpdates();
+            });
+
+            // Then the API should have been called with correct parameters
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const parameters = apiWriteCall?.[1] as {reportID: string; transactionList: string; transactionIDToReportActionAndThreadData: string};
+
+            expect(parameters).toBeDefined();
+            expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
+            expect(parameters.transactionList).toBe(transaction.transactionID);
+
+            mockAPIWrite.mockRestore();
+        });
     });
 
     describe('getAllNonDeletedTransactions', () => {
