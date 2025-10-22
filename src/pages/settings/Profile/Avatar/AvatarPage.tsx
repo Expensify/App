@@ -51,6 +51,7 @@ function ProfileAvatar() {
 
     const [selected, setSelected] = useState<string | undefined>();
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
+    const isSavingRef = useRef(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -151,6 +152,8 @@ function ProfileAvatar() {
     });
 
     const onPress = useCallback(() => {
+        isSavingRef.current = true;
+
         if (imageData.file) {
             updateAvatar(imageData.file, {
                 avatar: currentUserPersonalDetails?.avatar,
@@ -159,6 +162,7 @@ function ProfileAvatar() {
             });
             setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
+            isSavingRef.current = false;
             return;
         }
 
@@ -177,25 +181,24 @@ function ProfileAvatar() {
             );
             setSelected(undefined);
             Navigation.dismissModal();
+            isSavingRef.current = false;
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
+            isSavingRef.current = false;
             return;
         }
         // User selected a letter avatar
-        avatarCaptureRef.current
-            .capture()
-            ?.then((file) => {
-                updateAvatar(file, {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                    accountID: currentUserPersonalDetails?.accountID,
-                });
-                setSelected(undefined);
-            })
-            .then(() => {
-                Navigation.dismissModal();
+        avatarCaptureRef.current.capture()?.then((file) => {
+            updateAvatar(file, {
+                avatar: currentUserPersonalDetails?.avatar,
+                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                accountID: currentUserPersonalDetails?.accountID,
             });
+            setSelected(undefined);
+            Navigation.dismissModal();
+            isSavingRef.current = false;
+        });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
     return (
@@ -312,7 +315,7 @@ function ProfileAvatar() {
                 imageType={cropImageData.type}
                 buttonLabel={translate('avatarPage.upload')}
             />
-            <DiscardChangesConfirmation getHasUnsavedChanges={() => isDirty} />
+            <DiscardChangesConfirmation getHasUnsavedChanges={() => !isSavingRef.current && isDirty} />
         </ScreenWrapper>
     );
 }
