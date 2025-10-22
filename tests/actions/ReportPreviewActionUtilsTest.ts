@@ -550,7 +550,7 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(violations, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
-    it('should return REVIEW when strict policy rules are enabled and report has violations', async () => {
+    it('canReview should return true when strict policy rules are enabled and report has violations', async () => {
         const hasAnyViolationsMock = ReportUtils.hasAnyViolations as jest.Mock;
         hasAnyViolationsMock.mockReturnValue(true);
 
