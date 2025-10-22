@@ -88,7 +88,6 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 localeCompare,
                 lastActionReport: undefined,
-                isReportArchived: undefined,
             }),
         );
     });
