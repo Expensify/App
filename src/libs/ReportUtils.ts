@@ -4964,6 +4964,7 @@ function getReportPreviewMessage(
             if (isFromInvoice) {
                 translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
                 const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal(translatePhraseKey, {
                     amount: formattedAmount,
                     last4Digits: currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '',

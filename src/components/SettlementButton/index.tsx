@@ -229,10 +229,18 @@ function SettlementButton({
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: shouldUseShortForm ? translate('iou.pay') : translate('iou.payElsewhere', {formattedAmount: ''}),
+                text: translate('iou.payElsewhere', {formattedAmount: ''}),
                 icon: Expensicons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                shouldUpdateSelectedIndex: false,
             },
+        };
+
+        const shortFormPayElsewwhereButton = {
+            text: translate('iou.pay'),
+            icon: Expensicons.CheckCircle,
+            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            shouldUpdateSelectedIndex: false,
         };
 
         const approveButtonOption = {
@@ -255,7 +263,7 @@ function SettlementButton({
         }
 
         if (onlyShowPayElsewhere) {
-            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+            return [shouldUseShortForm ? shortFormPayElsewwhereButton : paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
@@ -536,7 +544,7 @@ function SettlementButton({
         return false;
     });
 
-    const shouldUseSplitButton = !!secondaryText && (hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isExpenseReport || isInvoiceReport) && hasIntentToPay));
+    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isExpenseReport || isInvoiceReport) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (
