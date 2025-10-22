@@ -57,6 +57,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
         }
 
+        // Format selected options to display
         const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,

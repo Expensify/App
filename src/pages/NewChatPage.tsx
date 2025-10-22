@@ -50,6 +50,7 @@ function useOptions() {
     const {contacts} = useContactImport();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
+    // Filter options which include recent reports, recent contacts, selfDM, invite option and match with the search term
     const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
@@ -168,6 +169,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
+        // Format selected options to display
         const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, undefined, undefined, undefined, reportAttributesDerived);
         sectionsList.push(formatResults.section);
 
@@ -215,6 +217,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             if (!option.isSelected) {
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
+
             selectionListRef?.current?.clearInputAfterSelect?.();
             if (!canUseTouchScreen()) {
                 selectionListRef.current?.focusTextInput();

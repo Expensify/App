@@ -124,7 +124,7 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
-const isOptionMatch = (option1: OptionData, option2: OptionData) => {
+const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
         (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
@@ -316,11 +316,11 @@ function useSearchSelectorBase({
                 return;
             }
 
-            const isSelected = selectedOptions.some((selected) => isOptionMatch(selected, option));
-            const newSelected = isSelected ? selectedOptions.filter((selected) => !isOptionMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
+            const isSelected = selectedOptions.some((selected) => doOptionsMatch(selected, option));
+            const newlySelected = isSelected ? selectedOptions.filter((selected) => !doOptionsMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
 
-            setSelectedOptions(newSelected);
-            onSelectionChange?.(newSelected);
+            setSelectedOptions(newlySelected);
+            onSelectionChange?.(newlySelected);
         },
         [selectedOptions, selectionMode, onSelectionChange, onSingleSelect],
     );
