@@ -105,14 +105,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(policies, introSelected);
+    const freeTrialText = getFreeTrialText(policies, introSelected, firstDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
