@@ -111,6 +111,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -3663,6 +3664,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3686,6 +3688,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3714,6 +3717,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3766,6 +3770,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3788,6 +3793,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3810,6 +3816,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3832,6 +3839,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3867,6 +3875,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3953,6 +3962,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeSelfDM,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3979,6 +3989,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3998,6 +4009,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4020,6 +4032,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4062,6 +4075,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4081,6 +4095,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4102,6 +4117,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4147,6 +4163,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4166,6 +4183,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4199,6 +4217,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -5777,6 +5796,28 @@ describe('ReportUtils', () => {
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            // Then the result is null
+            expect(result).toBe(null);
+        });
+        it('should return null for an archived report when there is a policy pending join request', async () => {
+            // Given an archived admin room with a pending join request
+            const joinRequestReportAction: ReportAction = {
+                ...createRandomReportAction(50400),
+                originalMessage: {
+                    choice: '' as JoinWorkspaceResolution,
+                    policyID: '1',
+                },
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            };
+
+            const adminReport = createAdminRoom(34001);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReport.reportID}`, {[joinRequestReportAction.reportActionID]: joinRequestReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);

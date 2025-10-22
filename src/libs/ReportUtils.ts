@@ -241,7 +241,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -1243,14 +1242,6 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
     } else {
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     }
-}
-
-/**
- * Returns the report
- * @deprecated Get the data straight from Onyx
- */
-function getReportNameValuePairs(reportID?: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair): OnyxEntry<ReportNameValuePairs> {
-    return reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
 }
 
 /**
@@ -3926,13 +3917,6 @@ function getReasonAndReportActionThatRequiresAttention(
 
     const reportActions = getAllReportActions(optionOrReport.reportID);
 
-    if (isJoinRequestInAdminRoom(optionOrReport)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
-            reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
-        };
-    }
-
     if (hasUnresolvedCardFraudAlert(optionOrReport)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
@@ -3942,6 +3926,13 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (isReportArchived) {
         return null;
+    }
+
+    if (isJoinRequestInAdminRoom(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
+            reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
+        };
     }
 
     if (isUnreadWithMention(optionOrReport)) {
@@ -4592,7 +4583,7 @@ function canEditFieldOfMoneyRequest(
             Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                 getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
             ).length > 1 ||
-            ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
         );
     }
 
@@ -8425,7 +8416,7 @@ function buildOptimisticMoneyRequestEntities({
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * Added caching mechanism via derived values.
  */
-function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return true;
     }
@@ -8443,7 +8434,7 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
  */
-function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return true;
     }
@@ -8457,7 +8448,7 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = fal
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return false;
     }
@@ -8558,7 +8549,7 @@ function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, i
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived = false): boolean {
+function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived: boolean | undefined): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
@@ -8800,7 +8791,7 @@ type ShouldReportBeInOptionListParams = {
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     draftComment: string | undefined;
 };
 
@@ -8816,7 +8807,7 @@ function reasonForReportToBeInOptionList({
     includeSelfDM = false,
     login,
     includeDomainEmail = false,
-    isReportArchived = false,
+    isReportArchived,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -9532,7 +9523,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?: boolean) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -9540,18 +9531,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?:
         return false;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    return (
-        !isArchivedNonExpenseReport(report, isReportArchived ?? !!reportNameValuePairs?.private_isArchived) &&
-        isEmptyObject(reportErrors) &&
-        report &&
-        isAllowedToComment(report) &&
-        !isAnonymousUser &&
-        canWriteInReport(report)
-    );
+    return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
@@ -9596,7 +9576,7 @@ function canCreateRequest(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    isReportArchived = false,
+    isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -11147,7 +11127,7 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report, false);
     const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
     if (lastMessageText) {
         const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);
@@ -11458,7 +11438,7 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions, isReportArchived = false) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
@@ -11922,23 +11902,6 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
     return getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName;
-}
-
-function selectArchivedReportsIdSet(all: Record<string, OnyxInputOrEntry<ReportNameValuePairs>> | null | undefined): ArchivedReportsIDSet {
-    const archivedIDs = new Set<string>();
-    if (!all) {
-        return archivedIDs;
-    }
-
-    const prefixLen = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            archivedIDs.add(key.slice(prefixLen));
-        }
-    }
-
-    return archivedIDs;
 }
 
 function selectFilteredReportActions(
@@ -12478,7 +12441,6 @@ export {
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
-    selectArchivedReportsIdSet,
     selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
@@ -12524,9 +12486,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
     getApprovalChain,
