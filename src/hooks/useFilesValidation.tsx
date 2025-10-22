@@ -42,7 +42,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [isValidatingReceipts, setIsValidatingReceipts] = useState(DEFAULT_IS_VALIDATING_RECEIPTS);
+    const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -81,11 +81,12 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     }, []);
 
     const resetValidationState = useCallback(() => {
+        setIsValidatingReceipts(undefined);
+        setIsValidatingMultipleFiles(false);
         setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
         setValidFilesToUpload([]);
-        setIsValidatingMultipleFiles(false);
         setFileError(null);
         setInvalidFileExtension('');
         setErrorQueue([]);
@@ -282,7 +283,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
-        if (validationOptions?.isValidatingReceipts) {
+        if (validationOptions?.isValidatingReceipts !== undefined) {
             setIsValidatingReceipts(validationOptions.isValidatingReceipts);
         }
 
@@ -324,7 +325,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
         // If we're validating attachments we need to use InteractionManager to ensure
         // the error modal is dismissed before opening the attachment modal
-        if (!isValidatingReceipts && fileError) {
+        if (isValidatingReceipts === false && fileError) {
             setIsErrorModalVisible(false);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -354,7 +355,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                   }}
                   onPassword={() => {
                       validatedPDFs.current.push(file);
-                      if (isValidatingReceipts) {
+                      console.log({isValidatingReceipts});
+                      if (isValidatingReceipts === true) {
                           collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                       } else {
                           validFiles.current.push(file);
@@ -374,7 +376,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
+        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
         if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
@@ -388,7 +390,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).title}
+            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}
