@@ -21,10 +21,10 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 avatarBorderColor={avatarBorderColor}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
-                parentNavigationStatusContainerStyles={styles.mt1}
+                parentNavigationStatusContainerStyles={isLargeScreenWidth ? styles.mt1 : styles.mt0Half}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro]);
+    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
 
     return (
         <View
