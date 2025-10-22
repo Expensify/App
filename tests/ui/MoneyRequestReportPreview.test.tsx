@@ -12,8 +12,9 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {getFormattedCreated, isCardTransaction} from '@libs/TransactionUtils';
+import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -90,7 +91,8 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
 const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
@@ -174,6 +176,7 @@ describe('MoneyRequestReportPreview', () => {
             await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         });
         await waitForBatchedUpdatesWithAct();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
@@ -216,9 +219,11 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify the Review button is rendered
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(translateLocal('common.review'))).toBeOnTheScreen();
 
         // Verify the button has the correct styling (danger icon)
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const reviewButton = screen.getByText(translateLocal('common.review'));
         expect(reviewButton).toBeOnTheScreen();
 
@@ -241,9 +246,11 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify the Review button is NOT rendered
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('common.review'))).not.toBeOnTheScreen();
 
         // But View button should be rendered instead
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(translateLocal('common.view'))).toBeOnTheScreen();
 
         // Clean up mocks
@@ -267,6 +274,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Find and press the Review button
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const reviewButton = screen.getByText(translateLocal('common.review'));
         expect(reviewButton).toBeOnTheScreen();
 

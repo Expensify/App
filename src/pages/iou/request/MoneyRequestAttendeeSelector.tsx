@@ -88,18 +88,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             getEmptyOptions();
         }
-        const optionList = getAttendeeOptions(
-            options.reports,
-            options.personalDetails,
+        const optionList = getAttendeeOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             betas,
             attendees,
-            recentAttendees ?? [],
-            draftComments,
-            iouType === CONST.IOU.TYPE.SUBMIT,
-            true,
-            false,
+            recentAttendees: recentAttendees ?? [],
+            draftComments: draftComments ?? {},
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
+            includeP2P: true,
+            includeInvoiceRooms: false,
             action,
-        );
+            countryCode: countryCode ?? CONST.DEFAULT_COUNTRY_CODE,
+        });
         if (isPaidGroupPolicy) {
             const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatRoomsOverThreads: true,
@@ -123,6 +124,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         action,
         isPaidGroupPolicy,
         searchTerm,
+        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -212,6 +214,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!chatOptions?.userToInvite,
             cleanSearchTerm,
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            countryCode,
         );
 
         return [newSections, headerMessage];
@@ -224,8 +227,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         cleanSearchTerm,
         attendees,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        countryCode,
     ]);
 
     const addAttendeeToSelection = useCallback(

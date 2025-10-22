@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -38,19 +38,29 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 
+    // We use a stable callback here to avoid issues with stale closures in event listeners.
+    // If we directly passed `handlePopStateRef.current` to addEventListener, the listener would
+    // capture the value of `onClose` at the time it was registered and would not update when
+    // `onClose` changes. By wrapping it in a stable useCallback and referencing
+    // handlePopStateRef.current inside, we ensure that the listener always calls the latest
+    // version of `onClose` without needing to reattach the event listener.
+    const handlePopState = useCallback(() => {
+        handlePopStateRef.current();
+    }, []);
+
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
-            window.addEventListener('popstate', handlePopStateRef.current);
+            window.addEventListener('popstate', handlePopState);
         }
         onModalShow?.();
     };
 
     useEffect(
         () => () => {
-            window.removeEventListener('popstate', handlePopStateRef.current);
+            window.removeEventListener('popstate', handlePopState);
         },
-        [],
+        [handlePopState],
     );
 
     const onModalWillShow = () => {
