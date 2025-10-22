@@ -769,6 +769,7 @@ function WorkspacesListPage() {
                 }}
                 prompt={confirmModalPrompt()}
                 confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
                 success
             />
             <ConfirmModal
