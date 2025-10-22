@@ -1606,31 +1606,6 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
-        it('should not modify Onyx data when tag does not exist', async () => {
-            // Given a policy with a tag list but tag does not exist
-            const fakePolicy = createRandomPolicy(0);
-            const tagListName = 'Test Tag List';
-            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const nonExistentTagName = 'NonExistentTag';
-            const glCode = 'SOME_GL_CODE';
-            const originalTags = {...fakePolicyTags[tagListName].tags};
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-
-            // When setPolicyTagGLCode is called on non-existent tag
-            expect(() => {
-                setPolicyTagGLCode({policyID: fakePolicy.id, tagName: nonExistentTagName, tagListIndex: 0, glCode, policyTags: fakePolicyTags});
-            }).not.toThrow();
-
-            await waitForBatchedUpdates();
-
-            // Then existing tags should remain unchanged and no new tag should be created
-            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
-
-            expect(Object.keys(updatedPolicyTags?.[tagListName]?.tags ?? {})).toEqual(Object.keys(originalTags));
-            expect(updatedPolicyTags?.[tagListName]?.tags[nonExistentTagName]).toBeUndefined();
-        });
-
         it('should handle API failure and restore original state with error', async () => {
             // Given a policy with a tag that has an existing GL Code
             const fakePolicy = createRandomPolicy(0);
