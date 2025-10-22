@@ -945,6 +945,10 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
     ContactMethodsRouteParams,
@@ -1256,4 +1260,5 @@ export type {
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
     ReportFieldParams,
+    FocusModeUpdateParams,
 };

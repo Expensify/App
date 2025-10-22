@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2706,8 +2707,8 @@ ${merchant}的${amount} - ${date}`,
     },
     focusModeUpdateModal: {
         title: '欢迎进入#专注模式！',
-        prompt: '通过仅查看未读聊天或需要您注意的聊天来保持对事物的掌控。别担心，您可以随时在',
-        settings: '设置',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `通过仅查看未读聊天或需要您注意的聊天来保持对事物的掌控。别担心，您可以随时在<a href="${priorityModePageUrl}">设置</a>中更改。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: '您要查找的聊天无法找到。',
@@ -6544,14 +6545,8 @@ ${merchant}的${amount} - ${date}`,
         copyReferralLink: '复制邀请链接',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: '与您的设置专家聊天',
-            phrase2: '帮助',
-        },
-        default: {
-            phrase1: '消息',
-            phrase2: '帮助设置',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) => `与您的设置专家聊天在 <a href="${href}">${adminReportName}</a> 帮助`,
+        default: `消息 <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> 帮助设置`,
     },
     violations: {
         allTagLevelsRequired: '所有标签均为必填项',

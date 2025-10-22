@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2743,8 +2744,8 @@ ${amount} per ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Benvenuto in modalità #focus!',
-        prompt: 'Rimani al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento in',
-        settings: 'impostazioni',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Rimani al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento in <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La chat che stai cercando non può essere trovata.',
@@ -6695,14 +6696,9 @@ ${amount} per ${merchant} - ${date}`,
         copyReferralLink: 'Copia il link di invito',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatta con il tuo specialista di configurazione in',
-            phrase2: 'per assistenza',
-        },
-        default: {
-            phrase1: 'Messaggio',
-            phrase2: 'per assistenza con la configurazione',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatta con il tuo specialista di configurazione in <a href="${href}">${adminReportName}</a> per assistenza`,
+        default: `Messaggio <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> per assistenza con la configurazione`,
     },
     violations: {
         allTagLevelsRequired: 'Tutti i tag richiesti',
