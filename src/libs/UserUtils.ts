@@ -183,8 +183,8 @@ function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
     }
 
     // Extract avatar name from CloudFront URL and make sure it's one of defaults
-    const match = avatarURL.split('/').at(-1)?.split('.')?.[0];
-    if (Object.keys(ALL_CUSTOM_AVATARS).includes(match ?? '')) {
+    const match = avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '';
+    if (Object.keys(ALL_CUSTOM_AVATARS).includes(match)) {
         return match;
     }
 }
