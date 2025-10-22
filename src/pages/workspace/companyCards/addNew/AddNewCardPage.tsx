@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -133,6 +134,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
+                    navigateToConciergeChat();
                 }}
             />
         </>
