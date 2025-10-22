@@ -22,8 +22,8 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -118,6 +118,7 @@ function mapTransactionItemToSelectedEntry(
             isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
+            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
         },
     ];
 }
@@ -201,6 +202,7 @@ function prepareTransactionsList(
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
+            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
         },
     };
 }
