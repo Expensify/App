@@ -2214,10 +2214,9 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中',
+        generatingPDF: 'PDFを生成中...',
         waitForPDF: 'PDFを生成するまでお待ちください',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
-        generatedPDF: 'あなたのレポートPDFが生成されました！',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',

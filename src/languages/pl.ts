@@ -2219,10 +2219,9 @@ ${amount} dla ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `w ${policyName}`,
-        generatingPDF: 'Generowanie PDF',
+        generatingPDF: 'Generowanie PDF...',
         waitForPDF: 'Proszę czekać, generujemy PDF',
         errorPDF: 'Wystąpił błąd podczas próby wygenerowania Twojego PDF-a.',
-        generatedPDF: 'Twój raport PDF został wygenerowany!',
     },
     reportDescriptionPage: {
         roomDescription: 'Opis pokoju',

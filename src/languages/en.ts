@@ -2200,7 +2200,6 @@ const translations = {
         generatingPDF: 'Generating PDF...',
         waitForPDF: 'Please wait while we generate the PDF',
         errorPDF: 'There was an error when trying to generate your PDF',
-        generatedPDF: 'Hang tight! Your file will download in just a moment.',
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',

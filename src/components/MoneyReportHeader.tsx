@@ -289,13 +289,10 @@ function MoneyReportHeader({
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
 
     const messagePDF = useMemo(() => {
-        if (!reportPDFFilename) {
-            return translate('reportDetailsPage.waitForPDF');
-        }
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
         }
-        return translate('reportDetailsPage.generatedPDF');
+        return translate('reportDetailsPage.waitForPDF');
     }, [reportPDFFilename, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
@@ -1496,8 +1493,8 @@ function MoneyReportHeader({
                 innerContainerStyle={styles.pv0}
             >
                 <View style={[styles.m5]}>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.dFlex, styles.mb4, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.mb4]}>
+                        <View style={[styles.dFlex, styles.flex1]}>
                             <Header
                                 title={translate('reportDetailsPage.generatingPDF')}
                                 containerStyles={[styles.alignItemsCenter]}
