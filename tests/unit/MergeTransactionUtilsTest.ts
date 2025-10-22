@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
@@ -628,6 +629,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('merchant', transaction, translateLocal);
 
             // Then it should return empty string
@@ -643,7 +645,9 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const billableResult = getDisplayValue('billable', transaction, translateLocal);
 
             // Then it should return translated Yes/No values
@@ -660,6 +664,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('amount', transaction, translateLocal);
 
             // Then it should return formatted currency string
@@ -676,6 +681,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('description', transaction, translateLocal);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
@@ -690,6 +696,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('tag', transaction, translateLocal);
 
             // Then it should return sanitized tag names separated by commas
@@ -703,7 +710,7 @@ describe('MergeTransactionUtils', () => {
                 {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
             ];
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('attendees', transaction, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
@@ -719,7 +726,9 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const categoryResult = getDisplayValue('category', transaction, translateLocal);
 
             // Then it should return the string values
@@ -815,9 +824,11 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the error text for attendees field
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getMergeFieldErrorText(translateLocal, mergeField);
 
             // Then it should return the specific attendees error message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectAttendees'));
         });
 
@@ -830,9 +841,11 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the error text for merchant field
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getMergeFieldErrorText(translateLocal, mergeField);
 
             // Then it should return the generic error message with lowercase field name
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
         });
     });

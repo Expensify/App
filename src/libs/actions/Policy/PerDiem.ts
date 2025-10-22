@@ -6,6 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
@@ -111,7 +112,9 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
                     },
                 },
@@ -124,6 +127,7 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
             },
