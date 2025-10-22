@@ -16,7 +16,7 @@ type LegalNameUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string}
 
 function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
     const {translate} = useLocalize();
-
+    // eslint-disable-next-line rulesdir/provide-canBeMissing-in-useOnyx
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}` as keyof FormOnyxValues;

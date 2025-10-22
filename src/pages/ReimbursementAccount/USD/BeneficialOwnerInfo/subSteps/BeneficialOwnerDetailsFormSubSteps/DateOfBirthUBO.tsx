@@ -15,7 +15,7 @@ type DateOfBirthUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: strin
 
 function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: DateOfBirthUBOProps) {
     const {translate} = useLocalize();
-
+    // eslint-disable-next-line rulesdir/provide-canBeMissing-in-useOnyx
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}` as const;

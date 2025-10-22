@@ -14,6 +14,7 @@ const {DOB, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENE
 
 function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: DateOfBirthProps) {
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/provide-canBeMissing-in-useOnyx
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${PREFIX}_${ownerBeingModifiedID}_${DOB}` as const;

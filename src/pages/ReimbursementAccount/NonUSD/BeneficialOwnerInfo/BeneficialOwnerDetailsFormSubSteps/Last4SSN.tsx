@@ -16,6 +16,7 @@ const {SSN_LAST_4, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_ST
 
 function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: Last4SSNProps) {
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/provide-canBeMissing-in-useOnyx
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const last4SSNInputID = `${PREFIX}_${ownerBeingModifiedID}_${SSN_LAST_4}` as const;
