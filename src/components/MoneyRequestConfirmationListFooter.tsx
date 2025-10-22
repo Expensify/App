@@ -1,46 +1,37 @@
-import {emailSelector} from '@selectors/Session';
-import {format} from 'date-fns';
-import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import { emailSelector } from '@selectors/Session';
+import { format } from 'date-fns';
+import { Str } from 'expensify-common';
+import { deepEqual } from 'fast-equals';
+import React, { memo, useMemo } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import { shouldShowReceiptEmptyState } from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
-import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
-import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {
-    getTagForDisplay,
-    getTaxAmount,
-    getTaxName,
-    isAmountMissing,
-    isCreatedMissing,
-    isFetchingWaypointsFromServer,
-    isManagedCardTransaction,
-    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
-} from '@libs/TransactionUtils';
+import { getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay } from '@libs/PerDiemRequestUtils';
+import { canSendInvoice, getPerDiemCustomUnit } from '@libs/PolicyUtils';
+import type { ThumbnailAndImageURI } from '@libs/ReceiptUtils';
+import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
+import { generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding } from '@libs/ReportUtils';
+import { getTagVisibility, hasEnabledTags } from '@libs/TagsOptionsListUtils';
+import { getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, isFetchingWaypointsFromServer, isManagedCardTransaction, shouldShowAttendees as shouldShowAttendeesTransactionUtils } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type { IOUAction, IOUType } from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Attendee, Participant } from '@src/types/onyx/IOU';
+import type { Unit } from '@src/types/onyx/Policy';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -51,7 +42,8 @@ import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
-import {ShowContextMenuContext} from './ShowContextMenuContext';
+import { ShowContextMenuContext } from './ShowContextMenuContext';
+
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -279,6 +271,7 @@ function MoneyRequestConfirmationListFooter({
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
@@ -345,7 +338,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable = (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
