@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -717,6 +718,59 @@ describe('actions/Policy', () => {
             expect(policy?.autoReporting).toBe(autoReporting);
             expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
         });
+
+        it('upgradeToCorporate should set eReceipts to true when outputCurrency is USD', async () => {
+            // Given a policy with USD currency
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                eReceipts: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then eReceipts should be enabled
+            expect(policy?.eReceipts).toBe(true);
+        });
+
+        it("upgradeToCorporate shouldn't set eReceipts to true when outputCurrency is not USD", async () => {
+            // Given a policy with non-USD currency
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.EUR,
+                eReceipts: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
+        });
     });
 
     describe('disableWorkflows', () => {
@@ -1026,7 +1080,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
@@ -1040,7 +1094,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
@@ -1056,7 +1110,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
@@ -1075,7 +1129,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
 
@@ -1087,7 +1141,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
@@ -1110,7 +1164,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
     });
@@ -1178,6 +1232,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
@@ -1216,6 +1271,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
