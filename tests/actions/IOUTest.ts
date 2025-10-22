@@ -8,7 +8,6 @@ import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx'
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
-import useLocalize from '@hooks/useLocalize';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -60,6 +59,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -1642,8 +1642,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
-                                        const {result} = renderHook(() => useLocalize());
-                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(result.current.translate('iou.error.genericCreateFailureMessage'));
+                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
@@ -1945,8 +1944,7 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
-            const {result} = renderHook(() => useLocalize());
-            expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(result.current.translate('workspace.people.error.genericAdd'));
+            expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
             mockFetch?.succeed?.();
@@ -3462,8 +3460,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    const {result} = renderHook(() => useLocalize());
-                                    expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(result.current.translate('iou.error.other'));
+                                    expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });
