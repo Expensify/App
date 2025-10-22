@@ -75,7 +75,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchPageFooter from './SearchPageFooter';
+import SearchPageFooter, { SearchPageFooterProps } from './SearchPageFooter';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -841,16 +841,33 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
 
-    const visibleData = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-    const visibleDataLength = visibleData.length;
-    const shouldShowFooter = (type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE || type === CONST.SEARCH.DATA_TYPES.TRIP) && visibleDataLength > 0;
+    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    const deletedData = data.filter((item) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline);
 
+    const searchMetadata = searchResults?.search;
     const footerData = useMemo(() => {
-        if (!shouldShowFooter) {
+        let calculatedFooterData: SearchPageFooterProps | null;
+        const shouldUseClientTotal = Object.keys(selectedTransactions).length > 0 && !areAllMatchingItemsSelected;
+        if (shouldUseClientTotal) {
+            calculatedFooterData = calculateSearchPageFooterData(selectedTransactions, null, groupBy, searchMetadata?.currency);
+        } else {
+            calculatedFooterData = {count: searchMetadata?.count, total: searchMetadata?.total, currency: searchMetadata?.currency};
+        }
+
+        if (!calculatedFooterData || !calculatedFooterData.count) {
             return null;
         }
-        return calculateSearchPageFooterData(selectedTransactions, visibleData, groupBy, searchResults?.search?.currency);
-    }, [shouldShowFooter, selectedTransactions, visibleData, groupBy, searchResults?.search?.currency]);
+
+        // Substitute the deleted data from the calculated footer data so that the footer shows optimistic data
+        if (deletedData.length > 0 && calculatedFooterData.count) {
+            const deletedTransactionsData = calculateSearchPageFooterData({}, deletedData, groupBy, searchMetadata?.currency);
+            calculatedFooterData.count = calculatedFooterData.count - (deletedTransactionsData?.count ?? 0);
+            if (calculatedFooterData.total) {
+                calculatedFooterData.total = calculatedFooterData.total - (deletedTransactionsData?.total ?? 0);
+            }
+        }
+        return calculatedFooterData;
+    }, [areAllMatchingItemsSelected, searchMetadata, selectedTransactions, groupBy]);
 
     if (shouldShowLoadingState) {
         return (

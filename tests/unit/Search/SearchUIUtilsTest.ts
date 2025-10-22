@@ -2853,6 +2853,7 @@ describe('SearchUIUtils', () => {
             amount,
             convertedAmount: amount,
             convertedCurrency: currency,
+            currency,
         });
 
         it('should return null when no data provided', () => {
@@ -2874,14 +2875,14 @@ describe('SearchUIUtils', () => {
             });
         });
 
-        it('should calculate footer data for visible transactions (ungrouped and grouped)', () => {
+        it('should calculate footer data for search data (ungrouped and grouped)', () => {
             // Ungrouped transactions
-            const visibleData = [
+            const searchData = [
                 {...transactionsListItems.at(0), convertedAmount: 10000, convertedCurrency: 'USD'},
                 {...transactionsListItems.at(0), convertedAmount: 15000, convertedCurrency: 'USD'},
             ] as TransactionListItemType[];
 
-            const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
+            const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, searchData, undefined, 'USD');
             expect(ungroupedResult).toEqual({
                 count: 2,
                 total: 25000,
@@ -2912,22 +2913,22 @@ describe('SearchUIUtils', () => {
         });
 
         it('should use Math.abs for negative amounts and prioritize selected transactions', () => {
-            // Test negative amounts with visible data
-            const visibleData = [
+            // Test negative amounts with search data
+            const searchData = [
                 {...transactionsListItems.at(0), convertedAmount: -10000},
                 {...transactionsListItems.at(0), convertedAmount: -5000},
             ] as TransactionListItemType[];
 
-            const visibleResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
-            expect(visibleResult).toEqual({
+            const result = SearchUIUtils.calculateSearchPageFooterData({}, searchData, undefined, 'USD');
+            expect(result).toEqual({
                 count: 2,
                 total: 15000, // abs(-10000) + abs(-5000)
                 currency: 'USD',
             });
 
-            // Test that selected transactions are prioritized over visible data
+            // Test that selected transactions are prioritized over search data
             const selectedTransactions = {txn1: mockTransaction(5000)};
-            const priorityResult = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, visibleData, undefined, 'USD');
+            const priorityResult = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, searchData, undefined, 'USD');
             expect(priorityResult).toEqual({
                 count: 1,
                 total: 5000, // Only selected transaction

@@ -2369,17 +2369,17 @@ function getColumnsToShow(
 /**
  * Calculates footer data for expense search results
  * If transactions are selected, shows count and total for selected transactions only
- * Otherwise, shows count and total for all visible transactions
+ * Otherwise, calculates count and total for given search data
  *
  * @param selectedTransactions - The currently selected transactions
- * @param visibleData - The filtered search data (excluding pending deletes)
+ * @param searchData - The search data to calculate the footer data for
  * @param groupBy - The groupBy parameter from the search query
  * @param currency - The currency from search results metadata (common currency for all transactions)
  * @returns Footer data with count, total, and currency or null if not applicable
  */
 function calculateSearchPageFooterData(
     selectedTransactions: SelectedTransactions,
-    visibleData: SearchListItem[],
+    searchData: SearchListItem[] | null,
     groupBy: SearchGroupBy | undefined,
     currency: string | undefined,
 ): SearchPageFooterProps | null {
@@ -2392,11 +2392,11 @@ function calculateSearchPageFooterData(
         transactions = Object.values(selectedTransactions) as unknown as TransactionListItemType[];
     } else {
         // Otherwise, use all visible transactions
-        if (!visibleData || visibleData.length === 0) {
+        if (!searchData || searchData.length === 0) {
             return null;
         }
 
-        transactions = groupBy ? (visibleData as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : (visibleData as TransactionListItemType[]);
+        transactions = groupBy ? (searchData as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : (searchData as TransactionListItemType[]);
         if (transactions.length === 0) {
             return null;
         }

@@ -10,9 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 type SearchPageFooterProps = {
-    count: number;
-    total: number;
-    currency: string | undefined;
+    count?: number;
+    total?: number;
+    currency?: string;
 };
 
 function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
