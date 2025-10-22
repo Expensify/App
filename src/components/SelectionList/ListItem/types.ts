@@ -1,6 +1,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {AccessibilityState, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -115,7 +116,7 @@ type ListItem<K extends string | number = string> = {
     itemStyle?: StyleProp<ViewStyle>;
 
     /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
+    shouldShowRightCaret?: boolean;
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
@@ -253,6 +254,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -261,6 +264,8 @@ type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
 export type {
     BaseListItemProps,
@@ -273,4 +278,5 @@ export type {
     SingleSelectListItemProps,
     MultiSelectListItemProps,
     SpendCategorySelectorListItemProps,
+    UserListItemProps,
 };

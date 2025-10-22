@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
@@ -16,6 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
+import createRandomReportAction from '../utils/collections/reportActions';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -97,6 +100,7 @@ const getOptionRows = () => {
 };
 
 const getDisplayNames = () => {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
     return screen.queryAllByLabelText(hintText);
 };
@@ -406,6 +410,45 @@ describe('SidebarLinksData', () => {
 
             // Then the report should not disappear in the sidebar because we are in the focus mode
             expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not change the current user personal detail when a report with last action is REPORTPREVIEW is displayed', async () => {
+            // Given the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            const report: Report = {
+                ...createReport(undefined, [1, 2], undefined, undefined, undefined, true),
+                lastActorAccountID: 1,
+                lastMessageText: '123456',
+            };
+
+            const lastReportAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: 'REPORTPREVIEW',
+                actorAccountID: 2,
+                message: [],
+                originalMessage: undefined,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: TEST_USER_LOGIN,
+                    },
+                ],
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastReportAction.reportActionID]: lastReportAction});
+
+            await waitForBatchedUpdatesWithAct();
+
+            const personalDetail = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(personalDetail?.[TEST_USER_ACCOUNT_ID]?.accountID).toBe(TEST_USER_ACCOUNT_ID);
         });
     });
 

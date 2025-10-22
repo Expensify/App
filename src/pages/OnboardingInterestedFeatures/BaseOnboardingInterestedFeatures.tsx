@@ -1,8 +1,7 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -18,21 +17,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {closeReactNativeApp} from '@userActions/HybridApp';
-import CONFIG from '@src/CONFIG';
 import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +36,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard'] as const);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -61,10 +53,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const isLoading = onboarding?.isLoading;
-    const prevIsLoading = usePrevious(isLoading);
     const [width, setWidth] = useState(0);
 
     const features: Feature[] = useMemo(() => {
@@ -149,22 +138,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    useEffect(() => {
-        if (!!isLoading || !prevIsLoading) {
-            return;
-        }
-
-        if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSetNVP: true});
-            setRootStatusBarEnabled(false);
-            return;
-        }
-        // Wait for CompleteGuidedSetup and CreateWorkspace to complete before redirecting to OldDot to prevent showing this onboarding modal again.
-        waitForIdle().then(() => {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-        });
-    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
-
     const handleContinue = useCallback(() => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
@@ -217,13 +190,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
         });
 
-        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            // Do not call openOldDotLink here because it will cause a navigation loop. See https://github.com/Expensify/App/issues/61363
-            return;
-        }
-
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -259,14 +227,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => feature.enabledByDefault)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
@@ -374,7 +342,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
-                    isLoading={isLoading}
                     isDisabled={isOffline}
                     pressOnEnter
                 />
