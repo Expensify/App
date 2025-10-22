@@ -42,6 +42,8 @@ function SearchTransactionsChangeReport() {
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
+    const areAllTransactionsUnreported =
+        selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
 
     const createReport = () => {
         if (shouldSelectPolicy) {
@@ -109,6 +111,7 @@ function SearchTransactionsChangeReport() {
             removeFromReport={removeFromReport}
             createReport={createReport}
             isEditing
+            isUnreported={areAllTransactionsUnreported}
         />
     );
 }
