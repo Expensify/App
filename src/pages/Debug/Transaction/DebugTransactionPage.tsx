@@ -61,7 +61,7 @@ function DebugTransactionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting a transaction,
                     // otherwise the user will see a not found page briefly.
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                     });

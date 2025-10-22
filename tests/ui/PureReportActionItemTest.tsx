@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
@@ -54,22 +55,27 @@ describe('PureReportActionItem', () => {
         jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}).then(() =>
-            Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
                     displayName: actorEmail,
                     login: actorEmail,
                 },
-            }),
-        );
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     function renderItemWithAction(action: ReportAction) {
@@ -144,7 +150,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
@@ -163,6 +169,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.approvedMessage'))).toBeOnTheScreen();
         });
 
@@ -172,6 +179,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
         });
 
@@ -181,6 +189,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
 
@@ -191,6 +200,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
         });
 
@@ -200,6 +210,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
     });

@@ -9,6 +9,9 @@ import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from './Localize';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -252,6 +255,61 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
     return primaryLogin ?? email ?? '';
 }
 
+/**
+ * Gets details about contact methods to be displayed as MenuItems
+ */
+function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) {
+    if (!loginList) {
+        return [];
+    }
+
+    // Sort the login list by placing the one corresponding to the default contact method as the first item.
+    // The default contact method is determined by checking against the session email (the current login).
+    const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
+
+    return sortedLoginList.map(([loginName, login]) => {
+        const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
+        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
+        if (!login?.partnerUserID && !pendingAction) {
+            return null;
+        }
+
+        let description = '';
+        if (defaultEmail === login?.partnerUserID) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            description = translateLocal('contacts.getInTouch');
+        } else if (login?.errorFields?.addedLogin) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            description = translateLocal('contacts.failedNewContact');
+        } else if (!login?.validatedDate) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            description = translateLocal('contacts.pleaseVerify');
+        }
+        let indicator;
+        if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (!login?.validatedDate && !isDefaultContactMethod) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        } else if (!login?.validatedDate && isDefaultContactMethod && sortedLoginList.length > 1) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+
+        // Default to using login key if we deleted login.partnerUserID optimistically
+        // but still need to show the pending login being deleted while offline.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const partnerUserID = login?.partnerUserID || loginName;
+        const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
+
+        return {
+            partnerUserID,
+            menuItemTitle,
+            description,
+            indicator,
+            pendingAction,
+        };
+    });
+}
+
 export {
     generateAccountID,
     getAvatar,
@@ -268,5 +326,6 @@ export {
     isDefaultAvatar,
     getContactMethod,
     isCurrentUserValidated,
+    getContactMethodsOptions,
 };
 export type {AvatarSource};

@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {setSidebarLoaded} from '@userActions/App';
@@ -22,6 +23,9 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(120000);
 
+jest.mock('@libs/BootSplash', () => ({
+    hide: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
@@ -53,6 +57,7 @@ function getReportScreen(reportID = REPORT_ID) {
 }
 
 function scrollToOffset(offset: number) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {
@@ -84,8 +89,10 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
 }
@@ -194,6 +201,7 @@ async function signInAndGetApp(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     await waitForBatchedUpdatesWithAct();
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('loginForm.loginForm');
     const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);

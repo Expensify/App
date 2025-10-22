@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -42,6 +44,9 @@ type SelectedTransactionInfo = {
     /** The currency that the converted amount is in */
     convertedCurrency: string;
 
+    /** The transaction currency */
+    currency: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 };
@@ -56,6 +61,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -67,9 +73,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;
@@ -221,6 +227,14 @@ type SearchParams = {
     shouldCalculateTotals: boolean;
 };
 
+type BankAccountMenuItem = {
+    text: string;
+    description: string;
+    icon: IconAsset;
+    methodID: number | undefined;
+    value: PaymentMethod;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -255,5 +269,7 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SelectedReports,
     SearchTextFilterKeys,
+    BankAccountMenuItem,
 };
