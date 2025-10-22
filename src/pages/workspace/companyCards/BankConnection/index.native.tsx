@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
-import useIsBlockToAddFeed from '@hooks/useIsBlockToAddFeed';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -72,7 +72,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
-    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockToAddFeed(policyID);
+    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useIsBlockToAddFeed from '@hooks/useIsBlockToAddFeed';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
-    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockToAddFeed(policyID);
+    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 

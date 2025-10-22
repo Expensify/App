@@ -9,7 +9,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useIsBlockToAddFeed from '@hooks/useIsBlockToAddFeed';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -58,7 +58,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const {isBlockToAddNewFeeds} = useIsBlockToAddFeed(policyID);
+    const {isBlockToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
 
     const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
         const feed = key as CompanyCardFeed;
