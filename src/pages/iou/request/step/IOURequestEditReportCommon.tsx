@@ -34,6 +34,7 @@ type Props = {
     transactionIDs?: string[];
     selectedReportID?: string;
     selectedPolicyID?: string;
+    targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
@@ -53,6 +54,7 @@ function IOURequestEditReportCommon({
     selectReport,
     selectedReportID,
     selectedPolicyID,
+    targetOwnerAccountID,
     removeFromReport,
     isEditing = false,
     isUnreported,
@@ -66,7 +68,17 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
+    const resolvedReportOwnerAccountID = useMemo(() => {
+        if (targetOwnerAccountID !== undefined) {
+            return targetOwnerAccountID;
+        }
+
+        if (selectedReport?.ownerAccountID !== undefined) {
+            return selectedReport.ownerAccountID;
+        }
+
+        return currentUserPersonalDetails.accountID;
+    }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
@@ -75,7 +87,7 @@ function IOURequestEditReportCommon({
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isSelectedReportUnreported = useMemo(() => Boolean(isUnreported || selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
+    const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
@@ -107,7 +119,7 @@ function IOURequestEditReportCommon({
                     }
                     const reports = getOutstandingReportsForUser(
                         policyID,
-                        reportOwnerAccountID,
+                        resolvedReportOwnerAccountID,
                         outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                         reportNameValuePairs,
                         isEditing,
@@ -118,12 +130,12 @@ function IOURequestEditReportCommon({
         }
         return getOutstandingReportsForUser(
             selectedPolicyID,
-            reportOwnerAccountID,
+            resolvedReportOwnerAccountID,
             outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
             reportNameValuePairs,
             isEditing,
         );
-    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
+    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
