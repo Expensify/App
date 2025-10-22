@@ -23,8 +23,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
-const DEFAULT_IS_VALIDATING_RECEIPTS = true;
-
 type ErrorObject = {
     error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
     fileExtension?: string;
