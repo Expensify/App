@@ -29,7 +29,7 @@ type DomainsListRowProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-function DomainsListRow({title, isValidated: isVerified, isHovered, brickRoadIndicator, menuItems}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, isValidated, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -70,7 +70,7 @@ function DomainsListRow({title, isValidated: isVerified, isHovered, brickRoadInd
                     style={[styles.textStrong]}
                 />
 
-                {!isVerified && (
+                {!isValidated && (
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
                             text={translate('domain.notVerified')}
@@ -86,10 +86,8 @@ function DomainsListRow({title, isValidated: isVerified, isHovered, brickRoadInd
                 <View style={styles.touchableButtonImage}>
                     <Icon
                         src={Expensicons.NewWindow}
-                        fill={theme.icon}
-                        additionalStyles={[!isHovered && styles.opacitySemiTransparent]}
+                        fill={isHovered ? theme.iconHovered : theme.icon}
                         isButtonIcon
-                        medium
                     />
                 </View>
             </View>

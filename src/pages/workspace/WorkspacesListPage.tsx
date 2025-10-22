@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -22,9 +22,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -80,7 +78,7 @@ import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
 
-type WorkspaceItem = ListItem &
+type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
@@ -92,13 +90,13 @@ type WorkspaceItem = ListItem &
         policyID?: string;
         isJoinRequestPending?: boolean;
     };
+type DomainItem = {listItemType: 'domain'; domainAccountID: number; title: string; action: () => void; isAdmin: boolean; isValidated: boolean} & Pick<
+    OfflineWithFeedbackProps,
+    'pendingAction'
+>;
+type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
 
-// eslint-disable-next-line react/no-unused-prop-types
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
-
-type DomainItem = ListItem & {domainAccountID: number; title: string; action: () => void; isAdmin: boolean; isValidated: boolean};
-
-// eslint-disable-next-line react/no-unused-prop-types
 type GetDomainMenuItem = {item: DomainItem; index: number};
 
 /**
@@ -179,7 +177,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const listRef = useRef<SelectionListHandle>(null);
+    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -391,11 +389,7 @@ function WorkspacesListPage() {
             translate,
             policies,
             fundList,
-            styles.ph5,
-            styles.mb2,
-            styles.mh5,
-            styles.hoveredComponentBG,
-            styles.offlineFeedbackDeleted,
+            styles,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
             setIsDeletingPaidWorkspace,
@@ -490,6 +484,7 @@ function WorkspacesListPage() {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
                     const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
                     return {
+                        listItemType: 'workspace',
                         title: policyInfo.name,
                         icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
                         disabled: true,
@@ -507,6 +502,7 @@ function WorkspacesListPage() {
                     };
                 }
                 return {
+                    listItemType: 'workspace',
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     action: () => navigateToWorkspace(policy.id),
@@ -551,6 +547,7 @@ function WorkspacesListPage() {
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
 
             acc.push({
+                listItemType: 'domain',
                 domainAccountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
                 action: () => navigateToDomain({accountID: domain.accountID, isAdmin, isValidated: domain.validated}),
@@ -569,7 +566,7 @@ function WorkspacesListPage() {
         }
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
-            listRef.current?.scrollToIndex(duplicateWorkspaceIndex);
+            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
@@ -577,50 +574,47 @@ function WorkspacesListPage() {
         }
     }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
 
-    const getListHeaderComponent = useCallback(
-        () => (
-            <>
-                {isLessThanMediumScreen && <View style={styles.mt3} />}
-                {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.common.findWorkspace')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                    />
-                )}
-                {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                    <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                        <View style={[styles.flexRow, styles.flex2]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceName')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceOwner')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceType')}
-                            </Text>
-                        </View>
-                        <View style={[styles.workspaceRightColumn, styles.mr7]} />
+    const listHeaderComponent = (
+        <>
+            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.common.findWorkspace')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                />
+            )}
+            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                    <View style={[styles.flexRow, styles.flex2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceName')}
+                        </Text>
                     </View>
-                )}
-            </>
-        ),
-        [filteredWorkspaces.length, inputValue, isLessThanMediumScreen, setInputValue, styles, translate, workspaces.length],
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceOwner')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceType')}
+                        </Text>
+                    </View>
+                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
+                </View>
+            )}
+        </>
     );
 
     const getHeaderButton = () =>
@@ -665,27 +659,48 @@ function WorkspacesListPage() {
 
     useHandleBackButton(onBackButtonPress);
 
-    const sections = useMemo(
-        () =>
-            [
-                // workspaces empty state
-                {
-                    data: workspaces.length === 0 ? [{}] : [],
-                    renderItem: getWorkspacesEmptyStateComponent,
-                },
-                // workspaces
-                {data: filteredWorkspaces, renderItem: getWorkspaceMenuItem, CustomSectionHeader: getListHeaderComponent},
-                // domains
-                {
-                    data: domains,
-                    title: translate('common.domains'),
-                    renderItem: getDomainMenuItem,
-                },
-            ] as Array<SectionListDataType<WorkspaceItem | DomainItem>>,
-        [domains, filteredWorkspaces, getDomainMenuItem, getListHeaderComponent, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, translate, workspaces.length],
+    const data = useMemo(() => {
+        const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
+
+        return [
+            !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
+            filteredWorkspaces,
+            shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
+        ].flat();
+    }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
+
+    const renderItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
+        ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
+            switch (item.listItemType) {
+                case 'workspace': {
+                    return getWorkspaceMenuItem({item, index});
+                }
+
+                case 'domain': {
+                    return getDomainMenuItem({item, index});
+                }
+
+                case 'domains-header': {
+                    return (
+                        <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
+                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>
+                        </View>
+                    );
+                }
+
+                case 'workspaces-empty-state': {
+                    return getWorkspacesEmptyStateComponent();
+                }
+
+                default:
+                    return null;
+            }
+        },
+        [getDomainMenuItem, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, styles, translate],
     );
 
-    if (workspaces.length === 0 && domains.length === 0) {
+    if (!workspaces.length && !domains.length) {
         return (
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
@@ -721,11 +736,19 @@ function WorkspacesListPage() {
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                <SelectionList
-                    ref={listRef}
-                    sections={sections}
-                    sectionTitleStyles={[styles.ph5, styles.pb5, styles.mt0, styles.mb0, styles.pt3]}
-                    ListItem={RadioListItem}
+                <FlatList
+                    ref={flatlistRef}
+                    data={data}
+                    onScrollToIndexFailed={(info) => {
+                        flatlistRef.current?.scrollToOffset({
+                            offset: info.averageItemLength * info.index,
+                            animated: true,
+                        });
+                    }}
+                    renderItem={renderItem}
+                    ListHeaderComponent={listHeaderComponent}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.pb20}
                 />
             </View>
             <ConfirmModal

@@ -211,7 +211,6 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
-        SET_DEFAULT_WORKSPACE: 'Set_Default_Workspace',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -400,10 +399,6 @@ const SCREENS = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         ROOT: 'NewReportWorkspaceSelection_Root',
-    },
-
-    SET_DEFAULT_WORKSPACE: {
-        ROOT: 'SetDefaultWorkspace_Root',
     },
 
     REPORT_DETAILS: {

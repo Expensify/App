@@ -486,6 +486,8 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
 };
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
@@ -626,7 +628,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow?: (item: TItem) => void;
+    onSelectRow: (item: TItem) => void;
 
     /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
     shouldSingleExecuteRowSelect?: boolean;
