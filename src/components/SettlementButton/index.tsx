@@ -236,7 +236,7 @@ function SettlementButton({
             },
         };
 
-        const shortFormPayElsewwhereButton = {
+        const shortFormPayElsewhereButton = {
             text: translate('iou.pay'),
             icon: Expensicons.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -263,7 +263,7 @@ function SettlementButton({
         }
 
         if (onlyShowPayElsewhere) {
-            return [shouldUseShortForm ? shortFormPayElsewwhereButton : paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+            return [shouldUseShortForm ? shortFormPayElsewhereButton : paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
