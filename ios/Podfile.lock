@@ -524,6 +524,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -548,6 +550,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -571,6 +575,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -596,6 +602,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -620,6 +628,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -644,6 +654,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -668,6 +680,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -692,6 +706,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -716,6 +732,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -740,6 +758,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -764,6 +784,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -788,6 +810,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -812,6 +836,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -836,6 +862,8 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
+    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -3577,10 +3605,14 @@ PODS:
     - SocketRocket
     - Yoga
   - RNLocalize (3.5.4):
+    - boost
     - DoubleConversion
+    - fast_float
+    - fmt
     - glog
     - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
+    - RCT-Folly
+    - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
     - React-Core
@@ -3588,7 +3620,6 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
-    - React-hermes
     - React-ImageManager
     - React-jsi
     - React-NativeModulesApple
@@ -3599,6 +3630,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - SocketRocket
     - Yoga
   - rnmapbox-maps (10.1.44):
     - MapboxMaps (~> 10.19.0)
@@ -4521,7 +4553,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 4c87a84223d347f27e16dbfa3c366fa25015747f
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXConstants: 59d46d25b89f88cc38291a56dbce4d550758f72d
@@ -4553,7 +4585,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
-  fullstory_react-native: 5b94e0ee51a46073bb2c88836708f734ac6807a1
+  fullstory_react-native: fc6fb8fb753883843601a9dab328d53ff8ffe407
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -4683,7 +4715,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 9339994ea5d1ff6ad2679b7d0cc3d49053111369
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 835074fb8fd0afb493c7c2b73076a0f2738a8f63
-  RNLocalize: e3a384870bd61fccfcc46de28089371907ed2e14
+  RNLocalize: 0aa716b7d0f1316ca5f8f16ed42b79b9e3093279
   rnmapbox-maps: 870cd752e1d132e05465f3074b582ce6c7e742e9
   RNNitroSQLite: d5cf8c550c51015e1ecc93ff6e7509187c6c1c9e
   RNPermissions: d507f1fe0ee109c8f6f882808fcf8a173645e40b
