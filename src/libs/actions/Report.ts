@@ -4399,7 +4399,7 @@ function completeOnboarding({
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = onboardingData;
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -4411,8 +4411,6 @@ function completeOnboarding({
         companySize,
         userReportedIntegration,
         policyID: onboardingPolicyID,
-        selfDMReportID: selfDMParameters.reportID,
-        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
