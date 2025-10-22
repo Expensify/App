@@ -1,6 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -89,12 +89,10 @@ function TransactionDuplicateReview() {
 
     useFocusEffect(
         useCallback(() => {
-            InteractionManager.runAfterInteractions(() => {
-                if (!originalTransactionIDsListRef.current) {
-                    return;
-                }
-                setActiveTransactionIDs(originalTransactionIDsListRef.current);
-            });
+            if (!originalTransactionIDsListRef.current) {
+                return;
+            }
+            setActiveTransactionIDs(originalTransactionIDsListRef.current);
         }, []),
     );
 

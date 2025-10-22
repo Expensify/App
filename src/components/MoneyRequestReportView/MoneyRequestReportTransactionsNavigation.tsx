@@ -75,7 +75,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
+            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
                 return;
             }
             clearActiveTransactionIDs();
