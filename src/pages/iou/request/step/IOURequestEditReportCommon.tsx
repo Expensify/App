@@ -68,7 +68,7 @@ function IOURequestEditReportCommon({
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
@@ -140,16 +140,7 @@ function IOURequestEditReportCommon({
                 }
                 return true;
             })
-            .filter((report) => {
-                if (canAddTransaction(report)) {
-                    return true;
-                }
-
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const isReportPolicyAdmin = isPolicyAdmin(policy);
-                const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
-                return isReportPolicyAdmin || isReportManager;
-            })
+            .filter((report) => canAddTransaction(report))
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
@@ -163,17 +154,7 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [
-        outstandingReportsByPolicyID,
-        debouncedSearchValue,
-        expenseReports,
-        selectedReportID,
-        options.reports,
-        localeCompare,
-        allPolicies,
-        isPerDiemRequest,
-        currentUserPersonalDetails.accountID,
-    ]);
+    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare, allPolicies, isPerDiemRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

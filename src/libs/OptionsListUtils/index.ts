@@ -14,7 +14,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -1500,6 +1500,7 @@ function getUserToInviteContactOption({
     email = '',
     phone = '',
     avatar = '',
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
 }: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
     // If email is provided, use it as the primary identifier
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1508,7 +1509,7 @@ function getUserToInviteContactOption({
     // Handle phone number parsing for either provided phone or searchValue
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
 
     const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
