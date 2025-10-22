@@ -53,6 +53,22 @@ type DynamicRouteConfig = {
 
 type DynamicRoutes = Record<string, DynamicRouteConfig>;
 
+/**
+ * Dynamic routes configuration for contextual navigation paths.
+ *
+ * These routes can be appended to base paths and accessed from multiple screens
+ * based on permission rules. They create reusable UI flows while preserving
+ * the underlying navigation state.
+ *
+ * Structure:
+ * - `path`: URL suffix appended to base routes
+ * - `entryScreens`: Screens allowed to access this dynamic route
+ *
+ * Example: '/workspace/123' + 'verify-account' = '/workspace/123/verify-account'
+ *
+ * Use for: verification flows, confirmations, multi-entry workflows
+ * Avoid for: regular navigation, single-entry workflows
+ */
 const DYNAMIC_ROUTES: DynamicRoutes = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
