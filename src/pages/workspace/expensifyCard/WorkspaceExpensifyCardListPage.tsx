@@ -137,10 +137,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
+                shouldUseOptionIcon
                 wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
