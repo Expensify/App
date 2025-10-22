@@ -92,6 +92,7 @@ function getReportScreen(reportID = REPORT_ID) {
 }
 
 function scrollToOffset(offset: number) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {

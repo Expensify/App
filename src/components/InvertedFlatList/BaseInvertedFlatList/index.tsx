@@ -61,6 +61,8 @@ function BaseInvertedFlatList<T>({
         return null;
     });
     const [isInitialData, setIsInitialData] = useState(true);
+    const [isQueueRendering, setIsQueueRendering] = useState(false);
+
     const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
 
     const {displayedData, negativeScrollIndex} = useMemo(() => {
@@ -85,7 +87,7 @@ function BaseInvertedFlatList<T>({
     useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed});
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
+    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
     useEffect(() => {
         return () => {
             renderQueue.cancel();
@@ -156,6 +158,10 @@ function BaseInvertedFlatList<T>({
     );
 
     const maintainVisibleContentPosition = useMemo<ScrollViewProps['maintainVisibleContentPosition']>(() => {
+        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
+            return undefined;
+        }
+
         const enableAutoScrollToTopThreshold = shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData;
 
         return {
@@ -163,7 +169,7 @@ function BaseInvertedFlatList<T>({
             minIndexForVisible: data.length ? 0 : 0,
             autoscrollToTopThreshold: enableAutoScrollToTopThreshold ? AUTOSCROLL_TO_TOP_THRESHOLD : undefined,
         };
-    }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData, data.length]);
 
     return (
         <FlatList

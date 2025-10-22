@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import {setSidebarLoaded} from '@libs/actions/App';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import App from '@src/App';
@@ -47,8 +48,10 @@ const USER_B_EMAIL = 'user_b@test.com';
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
 }
@@ -147,6 +150,7 @@ async function signInAndGetApp(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     await waitForBatchedUpdatesWithAct();
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('loginForm.loginForm');
     const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);

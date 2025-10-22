@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2733,8 +2734,8 @@ ${amount} für ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Willkommen im #Fokus-Modus!',
-        prompt: 'Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in  ändern.',
-        settings: 'Einstellungen',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Der gesuchte Chat kann nicht gefunden werden.',
@@ -3482,6 +3483,8 @@ ${amount} für ${merchant} - ${date}`,
         verifyCompany: {
             title: 'Beginnen Sie noch heute mit dem Reisen!',
             message: `Bitte kontaktieren Sie Ihren Account Manager oder salesteam@expensify.com, um eine Demo von Travel zu erhalten und es für Ihr Unternehmen zu aktivieren.`,
+            confirmText: 'Verstanden',
+            conciergeMessage: ({domain}: {domain: string}) => `Reiseaktivierung für die Domain: ${domain} fehlgeschlagen. Bitte überprüfen und aktivieren Sie Reisen für diese Domain.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -3663,6 +3666,8 @@ ${amount} für ${merchant} - ${date}`,
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
+                centralBillingAccount: 'Zentrales Abrechnungskonto',
+                centralBillingDescription: 'Wählen Sie, wohin alle Uber-Belege importiert werden sollen.',
                 invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
@@ -6676,14 +6681,9 @@ ${amount} für ${merchant} - ${date}`,
         copyReferralLink: 'Einladungslink kopieren',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatte mit deinem Setup-Spezialisten in',
-            phrase2: 'für Hilfe',
-        },
-        default: {
-            phrase1: 'Nachricht',
-            phrase2: 'für Hilfe bei der Einrichtung',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatte mit deinem Setup-Spezialisten in <a href="${href}">${adminReportName}</a> für Hilfe`,
+        default: `Nachricht <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
@@ -7325,7 +7325,13 @@ ${amount} für ${merchant} - ${date}`,
         exportInProgress: 'Export läuft',
         conciergeWillSend: 'Concierge sendet dir die Datei in Kürze.',
     },
-    avatarPage: {title: 'Profilbild bearbeiten', uploadPhoto: 'Foto hochladen'},
+    avatarPage: {
+        title: 'Profilbild bearbeiten',
+        upload: 'Hochladen',
+        uploadPhoto: 'Foto hochladen',
+        selectAvatar: 'Avatar auswählen',
+        chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
