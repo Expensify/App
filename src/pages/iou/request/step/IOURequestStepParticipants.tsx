@@ -350,7 +350,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
