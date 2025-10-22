@@ -12,10 +12,11 @@ As stated above, pagination is a specialized subset of lazy-loading for ordered 
 
 One example of data that's appropriate for pagination is reportActions (chat messages). We can load the 50 most recent messages, then scroll back and send one network request to get the next batch of 50.
 
-One example of data that's appropriate to lazy-load but not necessarily ideal for pagination is avatar images. It's too costly to load all avatar images for all users when the app loads, so we only fetch avatar images that a user wants to see on-demand. Another example might be `personalDetails`.
+One example of data that's appropriate to lazy-load but not necessarily ideal for pagination is avatar images. It's too costly to load all avatar images for all users when the app loads, so we only fetch avatar images that a user wants to see on-demand.
 
 ## Terminology
 
+- Lazy-loading: Delaying the initialization or loading of a resource until it is actually needed (when the user or program first accesses it)
 - Pagination: Loading a large amount of ordered data page-by-page, rather than all at once.
 - Cursor: A "pointer" to a given item in the list, which has all the data needed to pinpoint the location of that item in the list.
 - Jump: In the context of this doc, "jump" means to go immediately to a different point in the list without scrolling.
@@ -84,18 +85,14 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
     If bidirectional pagination is needed, ensure that queries and API endpoints fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction. Also ensure that if a front-end list library is used, it supports bidirectional pagination (i.e: both an `onEndReached` and `onStartReached` param).
 
-5. Determine whether it's possible for **gaps** to appear in the data. Here are some examples to help illustrate what a "gap" is and how we might end up with one:
-    - "Comment linking"
-        1. User has a simple paginated list of integers in ascending order, and the frontend has loaded items 1-50.
-        2. User jumps to the middle of the list and the viewport contains items 15-35.
-        3. While they're looking at the middle of the list, more than 1 page (50 items) of data is added to the front of the list. Let's say these items are items 50-150.
-        4. They jump to the front of the list and then fetch page 100-150.
-            - _Note:_ Fetching "all the data they missed" generally isn't a scalable solution, because it's unbounded, and the unbounded loading of data is the problem pagination seeks to solve.
-        5. Now there is a gap between items 51-100 :boom:
-    - "Over-eager eviction"
-        1. A user scrolls far back in the list. So far that we decide there's too much data for us to handle all at once. Performance degrades, and we decide to start evicting the data at the front that's less-recently viewed. Let's say that the user now has items 50-100 loaded, and we've evicted items 101-200.
-        2. New data appears at the front of the list, say items 201-250. We add these items to the list as we normally would if they're looking at the front of the list.
-        3. Now there is a gap between items 101-200 (the data we evicted) :boom:
+5. Determine whether it's possible for **gaps** to appear in the data. Here is an example to help illustrate what a "gap" is and how we might end up with one:
+
+    1. User has a simple paginated list of integers in ascending order, and the frontend has loaded items 1-50.
+    2. User jumps to the middle of the list and the viewport contains items 15-35.
+    3. While they're looking at the middle of the list, more than 1 page (50 items) of data is added to the front of the list. Let's say these items are items 50-150.
+    4. They jump to the front of the list and then fetch page 100-150.
+        - _Note:_ Fetching "all the data they missed" generally isn't a scalable solution, because it's unbounded, and the unbounded loading of data is the problem pagination seeks to solve.
+    5. Now there is a gap between items 51-100 :boom:
 
     If a strategy for gap detection is required, here's a high-level summary of how it can be handled:
 
@@ -107,13 +104,11 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
     More details can be found in [the Pagination middleware](/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
 
-## Don't evict data
-The systems we've build and/or described do not have any data eviction mechanisms, and that's an intentional choice. Reject any solutions that evict data from disk, unless reading or writing from disk is clearly proven to be a bottleneck. That way, we can preserve our [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md) and provide a first-class offline UX without compromising performance.
-
 ## Rules
 
 - The cursor for each item in the list MUST be unique.
 - The cursor MUST be serializable so it can be sent in a network request (no functions).
-- The cursor SHOULD includes only the minimal fields required to define the location of an item in the list.
-- There MUST be a fast way query to get arbitrary page of data in the database.
-- If gap detection is needed, the existing Pagination Middleware SHOULD be used to detect and fill gaps.
+- The cursor SHOULD include only the minimal fields required to define the location of an item in the list.
+- Fetching an arbitrary page of results in the database MUST be fast.
+- Pagination Middleware SHOULD be used to detect and fill gaps when gap detection is necessary.
+- Data SHOULD NOT be evicted from disk, unless reading or writing from disk is clearly proven to be a bottleneck. This rule upholds our [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md) and provides a first-class offline UX without compromising performance.
