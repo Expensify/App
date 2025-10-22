@@ -75,10 +75,7 @@ function IOURequestEditReportCommon({
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isSelectedReportUnreported = useMemo(
-        () => Boolean(isUnreported || selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID),
-        [isUnreported, selectedReportID],
-    );
+    const isSelectedReportUnreported = useMemo(() => Boolean(isUnreported || selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
@@ -186,7 +183,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner && !isSelectedReportUnreported)) {
+        if (!createReport || (isEditing && !isOwner)) {
             return undefined;
         }
 
