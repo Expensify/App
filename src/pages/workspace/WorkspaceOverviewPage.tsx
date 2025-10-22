@@ -696,7 +696,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         prompt={confirmModalPrompt()}
                         confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
                         success
+                    />
+                    <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteWorkspaceErrorModalOpen}
                         onConfirm={hideDeleteWorkspaceErrorModal}
