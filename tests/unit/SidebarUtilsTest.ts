@@ -351,7 +351,6 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
-                isReportArchived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -365,7 +364,6 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
-                isReportArchived: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -898,7 +896,6 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
-                isReportArchived: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -962,7 +959,6 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
-                isReportArchived: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -1011,7 +1007,6 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1088,7 +1083,6 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1214,7 +1208,6 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -1256,7 +1249,6 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1327,7 +1319,6 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1387,7 +1378,6 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1459,7 +1449,6 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1576,7 +1565,6 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1660,7 +1648,6 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
-                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);

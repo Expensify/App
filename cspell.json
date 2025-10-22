@@ -4,6 +4,7 @@
         "--longpress",
         "Accelo",
         "achreimburse",
+        "actool",
         "adbd",
         "ADDCOMMENT",
         "Addendums",
@@ -254,6 +255,7 @@
         "GDSO",
         "genkey",
         "GEOLOCATION",
+        "getenv",
         "getprop",
         "gibsdk",
         "glcode",
@@ -818,7 +820,8 @@
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
         "modules/group-ib-fp",
-        "web/snippets/gib.js"
+        "web/snippets/gib.js",
+        "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

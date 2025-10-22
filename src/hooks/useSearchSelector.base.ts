@@ -90,11 +90,11 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
-    /** Function to update search term */
-    setSearchTerm: (value: string) => void;
-
     /** Debounced search term */
     debouncedSearchTerm: string;
+
+    /** Function to update search term */
+    setSearchTerm: (value: string) => void;
 
     /** Filtered and optimized search options with selection state */
     searchOptions: Options;
@@ -333,6 +333,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,
@@ -343,7 +344,6 @@ function useSearchSelectorBase({
         contactState: undefined,
         onListEndReached,
         selectedOptionsForDisplay,
-        debouncedSearchTerm,
     };
 }
 
