@@ -271,7 +271,6 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -591,7 +590,7 @@ function MoneyRequestConfirmationListFooter({
                     rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
-            shouldShow: shouldShowCategories || isTrackExpense,
+            shouldShow: shouldShowCategories,
         },
         {
             item: (
