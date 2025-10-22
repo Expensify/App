@@ -97,7 +97,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, countryCode]);
+    }, [options.reports, options.personalDetails, draftComments, countryCode, nvpDismissedProductTraining]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
