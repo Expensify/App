@@ -1448,7 +1448,6 @@ const translations = {
         dates: 'Dates',
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
-        waitingForSubmitterToFixViolations: 'En attente de votre correction des problèmes. Vos administrateurs ont restreint la soumission de dépenses avec des violations.',
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
         reject: {
             educationalTitle: 'Faut-il mettre en attente ou rejeter ?',

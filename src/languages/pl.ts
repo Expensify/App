@@ -1441,7 +1441,6 @@ const translations = {
         dates: 'Daty',
         rates: 'Stawki',
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
-        waitingForSubmitterToFixViolations: 'Oczekiwanie na naprawę problemów. Twoi administratorzy ograniczyli przesyłanie wydatków z naruszeniami.',
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
         reject: {
             educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',

@@ -46,7 +46,7 @@ import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButt
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
+import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
@@ -404,15 +404,7 @@ function MoneyReportHeader({
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
     if (shouldBlockSubmit && isReportOwner(moneyRequestReport)) {
-        optimisticNextStep = {
-            type: 'alert',
-            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            message: [
-                {
-                    text: translate('iou.waitingForSubmitterToFixViolations'),
-                },
-            ],
-        };
+        optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;

@@ -1438,7 +1438,6 @@ const translations = {
         dates: 'Datas',
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
-        waitingForSubmitterToFixViolations: 'Aguardando que você corrija os problemas. Seus administradores restringiram o envio de despesas com violações.',
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
         reject: {
             educationalTitle: 'Você deve reter ou rejeitar?',
