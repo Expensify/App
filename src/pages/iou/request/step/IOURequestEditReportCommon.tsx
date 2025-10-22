@@ -75,7 +75,11 @@ function IOURequestEditReportCommon({
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
+    const isSelectedReportUnreported = useMemo(
+        () => Boolean(isUnreported || selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID),
+        [isUnreported, selectedReportID],
+    );
+    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -89,7 +93,7 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isSelectedReportUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -182,7 +186,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner)) {
+        if (!createReport || (isEditing && !isOwner && !isSelectedReportUnreported)) {
             return undefined;
         }
 
@@ -194,7 +198,7 @@ function IOURequestEditReportCommon({
                 icon={Expensicons.Document}
             />
         );
-    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, isSelectedReportUnreported]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
