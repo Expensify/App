@@ -200,7 +200,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         Promise.all(
             files.map((file, index) =>
-                isValidFile(file, items.at(index), {isCheckingMultipleFiles: files.length > 1, isValidatingReceipts: validationOptions?.isValidatingReceipts ?? isValidatingReceipts}).then(
+                isValidFile(file, items.at(index), {isValidatingMultipleFiles: files.length > 1, isValidatingReceipts: validationOptions?.isValidatingReceipts ?? isValidatingReceipts}).then(
                     (isValid) => (isValid ? file : null),
                 ),
             ),
@@ -300,7 +300,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    const onConfirm = () => {
+    const onConfirmError = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             setIsErrorModalVisible(false);
             validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current);
@@ -389,7 +389,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const ErrorModal = (
         <ConfirmModal
             title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).title}
-            onConfirm={onConfirm}
+            onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}
             prompt={getModalPrompt()}
