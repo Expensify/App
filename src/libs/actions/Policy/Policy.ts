@@ -201,6 +201,7 @@ type SetWorkspaceReimbursementActionParams = {
     bankAccountID?: number;
     reimburserEmail: string;
     lastPaymentMethod?: LastPaymentMethodType | string;
+    shouldUpdateLastPaymentMethod?: boolean;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -945,7 +946,7 @@ function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
-function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail, lastPaymentMethod}: SetWorkspaceReimbursementActionParams) {
+function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail, lastPaymentMethod, shouldUpdateLastPaymentMethod}: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -978,7 +979,8 @@ function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID
         },
     ];
 
-    if (!lastUsedPaymentMethod) {
+    // We're using setWorkspaceReimbursement in several places, not all of which require updating the last used payment method.
+    if (!lastUsedPaymentMethod && shouldUpdateLastPaymentMethod) {
         successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
