@@ -462,8 +462,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             duplicateTransactionViolations,
                             iouReport,
                             chatIOUReport,
-                            isChatIOUReportArchived,
                             true,
+                            undefined,
+                            undefined,
+                            isChatIOUReportArchived,
                         );
                         removeTransaction(transaction.transactionID);
                     }
