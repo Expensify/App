@@ -54,7 +54,7 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
             <PressableWithFeedback
                 tabIndex={-1}
                 accessible={false}
-                style={[defaultStyles, styles.flexRow, styles.alignItemsCenter, style]}
+                style={[defaultStyles, styles.flexRow, styles.alignItemsCenter, styles.gap2, style]}
                 wrapperStyle={[wrapperStyle]}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}

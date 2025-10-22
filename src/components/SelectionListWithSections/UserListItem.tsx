@@ -153,25 +153,16 @@ function UserListItem<TItem extends ListItem>({
                         </View>
                     )}
                     {shouldShowCheckbox && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
+                        <Checkbox
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            style={[styles.pl3]}
+                            containerStyle={[styles.m0]}
+                            isChecked={item.isSelected}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {!!item.isSelected && (
-                                    <Icon
-                                        src={Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
+                            focusable={false}
+                        />
                     )}
                     {shouldShowRadio && (
                         <Checkbox
@@ -179,9 +170,11 @@ function UserListItem<TItem extends ListItem>({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
+                            style={[styles.pl3]}
+                            containerStyle={[styles.m0]}
                             isChecked={item.isSelected}
                             onPress={handleCheckboxPress}
+                            focusable={false}
                         />
                     )}
                 </>

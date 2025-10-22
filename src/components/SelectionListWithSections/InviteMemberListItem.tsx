@@ -154,12 +154,14 @@ function InviteMemberListItem<TItem extends ListItem>({
                         {!item.isDisabled && (
                             <Checkbox
                                 style={[styles.ml2]}
+                                containerStyle={styles.m0}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
                                 containerBorderRadius={canSelectMultiple ? 4 : 999}
                                 isChecked={item.isSelected}
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 onPress={handleCheckboxPress}
+                                focusable={false}
                             />
                         )}
                     </View>

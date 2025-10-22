@@ -56,11 +56,13 @@ function TravelDomainListItem<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <Checkbox
                         style={[styles.mr2]}
+                        containerStyle={styles.m0}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         disabled={isDisabled || item.isDisabledCheckbox}
                         isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
                         onPress={handleCheckboxPress}
+                        focusable={false}
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <TextWithTooltip

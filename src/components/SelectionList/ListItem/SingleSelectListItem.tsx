@@ -36,6 +36,9 @@ function SingleSelectListItem<TItem extends ListItem>({
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={item.isSelected}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
+                style={styles.ml3}
+                containerStyle={styles.m0}
             />
         );
     }, [item, onSelectRow]);

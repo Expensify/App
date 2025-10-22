@@ -174,6 +174,8 @@ function CardListItem<TItem extends ListItem>({
                         onPress={handleCheckboxPress}
                         disabled={!!isDisabled}
                         style={styles.ml3}
+                        containerStyle={styles.m0}
+                        focusable={false}
                     />
                 )}
             </>

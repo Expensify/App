@@ -60,6 +60,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
+
+    /** Whether this Checkbox should be focusable with a non-touch input device, eg. receive focus with a hardware keyboard. */
+    focusable?: boolean;
 };
 
 function Checkbox({
@@ -80,6 +83,7 @@ function Checkbox({
     shouldSelectOnPressEnter,
     wrapperStyle,
     ref,
+    focusable = true,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -130,6 +134,7 @@ function Checkbox({
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
+            focusable={focusable}
         >
             {children ?? (
                 <View

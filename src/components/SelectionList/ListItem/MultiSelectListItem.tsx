@@ -34,6 +34,8 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isChecked={item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
+                containerStyle={styles.m0}
             />
         );
     }, [item, onSelectRow]);

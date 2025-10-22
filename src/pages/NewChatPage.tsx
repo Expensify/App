@@ -325,6 +325,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         isChecked={item.isSelected}
                         onPress={() => toggleOption(item)}
+                        style={styles.ml2}
+                        focusable={false}
+                        containerStyle={styles.m0}
                     />
                 );
             }
