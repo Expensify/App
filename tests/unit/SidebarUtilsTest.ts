@@ -27,14 +27,6 @@ import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// Mock DraftCommentUtils
-jest.mock('@libs/DraftCommentUtils', () => ({
-    hasValidDraftComment: jest.fn(),
-    getDraftComment: jest.fn(),
-    isValidDraftComment: jest.fn(),
-    prepareDraftComment: jest.fn(),
-}));
-
 // Mock PolicyUtils
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -1358,14 +1350,22 @@ describe('SidebarUtils', () => {
                     shouldShow: true,
                     pendingAction: null,
                 };
+
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-                await act(async () => {
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
-                        name: "Three's Workspace",
-                    });
+                await Onyx.set(ONYXKEYS.SESSION, session);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
+                    name: "Three's Workspace",
                 });
+
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1621,8 +1621,21 @@ describe('SidebarUtils', () => {
                     whisperedToAccountIDs: [],
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const PERSONAL_DETAILS = {
+                    '1': {
+                        accountID: 1,
+                        login: 'email1@test.com',
+                        firstName: 'One',
+                    },
+                    '2': {
+                        accountID: 2,
+                        login: 'email2@test.com',
+                        firstName: 'Two',
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1645,14 +1658,15 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                // Given hasValidDraftComment is mocked to return true for report '2'
-                const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
-                hasValidDraftComment.mockImplementation((reportID: string) => reportID === '2');
-
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
+                // Given reportsDrafts contains a draft comment for report '2'
+                const reportsDrafts = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}2`]: 'test',
+                };
+
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1688,7 +1702,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1715,7 +1729,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, {});
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1729,7 +1743,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({});
+                const result = SidebarUtils.categorizeReportsForLHN({}, {});
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1966,7 +1980,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -1992,10 +2006,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare);
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare);
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)

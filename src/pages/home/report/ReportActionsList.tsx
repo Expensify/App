@@ -117,6 +117,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** Whether the optimistic CREATED report action was added */
+    hasCreatedActionAdded?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -155,7 +158,9 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    hasCreatedActionAdded,
 }: ReportActionsListProps) {
+    const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -351,7 +356,7 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
-            if (shouldScrollToEndAfterLayout) {
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 setShouldScrollToEndAfterLayout(false);
             }
         },
@@ -370,6 +375,14 @@ function ReportActionsList({
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+
+    useEffect(() => {
+        const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
+        if (!shouldTriggerScroll) {
+            return;
+        }
+        requestAnimationFrame(() => reportScrollManager.scrollToEnd());
+    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, shouldScrollToEndAfterLayout, reportScrollManager]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -403,13 +416,13 @@ function ReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            setIsFloatingMessageCounterVisible(false);
-
-            if (!shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToBottom();
+            if (shouldScrollToEndAfterLayout) {
+                return;
             }
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -422,7 +435,7 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
             });
@@ -431,7 +444,7 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
@@ -522,7 +535,7 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
@@ -727,13 +740,13 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
-            if (shouldScrollToEndAfterLayout) {
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 requestAnimationFrame(() => {
                     reportScrollManager.scrollToEnd();
                 });
             }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
+        [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
@@ -786,7 +799,7 @@ function ReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
@@ -820,6 +833,7 @@ function ReportActionsList({
                         shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
                     ]}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
+                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}

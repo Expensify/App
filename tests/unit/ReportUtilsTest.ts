@@ -8,8 +8,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -44,6 +47,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -55,6 +59,7 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -69,6 +74,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
@@ -90,6 +96,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -139,6 +146,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -342,6 +351,37 @@ describe('ReportUtils', () => {
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
 
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policyWithBank = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
+
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
             const title = jest.fn();
@@ -446,7 +486,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -456,7 +496,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -837,7 +877,7 @@ describe('ReportUtils', () => {
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translate(CONST.LOCALES.EN, 'parentReportAction.deletedTask'));
             });
         });
 
@@ -2165,6 +2205,30 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: true,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
@@ -3598,8 +3662,60 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
+        });
+
+        it('should return true for empty submitted report if it is the current focused report', async () => {
+            const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
+            const currentReportId = report.reportID;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return false for empty submitted report if it is not the current focused report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                total: 0,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const currentReportId = `${report.reportID}1`;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                }),
+            ).toBeFalsy();
         });
 
         it('should return true when the report has outstanding violations', async () => {
@@ -3649,6 +3765,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3670,6 +3787,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3691,6 +3809,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: 'fake draft',
                 }),
             ).toBeTruthy();
         });
@@ -3712,6 +3831,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3746,6 +3866,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3776,6 +3897,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3806,6 +3928,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3829,6 +3952,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3854,6 +3978,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3872,6 +3997,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3893,6 +4019,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3934,6 +4061,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3952,6 +4080,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3972,6 +4101,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4016,6 +4146,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4034,6 +4165,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4066,6 +4198,7 @@ describe('ReportUtils', () => {
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -5609,6 +5742,28 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
+        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
+            const report: OptionData = {
+                ...createRandomReport(40000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(40000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+        });
+
         it('should return null for an archived report', async () => {
             // Given an archived expense report that is unread with a mention
             const report: OptionData = {
@@ -5747,7 +5902,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
@@ -6811,31 +6967,31 @@ describe('ReportUtils', () => {
 
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
@@ -7247,6 +7403,71 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
+            mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('uses current search route when no backTo parameter is present', () => {
+            const reportID = '111';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+        });
+
+        it('normalizes leading slash in search routes', () => {
+            const reportID = '222';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('/search?q=type:card');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+        });
+
+        it('falls back to default search route when current route is unavailable', () => {
+            const reportID = '789';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
+        });
+    });
+
     describe('requiresManualSubmission', () => {
         it('should return true when manual submit is enabled', () => {
             const report: Report = {
@@ -7328,6 +7549,66 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
+        test('should return false when not a policy employee', () => {
+            const report = {
+                ...createRandomReport(1),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+        });
+
+        test('should return true for restricted room when policy employee', () => {
+            const report = {
+                ...createRandomReport(2),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when own chat and policy employee', () => {
+            const report = {
+                ...createRandomReport(3),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when policy admin and policy employee', () => {
+            const report = {
+                ...createRandomReport(4),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+        });
+
+        test('should return false for non-restricted, non-policy expense chat', () => {
+            const report = {
+                ...createRandomReport(5),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+
+        test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            const report = {
+                ...createRandomReport(6),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
         });
     });
 

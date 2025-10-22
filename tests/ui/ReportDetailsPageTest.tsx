@@ -3,6 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,10 +45,6 @@ describe('ReportDetailsPage', () => {
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
-        });
-
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
         const trackExpenseActionID = '123';
@@ -93,14 +90,17 @@ describe('ReportDetailsPage', () => {
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
-        const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
-        const shareText = translateLocal('actionableMentionTrackExpense.share');
-
         await screen.findByText(submitText);
-        await screen.findByText(categorizeText);
-        await screen.findByText(shareText);
+
+        // Categorize and share are temporarily disabled
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        // const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        // const shareText = translateLocal('actionableMentionTrackExpense.share');
+        // await screen.findByText(categorizeText);
+        // await screen.findByText(shareText);
 
         const movedTrackExpenseReport = {
             ...trackExpenseReport,
@@ -128,7 +128,9 @@ describe('ReportDetailsPage', () => {
         );
 
         expect(screen.queryByText(submitText)).not.toBeVisible();
-        expect(screen.queryByText(categorizeText)).not.toBeVisible();
-        expect(screen.queryByText(shareText)).not.toBeVisible();
+
+        // Categorize and share are temporarily disabled
+        // expect(screen.queryByText(categorizeText)).not.toBeVisible();
+        // expect(screen.queryByText(shareText)).not.toBeVisible();
     });
 });

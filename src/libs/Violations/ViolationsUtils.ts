@@ -1,18 +1,19 @@
 import isEmpty from 'lodash/isEmpty';
 import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
@@ -317,7 +318,9 @@ const ViolationsUtils = {
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
-        const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+        const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
+        const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -610,6 +613,29 @@ const ViolationsUtils = {
         ]
             .filter(Boolean)
             .join(' ');
+    },
+
+    /**
+     * Checks if any transactions in the report have violations that should be visible to the current user.
+     * Filters violations based on user role (submitter, admin, policy member) and report state.
+     */
+    hasVisibleViolationsForUser(report: OnyxEntry<Report>, violations: OnyxCollection<TransactionViolation[]>, policy?: OnyxEntry<Policy>, transactions?: Transaction[]): boolean {
+        if (!report || !violations || !transactions) {
+            return false;
+        }
+
+        // Check if any transaction has at least one violation visible to the current user
+        return transactions.some((transaction) => {
+            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            if (!transactionViolations) {
+                return false;
+            }
+
+            // Check if any violation should be shown based on user role and violation type
+            return transactionViolations.some((violation: TransactionViolation) => {
+                return shouldShowViolation(report, policy, violation.name);
+            });
+        });
     },
 };
 

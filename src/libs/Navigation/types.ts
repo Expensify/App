@@ -17,7 +17,7 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {AttachmentModalContainerModalProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -27,6 +27,7 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -179,6 +180,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
@@ -1403,13 +1405,6 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
-    };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
@@ -1917,7 +1912,7 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         backTo?: Routes;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS];
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -1956,6 +1951,10 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         integration: string;
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
+        policyID: string;
+        integration: string;
     };
 
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
@@ -2176,7 +2175,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AttachmentModalScreensParamList = {
-    [SCREENS.ATTACHMENTS]: AttachmentModalContainerModalProps & {
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
         accountID?: number;
@@ -2426,7 +2425,7 @@ type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-interface
+        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
         interface RootParamList extends RootNavigatorParamList {}
     }
 }
