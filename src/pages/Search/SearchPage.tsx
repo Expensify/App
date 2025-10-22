@@ -454,18 +454,21 @@ function SearchPage({route}: SearchPageProps) {
 
         const ownerAccountIDs = new Set<number>();
         let hasUnknownOwner = false;
-        selectedTransactionsKeys.forEach((id) => {
+        for (const id of selectedTransactionsKeys) {
             const transactionEntry = selectedTransactions[id];
             if (!transactionEntry) {
-                return;
+                continue;
             }
             const ownerAccountID = transactionEntry.ownerAccountID ?? getReportOrDraftReport(transactionEntry.reportID)?.ownerAccountID;
             if (typeof ownerAccountID === 'number') {
                 ownerAccountIDs.add(ownerAccountID);
+                if (ownerAccountIDs.size > 1) {
+                    break;
+                }
             } else {
                 hasUnknownOwner = true;
             }
-        });
+        }
         const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
 
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
