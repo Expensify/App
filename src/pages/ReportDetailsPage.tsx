@@ -30,7 +30,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -149,7 +148,6 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -535,43 +533,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         return items;
-    }, [
-        isSelfDM,
-        isArchivedRoom,
-        isGroupChat,
-        isDefaultRoom,
-        isChatThread,
-        isPolicyEmployee,
-        isUserCreatedPolicyRoom,
-        participants.length,
-        report,
-        isSystemChat,
-        activeChatMembers.length,
-        isPolicyExpenseChat,
-        shouldShowMenuItem,
-        isTrackExpenseReport,
-        isDeletedParentAction,
-        isMoneyRequestReport,
-        isInvoiceReport,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowGoToWorkspace,
-        shouldShowLeaveButton,
-        isDebugModeEnabled,
-        shouldOpenRoomMembersPage,
-        backTo,
-        parentReportAction,
-        iouTransactionID,
-        moneyRequestReport?.reportID,
-        isBetaEnabled,
-        session,
-        isTaskActionable,
-        isRootGroupChat,
-        leaveChat,
-        isSmallScreenWidth,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
-    ]);
+    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, activeChatMembers.length, isPolicyExpenseChat, shouldShowMenuItem, isTrackExpenseReport, isDeletedParentAction, isMoneyRequestReport, isInvoiceReport, isTaskReport, isCanceledTaskReport, shouldShowGoToWorkspace, shouldShowLeaveButton, isDebugModeEnabled, shouldOpenRoomMembersPage, backTo, parentReportAction, iouTransactionID, moneyRequestReport?.reportID, session, isTaskActionable, isRootGroupChat, leaveChat, isSmallScreenWidth, isRestrictedToPreferredPolicy, preferredPolicyID]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -870,8 +832,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isChatIOUReportArchived,
                     isSingleTransactionView,
+                    isChatIOUReportArchived,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
