@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedNamesWithType, getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -100,6 +101,7 @@ describe('Card Feed Utils', () => {
         return waitForBatchedUpdates();
     });
     it('returns display name of workspace & domain cards', () => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
         expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
@@ -113,6 +115,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, translate: translateLocal});
         expect(names).toEqual({});
     });

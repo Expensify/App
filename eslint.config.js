@@ -399,7 +399,6 @@ const config = defineConfig([
             // These rules could indicate potential bugs in the source code.
             // After fixing the source code, remove these so they become errors instead of warnings.
             '@typescript-eslint/no-base-to-string': 'warn',
-            '@typescript-eslint/no-unsafe-call': 'warn',
 
             // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
             'lines-between-class-members': 'error',
@@ -493,6 +492,7 @@ const config = defineConfig([
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
             'rulesdir/prefer-locale-compare-from-context': 'error',
+            'rulesdir/no-object-keys-includes': 'error',
         },
     },
 
