@@ -82,8 +82,7 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
-    searchRequestStatus?: number | null;
-    searchRequestLoadingStatus?: boolean;
+    searchRequestResponseStatusCode?: number | null;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -211,8 +210,7 @@ function Search({
     handleSearch,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
-    searchRequestStatus,
-    searchRequestLoadingStatus,
+    searchRequestResponseStatusCode,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
@@ -385,8 +383,11 @@ function Search({
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
     const shouldShowLoadingState =
-        !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || !!searchRequestLoadingStatus);
+        !isOffline &&
+        (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -770,8 +771,6 @@ function Search({
         [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
-    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
@@ -856,7 +855,7 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = searchRequestStatus === 401;
+        const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView

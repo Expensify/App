@@ -89,8 +89,7 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
-    const [searchRequestStatus, setSearchRequestStatus] = useState<number | null>(null);
-    const [searchRequestLoadingStatus, setSearchRequestLoadingStatus] = useState(false);
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -148,12 +147,7 @@ function SearchPageNarrow({
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            setSearchRequestLoadingStatus(true);
-            search(value)
-                .then((jsonCode) => setSearchRequestStatus(Number(jsonCode ?? 0)))
-                .finally(() => {
-                    setSearchRequestLoadingStatus(false);
-                });
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
@@ -260,8 +254,7 @@ function SearchPageNarrow({
                             contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            searchRequestStatus={searchRequestStatus}
-                            searchRequestLoadingStatus={searchRequestLoadingStatus}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                         />
                     </View>
                 )}
