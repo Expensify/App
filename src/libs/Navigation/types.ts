@@ -81,7 +81,6 @@ type ConsoleNavigatorParamList = {
 };
 
 type SettingsNavigatorParamList = {
-    [SCREENS.SETTINGS.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: undefined;
