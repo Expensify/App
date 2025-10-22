@@ -109,19 +109,6 @@ Onyx.connect({
     },
 });
 
-let retryBillingSuccessful: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingSuccessful = value;
-    },
-});
-
 let retryBillingFailed: OnyxEntry<boolean>;
 Onyx.connect({
     key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
@@ -343,7 +330,7 @@ function hasRetryBillingError(): boolean {
 /**
  * @returns Whether the retry billing was successful.
  */
-function isRetryBillingSuccessful(): boolean {
+function isRetryBillingSuccessful(retryBillingSuccessful: OnyxEntry<boolean>): boolean {
     return !!retryBillingSuccessful;
 }
 
@@ -355,7 +342,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -431,7 +418,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 10. Retry billing success
-    if (isRetryBillingSuccessful()) {
+    if (isRetryBillingSuccessful(retryBillingSuccessful)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
             isError: false,
@@ -452,15 +439,15 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError === false;
 }
 
 /**

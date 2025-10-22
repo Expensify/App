@@ -351,7 +351,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -363,7 +363,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -375,7 +375,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 isError: true,
             });
@@ -386,7 +386,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
             });
@@ -398,7 +398,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -411,7 +411,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -424,7 +424,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false)).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -479,7 +479,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
