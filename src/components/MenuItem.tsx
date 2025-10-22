@@ -604,7 +604,6 @@ function MenuItem({
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
-                    shouldParseFullTitle={!shouldRenderAsHTML}
                     fullTitle={title}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled

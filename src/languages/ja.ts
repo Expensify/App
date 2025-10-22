@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2732,8 +2733,8 @@ ${date} - ${merchant}に${amount}`,
     },
     focusModeUpdateModal: {
         title: '#focusモードへようこそ！',
-        prompt: '未読のチャットや注意が必要なチャットのみを表示することで、物事を把握しましょう。心配しないでください、これはいつでも変更できます。',
-        settings: '設定',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `未読のチャットや注意が必要なチャットのみを表示することで、物事を把握しましょう。心配しないでください、これはいつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'お探しのチャットが見つかりません。',
@@ -6630,14 +6631,9 @@ ${date} - ${merchant}に${amount}`,
         copyReferralLink: '招待リンクをコピー',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'セットアップスペシャリストとチャットする',
-            phrase2: 'ヘルプが必要な場合',
-        },
-        default: {
-            phrase1: 'メッセージ',
-            phrase2: 'セットアップのヘルプについて',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `セットアップスペシャリストとチャットする <a href="${href}">${adminReportName}</a> ヘルプが必要な場合`,
+        default: `メッセージ <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> セットアップのヘルプについて`,
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必要です。',

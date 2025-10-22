@@ -105,6 +105,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2718,8 +2719,8 @@ const translations = {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
-        settings: 'settings',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -6636,14 +6637,9 @@ const translations = {
         copyReferralLink: 'Copy invite link',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
-        },
-        default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chat with your setup specialist in <a href="${href}">${adminReportName}</a> for help`,
+        default: `Message <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> for help with setup`,
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
