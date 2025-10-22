@@ -533,7 +533,42 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, activeChatMembers.length, isPolicyExpenseChat, shouldShowMenuItem, isTrackExpenseReport, isDeletedParentAction, isMoneyRequestReport, isInvoiceReport, isTaskReport, isCanceledTaskReport, shouldShowGoToWorkspace, shouldShowLeaveButton, isDebugModeEnabled, shouldOpenRoomMembersPage, backTo, parentReportAction, iouTransactionID, moneyRequestReport?.reportID, session, isTaskActionable, isRootGroupChat, leaveChat, isSmallScreenWidth, isRestrictedToPreferredPolicy, preferredPolicyID]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isSystemChat,
+        activeChatMembers.length,
+        isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isTrackExpenseReport,
+        isDeletedParentAction,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowGoToWorkspace,
+        shouldShowLeaveButton,
+        isDebugModeEnabled,
+        shouldOpenRoomMembersPage,
+        backTo,
+        parentReportAction,
+        iouTransactionID,
+        moneyRequestReport?.reportID,
+        session,
+        isTaskActionable,
+        isRootGroupChat,
+        leaveChat,
+        isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;

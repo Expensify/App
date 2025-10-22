@@ -347,7 +347,18 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [report, iouReport, chatReport, duplicateTransactions, duplicateTransactionViolations, isReportArchived, isChatIOUReportArchived, deleteTransactions, currentSearchHash, isOriginalReportArchived]);
+    }, [
+        report,
+        iouReport,
+        chatReport,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        isReportArchived,
+        isChatIOUReportArchived,
+        deleteTransactions,
+        currentSearchHash,
+        isOriginalReportArchived,
+    ]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
