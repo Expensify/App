@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -15,7 +15,6 @@ import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
-import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {setKYCWallSource} from '@userActions/Wallet';
@@ -50,6 +49,7 @@ function KYCWall({
     shouldListenForResize = false,
     source,
     shouldShowPersonalBankAccountOption = false,
+    ref,
     currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -59,6 +59,7 @@ function KYCWall({
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
@@ -150,7 +151,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
@@ -176,19 +177,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [
-            onSelectPaymentMethod,
-            iouReport,
-            addDebitCardRoute,
-            reimbursementAccount?.achData,
-            reimbursementAccountDraft?.country,
-            canLinkExistingBusinessBankAccount,
-            addBankAccountRoute,
-            chatReport,
-            policies,
-            formatPhoneNumber,
-            lastPaymentMethod,
-        ],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, reimbursementAccount?.achData, reimbursementAccountDraft?.country, canLinkExistingBusinessBankAccount, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**
@@ -302,20 +291,25 @@ function KYCWall({
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
 
-        kycWallRef.current = {continueAction};
-
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
         }
 
         return () => {
-            if (shouldListenForResize && dimensionsSubscription) {
-                dimensionsSubscription.remove();
+            if (!shouldListenForResize || !dimensionsSubscription) {
+                return;
             }
-
-            kycWallRef.current = null;
+            dimensionsSubscription.remove();
         };
-    }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
+    }, [chatReportID, setMenuPosition, shouldListenForResize]);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            continueAction,
+        }),
+        [continueAction],
+    );
 
     return (
         <>

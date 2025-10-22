@@ -68,6 +68,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -81,10 +82,12 @@ import {
     isMoneyRequestAction,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
+    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canUserPerformWriteAction,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -119,6 +122,7 @@ import {
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -166,42 +170,59 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
 
 function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
     ];
 }
 
 function getExpenseReportedStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
     ];
 }
 
 function getInvoiceStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.INVOICE.PAID},
     ];
 }
 
 function getTripStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('search.filters.current'), value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('search.filters.past'), value: CONST.SEARCH.STATUS.TRIP.PAST},
     ];
 }
 
 function getTaskStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('search.filters.completed'), value: CONST.SEARCH.STATUS.TASK.COMPLETED},
     ];
 }
@@ -903,12 +924,13 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerPaidAmount', {
             payer: payerName,
             amount: formattedAmount,
         });
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.payerOwesAmount', {
         payer: payerName,
         amount: formattedAmount,
@@ -1147,8 +1169,11 @@ function getActions(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
+    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, allReportTransactions);
+    const hasVisibleViolationsForReport = hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, policy, allReportTransactions);
+
     // Only check for violations if we need to (when user has permission to review)
-    if ((isSubmitter || isApprover || isAdmin) && hasAnyViolations(report.reportID, allViolations, allReportTransactions)) {
+    if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
         if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
         } else {
@@ -1252,7 +1277,7 @@ function getTaskSections(
 
                 if (parentReport && personalDetails) {
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const policy = getPolicy(parentReport.policyID);
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
@@ -1326,6 +1351,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
+                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -1374,7 +1400,21 @@ function getReportSections(
     const queryJSON = getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
-    for (const key in data) {
+    const {reportKeys, transactionKeys} = Object.keys(data).reduce(
+        (acc, key) => {
+            if (isReportEntry(key)) {
+                acc.reportKeys.push(key);
+            } else if (isTransactionEntry(key)) {
+                acc.transactionKeys.push(key);
+            }
+            return acc;
+        },
+        {reportKeys: [] as string[], transactionKeys: [] as string[]},
+    );
+
+    const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+
+    for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
@@ -1406,7 +1446,7 @@ function getReportSections(
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    keyForList: reportItem.reportID,
+                    keyForList: String(reportItem.reportID),
                     from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
@@ -1822,6 +1862,7 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
     return [
         {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('common.rename'),
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
@@ -1835,6 +1876,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
             shouldCallAfterModalHide: true,
         },
         {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('common.delete'),
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
@@ -1858,6 +1900,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
@@ -1868,6 +1911,8 @@ function createTypeMenuSections(
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
+    isASAPSubmitBetaEnabled: boolean,
+    hasViolations: boolean,
     reports?: OnyxCollection<OnyxTypes.Report>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
@@ -1911,7 +1956,7 @@ function createTypeMenuSections(
                                               }
 
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  const createdReportID = createNewReport(personalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
@@ -2107,14 +2152,20 @@ function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return [
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
@@ -2124,10 +2175,15 @@ function getHasOptions(type: SearchDataTypes) {
 
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
@@ -2137,6 +2193,7 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 }
 
 function getGroupByOptions() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
 }
 

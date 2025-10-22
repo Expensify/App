@@ -1,8 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
+    getMergeFieldErrorText,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
@@ -14,6 +16,9 @@ import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
+
+// Mock localeCompare function for tests
+const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 describe('MergeTransactionUtils', () => {
     describe('getSourceTransactionFromMergeTransaction', () => {
@@ -289,6 +294,28 @@ describe('MergeTransactionUtils', () => {
             // Then it should return false because the string has content
             expect(result).toBe(false);
         });
+
+        it('should return true for empty array', () => {
+            // Given an empty array
+            const value: unknown[] = [];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because empty array is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-empty array', () => {
+            // Given a non-empty array
+            const value: unknown[] = [1, 2, 3];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because the array has content
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeableDataAndConflictFields', () => {
@@ -323,7 +350,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -334,6 +361,7 @@ describe('MergeTransactionUtils', () => {
                 category: 'Food',
                 tag: 'Same Tag',
                 billable: false,
+                attendees: [],
             });
         });
 
@@ -349,7 +377,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -371,12 +399,83 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
                 amount: 1000, // Card transactions also return positive values when unreported
                 currency: CONST.CURRENCY.USD,
+            });
+        });
+
+        describe('merge attendees', () => {
+            it('should automatically merge attendees when they are the same', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).not.toContain('attendees');
+                expect(result.mergeableData).toMatchObject({
+                    attendees: [
+                        {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                        {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    ],
+                });
+            });
+
+            it('should automatically merge attendees when they are same but just order is different', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).not.toContain('attendees');
+                expect(result.mergeableData).toMatchObject({
+                    attendees: [
+                        {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                        {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    ],
+                });
+            });
+
+            it('should conflict when attendees are different', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).toContain('attendees');
             });
         });
     });
@@ -520,6 +619,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('merchant', transaction, translateLocal);
 
             // Then it should return empty string
@@ -535,7 +635,9 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const billableResult = getDisplayValue('billable', transaction, translateLocal);
 
             // Then it should return translated Yes/No values
@@ -552,6 +654,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('amount', transaction, translateLocal);
 
             // Then it should return formatted currency string
@@ -568,6 +671,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('description', transaction, translateLocal);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
@@ -582,10 +686,24 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('tag', transaction, translateLocal);
 
             // Then it should return sanitized tag names separated by commas
             expect(result).toBe('Department, Engineering, Frontend');
+        });
+
+        it('should return correct value for attendees field', () => {
+            const transaction = createRandomTransaction(0);
+            transaction.comment = transaction.comment ?? {};
+            transaction.comment.attendees = [
+                {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+            ];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const result = getDisplayValue('attendees', transaction, translateLocal);
+
+            expect(result).toBe('Test User 2, Test User 1');
         });
 
         it('should return string values directly', () => {
@@ -598,12 +716,50 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const categoryResult = getDisplayValue('category', transaction, translateLocal);
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldErrorText', () => {
+        it('should return specific error message for attendees field', () => {
+            // Given a merge field data object for attendees field
+            const mergeField = {
+                field: 'attendees' as const,
+                label: 'Attendees',
+                options: [],
+            };
+
+            // When we get the error text for attendees field
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the specific attendees error message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectAttendees'));
+        });
+
+        it('should return generic error message for merchant field', () => {
+            // Given a merge field data object for merchant field
+            const mergeField = {
+                field: 'merchant' as const,
+                label: 'Merchant',
+                options: [],
+            };
+
+            // When we get the error text for merchant field
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the generic error message with lowercase field name
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
         });
     });
 });
