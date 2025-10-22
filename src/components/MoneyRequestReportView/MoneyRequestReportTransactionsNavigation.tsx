@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -36,20 +36,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
-    const [currentTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransactionID}`, {
-        canBeMissing: true,
-    });
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`, {canBeMissing: true});
 
     const {markReportIDAsExpense} = useContext(WideRHPContext);
 
-    const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`, {
-        canBeMissing: true,
-        selector: parentReportActionIDsSelector,
-    });
-    const {prevTransactionID, prevParentReportAction, nextTransactionID, nextParentReportAction} = useMemo(() => {
+    const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
-            return {prevTransactionID: undefined, prevParentReportAction: undefined, nextTransactionID: undefined, nextParentReportAction: undefined};
+            return {prevTransactionID: undefined, nextTransactionID: undefined};
         }
 
         const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
@@ -60,11 +52,48 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
         return {
             prevTransactionID: prevID,
             nextTransactionID: nextID,
-            prevParentReportAction: prevID ? parentReportActions.get(prevID) : undefined,
-            nextParentReportAction: nextID ? parentReportActions.get(nextID) : undefined,
         };
-    }, [currentTransactionID, parentReportActions, transactionIDsList]);
+    }, [currentTransactionID, transactionIDsList]);
 
+    const prevNextTransactionsSelector = useCallback(
+        (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
+            [currentTransactionID, prevTransactionID, nextTransactionID].map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]),
+        [currentTransactionID, nextTransactionID, prevTransactionID],
+    );
+
+    const [[currentTransaction, prevTransaction, nextTransaction] = getEmptyArray<OnyxTypes.Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+        selector: prevNextTransactionsSelector,
+    });
+
+    const parentReportActionsSelector = useCallback(
+        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            let reportActions = {};
+            for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
+                reportActions = {...reportActions, ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`]};
+            }
+            return parentReportActionIDsSelector(reportActions);
+        },
+        [currentTransaction, nextTransaction, prevTransaction],
+    );
+
+    const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        canBeMissing: true,
+        selector: parentReportActionsSelector,
+    });
+
+    const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
+        if (!transactionIDsList || transactionIDsList.length < 2) {
+            return {prevParentReportAction: undefined, nextParentReportAction: undefined};
+        }
+
+        return {
+            prevParentReportAction: prevTransactionID ? parentReportActions.get(prevTransactionID) : undefined,
+            nextParentReportAction: nextTransactionID ? parentReportActions.get(nextTransactionID) : undefined,
+        };
+    }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`, {canBeMissing: true});
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`, {canBeMissing: true});
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`, {canBeMissing: true});
 
