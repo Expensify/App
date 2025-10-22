@@ -122,6 +122,7 @@ function IOURequestStepParticipants({
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const isActivePolicyRequest =
@@ -304,7 +305,7 @@ function IOURequestStepParticipants({
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
             transactions.forEach((transaction) => {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {

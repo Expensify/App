@@ -157,6 +157,7 @@ function AuthScreens() {
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -247,7 +248,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session);
+        App.setUpPoliciesAndNavigate(session, introSelected);
 
         App.redirectThirdPartyDesktopSignIn();
 
