@@ -21,7 +21,7 @@ function WorkspaceOwnerRestrictedAction() {
 
     const handleButtonPress = () => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
     };
 
     return (
@@ -51,7 +51,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.addPaymentCard')}
+                        text={translate('workspace.restrictedAction.goToSubscriptions')}
                         onPress={handleButtonPress}
                         success
                         large
@@ -65,3 +65,4 @@ function WorkspaceOwnerRestrictedAction() {
 WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceOwnerRestrictedAction';
 
 export default WorkspaceOwnerRestrictedAction;
+
