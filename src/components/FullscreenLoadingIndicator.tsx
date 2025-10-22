@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -19,9 +19,6 @@ type FullScreenLoadingIndicatorProps = {
     /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Timeout for the activity indicator after which we fire a log about abnormally long loading */
-    timeout?: number;
-
     /** The ID of the test to be used for testing */
     testID?: string;
 
@@ -29,49 +26,28 @@ type FullScreenLoadingIndicatorProps = {
     extraLoadingContext?: ExtraLoadingContext;
 };
 
-function FullScreenLoadingIndicator({
-    style,
-    iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
-    timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT,
-    testID = '',
-    extraLoadingContext,
-}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE, testID = '', extraLoadingContext}: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
-    const [showGoBackButton, setShowGoBackButton] = useState(false);
-    const [translateY, setTranslateY] = useState(0);
-    const footerRef = useRef<View>(null);
-
     const {translate} = useLocalize();
-
-    useLayoutEffect(() => {
-        if (!showGoBackButton || !footerRef.current) {
-            return;
-        }
-        footerRef.current.measure((x, y, width, height) => {
-            setTranslateY(height / 2);
-        });
-    }, [showGoBackButton]);
+    const [showGoBackButton, setShowGoBackButton] = useState(false);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             setShowGoBackButton(true);
-        }, timeout);
+        }, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
         return () => clearTimeout(timeoutId);
-    }, [timeout]);
+    }, []);
 
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>
-            <View style={[{transform: [{translateY}]}]}>
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
+            <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize}
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
                 />
                 {showGoBackButton && (
-                    <View
-                        style={styles.alignItemsCenter}
-                        ref={footerRef}
-                    >
+                    <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
