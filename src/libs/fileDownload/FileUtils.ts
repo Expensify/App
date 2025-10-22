@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -9,9 +10,9 @@ import getPlatform from '@libs/getPlatform';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
@@ -447,13 +448,6 @@ const getImageDimensionsAfterResize = (file: FileObject) =>
         return {width: newWidth, height: newHeight};
     });
 
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        return Promise.resolve(file);
-    }
-    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
-};
-
 const createFile = (file: File): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
         return {
@@ -466,6 +460,15 @@ const createFile = (file: File): FileObject => {
         type: file.type,
         lastModified: file.lastModified,
     });
+};
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file)
+        .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
+        .then((result) => createFile(result));
 };
 
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
@@ -547,18 +550,23 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
         });
 };
 
-const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+type ValidateAttachmentOptions = {
+    isValidatingReceipts?: boolean;
+    isCheckingMultipleFiles?: boolean;
+};
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
+    const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
-    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
@@ -775,3 +783,5 @@ export {
     cleanFileObject,
     cleanFileObjectName,
 };
+
+export type {ValidateAttachmentOptions};

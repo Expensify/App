@@ -14,6 +14,7 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -529,6 +530,7 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
@@ -537,6 +539,7 @@ function getUpdatedTransaction({
             const distanceInMeters = getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
@@ -577,6 +580,7 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
@@ -645,6 +649,7 @@ function getUpdatedTransaction({
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
             toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
@@ -825,6 +830,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
         if (!isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
@@ -1469,7 +1475,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
