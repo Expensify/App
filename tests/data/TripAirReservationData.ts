@@ -1,3 +1,4 @@
+/* cspell:disable */
 import type {Pnr, PnrTraveler} from '@src/types/onyx/TripData';
 
 const airReservationPnrData: Pnr = {
