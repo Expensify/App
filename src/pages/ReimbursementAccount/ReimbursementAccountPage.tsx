@@ -200,6 +200,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
+    useEffect(() => {
+        if (!isPreviousPolicy || hasConfirmedUSDCurrency) {
+            return;
+        }
+
+        if (policyCurrency === CONST.CURRENCY.USD) {
+            setNonUSDBankAccountStep(null);
+            setBankAccountSubStep(null);
+            return;
+        }
+        setUSDBankAccountStep(null);
+        setBankAccountSubStep(null);
+    }, [isPreviousPolicy, hasConfirmedUSDCurrency, policyCurrency]);
+
     useEffect(
         () => {
             // Check for network change from offline to online
@@ -468,7 +482,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         );
     }
 
-    if (!isNonUSDWorkspace && USDBankAccountStep !== null) {
+    if (USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow
                 USDBankAccountStep={currentStep}
