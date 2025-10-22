@@ -16,6 +16,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SetDefaultWorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {setNameValuePair} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +32,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const {translate, localeCompare} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
 
@@ -45,9 +47,16 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
             Log.hmmm(`[SeDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
             return;
         }
+        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedPolicyID}`];
+
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
-        Navigation.navigate(navigateTo);
+        if (hasEnabledOptions(policyCategories ?? {})) {
+            Navigation.navigate(navigateTo);
+            return;
+        }
+
+        Navigation.goBack();
     };
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
