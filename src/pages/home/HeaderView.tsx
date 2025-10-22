@@ -288,7 +288,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         <CaretWrapper>
                                             <DisplayNames
                                                 fullTitle={title}
-                                                shouldParseFullTitle={false}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 tooltipEnabled
                                                 numberOfLines={1}
