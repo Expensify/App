@@ -50,6 +50,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -58,7 +59,6 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
@@ -74,11 +74,13 @@ import type {GpsPoint} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
@@ -531,10 +533,22 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            navigateBack();
+            // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
+            const navigationState = navigationRef.current?.getState();
+            const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
+            const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
+            if (hasLostNavigationsState) {
+                if (backTo) {
+                    Navigation.navigate(backTo as Route);
+                } else {
+                    Navigation.navigate(ROUTES.HOME);
+                }
+            } else {
+                navigateBack();
+            }
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source});
         },
-        [initialTransactionID],
+        [initialTransactionID, backTo],
     );
 
     /**
@@ -542,7 +556,7 @@ function IOURequestStepScan({
      */
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            if (!file.uri) {
+            if (!file?.uri) {
                 return;
             }
 

@@ -75,8 +75,21 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         Navigation.goBack(backTo);
     };
 
+    const handleReportFieldDelete = () => {
+        deleteReportField(report.reportID, reportField);
+        setIsDeleteModalVisible(false);
+        goBack();
+    };
+
+    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
+
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
+        if ((fieldValue ?? '').trim() === value?.trim()) {
+            goBack();
+            return;
+        }
+
         if (isReportFieldTitle) {
             updateReportName(report.reportID, value, report.reportName ?? '');
             goBack();
@@ -97,14 +110,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         }
     };
-
-    const handleReportFieldDelete = () => {
-        deleteReportField(report.reportID, reportField);
-        setIsDeleteModalVisible(false);
-        goBack();
-    };
-
-    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
 
     const menuItems: PopoverMenuItem[] = [];
 
