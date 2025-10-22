@@ -394,7 +394,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      */
     const dismissError = useCallback(
         (item: MemberOption) => {
-            console.log('dismiss error', item.pendingAction);
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 clearDeleteMemberError(route.params.policyID, item.accountID);
             } else {
