@@ -147,6 +147,10 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
  * @param isReopen - whether a report is being reopened
  * @returns nextStep
  */
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
 function buildNextStep(
     report: OnyxEntry<Report>,
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
@@ -537,6 +541,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID});
@@ -741,7 +746,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = nextStepPayExpense;
+                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
                 break;
             }
             // Another owner
@@ -827,7 +832,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
                         email: currentUserEmailParam,
                     },
                     report,
-                )
+                ) ||
+                reimbursableSpend === 0
             ) {
                 optimisticNextStep = noActionRequired;
 
@@ -870,4 +876,11 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
+export {
+    parseMessage,
+    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    buildNextStep,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildNextStepNew,
+};
