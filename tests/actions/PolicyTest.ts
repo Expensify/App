@@ -28,6 +28,8 @@ const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
 
+const EMPLOYEE_EMAIL = 'employee@example.com';
+
 OnyxUpdateManager();
 describe('actions/Policy', () => {
     beforeAll(() => {
@@ -866,8 +868,8 @@ describe('actions/Policy', () => {
                     submitsTo: ESH_EMAIL,
                     role: CONST.POLICY.ROLE.ADMIN,
                 },
-                'employee@example.com': {
-                    email: 'employee@example.com',
+                [EMPLOYEE_EMAIL]: {
+                    email: EMPLOYEE_EMAIL,
                     submitsTo: ESH_EMAIL,
                     role: CONST.POLICY.ROLE.USER,
                 },
