@@ -1110,12 +1110,9 @@ index f77b052..01def34 100644
  
  @property (nonatomic) float lowBatteryThreshold;
  
-diff --git a/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.m b/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
-similarity index 68%
-rename from node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.m
-rename to node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
+diff --git a/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm b/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
 index 67dbd7a..552a5e7 100644
---- a/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.m
+--- a/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
 +++ b/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
 @@ -14,8 +14,9 @@
  #import <React/RCTUtils.h>
@@ -3027,6 +3024,33 @@ index f137e75..129b5ef 100644
      supported32BitAbis: () => Promise<string[]>;
      supported32BitAbisSync: () => string[];
      supported64BitAbis: () => Promise<string[]>;
+diff --git a/node_modules/react-native-device-info/package.json b/node_modules/react-native-device-info/package.json
+index f15e34f..8afd532 100644
+--- a/node_modules/react-native-device-info/package.json
++++ b/node_modules/react-native-device-info/package.json
+@@ -104,7 +104,7 @@
+     "@testing-library/react-hooks": "^7.0.2",
+     "@types/jest": "^27.4.1",
+     "@types/react": "17.0.39",
+-    "@types/react-native": "^0.67.2",
++    "@types/react-native": "^0.71.3",
+     "eslint": "^7",
+     "eslint-plugin-prettier": "^4.0.0",
+     "husky": "^7.0.4",
+@@ -134,5 +134,13 @@
+       "module",
+       "typescript"
+     ]
++  },
++  "codegenConfig": {
++    "name": "rndeviceinfomodule",
++    "type": "modules",
++    "jsSrcsDir": "./src/fabric",
++    "android": {
++      "javaPackageName": "com.learnium.RNDeviceInfo"
++    }
+   }
+ }
 diff --git a/node_modules/react-native-device-info/src/fabric/NativeDeviceInfoModule.ts b/node_modules/react-native-device-info/src/fabric/NativeDeviceInfoModule.ts
 new file mode 100644
 index 0000000..0dce963

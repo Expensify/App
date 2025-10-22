@@ -105,12 +105,9 @@ index 0d617ed..97439e6 100644
 +    implementation 'com.facebook.react:react-native:+'
 +  }
  }
-diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-similarity index 77%
-rename from node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
-rename to node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
+diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 index 2c3280b..52ea692 100644
---- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
+--- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 +++ b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 @@ -9,13 +9,11 @@ package com.reactnativecommunity.netinfo;
  import android.os.Build;
@@ -378,12 +375,9 @@ index 0000000..c61a84d
 +        implementation.removeListeners(count);
 +    }
 +}
-diff --git a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
-similarity index 93%
-rename from node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m
-rename to node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
+diff --git a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 index e83b8c4..47fc8bb 100644
---- a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m
+--- a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 +++ b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 @@ -8,6 +8,10 @@
  #import "RNCNetInfo.h"
@@ -2643,6 +2637,25 @@ index 6982220..b515270 100644
 +    readonly eventEmitter: NativeEventEmitter;
  };
  export default _default;
+diff --git a/node_modules/@react-native-community/netinfo/package.json b/node_modules/@react-native-community/netinfo/package.json
+index 3c80db2..15d214d 100644
+--- a/node_modules/@react-native-community/netinfo/package.json
++++ b/node_modules/@react-native-community/netinfo/package.json
+@@ -97,6 +97,14 @@
+     "webpack-cli": "^3.3.10",
+     "webpack-dev-server": "^3.11.3"
+   },
++  "codegenConfig": {
++    "name": "RNCNetInfoSpec",
++    "type": "modules",
++    "jsSrcsDir": "src/internal",
++    "android": {
++      "javaPackageName": "com.reactnativecommunity.netinfo"
++    }
++  },
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/react-native-netinfo/react-native-netinfo.git"
 diff --git a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec b/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec
 index e34e728..9090eb1 100644
 --- a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec
