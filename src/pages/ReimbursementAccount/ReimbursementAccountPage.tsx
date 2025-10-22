@@ -391,7 +391,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         ].some((value) => value === currentStep)
     );
 
-    const shouldShowPolicyName = backTo !== ROUTES.SETTINGS_WALLET;
+    const shouldShowPolicyName = topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
 
     if (isLoadingPolicy) {
