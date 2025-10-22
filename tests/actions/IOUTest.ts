@@ -35,6 +35,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
+    retractReport,
     saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
@@ -58,6 +59,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -1641,6 +1643,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
@@ -1943,6 +1946,7 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
@@ -3459,6 +3463,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
@@ -3673,7 +3678,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport);
+                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4819,7 +4824,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4961,7 +4966,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5138,7 +5143,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5864,15 +5869,17 @@ describe('actions/IOU', () => {
                 taxRates: CONST.DEFAULT_TAX,
                 rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+            const draftTransaction: Transaction = {
+                ...createRandomTransaction(1),
                 taxCode,
                 taxAmount: 0,
                 amount: 100,
-            });
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting a category of a draft split transaction
-            setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+            setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
             await waitForBatchedUpdates();
 
@@ -5903,15 +5910,17 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
                     taxCode,
                     taxAmount,
                     amount: 100,
-                });
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a category of a draft split transaction
-                setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
@@ -5940,11 +5949,15 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {amount: 100});
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    amount: 100,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a draft split transaction without category update
-                setDraftSplitTransaction(transactionID, {}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
@@ -6740,7 +6753,7 @@ describe('actions/IOU', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport);
+                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
             }
             await waitForBatchedUpdates();
 
@@ -8901,6 +8914,38 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('retractReport', () => {
+        it('should restore the chat report iouReportID', async () => {
+            // Given a chat report with no iouReportID
+            const chatReport: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: undefined,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+            };
+
+            // When retracting the submitted expense report
+            retractReport(expenseReport, chatReport);
+
+            // Then the chat report iouReportID should be set back to the retracted expense report
+            const iouReportID = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.iouReportID);
+                    },
+                });
+            });
+            expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
 });

@@ -311,17 +311,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(
-                    report,
-                    originalMessage?.IOUTransactionID,
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    chatReport: report,
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
-                    chatReport,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    undefined,
+                    chatIOUReport: chatReport,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
+                    isSingleTransactionView: undefined,
+                    isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
-                );
+                });
             } else {
                 deleteMoneyRequest(
                     originalMessage?.IOUTransactionID,
@@ -347,7 +349,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport, report]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
