@@ -1,52 +1,44 @@
-import {useIsFocused} from '@react-navigation/core';
-import {createPoliciesSelector} from '@selectors/Policy';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import { useIsFocused } from '@react-navigation/core';
+import { createPoliciesSelector } from '@selectors/Policy';
+import { transactionDraftValuesSelector } from '@selectors/TransactionDraft';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTransactionReport} from '@libs/actions/Transaction';
-import {READ_COMMANDS} from '@libs/API/types';
-import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
+import { setTransactionReport } from '@libs/actions/Transaction';
+import { READ_COMMANDS } from '@libs/API/types';
+import { isMobileSafari as isMobileSafariBrowser } from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import HttpUtils from '@libs/HttpUtils';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import { isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep } from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import { isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { findSelfDMReportID, generateReportID, isInvoiceRoomWithID } from '@libs/ReportUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
+import { getRequestType, isCorporateCardTransaction, isPerDiemRequest } from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
-import {
-    navigateToStartStepIfScanFileCannotBeRead,
-    resetDraftTransactionsCustomUnit,
-    setCustomUnitRateID,
-    setMoneyRequestCategory,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTag,
-    setSplitShares,
-} from '@userActions/IOU';
-import {createDraftWorkspace} from '@userActions/Policy/Policy';
+import { navigateToStartStepIfScanFileCannotBeRead, resetDraftTransactionsCustomUnit, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag, setSplitShares } from '@userActions/IOU';
+import { createDraftWorkspace } from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type { Policy } from '@src/types/onyx';
+import type { Participant } from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type { WithFullTransactionOrNotFoundProps } from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -300,7 +292,6 @@ function IOURequestStepParticipants({
             setMoneyRequestTag(transaction.transactionID, '');
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
-            setMoneyRequestCategory(transaction.transactionID, '');
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
