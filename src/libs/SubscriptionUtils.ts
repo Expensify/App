@@ -75,14 +75,6 @@ Onyx.connect({
     callback: (value) => (billingStatus = value),
 });
 
-let firstPolicyDate: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE,
-    callback: (value) => {
-        firstPolicyDate = value;
-    },
-});
-
 let hasManualTeam2025Pricing: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
@@ -560,7 +552,7 @@ function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): b
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
-function checkIfHasTeam2025Pricing() {
+function checkIfHasTeam2025Pricing(firstPolicyDate: string | undefined) {
     if (hasManualTeam2025Pricing) {
         return true;
     }
@@ -572,12 +564,17 @@ function checkIfHasTeam2025Pricing() {
     return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
 }
 
-function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+function getSubscriptionPrice(
+    plan: PersonalPolicyTypeExcludedProps | null,
+    preferredCurrency: PreferredCurrency,
+    privateSubscriptionType: SubscriptionType | undefined,
+    firstPolicyDate: string | undefined,
+): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
 
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
@@ -591,10 +588,11 @@ function getSubscriptionPlanInfo(
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
+    firstPolicyDate: string | undefined,
 ): SubscriptionPlanInfo {
-    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, firstPolicyDate);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -696,4 +694,5 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    checkIfHasTeam2025Pricing,
 };
