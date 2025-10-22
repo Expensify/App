@@ -9891,7 +9891,7 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
 function navigateToPrivateNotes(report: OnyxEntry<Report>, accountID: number, backTo?: string) {
-    if (isEmpty(report) || accountID) {
+    if (isEmpty(report) || !accountID) {
         return;
     }
     const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';

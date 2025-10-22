@@ -560,7 +560,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouTransactionID,
         moneyRequestReport?.reportID,
         isBetaEnabled,
-        currentUserPersonalDetails,
+        currentUserPersonalDetails?.accountID,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
