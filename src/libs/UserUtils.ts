@@ -133,7 +133,7 @@ function getAccountIDHashBucket(accountID = -1, avatarURL?: string) {
 /**
  * Helper method to return the default avatar associated with the given accountID
  */
-function getDefaultAvatar(accountID = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): IconAsset | undefined {
+function getDefaultAvatar(accountID: number = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
@@ -152,7 +152,7 @@ function getDefaultAvatar(accountID = CONST.DEFAULT_NUMBER_ID, avatarURL?: strin
 /**
  * Helper method to return default avatar name associated with the accountID
  */
-function getDefaultAvatarName(accountID = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): string {
+function getDefaultAvatarName(accountID: number = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): string {
     const accountIDHashBucket = getAccountIDHashBucket(accountID, avatarURL);
     const avatarPrefix = `default-avatar`;
 
@@ -162,7 +162,7 @@ function getDefaultAvatarName(accountID = CONST.DEFAULT_NUMBER_ID, avatarURL?: s
 /**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): string {
+function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
