@@ -342,7 +342,7 @@ type PureReportActionItemProps = {
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-        isReportArchived: boolean | undefined,
+        isReportArchived: boolean,
         policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 

@@ -879,8 +879,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isSingleTransactionView,
                     isChatIOUReportArchived,
+                    isSingleTransactionView,
                 );
             }
         }

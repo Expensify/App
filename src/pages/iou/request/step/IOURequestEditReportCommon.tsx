@@ -68,7 +68,7 @@ function IOURequestEditReportCommon({
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
@@ -163,7 +163,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport) {
+        if (!createReport || (isEditing && !isOwner)) {
             return undefined;
         }
 
@@ -175,11 +175,11 @@ function IOURequestEditReportCommon({
                 icon={Expensicons.Document}
             />
         );
-    }, [createReport, translate, policyForMovingExpenses?.name]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        if (createReport) {
+        if (createReportOption) {
             return false;
         }
 
@@ -196,7 +196,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
+    }, [createReportOption, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
 
     return (
         <StepScreenWrapper
