@@ -35,6 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -380,6 +381,7 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
@@ -476,10 +478,29 @@ function SearchPage({route}: SearchPageProps) {
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: Expensicons.ArrowCollapse,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+            });
+        }
+
+        const canMergeTransactions = selectedTransactionsKeys.length < 3;
+        if (canMergeTransactions) {
+            options.push({
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: 'MERGE',
+                onSelected: () => {
+                    if (selectedTransactionsKeys.length === 1) {
+                        // Same logic as money report view
+                    } else {
+                        const targetTransactionID = selectedTransactionsKeys[0];
+                        const sourceTransactionID = selectedTransactionsKeys[1];
+                        setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
+                        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransactionID, Navigation.getActiveRoute()));
+                    }
+                },
             });
         }
 
