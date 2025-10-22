@@ -48,6 +48,7 @@ import type {
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
+    MultiFactorAuthenticationParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -911,6 +912,13 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationParamList>({
+    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationFallbackPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationApproveTransactionPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationNotificationPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationRevokePage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -956,4 +964,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    MultiFactorAuthenticationStackNavigator,
 };

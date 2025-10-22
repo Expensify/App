@@ -19,6 +19,7 @@ import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
+import type { notificationType } from './pages/MultiFactorAuthenticationNotificationPage';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -3298,6 +3299,20 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+
+    MULTIFACTORAUTHENTICATION_FALLBACK: 'multifactorauthentication/code-authentication',
+
+    MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
+        route: 'multifactorauthentication/approve-transaction/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `multifactorauthentication/approve-transaction/${transactionID}/${reportID}` as const,        
+    },
+
+    MULTIFACTORAUTHENTICATION_NOTIFICATION: {
+        route: 'multifactorauthentication/notification/:notificationType',
+        getRoute: (notificationType: notificationType) => `multifactorauthentication/notification/${notificationType}` as const,
+    },
+
+    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
 } as const;
 
 /**

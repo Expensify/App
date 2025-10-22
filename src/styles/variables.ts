@@ -378,4 +378,16 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // MultiFactorAuthentication illustrations sizes
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
+    simpleSmartscanWidth: 204,
+    simpleSmartscanHeight:204,
 } as const;

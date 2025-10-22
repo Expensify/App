@@ -66,7 +66,7 @@ type BaseBlockingViewProps = {
 
 type BlockingViewIconProps = {
     /** Expensicon for the page */
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+    icon?: React.FC<SvgProps> | ImageSourcePropType;
 
     /** The custom icon width */
     iconWidth?: number;
