@@ -153,6 +153,7 @@ function isPrimaryPayAction(
     isChatReportArchived?: boolean,
     invoiceReceiverPolicy?: Policy,
     reportActions?: ReportAction[],
+    isFromSecondaryAction?: boolean,
 ) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -174,7 +175,7 @@ function isPrimaryPayAction(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
-        return !isExportedAndHasExportError;
+        return isFromSecondaryAction ?? !isExportedAndHasExportError;
     }
 
     if (!isProcessingReport) {
