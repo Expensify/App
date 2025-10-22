@@ -65,4 +65,3 @@ function WorkspaceOwnerRestrictedAction() {
 WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceOwnerRestrictedAction';
 
 export default WorkspaceOwnerRestrictedAction;
-
