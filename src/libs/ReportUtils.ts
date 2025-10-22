@@ -5744,15 +5744,19 @@ function computeReportName(
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.harvesting ?? false) : false;
         if (harvesting) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('iou.automaticallySubmitted');
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('iou.automaticallyForwarded');
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.forwarded');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
@@ -5777,6 +5781,7 @@ function computeReportName(
         return getWorkspaceUpdateFieldMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('systemMessage.mergedWithCashTransaction');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
@@ -5818,6 +5823,7 @@ function computeReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.paidElsewhere');
     }
 
@@ -5844,18 +5850,23 @@ function computeReportName(
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.paidElsewhere');
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', {last4Digits});
                 }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.businessBankAccount', {last4Digits});
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     return translateLocal('iou.automaticallyPaidWithExpensify');
                 }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.paidWithExpensify');
             }
         }
@@ -5864,11 +5875,14 @@ function computeReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('iou.automaticallyApproved');
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.approvedMessage');
     }
     if (isUnapprovedAction(parentReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.unapproved');
     }
 
@@ -5877,6 +5891,7 @@ function computeReportName(
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedTask');
     }
 
@@ -5911,10 +5926,12 @@ function computeReportName(
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('parentReportAction.deletedMessage');
         }
 
         if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('violations.resolvedDuplicates');
         }
 
@@ -5927,6 +5944,7 @@ function computeReportName(
             personalDetails,
         }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `[${translateLocal('common.attachment')}]`;
         }
         if (
@@ -5934,6 +5952,7 @@ function computeReportName(
             parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
             parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
@@ -5966,6 +5985,7 @@ function computeReportName(
     }
 
     if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');
     }
 
