@@ -87,7 +87,6 @@ import {
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
-import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {
     clearDeleteTransactionNavigateBackUrl,
     createTransactionThreadReport,
@@ -819,12 +818,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID);
     }, [report]);
-
-    // When we open a report, we fetch the payment methods available for the user.
-    // This is required to show existing connected bank accounts when attempting to pay with business account
-    useEffect(() => {
-        getPaymentMethods();
-    }, []);
 
     const lastRoute = usePrevious(route);
 
