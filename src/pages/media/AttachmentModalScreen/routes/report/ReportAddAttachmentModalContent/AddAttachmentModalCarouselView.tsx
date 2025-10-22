@@ -4,7 +4,7 @@ import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCar
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import type {AttachmentContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     if (!file) {
