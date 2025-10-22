@@ -47,13 +47,13 @@ describe('FileUtils', () => {
     describe('validateAttachment', () => {
         it('should not return FILE_TOO_SMALL when validating small attachment', () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, false);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: false, isValidatingReceipts: false});
             expect(error).not.toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should return FILE_TOO_SMALL when validating small receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
@@ -65,31 +65,31 @@ describe('FileUtils', () => {
 
         it('should return FILE_TOO_LARGE_MULTIPLE when checking multiple files', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = FileUtils.validateAttachment(file, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: true, isValidatingReceipts: false});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE);
         });
 
         it('should return WRONG_FILE_TYPE for invalid receipt extension', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should prioritize WRONG_FILE_TYPE over FILE_TOO_LARGE for receipts', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, true, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: true, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE);
         });
 
         it('should return empty string for valid image receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isCheckingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe('');
         });
     });

@@ -430,7 +430,7 @@ function MoneyRequestConfirmationList({
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
         // If the selected rate belongs to the policy, clear the error
-        if (customUnitRateID && Object.keys(policyRates).includes(customUnitRateID)) {
+        if (customUnitRateID && customUnitRateID in policyRates) {
             clearFormErrors([errorKey]);
             return;
         }
