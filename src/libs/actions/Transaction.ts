@@ -1283,5 +1283,4 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
-    getPolicyTagsData,
 };
