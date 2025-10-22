@@ -214,6 +214,7 @@ function Search({
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
@@ -326,8 +327,7 @@ function Search({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -399,13 +399,13 @@ function Search({
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-        if (validGroupBy && (isChat || isTask)) {
+        if (groupBy && (isChat || isTask)) {
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -416,7 +416,8 @@ function Search({
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
 
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && searchResults === undefined;
+        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
 
@@ -439,13 +440,13 @@ function Search({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy) {
+        if (groupBy) {
             data.forEach((transactionGroup) => {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     return;
                 }
                 transactionGroup.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
+                    if (!(transaction.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
                         return;
                     }
                     newTransactionList[transaction.transactionID] = {
@@ -478,7 +479,7 @@ function Search({
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
+                if (!(transaction.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
                     return;
                 }
                 newTransactionList[transaction.transactionID] = {
@@ -547,7 +548,7 @@ function Search({
         if (!data.length || isRefreshingSelection.current) {
             return;
         }
-        const areItemsGrouped = !!validGroupBy;
+        const areItemsGrouped = !!groupBy;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
         const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -557,7 +558,7 @@ function Search({
         if (!areAllItemsSelected) {
             selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -741,13 +742,12 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
-    const ListItem = getListItem(type, status, validGroupBy);
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const ListItem = getListItem(type, status, groupBy);
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
+            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -768,7 +768,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     useEffect(() => {
@@ -794,7 +794,7 @@ function Search({
     }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
-        const areItemsGrouped = !!validGroupBy || isExpenseReportType;
+        const areItemsGrouped = !!groupBy;
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
@@ -825,7 +825,7 @@ function Search({
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, validGroupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
@@ -875,6 +875,7 @@ function Search({
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
+                    groupBy={groupBy}
                     hasResults={searchResults?.search?.hasResults}
                 />
             </View>
@@ -889,9 +890,9 @@ function Search({
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
+    const shouldShowSorting = !groupBy;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
         <SearchScopeProvider>
@@ -911,7 +912,7 @@ function Search({
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                type={type}
+                                type={searchResults?.search.type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
@@ -920,7 +921,7 @@ function Search({
                                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                 shouldShowSorting={shouldShowSorting}
                                 areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
+                                groupBy={groupBy}
                             />
                         )
                     }
