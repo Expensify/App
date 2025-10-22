@@ -4001,6 +4001,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.splashBG,
             alignItems: 'center',
             justifyContent: 'center',
+            zIndex: 20,
         },
 
         headerEnvBadge: {
@@ -5221,9 +5222,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         avatarSelectorWrapper: {
-            margin: 5,
             borderRadius: 50,
-            padding: 3,
+            padding: 4,
             borderWidth: 2,
             borderColor: 'transparent',
         },
@@ -5236,7 +5236,10 @@ const staticStyles = (theme: ThemeColors) =>
         avatarSelectorListContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
+            gap: 2,
         },
+
+        avatarSelected: {borderColor: theme.success, borderWidth: 2},
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
