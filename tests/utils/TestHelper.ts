@@ -6,6 +6,7 @@ import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/ty
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -395,6 +396,7 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
 }
 
 function getNavigateToChatHintRegex(): RegExp {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
 }
