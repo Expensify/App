@@ -52,6 +52,7 @@ const WRITE_COMMANDS = {
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     TOGGLE_WORKSPACE_UBER_AUTO_INVITE: 'ToggleWorkspaceUberAutoInvite',
+    SET_WORKSPACE_UBER_CENTRAL_BILL: 'SetWorkspaceUberCentralBill',
     TOGGLE_WORKSPACE_UBER_AUTO_REMOVE: 'ToggleWorkspaceUberAutoRemove',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
     ADD_PAYMENT_CARD_SCA: 'AddPaymentCardSCA',
@@ -543,6 +544,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE]: Parameters.TogglePolicyUberAutoInvitePageParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_UBER_CENTRAL_BILL]: Parameters.ChangePolicyUberBillingAccountPageParams;
     [WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_REMOVE]: Parameters.TogglePolicyUberAutoRemovePageParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA]: Parameters.AddPaymentCardParams;

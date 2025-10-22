@@ -82,6 +82,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceDowngradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('common.downgradeWorkspace')}
