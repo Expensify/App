@@ -106,7 +106,6 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
-        VERIFY_ACCOUNT: 'Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -214,7 +213,6 @@ const SCREENS = {
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
-        CONFIRM_WORKSPACE: 'Confirm_Workspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         WORKSPACE_DUPLICATE: 'Workspace_Duplicate',
         REPORT_SETTINGS: 'Report_Settings',

@@ -53,16 +53,7 @@ type DynamicRouteConfig = {
 
 type DynamicRoutes = Record<string, DynamicRouteConfig>;
 
-const DYNAMIC_ROUTES: DynamicRoutes = {
-    VERIFY_ACCOUNT: {
-        path: 'verify-account',
-        entryScreens: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP, SCREENS.SEARCH.MONEY_REQUEST_REPORT],
-    },
-    CONFIRM_WORKSPACE: {
-        path: 'confirm-workspace',
-        entryScreens: [SCREENS.WORKSPACES_LIST],
-    },
-} as const;
+const DYNAMIC_ROUTES: DynamicRoutes = {} as const;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
