@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -19,10 +19,11 @@ function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const goToSubscriptions = () => {
+    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
+    const goToSubscriptions = useCallback(() => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
-    };
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
+    }, [activeRoute]);
 
     return (
         <ScreenWrapper
