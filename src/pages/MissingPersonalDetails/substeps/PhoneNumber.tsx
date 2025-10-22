@@ -2,8 +2,9 @@ import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
@@ -14,12 +15,13 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+            const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(phoneNumber, countryCode);
 
             if (!isRequiredFulfilled(phoneNumber)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
@@ -32,7 +34,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
 
             return errors;
         },
-        [translate],
+        [translate, countryCode],
     );
 
     const handleSubmit = usePersonalDetailsFormSubmit({
