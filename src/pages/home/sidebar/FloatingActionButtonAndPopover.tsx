@@ -370,7 +370,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
+                    navigateToQuickAction({
+                        isValidReport,
+                        quickAction,
+                        selectOption,
+                        lastDistanceExpenseType,
+                        targetAccountPersonalDetails: personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                    });
                 });
             };
             return [

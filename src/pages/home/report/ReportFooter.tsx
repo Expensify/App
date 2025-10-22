@@ -146,7 +146,7 @@ function ReportFooter({
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
                         const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID, assignee);
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
