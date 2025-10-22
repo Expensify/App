@@ -515,6 +515,10 @@ describe('SubscriptionUtils', () => {
             expect(checkIfHasTeam2025Pricing(undefined)).toBeTruthy();
         });
 
+        it('should return false if the user has created workspace before the team 2025 pricing start date', () => {
+            expect(checkIfHasTeam2025Pricing('2022-10-22')).toBeFalsy();
+        });
+
         it('should return true if the user has manual team 2025 pricing', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING, '2025-10-22');
             expect(checkIfHasTeam2025Pricing('2022-10-22')).toBeTruthy();
