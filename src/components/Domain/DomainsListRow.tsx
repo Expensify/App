@@ -40,7 +40,7 @@ function DomainsListRow({title, isHovered, shouldShowRightIcon}: DomainsListRowP
                 <View style={styles.touchableButtonImage}>
                     <Icon
                         src={Expensicons.NewWindow}
-                        fill={theme.icon}
+                        fill={isHovered ? theme.iconHovered : theme.icon}
                         isButtonIcon
                     />
                 </View>
