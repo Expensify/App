@@ -84,6 +84,7 @@ import {
     getIOUReportActionToApproveOrPay,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReportID,
     startDistanceRequest,
     startMoneyRequest,
     unholdRequest,
@@ -10465,6 +10466,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
             searchText: policyName,
         },
     ]);
+    setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
