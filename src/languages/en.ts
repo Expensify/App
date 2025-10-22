@@ -431,7 +431,7 @@ const translations = {
         zip: 'Zip code',
         zipPostCode: 'Zip / Postcode',
         whatThis: "What's this?",
-        iAcceptThe: 'I accept the',
+        iAcceptThe: 'I accept the ',
         iAcceptTheFull: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy Policy</a>`,
         remove: 'Remove',
         admin: 'Admin',
