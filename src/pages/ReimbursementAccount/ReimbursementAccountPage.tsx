@@ -468,7 +468,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         );
     }
 
-    if (USDBankAccountStep !== null) {
+    if (!isNonUSDWorkspace && USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow
                 USDBankAccountStep={currentStep}
