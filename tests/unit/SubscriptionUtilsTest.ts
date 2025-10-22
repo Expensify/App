@@ -511,7 +511,7 @@ describe('SubscriptionUtils', () => {
             expect(checkIfHasTeam2025Pricing('2025-10-22')).toBeTruthy();
         });
 
-        it('should return false if the user is on a team plan and has no first policy date', () => {
+        it('should return true if the user has no first policy date', () => {
             expect(checkIfHasTeam2025Pricing(undefined)).toBeTruthy();
         });
 
