@@ -12,8 +12,9 @@ import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -99,6 +100,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportActionActorAccountID,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -284,7 +286,9 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const isWriteActionAllowed = canUserPerformWriteAction(report);
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -418,10 +422,15 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return '';
     }
 
+    if (lastActorDetails.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
-        : translateLocal('common.you');
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          translateLocal('common.you');
 }
 
 /**
@@ -462,10 +471,12 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('iou.expense');
     }
 
     if (option.isThread) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('threads.thread');
     }
 
@@ -478,10 +489,12 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     }
 
     if (option.isTaskReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('task.task');
     }
 
     if (isGroupChat) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('common.group');
     }
 
@@ -546,6 +559,36 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null): string {
+    const reportID = report?.reportID;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+
+    if (lastReportAction) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+
+        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
+            actorDetails = {
+                displayName: lastReportAction.person?.at(0)?.text,
+                accountID: lastActorAccountID,
+            };
+        }
+
+        // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
+        // to ensures that actorDetails.accountID is correctly set in case it's empty string
+        if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && actorDetails) {
+            actorDetails.accountID = lastReportAction.actorAccountID;
+        }
+
+        if (actorDetails) {
+            return getLastActorDisplayName(actorDetails);
+        }
+    }
+
+    return getLastActorDisplayName(lastActorDetails);
+}
+
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
@@ -580,6 +623,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
                     displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
@@ -587,16 +631,18 @@ function getLastMessageTextForReport({
                 break;
             }
             case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`);
                 break;
             }
             default: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.default`);
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
-        lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(properSchemaForMoneyRequestMessage));
+        lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = iouReport?.reportID
@@ -620,19 +666,22 @@ function getLastMessageTextForReport({
                 true,
                 lastReportAction,
             );
-            lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(reportPreviewMessage));
+            lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report, true);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = getForReportAction({
@@ -658,24 +707,31 @@ function getLastMessageTextForReport({
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
         if (wasSubmittedViaHarvesting) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isUnapprovedAction(lastReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallyForwarded'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.forwarded');
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
@@ -697,6 +753,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
         lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
@@ -831,6 +888,7 @@ function createOption(
 
         // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
         if (result.private_isArchived) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.lastMessageText = translateLocal('reportArchiveReasons.default');
         } else {
             result.lastMessageText = report.lastMessageText ?? '';
@@ -892,12 +950,15 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
@@ -907,6 +968,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 option.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
             }
         }
@@ -937,9 +999,11 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -947,6 +1011,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
         option.text = getPolicyName({report});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.workspace');
     }
     option.isDisabled = true;
@@ -978,6 +1043,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     option.alternateText = translateLocal('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
@@ -1368,12 +1434,13 @@ function getUserToInviteOption({
     selectedOptions = [],
     showChatPreviewLine = false,
     shouldAcceptName = false,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
 }: GetUserToInviteConfig): SearchOptionData | null {
     if (!searchValue) {
         return null;
     }
 
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchValue), countryCode));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
@@ -1425,6 +1492,7 @@ function getUserToInviteContactOption({
     email = '',
     phone = '',
     avatar = '',
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
 }: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
     // If email is provided, use it as the primary identifier
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1433,7 +1501,7 @@ function getUserToInviteContactOption({
     // Handle phone number parsing for either provided phone or searchValue
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
 
     const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
@@ -1699,6 +1767,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
             newReportOption.text = getPolicyName({report});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1707,6 +1776,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
@@ -1781,6 +1851,7 @@ function getValidOptions(
         maxRecentReportElements = undefined,
         ...config
     }: GetOptionsConfig = {},
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
@@ -1930,9 +2001,14 @@ function getValidOptions(
 
     let userToInvite: SearchOptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '', {
-            excludeLogins: loginsToExclude,
-        });
+        userToInvite = filterUserToInvite(
+            {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
+            searchString ?? '',
+            countryCode,
+            {
+                excludeLogins: loginsToExclude,
+            },
+        );
     }
 
     return {
@@ -1956,6 +2032,7 @@ type SearchOptionsConfig = {
     includeUserToInvite?: boolean;
     includeRecentReports?: boolean;
     includeCurrentUser?: boolean;
+    countryCode?: number;
     shouldShowGBR?: boolean;
 };
 
@@ -1973,31 +2050,37 @@ function getSearchOptions({
     includeUserToInvite,
     includeRecentReports = true,
     includeCurrentUser = false,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    const optionList = getValidOptions(options, draftComments, {
-        betas,
-        includeRecentReports,
-        includeMultipleParticipantReports: true,
-        showChatPreviewLine: isUsedInChatFinder,
-        includeP2P: true,
-        includeOwnedWorkspaceChats: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        includeReadOnly,
-        includeSelfDM: true,
-        shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHiddenThreads: true,
-        maxElements: maxResults,
-        includeCurrentUser,
-        searchString: searchQuery,
-        includeUserToInvite,
-        shouldShowGBR,
-    });
+    const optionList = getValidOptions(
+        options,
+        draftComments,
+        {
+            betas,
+            includeRecentReports,
+            includeMultipleParticipantReports: true,
+            showChatPreviewLine: isUsedInChatFinder,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            includeReadOnly,
+            includeSelfDM: true,
+            shouldBoldTitleByDefault: !isUsedInChatFinder,
+            excludeHiddenThreads: true,
+            maxElements: maxResults,
+            includeCurrentUser,
+            searchString: searchQuery,
+            includeUserToInvite,
+            shouldShowGBR,
+        },
+        countryCode,
+    );
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2005,20 +2088,33 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<string>, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
-    return getValidOptions(options, draftComments, {
-        betas,
-        includeMultipleParticipantReports: true,
-        includeP2P: true,
-        forcePolicyNamePreview: true,
-        includeOwnedWorkspaceChats: true,
-        includeSelfDM: true,
-        includeThreads: true,
-        includeReadOnly: false,
-        searchString,
-        maxElements,
-        includeUserToInvite,
-    });
+function getShareLogOptions(
+    options: OptionList,
+    draftComments: OnyxCollection<string>,
+    betas: Beta[] = [],
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+): Options {
+    return getValidOptions(
+        options,
+        draftComments,
+        {
+            betas,
+            includeMultipleParticipantReports: true,
+            includeP2P: true,
+            forcePolicyNamePreview: true,
+            includeOwnedWorkspaceChats: true,
+            includeSelfDM: true,
+            includeThreads: true,
+            includeReadOnly: false,
+            searchString,
+            maxElements,
+            includeUserToInvite,
+        },
+        countryCode,
+    );
 }
 
 /**
@@ -2045,18 +2141,33 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getAttendeeOptions(
-    reports: Array<SearchOption<Report>>,
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: OnyxEntry<Beta[]>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    draftComments: OnyxCollection<string>,
+type GetAttendeeOptionsParams = {
+    reports: Array<SearchOption<Report>>;
+    personalDetails: Array<SearchOption<PersonalDetails>>;
+    betas: OnyxEntry<Beta[]>;
+    attendees: Attendee[];
+    recentAttendees: Attendee[];
+    draftComments: OnyxCollection<string>;
+    includeOwnedWorkspaceChats: boolean;
+    includeP2P: boolean;
+    includeInvoiceRooms: boolean;
+    action: IOUAction | undefined;
+    countryCode: number;
+};
+
+function getAttendeeOptions({
+    reports,
+    personalDetails,
+    betas,
+    attendees,
+    recentAttendees,
+    draftComments,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-) {
+    action = undefined,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+}: GetAttendeeOptionsParams) {
     const personalDetailList = keyBy(
         personalDetails.map(({item}) => item),
         'accountID',
@@ -2085,19 +2196,24 @@ function getAttendeeOptions(
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
 
-    return getValidOptions({reports, personalDetails}, draftComments, {
-        betas,
-        selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats,
-        includeRecentReports: false,
-        includeP2P,
-        includeSelectedOptions: false,
-        includeSelfDM: false,
-        includeInvoiceRooms,
-        action,
-        recentAttendees: filteredRecentAttendees,
-    });
+    return getValidOptions(
+        {reports, personalDetails},
+        draftComments,
+        {
+            betas,
+            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeOwnedWorkspaceChats,
+            includeRecentReports: false,
+            includeP2P,
+            includeSelectedOptions: false,
+            includeSelfDM: false,
+            includeInvoiceRooms,
+            action,
+            recentAttendees: filteredRecentAttendees,
+        },
+        countryCode,
+    );
 }
 
 /**
@@ -2135,27 +2251,40 @@ function getMemberInviteOptions(
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
-    return getValidOptions({personalDetails, reports: []}, undefined, {
-        betas,
-        includeP2P: true,
-        excludeLogins,
-        includeSelectedOptions,
-        includeRecentReports: false,
-        searchString: '',
-        maxElements: undefined,
-    });
+    return getValidOptions(
+        {personalDetails, reports: []},
+        undefined,
+        {
+            betas,
+            includeP2P: true,
+            excludeLogins,
+            includeSelectedOptions,
+            includeRecentReports: false,
+            searchString: '',
+            maxElements: undefined,
+        },
+        countryCode,
+    );
 }
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
-    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue)).possible;
+function getHeaderMessage(
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    hasMatchedParticipant = false,
+    countryCode: OnyxEntry<number> = CONST.DEFAULT_COUNTRY_CODE,
+): string {
+    const isValidPhone = parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('messages.errorMessageInvalidPhone');
     }
 
@@ -2163,14 +2292,17 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.noResultsFound');
     }
 
@@ -2182,6 +2314,7 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
  */
 function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.noResultsFound');
     }
     return '';
@@ -2272,6 +2405,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
 }
 
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
@@ -2363,7 +2497,12 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
     }, currentUserOption);
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): SearchOptionData | null {
+function filterUserToInvite(
+    options: Omit<Options, 'userToInvite'>,
+    searchValue: string,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    config?: FilterUserToInviteConfig,
+): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -2387,6 +2526,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
     return getUserToInviteOption({
         searchValue,
         loginsToExclude,
+        countryCode,
         ...config,
     });
 }
@@ -2420,9 +2560,11 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
 }
 
 function filterOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config?: FilterUserToInviteConfig): Options {
+    const trimmedSearchInput = searchInputValue.trim();
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchInputValue), countryCode || CONST.DEFAULT_COUNTRY_CODE));
-    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
+    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const recentReports = filterReports(options.recentReports, searchTerms);
@@ -2435,6 +2577,7 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
             currentUserOption,
         },
         searchValue,
+        countryCode,
         config,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
@@ -2613,6 +2756,7 @@ export {
     getIOUReportIDOfLastAction,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getLastActorDisplayName,
+    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
     getMemberInviteOptions,

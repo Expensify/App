@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,11 +46,11 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
         return falsyCount <= 1;
     });
 
-    const sections = useMemo(
+    const optionRows = useMemo(
         () =>
-            filteredOptions?.map((option) => ({
+            filteredOptions?.map((option, idx) => ({
                 text: option.text,
-                keyForList: option.text,
+                keyForList: `${option.text}-${idx}`,
                 value: option.value,
             })),
         [filteredOptions],
@@ -78,7 +78,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                 {label}
             </Text>
             <SelectionList
-                sections={[{data: sections ?? []}]}
+                data={optionRows ?? []}
                 ListItem={RadioListItem}
                 onSelectRow={onSelectRow}
             />

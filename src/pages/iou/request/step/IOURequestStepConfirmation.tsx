@@ -59,7 +59,6 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -94,6 +93,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -427,6 +427,7 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
                 const itemReceiptPath = item.receipt?.source;
@@ -810,6 +811,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
+                            policyRecentlyUsedCategories,
                         });
                     });
                 }
@@ -838,6 +840,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -863,6 +866,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;

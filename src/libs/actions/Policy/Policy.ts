@@ -9,6 +9,7 @@ import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddPaymentCardParams,
+    ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
@@ -78,6 +79,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -385,7 +387,7 @@ function deleteWorkspace(
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
@@ -654,7 +656,7 @@ function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const wasPolicyOnManualReporting = PolicyUtils.getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
@@ -717,7 +719,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -759,7 +761,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const updatedEmployeeList: Record<string, PolicyEmployee> = {};
 
@@ -827,7 +829,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
 function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -945,7 +947,7 @@ function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
 
 function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail, lastPaymentMethod}: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
@@ -1374,7 +1376,7 @@ function createPolicyExpenseChats(
                         createChat: null,
                     },
                     participants: {
-                        [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+                        [accountID]: allPersonalDetails?.[accountID] ? {} : null,
                     },
                 },
             },
@@ -1468,7 +1470,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
  */
 function deleteWorkspaceAvatar(policyID: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1815,7 +1817,11 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
 /**
  * Removes an error after trying to delete a workspace
  */
-function clearDeleteWorkspaceError(policyID: string) {
+function clearDeleteWorkspaceError(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         pendingAction: null,
         errors: null,
@@ -1864,10 +1870,12 @@ function generateDefaultWorkspaceName(email = ''): string {
 
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
     if (isEmptyObject(allPolicies)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
@@ -1886,8 +1894,10 @@ function generateDefaultWorkspaceName(email = ''): string {
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
     if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 
@@ -2988,7 +2998,7 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoInvite: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -3002,6 +3012,41 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
     const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+}
+
+function changePolicyUberBillingAccount(policyID: string | undefined, email: string, oldEmail: string) {
+    if (!policyID) {
+        Log.warn('changePolicyUberBillingAccount invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {centralBillingAccountEmail: email, pendingFields: {centralBillingAccountEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: {centralBillingAccountEmail: null}}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {centralBillingAccountEmail: oldEmail, pendingFields: null}}},
+        },
+    ];
+
+    const params: ChangePolicyUberBillingAccountPageParams = {policyID, email};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_UBER_CENTRAL_BILL, params, {optimisticData, successData, failureData});
 }
 
 function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
@@ -3023,7 +3068,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoRemove: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -3262,7 +3307,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const previousValue = policy?.employeeList?.[login]?.[customFieldKey];
 
@@ -4122,7 +4167,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
         ],
     };
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
 
@@ -4190,7 +4235,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -4284,7 +4329,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
         setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
     }
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the workflows data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -4299,7 +4345,7 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
 
 function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -4357,7 +4403,9 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
     }
 
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
+
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the expense rule values are also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature(policyID);
@@ -4366,7 +4414,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
 
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -4503,7 +4551,7 @@ function openPolicyInitialPage(policyID: string) {
 
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
     const onyxData: OnyxData = {
@@ -4557,7 +4605,7 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
 
 function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalDefaultExternalID = policy?.taxRates?.defaultExternalID;
     const onyxData: OnyxData = {
@@ -4611,7 +4659,7 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
 
 function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalDefaultForeignCurrencyID = policy?.taxRates?.foreignTaxDefault;
     const onyxData: OnyxData = {
@@ -4665,7 +4713,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 
 function upgradeToCorporate(policyID: string, featureName?: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4678,6 +4726,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
+                eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
                 harvesting: {
                     enabled: false,
                 },
@@ -4709,6 +4758,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,
+                eReceipts: policy?.eReceipts,
             },
         },
     ];
@@ -4720,7 +4770,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
 
 function downgradeToTeam(policyID: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4763,7 +4813,7 @@ function downgradeToTeam(policyID: string) {
 
 function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     if (!policy) {
         return;
@@ -4833,7 +4883,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
  */
 function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAmountNoReceipt = maxExpenseAmountNoReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
     const originalMaxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
@@ -4889,7 +4939,7 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
  */
 function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
     const originalMaxExpenseAmount = policy?.maxExpenseAmount;
@@ -4945,7 +4995,7 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
  */
 function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalProhibitedExpenses = policy?.prohibitedExpenses;
     const prohibitedExpenses = {
@@ -5011,7 +5061,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
  */
 function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAge = maxExpenseAge === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : parseInt(maxExpenseAge, 10);
     const originalMaxExpenseAge = policy?.maxExpenseAge;
@@ -5068,7 +5118,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
  */
 function updateCustomRules(policyID: string, customRules: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalCustomRules = policy?.customRules;
     const parsedCustomRules = ReportUtils.getParsedComment(customRules);
@@ -5133,7 +5183,7 @@ function updateCustomRules(policyID: string, customRules: string) {
  */
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const originalDefaultBillable = policy?.defaultBillable;
@@ -5293,7 +5343,7 @@ function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCas
  */
 function disableWorkspaceBillableExpenses(policyID: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
 
@@ -5344,7 +5394,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
 
 function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean): OnyxData {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
@@ -5400,7 +5450,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
 
 function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEnabled: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const originalIsAttendeeTrackingEnabled = !!policy?.isAttendeeTrackingEnabled;
@@ -5470,7 +5520,7 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
  */
 function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (customName === policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue) {
@@ -5545,7 +5595,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
  */
 function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable) {
@@ -5613,7 +5663,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
  */
 function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (preventSelfApproval === policy?.preventSelfApproval) {
@@ -5681,7 +5731,7 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
  */
 function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const fallbackLimit = limit === '' ? '0' : limit;
@@ -5756,7 +5806,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
  */
 function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10) / 100;
@@ -5833,7 +5883,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
  */
 function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (enabled === policy?.shouldShowAutoApprovalOptions) {
@@ -5911,7 +5961,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
  */
 function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
@@ -5984,7 +6034,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
  */
 function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (enabled === policy?.shouldShowAutoReimbursementLimitOption) {
@@ -6067,7 +6117,7 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -6131,7 +6181,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -6444,6 +6494,7 @@ export {
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    changePolicyUberBillingAccount,
     enableDistanceRequestTax,
     enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,

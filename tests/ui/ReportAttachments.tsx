@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {WRITE_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -39,13 +40,13 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
 
-const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
+const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen
-                        name={SCREENS.ATTACHMENTS}
+                        name={SCREENS.REPORT_ATTACHMENTS}
                         component={AttachmentModalScreen}
                         initialParams={initialParams}
                     />
@@ -181,7 +182,7 @@ describe('ReportAttachments', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -191,17 +192,18 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
 
         // Then the not here page and the loading spinner should not appear.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
         expect(screen.queryByTestId('attachment-loading-spinner')).toBeNull();
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -211,7 +213,7 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
         await waitForBatchedUpdatesWithAct();
 
         const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {

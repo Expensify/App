@@ -438,7 +438,7 @@ function MoneyRequestConfirmationList({
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
         // If the selected rate belongs to the policy, clear the error
-        if (customUnitRateID && Object.keys(policyRates).includes(customUnitRateID)) {
+        if (customUnitRateID && customUnitRateID in policyRates) {
             clearFormErrors([errorKey]);
             return;
         }
@@ -1001,7 +1001,7 @@ function MoneyRequestConfirmationList({
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });

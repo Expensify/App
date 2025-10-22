@@ -703,7 +703,6 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
-        NEWDOT_UPDATE_SPLITS: 'newDotUpdateSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -1054,6 +1053,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SIGN_OUT: 'signout',
+        SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1253,6 +1253,7 @@ const CONST = {
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
+                CONCIERGE_AUTO_MAP_MCC_GROUPS: 'CONCIERGEAUTOMAPMCCGROUPS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -3626,8 +3627,8 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
-        EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
+        EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
+        EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
@@ -5454,6 +5455,7 @@ const CONST = {
     LOTTIE_VIEW_TEST_ID: 'LottieView',
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
+    ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6885,7 +6887,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT, SCREENS.MONEY_REQUEST.STEP_SCAN] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -7280,6 +7282,7 @@ const CONST = {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
+            ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
