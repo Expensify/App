@@ -19,9 +19,9 @@ function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const handleButtonPress = () => {
+    const goToSubscriptions = () => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
     };
 
     return (
@@ -52,7 +52,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
                         text={translate('workspace.restrictedAction.goToSubscriptions')}
-                        onPress={handleButtonPress}
+                        onPress={goToSubscriptions}
                         success
                         large
                     />
