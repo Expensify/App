@@ -490,10 +490,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
@@ -744,10 +744,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // mock the report as approved
