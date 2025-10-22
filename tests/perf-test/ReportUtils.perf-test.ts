@@ -25,8 +25,9 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -89,10 +90,11 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
+        const transaction = createRandomTransaction(1);
         const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -126,7 +128,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
@@ -163,7 +165,9 @@ describe('ReportUtils', () => {
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         await waitForBatchedUpdates();
-        await measureFunction(() => shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false}));
+        await measureFunction(() =>
+            shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false, draftComment: undefined}),
+        );
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {

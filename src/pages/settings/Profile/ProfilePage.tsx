@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -17,13 +17,14 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +42,7 @@ function ProfilePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
@@ -50,7 +51,6 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -58,12 +58,15 @@ function ProfilePage() {
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {isBetaEnabled} = usePermissions();
 
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const publicOptions = [
         {
@@ -76,11 +79,13 @@ function ProfilePage() {
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
         },
         {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
+            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
         },
         {
             description: translate('pronounsPage.pronouns'),
@@ -182,25 +187,51 @@ function ProfilePage() {
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={updateAvatar}
-                                            onImageRemoved={deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
+                                        {isBetaEnabled(CONST.BETAS.CUSTOM_AVATARS) ? (
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                            />
+                                        ) : (
+                                            <AvatarWithImagePicker
+                                                isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onImageSelected={(file) => {
+                                                    updateAvatar(file, {
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                onImageRemoved={() => {
+                                                    deleteAvatar({
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                                errorRowStyles={styles.mt6}
+                                                onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
+                                                onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
+                                                originalFileName={currentUserPersonalDetails.originalFileName}
+                                                headerTitle={translate('profilePage.profileAvatar')}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                            />
+                                        )}
                                     </MenuItemGroup>
                                 )}
                             </View>
@@ -214,6 +245,7 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
                                 />
                             ))}
                             <Button

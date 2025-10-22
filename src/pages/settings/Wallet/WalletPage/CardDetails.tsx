@@ -1,11 +1,13 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -39,16 +41,17 @@ type CardDetailsProps = {
 function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     return (
-        <>
+        <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
                     title={pan}
                     interactive={false}
                     copyValue={pan}
+                    copyable
                 />
             )}
             {expiration?.length > 0 && (
@@ -56,6 +59,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
+                    copyable
                 />
             )}
             {cvv?.length > 0 && (
@@ -63,6 +67,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.cvv')}
                     title={cvv}
                     interactive={false}
+                    copyable
                 />
             )}
             {pan?.length > 0 && (
@@ -72,6 +77,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
+                        copyable
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
@@ -81,7 +87,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     </TextLink>
                 </>
             )}
-        </>
+        </View>
     );
 }
 

@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -9,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,9 +23,9 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +36,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -69,6 +74,7 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({
+    allReports,
     action,
     chatReportID,
     requestReportID,
@@ -81,8 +87,9 @@ function MoneyRequestAction({
     isWhisper = false,
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
+    const {shouldOpenReportInRHP} = useContext(ReportActionItemContext);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -112,13 +119,23 @@ function MoneyRequestAction({
         // In case the childReportID is not present it probably means the transaction thread was not created yet,
         // so we need to send the parentReportActionID and the transactionID to the route so we can call OpenReport correctly
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
+            const transactionThreadReport = createTransactionThreadReport(iouReport, action);
+            if (shouldOpenReportInRHP) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        if (shouldOpenReportInRHP) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID, backTo: Navigation.getActiveRoute()}));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
     };
 
     let shouldShowPendingConversionMessage = false;
@@ -151,6 +168,7 @@ function MoneyRequestAction({
 
     return (
         <TransactionPreview
+            allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}

@@ -4,8 +4,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,10 +24,8 @@ function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const shouldGoBackToDetailsPage = useRef(false);
-
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldDisableVisibility = isArchivedNonExpenseReport(report, isReportArchived);
-
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(

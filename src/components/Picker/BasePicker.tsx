@@ -1,6 +1,6 @@
 import lodashDefer from 'lodash/defer';
-import type {ForwardedRef, ReactElement, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ReactElement, ReactNode, RefObject} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {View} from 'react-native';
@@ -14,33 +14,31 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
-import type {BasePickerHandle, BasePickerProps} from './types';
+import type {BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
 
-function BasePicker<TPickerValue>(
-    {
-        items,
-        backgroundColor,
-        inputID,
-        value,
-        onInputChange,
-        icon,
-        label = '',
-        isDisabled = false,
-        errorText = '',
-        hintText = '',
-        containerStyles,
-        placeholder = {},
-        size = 'normal',
-        shouldAllowDisabledStyle = true,
-        shouldFocusPicker = false,
-        shouldShowOnlyTextWhenDisabled = true,
-        onBlur = () => {},
-        additionalPickerEvents = () => {},
-    }: BasePickerProps<TPickerValue>,
-    ref: ForwardedRef<BasePickerHandle>,
-) {
+function BasePicker<TPickerValue>({
+    items,
+    backgroundColor,
+    inputID,
+    value,
+    onInputChange,
+    icon,
+    label = '',
+    isDisabled = false,
+    errorText = '',
+    hintText = '',
+    containerStyles,
+    placeholder = {},
+    size = 'normal',
+    shouldAllowDisabledStyle = true,
+    shouldFocusPicker = false,
+    shouldShowOnlyTextWhenDisabled = true,
+    onBlur = () => {},
+    additionalPickerEvents = () => {},
+    ref,
+}: BasePickerProps<TPickerValue>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -231,4 +229,4 @@ function BasePicker<TPickerValue>(
 
 BasePicker.displayName = 'BasePicker';
 
-export default forwardRef(BasePicker);
+export default BasePicker;

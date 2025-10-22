@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import React, {useRef, useState} from 'react';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
@@ -44,9 +44,9 @@ function RecordTroubleshootDataToolMenu() {
                 });
             })
             .then((path: string) => {
-                return RNFetchBlob.fs.stat(path).then(({size}) => {
+                return RNFetchBlob.fs.stat(path).then(({size, path: realPath}) => {
                     setFile({
-                        path,
+                        path: realPath,
                         newFileName: zipFileName,
                         size,
                     });

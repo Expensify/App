@@ -1,25 +1,24 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allPolicies: OnyxCollection<OnyxTypes.Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Reset user's USD reimbursement account. This will delete the bank account
  */
-function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+function resetUSDBankAccount(
+    bankAccountID: number | undefined,
+    session: OnyxEntry<OnyxTypes.Session>,
+    policyID: string | undefined,
+    achAccount: ACHAccount | undefined,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -27,8 +26,6 @@ function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEnt
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(policy.id);
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
@@ -133,7 +130,7 @@ function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEnt
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: policy?.achAccount,
+                    achAccount,
                 },
             },
         ],

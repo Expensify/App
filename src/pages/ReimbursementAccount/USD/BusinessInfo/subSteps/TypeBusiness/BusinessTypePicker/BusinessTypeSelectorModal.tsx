@@ -2,10 +2,11 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
@@ -46,9 +47,10 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
-            onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+            onBackdropPress={() => {
+                onClose();
+                Navigation.dismissModal();
+            }}
         >
             <ScreenWrapper
                 style={[styles.pb0]}

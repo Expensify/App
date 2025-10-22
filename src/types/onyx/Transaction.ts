@@ -69,6 +69,9 @@ type Comment = {
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
 
+    /** Whether the transaction comment is a demo transaction */
+    isDemoTransaction?: boolean;
+
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
@@ -86,6 +89,9 @@ type Comment = {
 
     /** Collection of split expenses */
     splitExpenses?: SplitExpense[];
+
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
@@ -308,6 +314,9 @@ type Reservation = {
 
     /** Type or category of purchased fare */
     fareType?: string;
+
+    /** leg id */
+    legId?: number;
 };
 
 /** Model of gate for flight reservation */
@@ -402,6 +411,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction tax code */
         taxCode?: string;
+
+        /** The transaction tax value */
+        taxValue?: string | undefined;
 
         /** Whether the expense is billable */
         billable?: boolean;
@@ -516,9 +528,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
 
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
-
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
 
@@ -574,6 +583,9 @@ type AdditionalTransactionChanges = {
 
     /** Previous currency before changes */
     oldCurrency?: string;
+
+    /** Previous distance before changes */
+    distance?: number;
 };
 
 /** Model of transaction changes  */
@@ -581,6 +593,12 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
+/** Transaction that is not associated with any report */
+type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
+    /** The ID of the report that this transaction is associated with. */
+    reportID: '0';
+};
 
 export default Transaction;
 export type {
@@ -600,4 +618,5 @@ export type {
     TransactionCollectionDataSet,
     SplitShares,
     TransactionCustomUnit,
+    UnreportedTransaction,
 };

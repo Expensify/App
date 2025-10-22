@@ -62,9 +62,6 @@ type SettlementButtonProps = {
     /** The size of button size */
     buttonSize?: ButtonSizeValue;
 
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: Route;
-
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 

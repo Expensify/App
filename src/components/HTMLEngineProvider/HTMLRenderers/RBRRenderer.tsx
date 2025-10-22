@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
+    const isSmall = htmlAttribs?.issmall !== undefined;
     const shouldShowEllipsis = htmlAttribs?.shouldshowellipsis !== undefined;
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
 
@@ -21,7 +22,7 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
                         numberOfLines={shouldShowEllipsis ? 1 : 0}
                         ellipsizeMode="tail"
                         key={props.key}
-                        style={[styles.textLabelError, flattenStyle]}
+                        style={[styles.textLabelError, flattenStyle, isSmall ? styles.textMicro : {}]}
                     >
                         {props.childElement}
                     </Text>

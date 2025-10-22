@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,6 +9,7 @@ import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,7 +87,7 @@ function ReportCardLostPage({
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !Object.keys(previousCardList ?? {}).includes(cardKey));
+        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !(cardKey in (previousCardList ?? {})));
         if (!newID || physicalCard?.cardID) {
             return;
         }
@@ -159,6 +159,7 @@ function ReportCardLostPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={ReportCardLostPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={newCardID ? translate('common.success') : translate('reportCardLostOrDamaged.screenTitle')}

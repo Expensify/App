@@ -3,6 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -25,13 +26,15 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
     return render(
         <NavigationContainer>
-            <Stack.Navigator initialRouteName={initialRouteName}>
-                <Stack.Screen
-                    name={SCREENS.WORKSPACE.UPGRADE}
-                    component={WorkspaceUpgradePage}
-                    initialParams={initialParams}
-                />
-            </Stack.Navigator>
+            <HTMLEngineProvider>
+                <Stack.Navigator initialRouteName={initialRouteName}>
+                    <Stack.Screen
+                        name={SCREENS.WORKSPACE.UPGRADE}
+                        component={WorkspaceUpgradePage}
+                        initialParams={initialParams}
+                    />
+                </Stack.Navigator>
+            </HTMLEngineProvider>
         </NavigationContainer>,
     );
 };
@@ -56,7 +59,9 @@ describe('WorkspaceUpgrade', () => {
         const policy: Policy = LHNTestUtils.getFakePolicy();
 
         // Given that a policy is initialized in Onyx
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
 
         // And WorkspaceUpgradePage for rules is opened
         const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
@@ -81,7 +86,9 @@ describe('WorkspaceUpgrade', () => {
         const policy = LHNTestUtils.getFakePolicy();
 
         // Given that a policy is initialized in Onyx
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
 
         // Render the WorkspaceUpgradePage without initializing user's preferred currency
         renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
@@ -102,7 +109,9 @@ describe('WorkspaceUpgrade', () => {
             const price = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[currency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], currency)}`;
 
             // Initialized the user's preferred currency to another payment card currency
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
+            });
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
             renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});

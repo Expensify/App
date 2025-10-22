@@ -1,17 +1,18 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
-import {parseFSAttributes} from '@libs/Fullstory';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
+import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
 import {tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
@@ -42,13 +43,14 @@ const ExpensifyFeatures: FeatureListItem[] = [
     },
 ];
 
-function OnboardingWelcomeVideo() {
+function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
-    const route = useRoute<PlatformStackRouteProp<WelcomeVideoModalNavigatorParamList, typeof SCREENS.WELCOME_VIDEO.ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -63,21 +65,20 @@ function OnboardingWelcomeVideo() {
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
+        Log.hmmm(
+            `[MigratedUserWelcomeModal] useEffect triggered - hasBeenAddedToNudgeMigration: ${hasBeenAddedToNudgeMigration}, hasDismissedTraining: ${!!dismissedProductTraining?.migratedUserWelcomeModal}, shouldOpenSearch: ${shouldOpenSearch}`,
+        );
+
         if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || !shouldOpenSearch) {
+            Log.hmmm('[MigratedUserWelcomeModal] Conditions not met, keeping modal disabled');
             return;
         }
-        setIsModalDisabled(false);
-        const defaultCannedQuery = buildCannedSearchQuery();
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
+        Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
+        setIsModalDisabled(false);
+        const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch, typeMenuSections]);
 
     return (
         <FeatureTrainingModal
@@ -88,6 +89,7 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
+                Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
@@ -100,8 +102,7 @@ function OnboardingWelcomeVideo() {
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
@@ -123,5 +124,5 @@ function OnboardingWelcomeVideo() {
     );
 }
 
-OnboardingWelcomeVideo.displayName = 'OnboardingWelcomeVideo';
-export default OnboardingWelcomeVideo;
+MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
+export default MigratedUserWelcomeModal;

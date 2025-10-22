@@ -1,10 +1,11 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useContext} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,8 +18,9 @@ type ActivateStepProps = {
 
 function ActivateStep({userWallet}: ActivateStepProps) {
     const {translate} = useLocalize();
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const isActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
+    const kycWallRef = useContext(KYCWallContext);
 
     const animation = isActivatedWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
     let continueButtonText = '';
@@ -40,7 +42,7 @@ function ActivateStep({userWallet}: ActivateStepProps) {
                 description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
                 shouldShowButton={isActivatedWallet}
                 buttonText={continueButtonText}
-                onButtonPress={() => continueSetup()}
+                onButtonPress={() => continueSetup(kycWallRef)}
             />
         </>
     );

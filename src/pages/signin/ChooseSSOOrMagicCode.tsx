@@ -1,45 +1,37 @@
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {clearSignInData, resendValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
-type ChooseSSOOrMagicCodeOnyxProps = {
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-};
-
-type ChooseSSOOrMagicCodeProps = ChooseSSOOrMagicCodeOnyxProps & {
+type ChooseSSOOrMagicCodeProps = {
     /** Function that returns whether the user is using SAML or magic codes to log in */
     setIsUsingMagicCode: (value: boolean) => void;
 };
 
-function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) {
+function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -78,12 +70,12 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
                     text={translate('samlSignIn.useMagicCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        Session.resendValidateCode(credentials?.login);
+                        resendValidateCode(credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
                 />
-                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
@@ -94,7 +86,4 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
 
 ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
 
-export default withOnyx<ChooseSSOOrMagicCodeProps, ChooseSSOOrMagicCodeOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ChooseSSOOrMagicCode);
+export default ChooseSSOOrMagicCode;

@@ -1,12 +1,13 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomReport from '../../utils/collections/reports';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import {createRandomReport} from '../../utils/collections/reports';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -40,31 +41,37 @@ describe('HeaderView', () => {
                 type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
             },
         };
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: {
-                displayName,
-            },
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {
+                    displayName,
+                },
+            });
         });
 
         render(
-            <HeaderView
-                report={report}
-                onNavigationMenuButtonClicked={() => {}}
-                parentReportAction={null}
-                reportID={report.reportID}
-            />,
+            <OnyxListItemProvider>
+                <HeaderView
+                    report={report}
+                    onNavigationMenuButtonClicked={() => {}}
+                    parentReportAction={null}
+                    reportID={report.reportID}
+                />
+            </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
 
         // When the invoice receiver display name is updated
         displayName = 'test edit';
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: {
-                displayName,
-            },
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {
+                    displayName,
+                },
+            });
         });
 
         // Then the header title should be updated using the new display name

@@ -5,10 +5,11 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -20,6 +21,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.unmock('react-native-reanimated');
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupGlobalFetchMock();
@@ -28,7 +31,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -128,6 +131,7 @@ describe('WorkspaceCategories', () => {
 
         // Wait for menu items to be visible
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const deleteText = translateLocal('workspace.categories.deleteCategories');
             expect(screen.getByText(deleteText)).toBeOnTheScreen();
         });
@@ -149,17 +153,20 @@ describe('WorkspaceCategories', () => {
 
         // After clicking delete categories dropdown menu item, verify the confirmation modal appears
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const confirmModalPrompt = translateLocal('workspace.categories.deleteCategoriesPrompt');
             expect(screen.getByText(confirmModalPrompt)).toBeOnTheScreen();
         });
 
         // Verify the delete button in the modal is visible
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
             expect(deleteConfirmButton).toBeOnTheScreen();
         });
 
         // Click the delete button in the confirmation modal
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
         fireEvent.press(deleteConfirmButton);
 
@@ -234,6 +241,7 @@ describe('WorkspaceCategories', () => {
 
         // Wait for menu items to be visible
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const disableText = translateLocal('workspace.categories.disableCategories');
             expect(screen.getByText(disableText)).toBeOnTheScreen();
         });
@@ -255,6 +263,7 @@ describe('WorkspaceCategories', () => {
 
         // After clicking disable categories dropdown menu item, verify the blocking modal appears
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const blockingPrompt = translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
             expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });

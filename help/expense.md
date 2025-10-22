@@ -673,7 +673,7 @@ Yes, Expensify Expense offers a free plan with basic features, with advanced pla
 Expensify converts expenses to your preferred currency and supports global reimbursement.
 
 ### Workflow Management
-#### [Delayed Submission and Approvals] If I have delayed submission and an approver, what should I expect with a report?
+#### [Delay Submission and Approvals] If I have delayed submission and an approver, what should I expect with a report?
 When Add Approver is enabled with Delay Submission, expense reports go from Open > Processing > Approved. If delayed submission is disabled, expense reports go from Processing > Approved.
 
 #### Can an employee have more than one approval workflow?

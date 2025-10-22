@@ -36,7 +36,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
     ];
 
     return (
-        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+        <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
                     src={Illustrations.ShieldYellow}
@@ -52,7 +52,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                         key={benefit}
                         style={[styles.pl2, styles.flexRow]}
                     >
-                        <Text style={[styles.textNormal, styles.textSupporting]}>• </Text>
+                        <Text style={[styles.textNormal, styles.textSupporting, styles.mr1]}>•</Text>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
                     </View>
                 ))}

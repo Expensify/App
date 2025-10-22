@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Growl from '@libs/Growl';
 import {clearOnfidoToken, goToWithdrawalAccountSetupStep, updateReimbursementAccountDraft, verifyIdentityForBankAccount} from '@userActions/BankAccounts';
@@ -64,7 +64,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
             wrapperID={VerifyIdentity.displayName}
             headerTitle={translate('onfidoStep.verifyIdentity')}
             handleBackButtonPress={onBackButtonPress}
-            startStepIndex={2}
+            startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

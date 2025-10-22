@@ -3,7 +3,6 @@ title: Expensify Playbook for Small to Medium-Sized Businesses
 description: Learn best practices for deploying Expensify to improve spend visibility, facilitate reimbursements, and ensure compliance for your business.
 keywords: [Expensify Classic, SMB, expense management, compliance, reimbursements, accounting integration]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify helps small to medium-sized businesses (100-250 employees) streamline expense management, increase compliance, and simplify reimbursements. This guide outlines best practices to optimize your workflow.
 
@@ -80,11 +79,11 @@ Set workspace-wide compliance policies under **Settings > Workspace > [Workspace
 
 ---
 
-# Step 7: Enable Delayed Submission
+# Step 7: Enable Delay Submission
 
-Automate expense submissions with **Delayed Submission**:
-1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Delayed submission**.
-2. Enable **Delayed submission*** and set the frequency to **Daily**.
+Automate expense submissions with **Delay Submission**:
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Delay submission**.
+2. Enable **Delay submission*** and set the frequency to **Daily**.
 
 ---
 
@@ -155,4 +154,3 @@ More info on the Spending Insights feature can be found [here](https://help.expe
 
 Congratulations! Your business is now fully optimized with Expensify. If you need assistance, contact your **Setup Specialist** via *[new.expensify.com](https://new.expensify.com)*.
 
-</div>

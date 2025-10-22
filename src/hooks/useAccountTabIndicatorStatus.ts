@@ -1,10 +1,11 @@
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
 type AccountTabIndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
@@ -25,6 +26,8 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`, {canBeMissing: true});
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -37,11 +40,13 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR]: hasBrokenFeedConnection,
-        [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber ?? undefined,
+        [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: hasSubscriptionRedDotError(stripeCustomerId),
     };
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(stripeCustomerId),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];

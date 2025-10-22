@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -13,7 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -287,7 +288,7 @@ describe('actions/PolicyMember', () => {
             });
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -337,9 +338,9 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding a new admin, auditor, and user members
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN);
-            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR);
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -388,7 +389,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -570,6 +571,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
         });
 
@@ -599,6 +601,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
         });
 
@@ -632,6 +635,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
         });
 
@@ -665,6 +669,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
         });
 
@@ -706,6 +711,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
         });
 
@@ -742,6 +748,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
         });
 
@@ -785,6 +792,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
         });
     });

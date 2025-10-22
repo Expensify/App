@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
@@ -24,21 +23,19 @@ import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
+import type {SignInPageLayoutProps} from './types';
 
-function SignInPageLayout(
-    {
-        customHeadline,
-        customHeroBody,
-        shouldShowWelcomeHeader = false,
-        welcomeHeader,
-        welcomeText = '',
-        shouldShowWelcomeText = false,
-        navigateFocus = () => {},
-        children,
-    }: SignInPageLayoutProps,
-    ref: ForwardedRef<SignInPageLayoutRef>,
-) {
+function SignInPageLayout({
+    customHeadline,
+    customHeroBody,
+    shouldShowWelcomeHeader = false,
+    welcomeHeader,
+    welcomeText = '',
+    shouldShowWelcomeText = false,
+    navigateFocus = () => {},
+    children,
+    ref,
+}: SignInPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -121,9 +118,7 @@ function SignInPageLayout(
                             <View style={styles.signInPageHeroCenter}>
                                 <BackgroundImage
                                     isSmallScreen={false}
-                                    pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
-                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
@@ -158,21 +153,11 @@ function SignInPageLayout(
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexColumn,
-                            isMobileSafari() ? styles.overflowHidden : {},
-                            StyleUtils.getMinimumHeight(backgroundImageHeight),
-                            StyleUtils.getSignInBgStyles(theme),
-                        ]}
-                    >
-                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
+                    <View style={[styles.flex1, styles.flexColumn, isMobileSafari() ? styles.overflowHidden : {}, StyleUtils.getMinimumHeight(backgroundImageHeight)]}>
+                        <View style={[styles.pAbsolute, styles.b0, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
-                                pointerEvents="none"
                                 width={variables.signInHeroBackgroundWidthMobile}
-                                transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                             />
                         </View>
                         <SignInPageContent
@@ -195,4 +180,4 @@ function SignInPageLayout(
 
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default forwardRef(SignInPageLayout);
+export default SignInPageLayout;

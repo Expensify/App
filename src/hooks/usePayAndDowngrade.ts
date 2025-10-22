@@ -1,11 +1,11 @@
 import {useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useOnyx from './useOnyx';
 
-function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
+function usePayAndDowngrade(continueAction: () => void) {
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE, {canBeMissing: true});
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING, {canBeMissing: true});
     const isDeletingPaidWorkspaceRef = useRef(false);
@@ -20,13 +20,13 @@ function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
         }
 
         if (!shouldBillWhenDowngrading) {
-            close(() => setIsDeleteModalOpen(true));
+            close(continueAction);
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(Navigation.getActiveRoute()));
         }
 
         isDeletingPaidWorkspaceRef.current = false;
-    }, [isLoadingBill, shouldBillWhenDowngrading, setIsDeleteModalOpen]);
+    }, [isLoadingBill, shouldBillWhenDowngrading, continueAction]);
 
     return {setIsDeletingPaidWorkspace, isLoadingBill};
 }

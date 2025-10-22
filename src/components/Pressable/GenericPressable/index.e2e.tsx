@@ -1,7 +1,6 @@
-import React, {forwardRef, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import GenericPressable from './implementation';
-import type {PressableRef} from './types';
 import type PressableProps from './types';
 
 const pressableRegistry = new Map<string, PressableProps>();
@@ -10,7 +9,7 @@ function getPressableProps(testId: string): PressableProps | undefined {
     return pressableRegistry.get(testId);
 }
 
-function E2EGenericPressableWrapper(props: PressableProps, ref: PressableRef) {
+function E2EGenericPressableWrapper({ref, ...props}: PressableProps) {
     useEffect(() => {
         const testId = props.testID;
         if (!testId) {
@@ -33,5 +32,5 @@ function E2EGenericPressableWrapper(props: PressableProps, ref: PressableRef) {
 
 E2EGenericPressableWrapper.displayName = 'E2EGenericPressableWrapper';
 
-export default forwardRef(E2EGenericPressableWrapper);
+export default E2EGenericPressableWrapper;
 export {getPressableProps};

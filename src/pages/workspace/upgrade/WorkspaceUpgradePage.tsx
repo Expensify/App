@@ -1,12 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
@@ -45,13 +44,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>> = useMemo(
+    const feature = useMemo(
         () =>
             Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
                 .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias) as ValueOf<
-                Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>
-            >,
+                .find((f) => f.alias === featureNameAlias),
         [featureNameAlias],
     );
     const {translate} = useLocalize();
@@ -72,6 +69,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
@@ -80,7 +78,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
-                        return Navigation.goBack(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID));
+                        return Navigation.goBack(ROUTES.WORKSPACE_REPORTS.getRoute(policyID));
                     default: {
                         Navigation.goBack();
                         if (route.params.backTo) {
@@ -192,6 +190,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
@@ -206,7 +205,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={goBack}
+                        afterUpgradeAcknowledged={goBack}
                         policyName={policy.name}
                     />
                 )}

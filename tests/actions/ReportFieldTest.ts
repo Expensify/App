@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportField from '@src/libs/actions/Policy/ReportField';
-import type {CreateReportFieldArguments} from '@src/libs/actions/Policy/ReportField';
+import type {CreateReportFieldParams} from '@src/libs/actions/Policy/ReportField';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
@@ -72,13 +72,17 @@ describe('actions/ReportField', () => {
                 externalIDs: [],
                 isTax: false,
             };
-            const createReportFieldArguments: CreateReportFieldArguments = {
+            const createReportFieldArguments: CreateReportFieldParams = {
+                policyID,
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
                 initialValue: 'Default Value',
+                listValues: [],
+                disabledListValues: [],
+                policyExpenseReportIDs: [],
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -123,13 +127,17 @@ describe('actions/ReportField', () => {
                 externalIDs: [],
                 isTax: false,
             };
-            const createReportFieldArguments: CreateReportFieldArguments = {
+            const createReportFieldArguments: CreateReportFieldParams = {
+                policyID,
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.DATE,
                 initialValue: defaultDate,
+                listValues: [],
+                disabledListValues: [],
+                policyExpenseReportIDs: [],
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
@@ -176,13 +184,17 @@ describe('actions/ReportField', () => {
                 isTax: false,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             };
-            const createReportFieldArguments: CreateReportFieldArguments = {
+            const createReportFieldArguments: CreateReportFieldParams = {
+                policyID,
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 initialValue: '',
+                listValues: ['Value 1', 'Value 2'],
+                disabledListValues: [false, true],
+                policyExpenseReportIDs: [],
             };
 
-            ReportField.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);

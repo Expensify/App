@@ -119,8 +119,6 @@ function TextSelectorModal({
             isVisible={isVisible}
             onClose={hide}
             onModalHide={hide}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
@@ -143,6 +141,7 @@ function TextSelectorModal({
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    enterKeyEventListenerPriority={0}
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     <InputWrapper

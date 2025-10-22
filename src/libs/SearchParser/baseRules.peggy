@@ -19,10 +19,13 @@ date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
-reportID = "reportid"i { return "reportID"; }
+reportID = "reportid"i / "report-id"i { return "reportID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
+groupCurrency
+  = "groupCurrency"
+  / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
 to = "to"i { return "to"; }
@@ -35,9 +38,16 @@ cardID
   = "cardID"
   / "card"i { return "cardID"; }
 from = "from"i { return "from"; }
+attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+withdrawalType
+  = "withdrawalType"
+  / "withdrawal-type"i { return "withdrawalType"; }
+withdrawalID
+  = "withdrawalID"i
+  / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
@@ -56,11 +66,28 @@ approved = "approved"i { return "approved"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
+withdrawn = "withdrawn"i { return "withdrawn"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
+action = "action"i { return "action"; }
+total = "total"i {return "total"; }
+has = "has"i {return "has"; }
+is = "is"i {return "is"; }
+purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
+purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+
+// Value transformation rules
+values
+  = perDiem
+  / report
+  / draft
+
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+report = "reports"i / "report"i {return "reports"; }
+draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

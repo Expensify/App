@@ -21,6 +21,7 @@ function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
+    minWidth,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],
@@ -178,6 +179,7 @@ function GenericTooltip({
                     shiftVertical={callOrReturn(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
+                    minWidth={minWidth}
                     numberOfLines={numberOfLines}
                     renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.

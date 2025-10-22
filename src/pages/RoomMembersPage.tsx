@@ -1,7 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -9,24 +8,26 @@ import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonW
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar, Plus, RemoveMembers} from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -37,6 +38,7 @@ import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDef
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -53,7 +55,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
@@ -61,6 +63,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
+    const isReportArchived = useReportIsArchived(report.reportID);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -91,8 +94,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
     /**
      * Get members for the current room
@@ -132,6 +135,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         }
         setSearchValue('');
         setRemoveMembersConfirmModalVisible(false);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -283,6 +287,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         return result;
     }, [
         formatPhoneNumber,
+        localeCompare,
         isPolicyExpenseChat,
         participants,
         personalDetails,
@@ -357,7 +362,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         },
         [report, backTo],
     );
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const customListHeader = useMemo(() => {
         const header = (
@@ -375,6 +380,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
     }, [styles, translate, canSelectMultiple]);
 
+    let subtitleKey: '' | TranslationPaths | undefined;
+    if (!isEmptyObject(report)) {
+        subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -382,8 +392,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report) || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
-                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
+                subtitleKey={subtitleKey}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                 }}
@@ -392,7 +402,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;

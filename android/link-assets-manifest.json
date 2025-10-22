@@ -2,6 +2,10 @@
   "migIndex": 2,
   "data": [
     {
+      "path": "assets/fonts/native/CustomEmojiNativeFont.ttf",
+      "sha1": "83acdb6db84b418c51037af51f96ff9c18273a62"
+    },
+    {
       "path": "assets/fonts/native/ExpensifyMono-Bold.otf",
       "sha1": "d70e12540200613e9e6ac9068bed57e4bf477bfe"
     },

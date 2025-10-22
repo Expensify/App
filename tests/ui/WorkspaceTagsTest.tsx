@@ -5,10 +5,11 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -28,7 +29,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -123,6 +124,7 @@ describe('WorkspaceTags', () => {
 
         // Wait for the "Select" option to appear
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
         });
 
@@ -168,6 +170,7 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
@@ -176,6 +179,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(disableMenuItem, mockEvent);
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 

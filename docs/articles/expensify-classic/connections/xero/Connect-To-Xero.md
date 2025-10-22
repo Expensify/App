@@ -5,7 +5,6 @@ order: 1
 keywords: [Expensify Classic, Xero, connect to Xero]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 ## Prerequisites
 
@@ -20,7 +19,7 @@ To connect Xero with Expensify, you must:
 
 Follow these steps to set up the Xero integration:
 
-1. Click **Settings** in the bottom left menu.
+1. Click **Settings** in the left-side navigation menu.
 2. Navigate to **Workspaces > [Workspace Name] > Accounting**.
 3. Click **Connect to Xero**.
 4. Click **Create a New Xero Connection**.
@@ -39,4 +38,3 @@ Follow these steps to set up the Xero integration:
 
 Starting in September 2021, **Cashbook and Ledger** Xero accounts may experience limitations. Apps like Expensify cannot create invoices or bills for these account types using the Xero API. If you are using a **Cashbook or Ledger** Xero account, please note that this may affect your Expensify integration.
 
-</div>

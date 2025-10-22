@@ -10,6 +10,9 @@ type TextInputLabelProps = {
     /** Label scale */
     labelScale: SharedValue<number>;
 
+    /** Whether the input is multiline */
+    isMultiline?: boolean;
+
     /** For attribute for label */
     for?: string;
 };

@@ -1,13 +1,15 @@
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -30,7 +32,7 @@ type IOURequestStepMerchantProps = WithWritableReportOrNotFoundProps<typeof SCRE
 
 function IOURequestStepMerchant({
     route: {
-        params: {transactionID, reportID, backTo, action, iouType},
+        params: {transactionID, reportID, backTo, action, iouType, reportActionID},
     },
     transaction,
     report,
@@ -41,9 +43,12 @@ function IOURequestStepMerchant({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
@@ -89,7 +94,7 @@ function IOURequestStepMerchant({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             navigateBack();
             return;
         }
@@ -114,6 +119,7 @@ function IOURequestStepMerchant({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
@@ -141,6 +147,12 @@ function IOURequestStepMerchant({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onCancel={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => {
+                        inputRef.current?.focus();
+                    });
+                }}
                 getHasUnsavedChanges={() => {
                     if (isSavedRef.current) {
                         return false;

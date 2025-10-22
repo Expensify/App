@@ -1,15 +1,15 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,11 +25,11 @@ function SearchFiltersGroupByPage() {
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
         return getGroupByOptions().map((groupOption) => ({
-            text: translate(groupOption.translation),
+            text: groupOption.text,
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem, translate]);
+    }, [selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
@@ -41,7 +41,7 @@ function SearchFiltersGroupByPage() {
 
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({groupBy: selectedItem ?? null});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 
     return (
@@ -54,13 +54,13 @@ function SearchFiltersGroupByPage() {
             <HeaderWithBackButton
                 title={translate('search.groupBy')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />

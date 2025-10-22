@@ -2,7 +2,7 @@
  * PaymentInformation object
  */
 type PaymentInformation = {
-    /** The name of the  */
+    /** The name of the payment type used Elsewhere, Expensify, ACH, or a policyID. */
     name: string;
     /** The bank account id of the last payment method */
     bankAccountID?: number;

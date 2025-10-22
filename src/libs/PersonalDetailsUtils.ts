@@ -1,13 +1,14 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -45,20 +46,10 @@ Onyx.connect({
         if (value ?? true) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         hiddenTranslation = translateLocal('common.hidden');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
-let defaultCountry = '';
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        defaultCountry = value;
     },
 });
 
@@ -139,6 +130,7 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
@@ -219,7 +211,11 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
  */
-function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getPersonalDetailsOnyxDataForOptimisticUsers(
+    newLogins: string[],
+    newAccountIDs: number[],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -323,7 +319,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
@@ -334,7 +330,11 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
+function createDisplayName(
+    login: string,
+    passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = formatPhoneNumber(login);
@@ -382,17 +382,6 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-/**
- * Whether personal details is empty
- */
-function isPersonalDetailsEmpty() {
-    return !personalDetails.length;
-}
-
-function getPersonalDetailsLength() {
-    return personalDetails.length;
-}
-
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
@@ -417,10 +406,6 @@ const getShortMentionIfFound = (displayText: string, userAccountID: string, curr
     return displayText.split('@').at(0);
 };
 
-function getDefaultCountry() {
-    return defaultCountry;
-}
-
 /**
  * Gets the phone number to display for SMS logins
  */
@@ -438,7 +423,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 export {
-    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getPersonalDetailByEmail,
@@ -453,10 +437,8 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getPersonalDetailsLength,
     getUserNameByEmail,
     getShortMentionIfFound,
-    getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
 };

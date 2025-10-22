@@ -1,10 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -69,20 +69,23 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
- * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
+ * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
-
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
+        if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
+            return true;
+        }
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
@@ -113,13 +116,12 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
 function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        (!isTransactionDataReady || isStillLoadingData) &&
         !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
     );
 }
 
@@ -164,7 +166,7 @@ export {
     getThreadReportIDsForTransactions,
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
-    selectAllTransactionsForReport,
+    getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,

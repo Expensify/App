@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
@@ -12,8 +12,8 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -43,11 +43,11 @@ type TaxPickerProps = {
 };
 
 function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [transaction] = useOnyx(
         (() => {
             if (shouldUseTransactionDraft(action)) {
@@ -55,6 +55,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         })(),
+        {canBeMissing: true},
     );
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -86,10 +87,11 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             getTaxRatesSection({
                 policy,
                 searchValue,
+                localeCompare,
                 selectedOptions,
                 transaction: currentTransaction,
             }),
-        [searchValue, selectedOptions, policy, currentTransaction],
+        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
     );
 
     const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);

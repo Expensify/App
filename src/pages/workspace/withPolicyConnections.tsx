@@ -1,9 +1,9 @@
 import isBoolean from 'lodash/isBoolean';
 import React, {useEffect, useState} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';

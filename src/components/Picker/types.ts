@@ -1,4 +1,4 @@
-import type {ChangeEvent, Component, ReactElement} from 'react';
+import type {ChangeEvent, Component, ForwardedRef, ReactElement} from 'react';
 import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
@@ -98,6 +98,9 @@ type BasePickerProps<TPickerValue> = {
 
     /** Hint text that appears below the picker */
     hintText?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BasePickerHandle>;
 };
 
 export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

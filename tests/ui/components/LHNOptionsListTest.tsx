@@ -1,13 +1,13 @@
 import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import {render, screen, userEvent, waitFor} from '@testing-library/react-native';
+import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,7 +65,7 @@ describe('LHNOptionsList', () => {
 
         return (
             <NavigationContainer>
-                <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <LHNOptionsList
                         data={mergedProps.data}
                         onSelectRow={mergedProps.onSelectRow}
@@ -78,15 +78,19 @@ describe('LHNOptionsList', () => {
     };
 
     beforeEach(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
+        act(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+            });
         });
 
         jest.clearAllMocks();
     });
 
     afterEach(() => {
-        return Onyx.clear();
+        return act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('shows context menu on long press', async () => {

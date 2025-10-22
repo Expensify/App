@@ -1,9 +1,7 @@
 import {useMemo} from 'react';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-
-const getMention = (mention: string) => `@${mention}`;
 
 /**
  * This hook returns data to be used with short mentions in LiveMarkdown/Composer.
@@ -15,7 +13,7 @@ export default function useShortMentionsList() {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const mentionsList = useMemo(() => {
+    const availableLoginsList = useMemo(() => {
         if (!personalDetails) {
             return [];
         }
@@ -32,7 +30,7 @@ export default function useShortMentionsList() {
                 }
 
                 const [username] = personalDetail.login.split('@');
-                return username ? getMention(username) : undefined;
+                return username;
             })
             .filter((login): login is string => !!login);
     }, [currentUserPersonalDetails.login, personalDetails]);
@@ -44,8 +42,8 @@ export default function useShortMentionsList() {
         }
 
         const [baseName] = currentUserPersonalDetails.login.split('@');
-        return [baseName, currentUserPersonalDetails.login].map(getMention);
+        return [baseName, currentUserPersonalDetails.login];
     }, [currentUserPersonalDetails.login]);
 
-    return {mentionsList, currentUserMentions};
+    return {availableLoginsList, currentUserMentions};
 }

@@ -1,22 +1,50 @@
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {CorpayFields} from '@src/types/onyx';
+import type {CorpayFields, CorpayFormField} from '@src/types/onyx';
 import type {SubStepValues} from './getBankInfoStepValues';
 
 /**
  * Returns the initial subStep for the Bank info step based on already existing data
  */
 function getInitialSubStepForBusinessInfoStep(data: SubStepValues<keyof ReimbursementAccountForm>, corpayFields: CorpayFields | undefined): number {
-    const bankAccountDetailsFields = corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
-    const accountHolderDetailsFields = corpayFields?.formFields?.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
-    const hasAnyMissingBankAccountDetails = bankAccountDetailsFields?.some((field) => data?.[field.id as keyof ReimbursementAccountForm] === '');
-    const hasAnyMissingAccountHolderDetails = accountHolderDetailsFields?.some((field) => data?.[field.id as keyof ReimbursementAccountForm] === '');
-
-    if (corpayFields === undefined || hasAnyMissingBankAccountDetails) {
+    if (!corpayFields?.formFields) {
         return 0;
     }
 
-    if (hasAnyMissingAccountHolderDetails) {
+    const isFieldInvalidOrMissing = (field: CorpayFormField): boolean => {
+        const fieldID = field.id as keyof ReimbursementAccountForm;
+        const value = data?.[fieldID];
+
+        if (value === '' || value === null || value === undefined) {
+            return true;
+        }
+
+        if (field.validationRules && field.validationRules.length > 0) {
+            const strValue = String(value);
+            return field.validationRules.some((rule) => {
+                if (!rule.regEx) {
+                    return false;
+                }
+
+                const regex = new RegExp(rule.regEx);
+                return !regex.test(strValue);
+            });
+        }
+
+        return false;
+    };
+
+    const bankAccountDetailsFields = corpayFields.formFields.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
+    const accountHolderDetailsFields = corpayFields.formFields.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
+
+    const hasInvalidBankAccountDetails = bankAccountDetailsFields.some(isFieldInvalidOrMissing);
+    const hasInvalidAccountHolderDetails = accountHolderDetailsFields.some(isFieldInvalidOrMissing);
+
+    if (hasInvalidBankAccountDetails) {
+        return 0;
+    }
+
+    if (hasInvalidAccountHolderDetails) {
         return 1;
     }
 

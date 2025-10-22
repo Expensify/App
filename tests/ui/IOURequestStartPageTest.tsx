@@ -1,10 +1,10 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -12,7 +12,7 @@ import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
 jest.mock('@rnmapbox/maps', () => ({
@@ -43,16 +43,20 @@ describe('IOURequestStartPage', () => {
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
         // Given no selected tab data in Onyx
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, null);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, null);
+        });
 
         // When the page is mounted with MANUAL tab
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <NavigationContainer>
                         <IOURequestStartPage
@@ -69,10 +73,10 @@ describe('IOURequestStartPage', () => {
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the iou type should be MANUAL
         const iouRequestType = await new Promise<OnyxEntry<IOURequestType>>((resolve) => {

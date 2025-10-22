@@ -1,6 +1,7 @@
 import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
@@ -23,6 +24,12 @@ type MoneyRequestReportPreviewStyleType = {
 };
 
 type MoneyRequestReportPreviewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
+    /** All the data of the policy collection */
+    policies: OnyxCollection<Policy>;
+
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
@@ -70,12 +77,13 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     transactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policies' | 'policyID'> &
+    ForwardedFSClassProps & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 

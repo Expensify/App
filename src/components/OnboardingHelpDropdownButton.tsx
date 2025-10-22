@@ -1,9 +1,9 @@
+import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
-import noop from 'lodash/noop';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
 import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
@@ -35,11 +36,14 @@ type OnboardingHelpButtonProps = {
     hasActiveScheduledCall: boolean | undefined;
 };
 
+const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
+
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: (reportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1),
+        selector: reportNameValuePartsSelector,
         canBeMissing: true,
     });
 
@@ -106,6 +110,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
             icon: Monitor,
+            shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
@@ -119,12 +124,15 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     return (
         <ButtonWithDropdownMenu
-            onPress={noop}
-            shouldAlwaysShowDropdownMenu
+            onPress={(_event, value) => {
+                const option = options.find((opt) => opt.value === value);
+                option?.onSelected?.();
+            }}
             pressOnEnter
             success={!!hasActiveScheduledCall}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             options={options}
+            shouldUseOptionIcon
             isSplitButton={false}
             customText={hasActiveScheduledCall ? translate('scheduledCall.callScheduled') : translate('getAssistancePage.onboardingHelp')}
             wrapperStyle={shouldUseNarrowLayout && styles.earlyDiscountButton}

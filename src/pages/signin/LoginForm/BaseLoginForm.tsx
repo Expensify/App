@@ -1,9 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -16,6 +14,7 @@ import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,11 +37,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
-import type {InputHandle} from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
@@ -218,6 +216,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });
@@ -334,4 +333,4 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(forwardRef(BaseLoginForm));
+export default withToggleVisibilityView(BaseLoginForm);

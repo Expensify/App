@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getLinkedTransactionID,
@@ -19,6 +20,7 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isMemberChangeAction,
     isMoneyRequestAction,
+    isReimbursementDirectionInformationRequiredAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
@@ -50,7 +52,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -81,6 +83,32 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
+                />
+            </View>
+        );
+    }
+
+    const handleEnterSignerInfoPress = (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+        if (!policyID || !bankAccountID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted));
+    };
+
+    if (isReimbursementDirectionInformationRequiredAction(action)) {
+        const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =
+            getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
+
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
+                <Button
+                    style={[styles.mt2, styles.alignSelfStart]}
+                    success
+                    isDisabled={completed}
+                    text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
+                    onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
                 />
             </View>
         );
@@ -156,7 +184,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
                             success
-                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            text={translate('bankAccount.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
                         />
                     )}

@@ -38,7 +38,7 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 ## Good code patterns to require
 
 1. Check that functions have comments when appropriate.
-    - If the function has params or returns something, use [JSDocs syntax]((https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) to describe them.
+    - If the function has params or returns something, use [JSDocs syntax](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs) to describe them.
         - Indicate the param name(s), data type passed and / or returned, and purpose if not immediately obvious.
     - Obvious functions (with no params / return value) should not have comments.
     - **In short: _Add comments & docs, only when useful._**
@@ -66,8 +66,27 @@ Here are some guidelines we use in order to make the best decisions:
 1. Specialization
     - When one component is a special case of another, we should opt for the technique of composition. Here are the [React docs](https://reactjs.org/docs/composition-vs-inheritance.html#specialization) on Specialization. The idea is that it’s better to establish a pattern of creating increasingly specific components, instead of adding dozens of use cases to a single component.
     - You might consider this when a component is being reused because the new use case is “close enough” to the original. Rather than adding functionality to that component with subtle additions, it may be better to create a new, more specialized version of that component.
-1. Refactors
+2. Refactors
     - During a code review it often becomes apparent that a refactor is needed. In this case, we recommend following these steps:
         1. Identify the refactor and confirm with others that it’s needed.
         2. Do that refactor first (as a separate job, if it qualifies), merge it, test for regressions.
         3. Proceed with the original issue & job.
+
+# C+ Best Practices
+
+To reduce delays and improve PR turnaround, reviewers should follow these additional practices:
+
+1. **Continue reviewing the full PR even after spotting a bug.**
+    - Always complete a full review pass. Finding an issue early on shouldn’t stop you from checking the rest of the code. This helps the author address all feedback in one go, rather than dealing with staggered comments across days.
+
+2. **Don’t let minor merge conflicts block your review.**
+    - You can still review logic, structure, and tests while conflicts are being resolved.
+
+3. **If you find a bug, test if it exists on `main`.**
+    - If the issue also appears on `main`, **do not block the PR** — it likely wasn’t introduced by the current changes.
+    - Report such bug in `#expensify-bugs` Slack channel following the bug template to make sure its addressed.
+
+4. **Don’t block or delay review due to unrelated failing workflows or test flakes.**  
+   - If failures are clearly not introduced by the PR, don’t treat them as blockers. These can be resolved when syncing with `main` later.
+
+These practices help minimize asynchronous lag and keep development moving smoothly across time zones.

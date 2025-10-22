@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
 import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
 

@@ -1,17 +1,17 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import CardListItem from '@components/SelectionList/Search/CardListItem';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+import SelectionList from '@components/SelectionListWithSections';
+import CardListItem from '@components/SelectionListWithSections/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
@@ -25,10 +25,10 @@ function SearchFiltersCardPage() {
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
 
-    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
 
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -37,10 +37,6 @@ function SearchFiltersCardPage() {
         const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
         setSelectedCards(generatedCards);
     }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds, userCardList]);
-
-    useEffect(() => {
-        openSearchFiltersCardPage();
-    }, []);
 
     const individualCardsSectionData = useMemo(
         () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, false),
@@ -123,7 +119,7 @@ function SearchFiltersCardPage() {
             feed: feeds,
         });
 
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
@@ -147,17 +143,18 @@ function SearchFiltersCardPage() {
 
     const headerMessage = debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '';
 
+    const resetChanges = useCallback(() => {
+        setSelectedCards([]);
+    }, [setSelectedCards]);
+
     const footerContent = useMemo(
         () => (
-            <Button
-                success
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
+            <SearchFilterPageFooterButtons
+                applyChanges={handleConfirmSelection}
+                resetChanges={resetChanges}
             />
         ),
-        [translate, handleConfirmSelection],
+        [resetChanges, handleConfirmSelection],
     );
 
     return (
@@ -172,7 +169,7 @@ function SearchFiltersCardPage() {
                     <HeaderWithBackButton
                         title={translate('common.card')}
                         onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
                     <View style={[styles.flex1]}>

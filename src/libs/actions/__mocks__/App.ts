@@ -9,7 +9,6 @@ jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
 const {
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
@@ -73,7 +72,6 @@ export {
 
     // Actual App implementation
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,

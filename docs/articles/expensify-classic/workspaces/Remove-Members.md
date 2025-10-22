@@ -3,7 +3,6 @@ title: Remove a Workspace Member
 description: How to remove a member from a Workspace in Expensify.
 keywords: [Expensify Classic, remove member, workspace]
 ---
-<div id="expensify-classic" markdown="1">
 
 Removing a member from a workspace prevents them from submitting reports to or accessing the workspace. Please note that it does not delete their account or deactivate their Expensify Card.
 
@@ -52,4 +51,3 @@ If a member is a Preferred Exporter, Billing Owner, Report Approver, or has subm
 - **Processing Reports:**
   - Approve or reject the member’s reports on your **Reports** page.
 
-</div>

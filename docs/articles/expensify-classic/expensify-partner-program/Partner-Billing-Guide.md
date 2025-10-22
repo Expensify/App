@@ -3,7 +3,6 @@ title: Partner Billing Guide
 description: Learn how Expensify bills partners and their clients, including exclusive pricing, consolidated billing, and client ID management.
 keywords: [Expensify Classic, ExpensifyApproved, partner billing, consolidated billing, client ID, Expensify Card]
 ---
-<div id="expensify-classic" markdown="1">
 
 The **ExpensifyApproved! Partner Program** provides exclusive billing rates and features designed for accountants to streamline client management. If you're an accountant or consultant recommending spend management solutions, becoming an **ExpensifyApproved! Accountant** can be beneficial. This guide details billing perks available to partners and how to manage client billing effectively.
 
@@ -118,4 +117,3 @@ Using client IDs simplifies tracking and recognition of client workspaces. It al
 
 This guide ensures you maximize the benefits of the ExpensifyApproved! Partner Program while effectively managing client billing. Need more details? Contact your **Partner Manager** for further assistance.
 
-</div>

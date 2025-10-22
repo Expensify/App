@@ -1,4 +1,4 @@
-import {NavigationContext} from '@react-navigation/native';
+import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
@@ -12,14 +12,11 @@ import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipC
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
-type ScrollingEventData = {
-    isScrolling: boolean;
-};
 /**
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, uniqueID, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
     const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
@@ -27,12 +24,15 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const show = useRef<(() => void) | undefined>(undefined);
 
     const navigator = useContext(NavigationContext);
+    const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
 
     const isResizing = useIsResizing();
 
+    const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
+
     const renderTooltip = useCallback(() => {
-        if (!tooltipElementRef.current || !genericTooltipStateRef.current) {
+        if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
             return;
         }
 
@@ -65,7 +65,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets]);
+    }, [insets, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -82,7 +82,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             // This is necessary to ensure the tooltip is positioned correctly after resizing
             renderTooltip();
         }
-    }, [isResizing, renderTooltip, shouldRender]);
+    }, [isResizing, renderTooltip, shouldRender, uniqueID]);
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
@@ -106,7 +106,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         }
 
         setTooltipPosition(false);
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false}) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (isScrolling: boolean) => {
             setTooltipPosition(isScrolling);
         });
 
@@ -120,7 +120,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     }, []);
 
     useEffect(() => {
-        if (!shouldMeasure) {
+        if (!shouldMeasure || shouldSuppressTooltip) {
             return;
         }
         if (!shouldRender) {
@@ -130,11 +130,11 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
-        }, 500);
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender]);
+    }, [shouldMeasure, shouldRender, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!navigator) {

@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
@@ -9,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

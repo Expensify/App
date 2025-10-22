@@ -35,6 +35,7 @@ export default {
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
+    avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
@@ -99,7 +100,10 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    receiptPaneRHPMaxWidth: 465,
+    minScanTooltipWidth: 320,
     uploadViewMargin: 20,
+    chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
@@ -121,7 +125,11 @@ export default {
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
+    inputPaddingTop: getValueUsingPixelRatio(15, 21),
+    inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
+    inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -215,8 +223,6 @@ export default {
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
-    oldDotWireframeIconWidth: 263.38,
-    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
@@ -276,10 +282,11 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    gbrTooltipShiftHorizontal: -15,
-    gbrTooltipShiftVertical: -10,
-    fabTooltipShiftHorizontal: -11,
-    lhbFabTooltipShiftHorizontal: 4,
+    gbrTooltipShiftHorizontal: -14,
+    gbrTooltipShiftVertical: -16,
+    lhbFabTooltipShiftHorizontal: 8,
+    lhbFabTooltipShiftVertical: 12,
+    lhbFabTooltipShiftVerticalMobile: 6,
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
@@ -287,6 +294,8 @@ export default {
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
+    inviteMemberListItemTooltipShiftVertical: -8,
+    inviteMemberListItemTooltipShiftHorizontal: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -300,6 +309,9 @@ export default {
 
     scrollToNewTransactionOffset: 300,
 
+    searchAutocompleteInputSkeletonHeight: 8,
+    searchAutocompleteInputSkeletonWidth: 145,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
@@ -311,6 +323,7 @@ export default {
     h112: 112,
     h172: 172,
     w12: 12,
+    w16: 16,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -324,4 +337,45 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 100,
+    optionRowNarrowWithDrawerItemHeightWithButton: 124,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeightSmallScreen: 60,
+    searchOptionRowTransactionHeightLargeScreen: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 8,
+
+    // Search item violation warning mark height
+    searchViolationWarningMarkHeight: 22,
+
+    // Search item base padding/margin
+    searchItemBasePadding: 8,
+
+    // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
+    searchChatReportPreviewHeight: 434,
+    searchChatStandardItemHeight: 97,
+
+    // Uber employee invite button width
+    uberEmployeeInviteButtonWidth: 62,
+    uberEmptyListIconWidth: 190,
+    uberEmptyListIconHeight: 136,
 } as const;

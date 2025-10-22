@@ -14,8 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -68,7 +69,7 @@ function Composer(
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
         // eslint-disable-next-line react-compiler/react-compiler
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
@@ -102,8 +103,10 @@ function Composer(
             const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
-            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
-            onPasteFile(file);
+            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+            getFileSize(file.uri ?? '')
+                .then((size) => (file = {...file, size}))
+                .finally(() => onPasteFile(file));
         },
         [onPasteFile],
     );

@@ -1,15 +1,19 @@
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
-import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import Parser from '@libs/Parser';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
@@ -162,6 +166,17 @@ function getTagViolationsForMultiLevelTags(
 }
 
 /**
+ * Returns a period-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
+ */
+function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
+    if (isEmpty(errorIndexes) || isEmpty(tags)) {
+        return translate('violations.someTagLevelsRequired', {tagName});
+    }
+    const tagsWithIndexes = keyBy(Object.values(tags), 'orderWeight');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
+}
+
+/**
  * Extracts unique error messages from errors and actions
  */
 function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextProps['translate']): string[] {
@@ -212,7 +227,10 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
     ): OnyxUpdate {
-        if (TransactionUtils.isPartial(updatedTransaction)) {
+        const isScanning = TransactionUtils.isScanning(updatedTransaction);
+        const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -221,6 +239,19 @@ const ViolationsUtils = {
         }
 
         let newTransactionViolations = [...transactionViolations];
+
+        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+        if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
+            };
+        }
+        if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
+        }
 
         // Calculate client-side category violations
         const policyRequiresCategories = !!policy.requiresCategory;
@@ -260,8 +291,20 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+        const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
+        if (customUnitRateID && customUnitRateID.length > 0) {
+            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+
+            if (customRate) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+            } else {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
@@ -270,8 +313,14 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
+        const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
+        const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -281,6 +330,8 @@ const ViolationsUtils = {
         const categoryName = updatedTransaction.category;
         const categoryMaxAmountNoReceipt = policyCategories[categoryName ?? '']?.maxAmountNoReceipt;
         const maxAmountNoReceipt = policy.maxExpenseAmountNoReceipt;
+        // Amount is stored with opposite sign (negative for expenses), so we negate it to get the actual expense amount
+        const expenseAmount = -amount;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
@@ -288,14 +339,14 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt !== 'number' &&
             typeof maxAmountNoReceipt === 'number' &&
-            Math.abs(amount) > maxAmountNoReceipt &&
+            expenseAmount > maxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
         const shouldShowCategoryReceiptRequiredViolation =
             canCalculateAmountViolations &&
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt === 'number' &&
-            Math.abs(amount) > categoryMaxAmountNoReceipt &&
+            expenseAmount > categoryMaxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
@@ -306,10 +357,10 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
-            Math.abs(amount) > overLimitAmount &&
+            expenseAmount > overLimitAmount &&
             isControlPolicy;
         const shouldCategoryShowOverLimitViolation =
-            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && Math.abs(amount) > categoryOverLimit && isControlPolicy;
+            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
@@ -339,7 +390,7 @@ const ViolationsUtils = {
                     shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency, true),
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -365,6 +416,22 @@ const ViolationsUtils = {
             });
         }
 
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations.push({
+        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+        //         data: {
+        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
+        //         },
+        //         type: CONST.VIOLATION_TYPES.VIOLATION,
+        //         showInReview: true,
+        //     });
+        // }
+
+        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        // }
+
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.MISSING_COMMENT,
@@ -377,6 +444,13 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
+        if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
+            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        }
+
+        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
+        }
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -391,7 +465,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -399,8 +473,6 @@ const ViolationsUtils = {
             isTransactionOlderThan7Days = false,
             member,
             category,
-            rejectedBy = '',
-            rejectReason = '',
             formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
@@ -410,16 +482,14 @@ const ViolationsUtils = {
             type,
             rterType,
             message = '',
+            errorIndexes = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
-                return translate('violations.autoReportedRejectedExpense', {
-                    rejectedBy,
-                    rejectReason,
-                });
+                return translate('violations.autoReportedRejectedExpense');
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
@@ -458,6 +528,8 @@ const ViolationsUtils = {
                 return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit});
+            case 'overTripLimit':
+                return translate('violations.overTripLimit', {formattedLimit});
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':
@@ -480,7 +552,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired', {tagName});
+                return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':
@@ -519,6 +591,7 @@ const ViolationsUtils = {
         translate: LocaleContextProps['translate'],
         missingFieldError?: string,
         transactionThreadActions?: ReportAction[],
+        tags?: PolicyTagLists,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
 
@@ -528,15 +601,39 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...transactionViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags);
                 if (!message) {
                     return;
                 }
-                return message.endsWith('.') ? message : `${message}.`;
+                const textMessage = Parser.htmlToText(message);
+                return textMessage.endsWith('.') ? message : `${message}.`;
             }),
         ]
             .filter(Boolean)
             .join(' ');
+    },
+
+    /**
+     * Checks if any transactions in the report have violations that should be visible to the current user.
+     * Filters violations based on user role (submitter, admin, policy member) and report state.
+     */
+    hasVisibleViolationsForUser(report: OnyxEntry<Report>, violations: OnyxCollection<TransactionViolation[]>, policy?: OnyxEntry<Policy>, transactions?: Transaction[]): boolean {
+        if (!report || !violations || !transactions) {
+            return false;
+        }
+
+        // Check if any transaction has at least one violation visible to the current user
+        return transactions.some((transaction) => {
+            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            if (!transactionViolations) {
+                return false;
+            }
+
+            // Check if any violation should be shown based on user role and violation type
+            return transactionViolations.some((violation: TransactionViolation) => {
+                return shouldShowViolation(report, policy, violation.name);
+            });
+        });
     },
 };
 
