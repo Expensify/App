@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -102,11 +103,13 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
         });
 
@@ -150,11 +153,13 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is NOT displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.queryByText(translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is NOT displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.queryByText(translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
         });
 
@@ -192,6 +197,7 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "PIN" option is not displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.queryByText(translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
         });
 
@@ -229,6 +235,7 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "PIN" option is displayed on the screen.
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
         });
 

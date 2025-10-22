@@ -60,6 +60,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
         return true;
     }

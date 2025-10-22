@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
@@ -92,6 +93,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.employees.1-10'))).toBeOnTheScreen();
         });
 
@@ -115,6 +117,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.queryByText(translateLocal('onboarding.employees.1-10'))).not.toBeOnTheScreen();
         });
 

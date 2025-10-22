@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -570,6 +571,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
         });
 
@@ -599,6 +601,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
         });
 
@@ -632,6 +635,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
         });
 
@@ -665,6 +669,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
         });
 
@@ -706,6 +711,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
         });
 
@@ -742,6 +748,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
         });
 
@@ -785,6 +792,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
         });
     });

@@ -668,6 +668,7 @@ const SCREENS = {
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
         RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',

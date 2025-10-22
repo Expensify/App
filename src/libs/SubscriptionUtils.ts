@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -489,9 +490,11 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected
     }
 
     if (shouldShowPreTrialBillingBanner(introSelected)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial()) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
 
@@ -616,53 +619,79 @@ function getSubscriptionPlanInfo(
     const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let subtitle = translateLocal('subscription.yourPlan.customPricing');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 note = translateLocal('subscription.yourPlan.perMemberMonth');
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
                 note = undefined;
             }
         }
 
         return {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('subscription.yourPlan.collect.title'),
             subtitle,
             note,
             benefits: [
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit1'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit2'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit3'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit4'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit5'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit6'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit7'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit8'),
             ],
             src: Illustrations.Mailbox,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description: translateLocal('subscription.yourPlan.collect.description'),
         };
     }
 
     return {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('subscription.yourPlan.control.title'),
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         subtitle: translateLocal('subscription.yourPlan.customPricing'),
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         note: translateLocal('subscription.yourPlan.asLowAs', {price}),
         benefits: [
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit1'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit2'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit3'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit4'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit5'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit6'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit7'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit8'),
         ],
         src: Illustrations.ShieldYellow,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         description: translateLocal('subscription.yourPlan.control.description'),
     };
 }

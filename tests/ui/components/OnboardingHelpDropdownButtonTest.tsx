@@ -7,6 +7,7 @@ import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButt
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -116,10 +117,14 @@ describe('OnboardingHelpDropdownButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then only schedule call option is visible
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const scheduleCallOption = screen.getByText(translateLocal('getAssistancePage.scheduleACall'));
         expect(scheduleCallOption).toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('getAssistancePage.registerForWebinar'))).not.toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('common.reschedule'))).not.toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('common.cancel'))).not.toBeOnTheScreen();
 
         // When schedule call option is pressed
@@ -148,10 +153,14 @@ describe('OnboardingHelpDropdownButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then only webinar registration option is visible
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const registerOption = screen.getByText(translateLocal('getAssistancePage.registerForWebinar'));
         expect(registerOption).toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('getAssistancePage.scheduleACall'))).not.toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('common.reschedule'))).not.toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('common.cancel'))).not.toBeOnTheScreen();
 
         // When webinar registration option is pressed
@@ -186,6 +195,7 @@ describe('OnboardingHelpDropdownButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then dropdown button displays "Call scheduled" text
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
         expect(dropdownButton).toBeOnTheScreen();
 
@@ -197,9 +207,13 @@ describe('OnboardingHelpDropdownButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then all expected menu options are present
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(translateLocal('common.reschedule'))).toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(translateLocal('common.cancel'))).toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(translateLocal('getAssistancePage.registerForWebinar'))).toBeOnTheScreen();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('getAssistancePage.scheduleACall'))).not.toBeOnTheScreen();
     });
 
@@ -234,13 +248,14 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();
 
             // When webinar menu item is pressed
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const webinarMenuItem = screen.getByText(translateLocal('getAssistancePage.registerForWebinar'));
             fireEvent.press(webinarMenuItem, createMockPressEvent(webinarMenuItem));
 
@@ -256,13 +271,14 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();
 
             // When reschedule option is pressed
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const rescheduleMenuItem = screen.getByText(translateLocal('common.reschedule'));
             fireEvent.press(rescheduleMenuItem, createMockPressEvent(rescheduleMenuItem));
 
@@ -278,13 +294,14 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();
 
             // When cancel option is pressed
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const cancelMenuItem = screen.getByText(translateLocal('common.cancel'));
             fireEvent.press(cancelMenuItem, createMockPressEvent(cancelMenuItem));
 

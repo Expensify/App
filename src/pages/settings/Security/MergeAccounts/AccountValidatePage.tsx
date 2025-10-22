@@ -159,6 +159,7 @@ function AccountValidatePage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountValidatePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}

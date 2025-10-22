@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -50,26 +51,7 @@ import type {
     TextColorStyle,
 } from './types';
 
-const workspaceColorOptions: SVGAvatarColorStyle[] = [
-    {backgroundColor: colors.blue100, fill: colors.blue600},
-    {backgroundColor: colors.blue400, fill: colors.blue700},
-    {backgroundColor: colors.blue700, fill: colors.blue200},
-    {backgroundColor: colors.green100, fill: colors.green600},
-    {backgroundColor: colors.green400, fill: colors.green700},
-    {backgroundColor: colors.green700, fill: colors.green200},
-    {backgroundColor: colors.yellow100, fill: colors.yellow600},
-    {backgroundColor: colors.yellow400, fill: colors.yellow700},
-    {backgroundColor: colors.yellow700, fill: colors.yellow200},
-    {backgroundColor: colors.tangerine100, fill: colors.tangerine600},
-    {backgroundColor: colors.tangerine400, fill: colors.tangerine700},
-    {backgroundColor: colors.tangerine700, fill: colors.tangerine200},
-    {backgroundColor: colors.pink100, fill: colors.pink600},
-    {backgroundColor: colors.pink400, fill: colors.pink700},
-    {backgroundColor: colors.pink700, fill: colors.pink200},
-    {backgroundColor: colors.ice100, fill: colors.ice600},
-    {backgroundColor: colors.ice400, fill: colors.ice700},
-    {backgroundColor: colors.ice700, fill: colors.ice200},
-];
+const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
 
 const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
 

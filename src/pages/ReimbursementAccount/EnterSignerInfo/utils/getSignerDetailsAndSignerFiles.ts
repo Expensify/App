@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {EnterSignerInfoForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const signerDetailsFields = [
     INPUT_IDS.SIGNER_FULL_NAME,

@@ -105,10 +105,11 @@ describe('Sidebar', () => {
                         });
                     })
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat room has been archived.');
@@ -169,10 +170,11 @@ describe('Sidebar', () => {
                         });
                     })
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat is no longer active because Vikings Policy is no longer an active workspace.');

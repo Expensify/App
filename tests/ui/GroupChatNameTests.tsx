@@ -6,6 +6,7 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {setSidebarLoaded} from '@userActions/App';
 import {subscribeToUserEvents} from '@userActions/User';
@@ -186,6 +187,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
@@ -248,6 +250,7 @@ describe('Tests for group chat name', () => {
     it('Should show correctly in LHN', () =>
         signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
@@ -255,7 +258,7 @@ describe('Tests for group chat name', () => {
             // Verify there is only one option in the sidebar
             const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -265,6 +268,7 @@ describe('Tests for group chat name', () => {
     it('Should show correctly in LHN when report name is not present', () =>
         signInAndGetApp('', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
@@ -272,7 +276,7 @@ describe('Tests for group chat name', () => {
             // Verify there is only one option in the sidebar
             const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -282,6 +286,7 @@ describe('Tests for group chat name', () => {
     it('Should show limited names with ellipsis in LHN when 8 participants are present', () =>
         signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
@@ -289,7 +294,7 @@ describe('Tests for group chat name', () => {
             // Verify there is only one option in the sidebar
             const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -300,6 +305,7 @@ describe('Tests for group chat name', () => {
         signInAndGetApp('', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
@@ -307,7 +313,7 @@ describe('Tests for group chat name', () => {
                 // Verify there is only one option in the sidebar
                 const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
-
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -327,8 +333,9 @@ describe('Tests for group chat name', () => {
             .then(async () => {
                 // Wait for sidebar to be rendered
                 await waitForBatchedUpdatesWithAct();
-
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
 
                 // Check sidebar links
@@ -361,6 +368,7 @@ describe('Tests for group chat name', () => {
         signInAndGetApp('Test chat', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
@@ -368,7 +376,7 @@ describe('Tests for group chat name', () => {
                 // Verify there is only one option in the sidebar
                 const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
-
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -387,6 +395,7 @@ describe('Tests for group chat name', () => {
         signInAndGetApp("Let's talk", participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
@@ -394,7 +403,7 @@ describe('Tests for group chat name', () => {
                 // Verify there is only one option in the sidebar
                 const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
-
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
@@ -412,6 +421,7 @@ describe('Tests for group chat name', () => {
     it('Should show last message preview in LHN', () =>
         signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
@@ -419,7 +429,7 @@ describe('Tests for group chat name', () => {
             // Verify there is only one option in the sidebar
             const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const lastChatHintText = translateLocal('accessibilityHints.lastChatMessagePreview');
             const lastChatText = screen.queryByLabelText(lastChatHintText);
 
@@ -429,6 +439,7 @@ describe('Tests for group chat name', () => {
     it('Should sort the names before displaying', () =>
         signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4]).then(() => {
             // Verify the sidebar links are rendered
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
@@ -436,7 +447,7 @@ describe('Tests for group chat name', () => {
             // Verify there is only one option in the sidebar
             const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 

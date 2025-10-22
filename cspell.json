@@ -767,7 +767,8 @@
         "Dtype",
         "Areport",
         "mple",
-        "Selec"
+        "Selec",
+        "setuptools"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -817,7 +818,8 @@
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
         "modules/group-ib-fp",
-        "web/snippets/gib.js"
+        "web/snippets/gib.js",
+        "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

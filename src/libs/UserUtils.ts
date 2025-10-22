@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -275,10 +276,13 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
 
         let description = '';
         if (defaultEmail === login?.partnerUserID) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.getInTouch');
         } else if (login?.errorFields?.addedLogin) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.pleaseVerify');
         }
         let indicator;

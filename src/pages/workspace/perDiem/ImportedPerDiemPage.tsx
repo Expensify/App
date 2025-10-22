@@ -145,6 +145,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         <ScreenWrapper
             testID={ImportedPerDiemPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.perDiem.importPerDiemRates')}

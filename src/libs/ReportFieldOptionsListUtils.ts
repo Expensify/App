@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import type {Option} from './OptionsListUtils';
 import type {OptionData} from './ReportUtils';
@@ -68,6 +69,7 @@ function getReportFieldOptionsSection({
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
@@ -79,6 +81,7 @@ function getReportFieldOptionsSection({
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('common.all'),
         shouldShow: true,
         indexOffset,

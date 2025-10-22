@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {startTestDrive} from '@libs/actions/Tour';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -64,6 +65,7 @@ describe('actions/Tour', () => {
                 const testDriveTaskAction: ReportAction = {
                     ...LHNTestUtils.getFakeReportAction(),
                     childType: CONST.REPORT.TYPE.TASK,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     childReportName: Parser.replace(translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`})),
                     childReportID: testDriveTaskReport.reportID,
                 };
