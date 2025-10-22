@@ -2413,10 +2413,10 @@ ${amount} para ${merchant} - ${date}`,
                     '*Configure categorias* para que sua equipe possa categorizar despesas para relatórios fáceis.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Categorias*.\n' +
-                    '5. Desative quaisquer categorias que você não precise.\n' +
-                    '6. Adicione suas próprias categorias no canto superior direito.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Categorias*.\n' +
+                    '4. Desative quaisquer categorias que você não precise.\n' +
+                    '5. Adicione suas próprias categorias no canto superior direito.\n' +
                     '\n' +
                     `[Leve-me para as configurações de categoria do espaço de trabalho](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2498,10 +2498,10 @@ ${amount} para ${merchant} - ${date}`,
                     '*Convide sua equipe* para o Expensify para que eles possam começar a rastrear despesas hoje mesmo.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Membros* > *Convidar membro*.\n' +
-                    '5. Insira e-mails ou números de telefone. \n' +
-                    '6. Adicione uma mensagem de convite personalizada, se desejar!\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Membros* > *Convidar membro*.\n' +
+                    '4. Insira e-mails ou números de telefone. \n' +
+                    '5. Adicione uma mensagem de convite personalizada, se desejar!\n' +
                     '\n' +
                     `[Leve-me para os membros do espaço de trabalho](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2520,11 +2520,11 @@ ${amount} para ${merchant} - ${date}`,
                     'Use tags para adicionar detalhes extras de despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, pode fazer upgrade para o plano Control.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Mais recursos*.\n' +
-                    '5. Habilite *Tags*.\n' +
-                    '6. Navegue até *Tags* no editor do espaço de trabalho.\n' +
-                    '7. Clique em *+ Adicionar tag* para criar as suas.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Mais recursos*.\n' +
+                    '4. Habilite *Tags*.\n' +
+                    '5. Navegue até *Tags* no editor do espaço de trabalho.\n' +
+                    '6. Clique em *+ Adicionar tag* para criar as suas.\n' +
                     '\n' +
                     `[Leve-me para mais recursos](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
