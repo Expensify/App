@@ -3,6 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -89,12 +90,14 @@ describe('ReportDetailsPage', () => {
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
         await screen.findByText(submitText);
 
         // Categorize and share are temporarily disabled
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         // const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         // const shareText = translateLocal('actionableMentionTrackExpense.share');
         // await screen.findByText(categorizeText);
         // await screen.findByText(shareText);
