@@ -81,7 +81,7 @@ const policyID = 'policy-123';
 const policyName = 'Engineering Team';
 
 const expectedSearchRoute = ROUTES.SEARCH_ROOT.getRoute({
-    query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
+    query: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
 });
 
 describe('useCreateEmptyReportConfirmation', () => {
