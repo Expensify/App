@@ -439,6 +439,7 @@ const translations = {
         zipPostCode: 'Code postal',
         whatThis: "Qu'est-ce que c'est ?",
         iAcceptThe: "J'accepte le",
+        iAcceptTheFull: `J'accepte le <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation d'Expensify</a> et <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>`,
         remove: 'Supprimer',
         admin: 'Admin',
         owner: 'Propriétaire',

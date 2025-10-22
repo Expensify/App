@@ -439,6 +439,7 @@ const translations = {
         zipPostCode: '郵便番号',
         whatThis: 'これは何ですか？',
         iAcceptThe: '承諾します',
+        iAcceptTheFull: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 利用規約</a> および <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>`,
         remove: '削除',
         admin: '管理者',
         owner: 'オーナー',
