@@ -1350,14 +1350,22 @@ describe('SidebarUtils', () => {
                     shouldShow: true,
                     pendingAction: null,
                 };
+
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-                await act(async () => {
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
-                        name: "Three's Workspace",
-                    });
+                await Onyx.set(ONYXKEYS.SESSION, session);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
+                    name: "Three's Workspace",
                 });
+
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1613,8 +1621,21 @@ describe('SidebarUtils', () => {
                     whisperedToAccountIDs: [],
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const PERSONAL_DETAILS = {
+                    '1': {
+                        accountID: 1,
+                        login: 'email1@test.com',
+                        firstName: 'One',
+                    },
+                    '2': {
+                        accountID: 2,
+                        login: 'email2@test.com',
+                        firstName: 'Two',
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
