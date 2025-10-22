@@ -58,7 +58,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
