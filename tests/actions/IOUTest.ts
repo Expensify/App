@@ -36,6 +36,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
+    retractReport,
     saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
@@ -59,6 +60,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -1642,6 +1644,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
@@ -1944,6 +1947,7 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
@@ -2877,7 +2881,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(transaction.transactionID, draftTransaction, 1, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, iouAction, undefined);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, 1, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, iouAction);
 
             await waitForBatchedUpdates();
 
@@ -2936,7 +2940,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3010,7 +3014,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3460,6 +3464,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
@@ -3837,7 +3842,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
             }
             await waitForBatchedUpdates();
 
@@ -3916,7 +3921,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
             }
             await waitForBatchedUpdates();
 
@@ -3978,7 +3983,7 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4073,7 +4078,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4198,7 +4203,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4272,7 +4277,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4423,7 +4428,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4515,7 +4520,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             await waitForBatchedUpdates();
 
@@ -4591,7 +4596,7 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4639,7 +4644,7 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4703,19 +4708,8 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
-            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, undefined, [], selectedTransactionIDs);
-            deleteMoneyRequest(
-                transaction2.transactionID,
-                moneyRequestAction2,
-                {},
-                {},
-                expenseReport,
-                expenseReport,
-                undefined,
-                undefined,
-                [transaction1.transactionID],
-                selectedTransactionIDs,
-            );
+            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, [], selectedTransactionIDs);
+            deleteMoneyRequest(transaction2.transactionID, moneyRequestAction2, {}, {}, expenseReport, expenseReport, undefined, [transaction1.transactionID], selectedTransactionIDs);
 
             await waitForBatchedUpdates();
 
@@ -7392,18 +7386,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(
-                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    draftTransaction,
-                    -2,
-                    undefined,
-                    undefined,
-                    [],
-                    expenseReport,
-                    chatReport,
-                    undefined,
-                    undefined,
-                );
+                saveSplitTransactions(originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransaction, -2, undefined, undefined, [], expenseReport, chatReport, undefined);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -7503,18 +7486,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(
-                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    draftTransaction,
-                    -2,
-                    undefined,
-                    undefined,
-                    [],
-                    expenseReport,
-                    chatReport,
-                    undefined,
-                    undefined,
-                );
+                saveSplitTransactions(originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransaction, -2, undefined, undefined, [], expenseReport, chatReport, undefined);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -8943,6 +8915,38 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('retractReport', () => {
+        it('should restore the chat report iouReportID', async () => {
+            // Given a chat report with no iouReportID
+            const chatReport: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: undefined,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+            };
+
+            // When retracting the submitted expense report
+            retractReport(expenseReport, chatReport);
+
+            // Then the chat report iouReportID should be set back to the retracted expense report
+            const iouReportID = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.iouReportID);
+                    },
+                });
+            });
+            expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
     describe('approveMoneyRequest with take control', () => {

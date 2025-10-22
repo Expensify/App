@@ -492,6 +492,7 @@ const config = defineConfig([
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
             'rulesdir/prefer-locale-compare-from-context': 'error',
+            'rulesdir/no-object-keys-includes': 'error',
         },
     },
 
