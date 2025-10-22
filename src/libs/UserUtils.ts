@@ -8,6 +8,8 @@ import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/typ
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {ALL_CUSTOM_AVATARS, getAvatarLocal} from './Avatars/CustomAvatarCatalog';
+import type {CustomAvatarID} from './Avatars/CustomAvatarCatalog.types';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -171,6 +173,23 @@ function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, avatar
 }
 
 /**
+ * Helper method to extract the avatar name from a default avatar URL
+ * @param avatarURL - the URL returned by getDefaultAvatarURL
+ * @returns the avatar name (e.g., 'default-avatar_5', 'concierge') or undefined if not a valid default avatar URL
+ */
+function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefined {
+    if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
+        return undefined;
+    }
+
+    // Extract avatar name from CloudFront URL and make sure it's one of defaults
+    const match = avatarURL.split('/').at(-1)?.split('.')?.[0];
+    if (Object.keys(ALL_CUSTOM_AVATARS).includes(match ?? '')) {
+        return match;
+    }
+}
+
+/**
  * * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
  * @param avatarSource - the avatar source from user's personalDetails
  */
@@ -231,6 +250,10 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): Av
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
+    }
+    const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(avatarSource);
+    if (maybeDefaultAvatarName) {
+        return getAvatarLocal(maybeDefaultAvatarName as CustomAvatarID);
     }
 
     // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
