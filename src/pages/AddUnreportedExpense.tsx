@@ -61,6 +61,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -79,6 +80,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     return false;
                 }
 
+                // Check if the transaction belongs to the current user by verifying card ownership
+                if (item?.cardID) {
+                    const card = cardList?.[item.cardID];
+                    if (card?.accountID !== session?.accountID) {
+                        return false;
+                    }
+                }
+
                 if (isPerDiemRequest(item)) {
                     // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
                     const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
@@ -90,7 +99,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy],
+        [policy, session?.accountID, cardList],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
