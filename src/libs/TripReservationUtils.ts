@@ -152,7 +152,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
     pnrData.travelerInfos.forEach((travelerInfo) => {
         travelerInfo.tickets.forEach((ticket) => {
             const flightCoupons = ticket.flightCoupons;
-            flightCoupons.forEach((flightDetails, index) => {
+            flightCoupons.sort((a, b) => a.legIdx - b.legIdx).forEach((flightDetails, index) => {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
                 const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
