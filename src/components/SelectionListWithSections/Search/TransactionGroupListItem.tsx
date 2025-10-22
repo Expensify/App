@@ -263,19 +263,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
             return headers[groupBy];
         },
         [
-        groupItem,
-        onSelectRow,
-        transactionPreviewData,
-        onCheckboxPress,
-        isDisabledOrEmpty,
-        isFocused,
-        canSelectMultiple,
-        isSelectAllChecked,
-        isIndeterminate,
-        groupBy,
-        isExpanded,
-        onExpandIconPress,
-    ],
+            groupItem,
+            onSelectRow,
+            transactionPreviewData,
+            onCheckboxPress,
+            isDisabledOrEmpty,
+            isFocused,
+            canSelectMultiple,
+            isSelectAllChecked,
+            isIndeterminate,
+            groupBy,
+            isExpanded,
+            onExpandIconPress,
+        ],
     );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
