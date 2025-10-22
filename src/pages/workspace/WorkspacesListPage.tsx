@@ -1,9 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -98,8 +96,6 @@ type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'do
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 type GetDomainMenuItem = {item: DomainItem; index: number};
 
-const getItemType = (item: WorkspaceOrDomainListItem) => item.listItemType;
-
 /**
  * Dismisses the errors on one item
  */
@@ -178,7 +174,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const listRef = useRef<FlashListRef<WorkspaceOrDomainListItem>>(null);
+    const flatListRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -543,7 +539,7 @@ function WorkspacesListPage() {
         }
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
-            listRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            flatListRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
@@ -713,15 +709,19 @@ function WorkspacesListPage() {
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                <FlashList
-                    ref={listRef}
+                <FlatList
+                    ref={flatListRef}
                     data={data}
+                    onScrollToIndexFailed={(info) => {
+                        flatListRef.current?.scrollToOffset({
+                            offset: info.averageItemLength * info.index,
+                            animated: true,
+                        });
+                    }}
                     renderItem={renderItem}
-                    getItemType={getItemType}
                     ListHeaderComponent={listHeaderComponent}
+                    keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.pb20}
-                    removeClippedSubviews
-                    drawDistance={1000}
                 />
             </View>
             <ConfirmModal
