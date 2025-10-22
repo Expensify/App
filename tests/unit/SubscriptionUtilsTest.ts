@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {
     calculateRemainingFreeTrialDays,
+    checkIfHasTeam2025Pricing,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
     getSubscriptionStatus,
@@ -502,6 +503,21 @@ describe('SubscriptionUtils', () => {
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
+        });
+    });
+
+    describe('checkIfHasTeam2025Pricing', () => {
+        it('should return true if the user is on a team plan and has a first policy date', () => {
+            expect(checkIfHasTeam2025Pricing('2025-10-22')).toBeTruthy();
+        });
+
+        it('should return false if the user is on a team plan and has no first policy date', () => {
+            expect(checkIfHasTeam2025Pricing(undefined)).toBeTruthy();
+        });
+
+        it('should return true if the user has manual team 2025 pricing', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING, '2025-10-22');
+            expect(checkIfHasTeam2025Pricing('2022-10-22')).toBeTruthy();
         });
     });
 
