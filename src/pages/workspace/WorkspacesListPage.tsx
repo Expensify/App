@@ -174,7 +174,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const flatListRef = useRef<FlatList | null>(null);
+    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -539,7 +539,7 @@ function WorkspacesListPage() {
         }
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
-            flatListRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
@@ -710,10 +710,10 @@ function WorkspacesListPage() {
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <FlatList
-                    ref={flatListRef}
+                    ref={flatlistRef}
                     data={data}
                     onScrollToIndexFailed={(info) => {
-                        flatListRef.current?.scrollToOffset({
+                        flatlistRef.current?.scrollToOffset({
                             offset: info.averageItemLength * info.index,
                             animated: true,
                         });
