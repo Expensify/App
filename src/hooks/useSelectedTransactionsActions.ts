@@ -84,20 +84,23 @@ function useSelectedTransactionsActions({
         const knownOwnerIDs = new Set<number>();
         let hasUnknownOwner = false;
 
-        Object.values(selectedTransactionsMeta ?? {}).forEach((selectedTransactionInfo) => {
+        for (const selectedTransactionInfo of Object.values(selectedTransactionsMeta ?? {})) {
             const ownerAccountID = selectedTransactionInfo?.ownerAccountID;
             if (typeof ownerAccountID === 'number') {
                 knownOwnerIDs.add(ownerAccountID);
+                if (knownOwnerIDs.size > 1) {
+                    return true;
+                }
             } else {
                 hasUnknownOwner = true;
             }
-        });
+        }
 
-        selectedTransactionsList.forEach((selectedTransaction) => {
+        for (const selectedTransaction of selectedTransactionsList) {
             const reportID = selectedTransaction?.reportID;
             if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 hasUnknownOwner = true;
-                return;
+                continue;
             }
 
             const parentReport = getReportOrDraftReport(reportID);
@@ -105,13 +108,12 @@ function useSelectedTransactionsActions({
 
             if (typeof ownerAccountID === 'number') {
                 knownOwnerIDs.add(ownerAccountID);
+                if (knownOwnerIDs.size > 1) {
+                    return true;
+                }
             } else {
                 hasUnknownOwner = true;
             }
-        });
-
-        if (knownOwnerIDs.size > 1) {
-            return true;
         }
 
         if (hasUnknownOwner) {
