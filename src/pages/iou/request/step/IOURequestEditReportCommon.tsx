@@ -34,7 +34,6 @@ type Props = {
     transactionIDs?: string[];
     selectedReportID?: string;
     selectedPolicyID?: string;
-    targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
@@ -54,7 +53,6 @@ function IOURequestEditReportCommon({
     selectReport,
     selectedReportID,
     selectedPolicyID,
-    targetOwnerAccountID,
     removeFromReport,
     isEditing = false,
     isUnreported,
@@ -68,17 +66,7 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const resolvedReportOwnerAccountID = useMemo(() => {
-        if (targetOwnerAccountID !== undefined) {
-            return targetOwnerAccountID;
-        }
-
-        if (selectedReport?.ownerAccountID !== undefined) {
-            return selectedReport.ownerAccountID;
-        }
-
-        return currentUserPersonalDetails.accountID;
-    }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
+    const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
@@ -87,8 +75,7 @@ function IOURequestEditReportCommon({
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
-    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
+    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -102,7 +89,7 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isSelectedReportUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -119,7 +106,7 @@ function IOURequestEditReportCommon({
                     }
                     const reports = getOutstandingReportsForUser(
                         policyID,
-                        resolvedReportOwnerAccountID,
+                        reportOwnerAccountID,
                         outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                         reportNameValuePairs,
                         isEditing,
@@ -130,12 +117,12 @@ function IOURequestEditReportCommon({
         }
         return getOutstandingReportsForUser(
             selectedPolicyID,
-            resolvedReportOwnerAccountID,
+            reportOwnerAccountID,
             outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
             reportNameValuePairs,
             isEditing,
         );
-    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
+    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -207,7 +194,7 @@ function IOURequestEditReportCommon({
                 icon={Expensicons.Document}
             />
         );
-    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, isSelectedReportUnreported]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
