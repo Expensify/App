@@ -21,19 +21,19 @@ function WorkspaceConfirmationPage() {
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-        createWorkspaceWithPolicyDraftAndNavigateToIt(
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
-            '',
-            params.name,
-            false,
-            false,
-            '',
+            policyOwnerEmail: '',
+            policyName: params.name,
+            transitionFromOldDot: false,
+            makeMeAdmin: false,
+            backTo: '',
             policyID,
-            params.currency,
-            params.avatarFile as File,
-            routeToNavigate,
-            lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-        );
+            currency: params.currency,
+            file: params.avatarFile as File,
+            routeToNavigateAfterCreate: routeToNavigate,
+            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
+        });
     };
     const currentUrl = getCurrentUrl();
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,

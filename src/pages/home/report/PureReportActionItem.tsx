@@ -206,7 +206,7 @@ type PureReportActionItemProps = {
     policies: OnyxCollection<OnyxTypes.Policy>;
 
     /** Model of onboarding selected */
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -973,6 +973,7 @@ function PureReportActionItem({
         formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
+        introSelected,
     ]);
 
     /**
