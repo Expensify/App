@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
@@ -149,7 +150,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
@@ -168,6 +169,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.approvedMessage'))).toBeOnTheScreen();
         });
 
@@ -177,6 +179,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
         });
 
@@ -186,6 +189,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
 
@@ -196,6 +200,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
         });
 
@@ -205,6 +210,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
     });

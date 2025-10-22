@@ -28,7 +28,7 @@ function extractAttachments(
         parentReportAction?: OnyxEntry<ReportAction>;
         reportActions?: OnyxEntry<ReportActions>;
         report: OnyxEntry<Report>;
-        isReportArchived: boolean | undefined;
+        isReportArchived?: boolean;
     },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
