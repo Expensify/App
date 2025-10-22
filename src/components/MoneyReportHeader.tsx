@@ -1311,14 +1311,11 @@ function MoneyReportHeader({
                                 duplicateTransactionViolations,
                                 iouReport,
                                 chatIOUReport,
-                                false,
-                                undefined,
-                                undefined,
                                 isChatIOUReportArchived,
                             );
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, false, isChatIOUReportArchived);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
                     }
 
                     if (goBackRoute) {
