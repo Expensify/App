@@ -5,6 +5,7 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 /** Adds dynamic route name to the current URL and returns it */
 const createDynamicRoute = (dynamicRouteSuffix: DynamicRouteSuffix): Route => {
     if (!isDynamicRouteSuffix(dynamicRouteSuffix)) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         throw new Error(`The route name ${dynamicRouteSuffix} is not supported in createDynamicRoute`);
     }
     const activeRoute = Navigation.getActiveRoute();

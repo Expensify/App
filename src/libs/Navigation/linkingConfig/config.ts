@@ -1288,7 +1288,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
-                        [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT]: DYNAMIC_ROUTES.CONFIRM_WORKSPACE.path,
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT_DYNAMIC]: DYNAMIC_ROUTES.CONFIRM_WORKSPACE.path,
                         [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },

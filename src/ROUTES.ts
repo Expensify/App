@@ -69,7 +69,7 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  * Use for: verification flows, confirmations, multi-entry workflows
  * Avoid for: regular navigation, single-entry workflows
  */
-const DYNAMIC_ROUTES: DynamicRoutes = {
+const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
         entryScreens: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP, SCREENS.SEARCH.MONEY_REQUEST_REPORT],
@@ -78,7 +78,7 @@ const DYNAMIC_ROUTES: DynamicRoutes = {
         path: 'confirm-workspace',
         entryScreens: [SCREENS.WORKSPACES_LIST],
     },
-} as const;
+} as const satisfies DynamicRoutes;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,

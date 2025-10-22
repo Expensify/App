@@ -21,16 +21,19 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
         const pathWithoutDynamicSuffix = path.replace(`/${dynamicRouteSuffix}`, '');
 
+        type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
+
         // Find the dynamic route key that matches the extracted suffix
-        const DYNAMIC_ROUTE = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
+        const dynamicRoute: string = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as DynamicRouteKey].path === dynamicRouteSuffix) ?? '';
 
         // Get the currently focused route from the base path to check permissions
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
+        const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
-        if (focusedRoute?.name && DYNAMIC_ROUTES[DYNAMIC_ROUTE].entryScreens.includes(focusedRoute.name as Screen)) {
+        if (focusedRoute?.name && entryScreens.includes(focusedRoute.name as Screen)) {
             // Generate navigation state for the dynamic route
-            const verifyAccountState = getStateForDynamicRoute(normalizedPath, DYNAMIC_ROUTE);
+            const verifyAccountState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
             return verifyAccountState;
         }
     }
