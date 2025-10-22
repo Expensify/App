@@ -65,7 +65,6 @@ function IOURequestStepCategory({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -89,11 +88,13 @@ function IOURequestStepCategory({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const fetchData = useCallback(() => {
-        const policyIDToFetchCategories = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicyID : report?.policyID;
-        getPolicyCategories(policyIDToFetchCategories ?? CONST.POLICY.ID_FAKE);
-    }, [activePolicyID, report?.policyID]);
+    const fetchData = () => {
+        if ((!!policy && !!policyCategories) || !policyID) {
+            return;
+        }
 
+        getPolicyCategories(policyID);
+    };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
