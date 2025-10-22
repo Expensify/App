@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2733,8 +2734,8 @@ ${amount} für ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Willkommen im #Fokus-Modus!',
-        prompt: 'Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in  ändern.',
-        settings: 'Einstellungen',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Der gesuchte Chat kann nicht gefunden werden.',

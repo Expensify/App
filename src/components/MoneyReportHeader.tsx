@@ -1143,6 +1143,9 @@ function MoneyReportHeader({
                                 duplicateTransactionViolations,
                                 iouReport,
                                 chatIOUReport,
+                                false,
+                                undefined,
+                                undefined,
                                 isChatIOUReportArchived,
                             );
                             removeTransaction(transaction.transactionID);
@@ -1177,7 +1180,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport);
+                retractReport(moneyRequestReport, chatReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -1327,7 +1330,7 @@ function MoneyReportHeader({
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
+    if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
