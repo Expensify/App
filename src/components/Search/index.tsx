@@ -6,7 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ScreenWrapper from '@components/ScreenWrapper';
+import OfflineIndicator from '@components/OfflineIndicator';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -869,6 +869,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return calculatedFooterData;
     }, [areAllMatchingItemsSelected, searchMetadata, selectedTransactions, groupBy]);
 
+    const offlineIndicatorStyles = useMemo(() => {
+        const baseStyles = shouldUseNarrowLayout ? [styles.mtAuto, styles.pb3] : [styles.pAbsolute, styles.h10, styles.b0];
+
+        return [...baseStyles, styles.pl5];
+    }, [shouldUseNarrowLayout, styles]);
+
     if (shouldShowLoadingState) {
         return (
             <Animated.View
@@ -982,22 +988,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     newTransactions={newTransactions}
                 />
                 <View style={[styles.mtAuto]}>
-                    <ScreenWrapper
-                        testID="SearchPageFooterWrapper"
-                        shouldShowOfflineIndicator
-                        shouldShowOfflineIndicatorInWideScreen
-                        offlineIndicatorStyle={shouldUseNarrowLayout ? [styles.mtAuto] : [styles.pAbsolute, styles.h10, styles.b0]}
-                        shouldEnableKeyboardAvoidingView={false}
-                        shouldEnableMaxHeight={false}
-                    >
-                        {!!footerData && (
-                            <SearchPageFooter
-                                count={footerData.count}
-                                total={footerData.total}
-                                currency={footerData.currency}
-                            />
-                        )}
-                    </ScreenWrapper>
+                    {!!footerData && (
+                        <SearchPageFooter
+                            count={footerData.count}
+                            total={footerData.total}
+                            currency={footerData.currency}
+                        />
+                    )}
+                    <OfflineIndicator containerStyles={offlineIndicatorStyles} />
                 </View>
             </Animated.View>
         </SearchScopeProvider>
