@@ -15,6 +15,7 @@ const ELECTRON_EVENTS = {
     DOWNLOAD_CANCELED: 'download-canceled',
     SILENT_UPDATE: 'silent-update',
     OPEN_LOCATION_SETTING: 'open-location-setting',
+    CHECK_LOCATION_PERMISSION: 'check-location-permission',
     SECURE_STORE_SET: 'secure-store-set',
     SECURE_STORE_GET: 'secure-store-get',
     SECURE_STORE_DELETE: 'secure-store-delete',

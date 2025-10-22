@@ -4,12 +4,12 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -32,15 +32,13 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <HTMLEngineProvider>
-                        <Stack.Navigator initialRouteName={initialRouteName}>
-                            <Stack.Screen
-                                name={SCREENS.WORKSPACE.TAGS}
-                                component={WorkspaceTagsPage}
-                                initialParams={initialParams}
-                            />
-                        </Stack.Navigator>
-                    </HTMLEngineProvider>
+                    <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
+                            name={SCREENS.WORKSPACE.TAGS}
+                            component={WorkspaceTagsPage}
+                            initialParams={initialParams}
+                        />
+                    </Stack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
@@ -126,6 +124,7 @@ describe('WorkspaceTags', () => {
 
         // Wait for the "Select" option to appear
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
         });
 
@@ -171,6 +170,7 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
@@ -179,6 +179,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(disableMenuItem, mockEvent);
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 

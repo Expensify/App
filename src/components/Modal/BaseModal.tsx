@@ -117,6 +117,7 @@ function BaseModal({
                 onModalHide();
             }
             onModalDidClose();
+            ComposerFocusManager.setReadyToFocus(uniqueModalId);
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
@@ -173,10 +174,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
@@ -306,6 +303,7 @@ function BaseModal({
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
+                        dataSet={{dragArea: false}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
@@ -325,7 +323,6 @@ function BaseModal({
                             }
                             onModalWillHide?.();
                         }}
-                        onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}

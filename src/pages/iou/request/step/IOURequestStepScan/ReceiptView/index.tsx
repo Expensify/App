@@ -64,6 +64,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 if (receipts.length === 1) {
@@ -118,7 +119,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 page={page}
                 setPage={setPage}
                 attachmentID={currentReceipt?.transactionID}
-                onClose={handleGoBack}
+                onSwipeDown={handleGoBack}
                 autoHideArrows={autoHideArrows}
                 cancelAutoHideArrow={cancelAutoHideArrows}
                 setShouldShowArrows={setShouldShowArrows}

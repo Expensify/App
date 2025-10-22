@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -9,9 +10,9 @@ import getPlatform from '@libs/getPlatform';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
@@ -447,13 +448,6 @@ const getImageDimensionsAfterResize = (file: FileObject) =>
         return {width: newWidth, height: newHeight};
     });
 
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        return Promise.resolve(file);
-    }
-    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
-};
-
 const createFile = (file: File): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
         return {
@@ -466,6 +460,15 @@ const createFile = (file: File): FileObject => {
         type: file.type,
         lastModified: file.lastModified,
     });
+};
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file)
+        .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
+        .then((result) => createFile(result));
 };
 
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
@@ -547,19 +550,26 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
         });
 };
 
-const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+type ValidateAttachmentOptions = {
+    isValidatingReceipts?: boolean;
+    isCheckingMultipleFiles?: boolean;
+};
+
+const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
+    const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
-    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
+        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+    }
+
+    if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
     return '';
 };
 
@@ -699,6 +709,47 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     });
 };
 
+function getFileWithUri(file: File) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(newFile);
+    return newFile as FileObject;
+}
+
+function getFilesFromClipboardEvent(event: DragEvent) {
+    const files = event.dataTransfer?.files;
+    if (!files || files?.length === 0) {
+        return [];
+    }
+
+    return Array.from(files).map((file) => getFileWithUri(file));
+}
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -728,4 +779,9 @@ export {
     hasHeicOrHeifExtension,
     getConfirmModalPrompt,
     canvasFallback,
+    getFilesFromClipboardEvent,
+    cleanFileObject,
+    cleanFileObjectName,
 };
+
+export type {ValidateAttachmentOptions};

@@ -2,14 +2,12 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Gear, Plus} from '@components/Icon/Expensicons';
-import {HandCard} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -23,6 +21,7 @@ import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useHandleBackButton from '@hooks/useHandleBackButton';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -63,6 +62,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage'] as const);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -125,13 +125,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
-            <Button
-                success
-                onPress={handleIssueCardPress}
-                icon={Plus}
-                text={translate('workspace.expensifyCard.issueCard')}
-                style={shouldChangeLayout && styles.flex1}
-            />
+            {!isEmptyObject(cardsList) && (
+                <Button
+                    success
+                    onPress={handleIssueCardPress}
+                    icon={Plus}
+                    text={translate('workspace.expensifyCard.issueCard')}
+                    style={shouldChangeLayout && styles.flex1}
+                />
+            )}
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
@@ -139,7 +141,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
+                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     );
@@ -160,14 +162,17 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     hoverStyle={[styles.hoveredComponentBG]}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
                 >
-                    <WorkspaceCardListRow
-                        lastFourPAN={item.lastFourPAN ?? ''}
-                        cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                        limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                        name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={settlementCurrency}
-                        isVirtual={!!item.nameValuePairs?.isVirtual}
-                    />
+                    {({hovered}) => (
+                        <WorkspaceCardListRow
+                            lastFourPAN={item.lastFourPAN ?? ''}
+                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                            limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
+                            name={item.nameValuePairs?.cardTitle ?? ''}
+                            currency={settlementCurrency}
+                            isVirtual={!!item.nameValuePairs?.isVirtual}
+                            isHovered={hovered}
+                        />
+                    )}
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
@@ -213,7 +218,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             testID={WorkspaceExpensifyCardListPage.displayName}
         >
             <HeaderWithBackButton
-                icon={HandCard}
+                icon={illustrations.HandCard}
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
@@ -226,7 +231,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
-                        cardIcon={ExpensifyCardImage}
+                        cardIcon={illustrations.ExpensifyCardImage}
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
                     />
@@ -237,6 +242,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.expensifyCard.issueCard'),
+                            buttonAction: handleIssueCardPress,
+                            success: true,
+                        },
+                    ]}
                 />
             ) : (
                 <ScrollView

@@ -69,6 +69,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
@@ -189,6 +190,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}

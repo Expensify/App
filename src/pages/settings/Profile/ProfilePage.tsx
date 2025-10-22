@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -19,6 +20,7 @@ import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
@@ -65,11 +67,13 @@ function ProfilePage() {
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {isBetaEnabled} = usePermissions();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -164,6 +168,7 @@ function ProfilePage() {
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
         },
         {
             description: translate('statusPage.status'),
@@ -271,37 +276,51 @@ function ProfilePage() {
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={(file) => {
-                                                updateAvatar(file, {
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
-                                            onImageRemoved={() => {
-                                                deleteAvatar({
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
-                                            size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
+                                        {isBetaEnabled(CONST.BETAS.CUSTOM_AVATARS) ? (
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                            />
+                                        ) : (
+                                            <AvatarWithImagePicker
+                                                isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onImageSelected={(file) => {
+                                                    updateAvatar(file, {
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                onImageRemoved={() => {
+                                                    deleteAvatar({
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                                errorRowStyles={styles.mt6}
+                                                onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
+                                                onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
+                                                originalFileName={currentUserPersonalDetails.originalFileName}
+                                                headerTitle={translate('profilePage.profileAvatar')}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                            />
+                                        )}
                                     </MenuItemGroup>
                                 )}
                             </View>
@@ -315,6 +334,7 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
                                 />
                             ))}
                             <Button

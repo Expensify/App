@@ -1,5 +1,8 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from '@libs/Localize';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
@@ -9,6 +12,7 @@ import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1378,6 +1382,107 @@ describe('ReportActionsUtils', () => {
                     `issued <mention-user accountID="456"/> a virtual <a href='https://dev.new.expensify.com:8082/settings/card/789'>Expensify Card</a>! The card can be used right away.`,
                 );
             });
+        });
+    });
+
+    describe('shouldReportActionBeVisible', () => {
+        it('should return false for moved transaction if the report destination is unavailable', () => {
+            // Given a moved transaction action but the report destination is not available
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: '2',
+                },
+            };
+
+            // Then the action should not be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for actionable card fraud alert if the resolution is recognized', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                reportActionID: '1',
+                originalMessage: {
+                    resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
+                    cardID: 123,
+                    maskedCardNumber: '1234',
+                    triggerAmount: 0,
+                    triggerMerchant: 'Merchant',
+                },
+                created: '2025-09-29',
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, false);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for moved transaction if the report destination is available', async () => {
+            // Given a moved transaction action but the report destination is available
+            const report: Report = createRandomReport(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: report.reportID,
+                },
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+    });
+
+    describe('getPolicyChangeLogUpdateEmployee', () => {
+        it('should remove SMS domain when the email is a phone number', () => {
+            const email = '+919383833920@expensify.sms';
+            const newValue = 'test';
+            const previousValue = '';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                    newValue,
+                    oldValue: previousValue,
+                },
+            };
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
+            expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getPolicyChangeLogDeleteMemberMessage', () => {
+        it('should remove SMS domain when the email is a phone number', () => {
+            const email = '+919383833920@expensify.sms';
+            const role = CONST.POLICY.ROLE.USER;
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    role,
+                },
+            };
+
+            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const expected = translateLocal('report.actions.type.removeMember', {email: formatPhoneNumber(email), role: translateLocal('workspace.common.roleName', {role}).toLowerCase()});
+            expect(actual).toBe(expected);
         });
     });
 });

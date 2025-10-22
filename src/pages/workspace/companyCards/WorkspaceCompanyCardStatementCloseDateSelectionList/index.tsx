@@ -114,6 +114,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen={!enabledWhenOffline}
         >
             <HeaderWithBackButton
                 title={title}

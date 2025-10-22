@@ -150,9 +150,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                       new IgnorePlugin({
                           resourceRegExp: /@welldone-software\/why-did-you-render/,
                       }),
-                      new IgnorePlugin({
-                          resourceRegExp: /react-is/,
-                      }),
                   ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
@@ -358,6 +355,18 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     heicTo: {
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
+                        chunks: 'all',
+                    },
+                    // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
+                    expensifyIcons: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]expensify-icons\.chunk\.ts$/,
+                        name: 'expensifyIcons',
+                        chunks: 'all',
+                    },
+                    // Illustrations chunk - separate chunk loaded eagerly for offline support
+                    illustrations: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]illustrations\.chunk\.ts$/,
+                        name: 'illustrations',
                         chunks: 'all',
                     },
                     // Extract all 3rd party dependencies (~75% of App) to separate js file
