@@ -355,7 +355,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                   }}
                   onPassword={() => {
                       validatedPDFs.current.push(file);
-                      console.log({isValidatingReceipts});
                       if (isValidatingReceipts === true) {
                           collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                       } else {
