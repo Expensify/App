@@ -276,7 +276,9 @@ describe('ReportUtils', () => {
             [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[policy.id]: policyCategories},
         });
         await waitForBatchedUpdates();
-        const {result: {current: policyData}} = renderHook(() => usePolicyData(policy.id));
+        const {
+            result: {current: policyData},
+        } = renderHook(() => usePolicyData(policy.id));
         const onyxData = {optimisticData: [], failureData: []};
         await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData));
     });
