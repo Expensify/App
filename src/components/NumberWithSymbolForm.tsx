@@ -475,7 +475,7 @@ function NumberWithSymbolForm({
 
                     {!!errorText && (
                         <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                            style={[styles.pAbsolute, styles.b0, styles.mb5, styles.ph5, styles.w100]}
                             isError
                             message={errorText}
                         />
