@@ -28,6 +28,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -39,7 +40,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = getShareLogOptions(options, draftComments, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, draftComments, nvpDismissedProductTraining, betas ?? []);
 
         const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
@@ -47,7 +48,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, draftComments, betas]);
+    }, [areOptionsInitialized, options, draftComments, betas, nvpDismissedProductTraining]);
 
     const searchOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {

@@ -33,6 +33,7 @@ function useOptions() {
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const excludeLogins = useMemo(
         () => ({
@@ -49,6 +50,7 @@ function useOptions() {
                 personalDetails: optionsList.personalDetails,
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas,
                 excludeLogins,
@@ -65,7 +67,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins, countryCode]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins, countryCode, nvpDismissedProductTraining]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
