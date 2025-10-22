@@ -1047,11 +1047,7 @@ type SetPolicyTagGLCodeProps = {
 
 function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
-    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName];
-
-    if (!policyTagToUpdate) {
-        return;
-    }
+    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
 
     const onyxData: OnyxData = {
         optimisticData: [
