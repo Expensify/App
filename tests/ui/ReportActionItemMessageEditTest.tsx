@@ -6,7 +6,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {editReportComment} from '@libs/actions/Report';
-import {translateLocal} from '@libs/Localize';
 import ReportActionItemMessageEdit from '@pages/home/report/ReportActionItemMessageEdit';
 import type {ReportActionItemMessageEditProps} from '@pages/home/report/ReportActionItemMessageEdit';
 import CONST from '@src/CONST';
@@ -89,7 +88,7 @@ describe('ReportActionCompose Integration Tests', () => {
         it('should edit when length is within the limit', async () => {
             renderReportActionItemMessageEdit();
             const composer = screen.getByTestId('composer');
-            const saveChangesButton = screen.getByLabelText(translateLocal('common.saveChanges'));
+            const saveChangesButton = screen.getByLabelText('common.saveChanges');
 
             // Given a message that is within the length limit
             const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
