@@ -1,6 +1,7 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('sidebarScreen.buttonMySettings');
     const mySettingButton = screen.queryByAccessibilityHint(hintText);
     if (mySettingButton) {
@@ -30,6 +32,7 @@ function navigateToSetting() {
 }
 
 function navigateToExpensifyClassicFlow() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintText = translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
@@ -43,6 +46,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
@@ -75,6 +79,7 @@ describe('Switch to Expensify Classic flow', () => {
 
     test('Should navigate to exit survey reason page', () => {
         signInAppAndEnterTestFlow(true).then(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getAllByText(translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
         });
     });
