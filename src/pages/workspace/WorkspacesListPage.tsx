@@ -581,13 +581,17 @@ function WorkspacesListPage() {
                             headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
                             lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
                             headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-                            buttons={[
-                                {
-                                    success: true,
-                                    buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                                    buttonText: translate('workspace.new.newWorkspace'),
-                                },
-                            ]}
+                            buttons={
+                                isRestrictedPolicyCreation
+                                    ? []
+                                    : [
+                                          {
+                                              success: true,
+                                              buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                                              buttonText: translate('workspace.new.newWorkspace'),
+                                          },
+                                      ]
+                            }
                         />
                     </ScrollView>
                 )}
