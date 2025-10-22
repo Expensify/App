@@ -5388,7 +5388,6 @@ ${amount} voor ${merchant} - ${date}`,
                 `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Zorg ervoor dat dit account overeenkomt met uw <a href="${settlementAccountUrl}">Expensify Card afwikkelingsrekening</a> (eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
             },
@@ -5729,6 +5728,7 @@ ${amount} voor ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chat met je beheerder',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Betaalpas toevoegen',
+            goToSubscriptions: 'Ga naar abonnementen',
         },
         rules: {
             individualExpenseRules: {

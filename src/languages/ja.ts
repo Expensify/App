@@ -5349,7 +5349,6 @@ ${date} - ${merchant}に${amount}`,
                 `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `このアカウントがあなたの<a href="${settlementAccountUrl}">Expensifyカード決済口座</a>（${lastFourPAN}で終わる）と一致していることを確認してください。`,
             },
@@ -5687,6 +5686,7 @@ ${date} - ${merchant}に${amount}`,
             chatWithYourAdmin: '管理者とチャットする',
             chatInAdmins: '#adminsでチャットする',
             addPaymentCard: '支払いカードを追加',
+            goToSubscriptions: 'サブスクリプションに移動',
         },
         rules: {
             individualExpenseRules: {
