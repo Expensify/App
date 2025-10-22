@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -318,7 +318,9 @@ const ViolationsUtils = {
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
-        const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+        const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
+        const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
