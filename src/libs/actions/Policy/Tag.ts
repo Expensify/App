@@ -717,7 +717,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         ],
     };
 
-    if (!policyData.tags) {
+    if (Object.keys(policyData.tags).length === 0) {
         const defaultTagList: PolicyTagLists = {
             Tag: {
                 name: 'Tag',
