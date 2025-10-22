@@ -5223,6 +5223,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             gap: 0,
+            justifyContent: 'space-between',
         },
 
         avatarSelected: {borderColor: theme.success, borderWidth: 2},

@@ -267,7 +267,7 @@ function ProfileAvatar() {
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap3]}>
+                <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
                         label={translate('avatarPage.chooseCustomAvatar')}
                         name={currentUserPersonalDetails?.displayName}
@@ -287,7 +287,7 @@ function ProfileAvatar() {
                     )}
                 </View>
             </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+            <FixedFooter style={styles.mtAuto}>
                 <Button
                     large
                     success

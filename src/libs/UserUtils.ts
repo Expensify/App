@@ -152,8 +152,8 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 /**
  * Helper method to return default avatar name associated with the accountID
  */
-function getDefaultAvatarName(accountID: string | number = '', avatarURL?: string): string {
-    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, avatarURL);
+function getDefaultAvatarName(accountID = -1, avatarURL?: string): string {
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, avatarURL);
     const avatarPrefix = `default-avatar`;
 
     return `${avatarPrefix}_${accountIDHashBucket}`;
@@ -162,7 +162,7 @@ function getDefaultAvatarName(accountID: string | number = '', avatarURL?: strin
 /**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID: string | number = '', avatarURL?: string): string {
+function getDefaultAvatarURL(accountID = -1, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
