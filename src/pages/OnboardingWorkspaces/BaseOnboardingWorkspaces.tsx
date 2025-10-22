@@ -141,6 +141,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             />
             <SelectionList
                 sections={[{data: policyIDItems}]}
+                onSelectRow={() => {}}
                 ListItem={UserListItem}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
                 showLoadingPlaceholder={joinablePoliciesLoading}
