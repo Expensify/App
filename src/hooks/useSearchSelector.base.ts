@@ -268,7 +268,7 @@ function useSearchSelectorBase({
     ]);
 
     const isOptionSelected = useMemo(() => {
-        return (option: OptionData) => selectedOptions.some((selected) => isOptionMatch(selected, option));
+        return (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
     }, [selectedOptions]);
 
     const searchOptions = useMemo(() => {
