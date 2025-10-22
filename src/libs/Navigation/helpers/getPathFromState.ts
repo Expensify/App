@@ -12,10 +12,7 @@ type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
  */
 function isDynamicRouteScreen(screenName: Screen): boolean {
     for (const {path} of Object.values(DYNAMIC_ROUTES)) {
-        if (!normalizedConfigs[screenName]?.path) {
-            continue;
-        }
-        if (path === normalizedConfigs[screenName].path) {
+        if (normalizedConfigs[screenName]?.path === path) {
             return true;
         }
     }
