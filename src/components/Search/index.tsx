@@ -377,6 +377,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+
     const [data, dataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
             return [[], 0];
@@ -389,7 +391,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        // Merging live REPORT_NAME_VALUE_PAIRS into search data to get latest archived status for both online and offline
+        const mergedSearchData = {
+            ...searchResults.data,
+            ...allReportNameValuePairs,
+        };
+
+        const data1 = getSections(type, mergedSearchData, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
