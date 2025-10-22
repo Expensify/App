@@ -6543,14 +6543,8 @@ ${merchant}的${amount} - ${date}`,
         copyReferralLink: '复制邀请链接',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: '与您的设置专家聊天',
-            phrase2: '帮助',
-        },
-        default: {
-            phrase1: '消息',
-            phrase2: '帮助设置',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) => `与您的设置专家聊天在 <a href="${href}">${adminReportName}</a> 帮助`,
+        default: `消息 <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> 帮助设置`,
     },
     violations: {
         allTagLevelsRequired: '所有标签均为必填项',
