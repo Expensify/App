@@ -67,7 +67,6 @@ import type {
     CharacterLengthLimitParams,
     CharacterLimitParams,
     ChatWithAccountManagerParams,
-    ChooseCardForParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
     CompanyNameParams,
@@ -4546,8 +4545,8 @@ ${amount} per ${merchant} - ${date}`,
             directFeed: 'Feed diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseCard: 'Scegli una carta',
-            chooseCardFor: ({assignee, letUsKnowLink}: ChooseCardForParams) =>
-                `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <a href="${letUsKnowLink}">Facci sapere.</a>`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
             noActiveCards: 'Nessuna carta attiva in questo feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oppure potrebbe esserci qualcosa di rotto. In ogni caso, se avete domande, <concierge-link>contattate il Concierge</concierge-link>.</centered-text></muted-text>',

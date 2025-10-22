@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -26,7 +25,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
@@ -120,16 +118,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
-    const {environmentURL} = useEnvironment();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-
-    const conciergeLink = useMemo(() => {
-        if (!conciergeReportID) {
-            return '';
-        }
-        return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID, undefined, undefined, Navigation.getActiveRoute())}`;
-    }, [conciergeReportID, environmentURL]);
-
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
@@ -174,7 +162,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                                 <RenderHTML
                                     html={translate('workspace.companyCards.chooseCardFor', {
                                         assignee: assigneeDisplayName,
-                                        letUsKnowLink: conciergeLink,
                                     })}
                                 />
                             </View>

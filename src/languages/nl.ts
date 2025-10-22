@@ -67,7 +67,6 @@ import type {
     CharacterLengthLimitParams,
     CharacterLimitParams,
     ChatWithAccountManagerParams,
-    ChooseCardForParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
     CompanyNameParams,
@@ -4544,8 +4543,8 @@ ${amount} voor ${merchant} - ${date}`,
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Wie heeft een kaart toegewezen nodig?',
             chooseCard: 'Kies een kaart',
-            chooseCardFor: ({assignee, letUsKnowLink}: ChooseCardForParams) =>
-                `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <a href="${letUsKnowLink}">Laat het ons weten.</a>`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
             noActiveCards: 'Geen actieve kaarten in deze feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Of er is misschien iets kapot. Hoe dan ook, als u vragen heeft, neem dan <concierge-link>contact op met Concierge</concierge-link>.</centered-text></muted-text>',

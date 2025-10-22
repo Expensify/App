@@ -67,7 +67,6 @@ import type {
     CharacterLengthLimitParams,
     CharacterLimitParams,
     ChatWithAccountManagerParams,
-    ChooseCardForParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
     CompanyNameParams,
@@ -4508,8 +4507,8 @@ ${date} - ${merchant}に${amount}`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseCard: 'カードを選んでください',
-            chooseCardFor: ({assignee, letUsKnowLink}: ChooseCardForParams) =>
-                `<strong>${assignee}</strong>のカードを選択してください。お探しのカードが見つかりませんか？<a href="${letUsKnowLink}">お知らせください。</a>`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `<strong>${assignee}</strong>のカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
             noActiveCards: 'このフィードにはアクティブなカードがありません',
             somethingMightBeBroken:
                 '<muted-text><centered-text>あるいは、何かが壊れているかもしれません。いずれにせよ、ご不明な点があれば、<concierge-link>Concierge までお問い合わせ</concierge-link>ください。</centered-text></muted-text>',

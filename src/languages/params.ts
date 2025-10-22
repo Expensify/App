@@ -601,11 +601,6 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type ChooseCardForParams = {
-    assignee: string;
-    letUsKnowLink: string;
-};
-
 type SpreadSheetColumnParams = {
     name: string;
 };
@@ -1256,6 +1251,5 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
-    ChooseCardForParams,
     FocusModeUpdateParams,
 };
