@@ -1,5 +1,7 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {FlatList as RNFlatList, ScrollView} from 'react-native';
 import RenderTaskQueue from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
 import type {ScrollViewProps} from '@components/ScrollView';
 import getInitialPaginationSize from '@src/components/InvertedFlatList/BaseInvertedFlatList/getInitialPaginationSize';
@@ -12,11 +14,12 @@ type FlatListScrollKeyProps<T> = {
     inverted: boolean;
     onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
     shouldEnableAutoScrollToTopThreshold?: boolean;
+    ref?: ForwardedRef<RNFlatList>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-export default function useFlatListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, inverted, shouldEnableAutoScrollToTopThreshold}: FlatListScrollKeyProps<T>) {
+export default function useFlatListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, inverted, shouldEnableAutoScrollToTopThreshold, ref}: FlatListScrollKeyProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -29,6 +32,8 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
     });
     const currentDataIndex = useMemo(() => (currentDataId === null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
     const [isInitialData, setIsInitialData] = useState(currentDataIndex >= 0);
+    const [isQueueRendering, setIsQueueRendering] = useState(false);
+
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
             return data;
@@ -50,7 +55,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
     const wasLoadingData = usePrevious(isLoadingData);
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
+    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
     useEffect(() => {
         return () => {
             renderQueue.cancel();
@@ -63,7 +68,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         }
         setIsInitialData(false);
         const firstDisplayedItem = displayedData.at(0);
-        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, Math.max(0, currentDataIndex)) : '');
+        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, Math.max(0, currentDataIndex)) : null);
     });
 
     const handleStartReached = useCallback(
@@ -85,7 +90,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
 
     const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);
     const maintainVisibleContentPosition = useMemo(() => {
-        if (!shouldPreserveVisibleContentPosition) {
+        if ((!initialScrollKey && (!isInitialData || !isQueueRendering)) || !shouldPreserveVisibleContentPosition) {
             return undefined;
         }
 
@@ -99,10 +104,10 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         }
 
         return config;
-    }, [shouldPreserveVisibleContentPosition, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, shouldPreserveVisibleContentPosition, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     useEffect(() => {
-        if (inverted || isInitialData) {
+        if (inverted || isInitialData || isQueueRendering) {
             return;
         }
 
@@ -112,10 +117,49 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         // it can lead to a crash due to inconsistent rendering behavior.
         // Additionally, keeping `minIndexForVisible` at 1 may cause the scroll offset to shift
         // when the height of the ListHeaderComponent changes, as FlatList tries to keep items within the visible viewport.
-        InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
             setShouldPreserveVisibleContentPosition(false);
         });
-    }, [inverted, isInitialData]);
+    }, [inverted, isInitialData, isQueueRendering]);
+
+    const listRef = useRef<RNFlatList | null>(null);
+    useImperativeHandle(ref, () => {
+        // If we're trying to scroll at the start of the list we need to make sure to
+        // render all items.
+        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
+            if (params.offset === 0) {
+                setCurrentDataId(null);
+            }
+            requestAnimationFrame(() => {
+                listRef.current?.scrollToOffset(params);
+            });
+        };
+
+        const scrollToEndFn: RNFlatList['scrollToEnd'] = (params) => {
+            const scrollViewRef = listRef.current?.getNativeScrollRef();
+            // Try to scroll on underlying scrollView if available, fallback to usual listRef
+            if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
+                (scrollViewRef as ScrollView).scrollToEnd({animated: false});
+                return;
+            }
+            listRef.current?.scrollToEnd(params);
+        };
+
+        return new Proxy(
+            {},
+            {
+                get: (_target, prop) => {
+                    if (prop === 'scrollToOffset') {
+                        return scrollToOffsetFn;
+                    }
+                    if (prop === 'scrollToEnd') {
+                        return scrollToEndFn;
+                    }
+                    return listRef.current?.[prop as keyof RNFlatList];
+                },
+            },
+        ) as RNFlatList;
+    });
 
     return {
         handleStartReached,
@@ -123,6 +167,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         displayedData,
         maintainVisibleContentPosition,
         isInitialData,
+        listRef,
     };
 }
 

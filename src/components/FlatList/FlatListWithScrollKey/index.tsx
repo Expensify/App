@@ -17,13 +17,14 @@ type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScr
  */
 function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, contentContainerStyle, ...rest} = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
+        ref,
     });
     const dataIndexDifference = data.length - displayedData.length;
 
@@ -37,7 +38,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
 
     return (
         <FlatList
-            ref={ref}
+            ref={listRef}
             data={displayedData}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onStartReached={handleStartReached}

@@ -30,13 +30,14 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         contentContainerStyle,
         ...rest
     } = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
+        ref,
     });
     const dataIndexDifference = data.length - displayedData.length;
 
@@ -47,7 +48,6 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         },
         [renderItem, dataIndexDifference],
     );
-    const flatListRef = useRef<RNFlatList>(null);
     const flatListHeight = useRef(0);
     const shouldScrollToEndRef = useRef(false);
 
@@ -74,7 +74,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // Then, once the render is complete (isInitialData === false), we will manually scroll to the bottom.
             if (shouldScrollToEndRef.current) {
                 InteractionManager.runAfterInteractions(() => {
-                    flatListRef.current?.scrollToEnd();
+                    listRef.current?.scrollToEnd();
                 });
                 shouldScrollToEndRef.current = false;
             }
@@ -82,20 +82,12 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
                 shouldScrollToEndRef.current = true;
             }
         },
-        [onContentSizeChange, isInitialData, initialScrollKey],
+        [onContentSizeChange, initialScrollKey, isInitialData, listRef],
     );
 
     return (
         <FlatList
-            ref={(el) => {
-                flatListRef.current = el;
-                if (typeof ref === 'function') {
-                    ref(el);
-                } else if (ref) {
-                    // eslint-disable-next-line no-param-reassign
-                    ref.current = el;
-                }
-            }}
+            ref={listRef}
             data={displayedData}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onStartReached={handleStartReached}
