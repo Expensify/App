@@ -2406,7 +2406,7 @@ function calculateSearchPageFooterData(
     const firstTransactionCurrency = transactions.at(0)?.convertedCurrency;
     const footerCurrency = firstTransactionCurrency && firstTransactionCurrency !== '' ? firstTransactionCurrency : currency;
     const count = transactions.length;
-    const total = transactions.reduce((sum, transaction) => sum + Math.abs(transaction.convertedAmount ?? 0), 0);
+    const total = transactions.reduce((sum, transaction) => sum - (transaction.convertedAmount ?? 0), 0);
 
     return {count, total, currency: footerCurrency};
 }

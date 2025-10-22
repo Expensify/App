@@ -2862,8 +2862,8 @@ describe('SearchUIUtils', () => {
 
         it('should calculate footer data for selected transactions and use first transaction currency', () => {
             const selectedTransactions = {
-                txn1: mockTransaction(5000, 'EUR'),
-                txn2: mockTransaction(3000, 'EUR'),
+                txn1: mockTransaction(-5000, 'EUR'),
+                txn2: mockTransaction(-3000, 'EUR'),
             };
 
             const result = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, [], undefined, 'USD');
@@ -2878,8 +2878,8 @@ describe('SearchUIUtils', () => {
         it('should calculate footer data for search data (ungrouped and grouped)', () => {
             // Ungrouped transactions
             const searchData = [
-                {...transactionsListItems.at(0), convertedAmount: 10000, convertedCurrency: 'USD'},
-                {...transactionsListItems.at(0), convertedAmount: 15000, convertedCurrency: 'USD'},
+                {...transactionsListItems.at(0), convertedAmount: -10000, convertedCurrency: 'USD'},
+                {...transactionsListItems.at(0), convertedAmount: -15000, convertedCurrency: 'USD'},
             ] as TransactionListItemType[];
 
             const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, searchData, undefined, 'USD');
@@ -2893,13 +2893,13 @@ describe('SearchUIUtils', () => {
             const groupedData: TransactionGroupListItemType[] = [
                 {
                     transactions: [
-                        {...transactionsListItems.at(0), convertedAmount: 10000},
-                        {...transactionsListItems.at(0), convertedAmount: 5000},
+                        {...transactionsListItems.at(0), convertedAmount: -10000},
+                        {...transactionsListItems.at(0), convertedAmount: -5000},
                     ],
                     keyForList: 'group1',
                 } as TransactionGroupListItemType,
                 {
-                    transactions: [{...transactionsListItems.at(0), convertedAmount: 8000}],
+                    transactions: [{...transactionsListItems.at(0), convertedAmount: -8000}],
                     keyForList: 'group2',
                 } as TransactionGroupListItemType,
             ];
@@ -2922,12 +2922,12 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.calculateSearchPageFooterData({}, searchData, undefined, 'USD');
             expect(result).toEqual({
                 count: 2,
-                total: 15000, // abs(-10000) + abs(-5000)
+                total: 15000,
                 currency: 'USD',
             });
 
             // Test that selected transactions are prioritized over search data
-            const selectedTransactions = {txn1: mockTransaction(5000)};
+            const selectedTransactions = {txn1: mockTransaction(-5000)};
             const priorityResult = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, searchData, undefined, 'USD');
             expect(priorityResult).toEqual({
                 count: 1,
