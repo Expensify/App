@@ -190,7 +190,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
-        const isTargetValueEmpty = isEmptyMergeValue(targetValue);
+        const isTargetValueEmpty = isEmptyMergeValue(parseFloat(targetValue));
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
         if (field === 'amount') {
