@@ -123,6 +123,10 @@ export default {
         marginVertical: -48,
     },
 
+    mrAuto: {
+        marginRight: 'auto',
+    },
+
     mr0: {
         marginRight: 0,
     },
