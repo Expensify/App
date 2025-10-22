@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -108,6 +109,7 @@ function BaseValidateCodeForm({
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -177,8 +179,9 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-        if (!isMobileSafari()) {
+        // Delay prevents the wide RHP from flickering in the background while modal with validation slides out and gains focus (https://github.com/Expensify/App/issues/73030)
+        // Keyboard on Mobile Safari won't show if we focus the input with a delay, so we need to focus immediately; wide RHP SCREENS.RIGHT_MODAL.SEARCH_REPORT is accessible only when isSmallScreenWidth is false.
+        if (!isSmallScreenWidth && !isMobileSafari()) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
             }, CONST.ANIMATED_TRANSITION);
