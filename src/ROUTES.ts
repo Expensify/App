@@ -46,6 +46,24 @@ const PUBLIC_SCREENS_ROUTES = {
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
+type DynamicRouteConfig = {
+    path: string;
+    entryScreens: Screen[];
+};
+
+type DynamicRoutes = Record<string, DynamicRouteConfig>;
+
+const DYNAMIC_ROUTES: DynamicRoutes = {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP, SCREENS.SEARCH.MONEY_REQUEST_REPORT],
+    },
+    CONFIRM_WORKSPACE: {
+        path: 'confirm-workspace',
+        entryScreens: [SCREENS.WORKSPACES_LIST],
+    },
+} as const;
+
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
@@ -3313,7 +3331,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
@@ -3352,6 +3370,8 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
+type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
+
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
 /**
@@ -3363,4 +3383,4 @@ type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
-export type {Route};
+export type {Route, DynamicRouteSuffix};
