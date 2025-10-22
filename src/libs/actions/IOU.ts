@@ -115,7 +115,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticNewReport, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -135,7 +135,6 @@ import {
     buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
@@ -198,7 +197,6 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
-    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
