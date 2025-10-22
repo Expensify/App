@@ -48,8 +48,6 @@ import type {
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
-    // MultiFactorAuthenticationApproveTransactionParamList,
-    // MultiFactorAuthenticationNotificaitonParamList,
     MultiFactorAuthenticationParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
