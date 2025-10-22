@@ -139,7 +139,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         }
 
         return Object.values(policies)
-            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
+            .filter((policy) => shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
