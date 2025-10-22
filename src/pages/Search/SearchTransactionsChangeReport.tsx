@@ -10,7 +10,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
@@ -42,6 +42,30 @@ function SearchTransactionsChangeReport() {
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
+    const areAllTransactionsUnreported =
+        selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+    const targetOwnerAccountID = useMemo(() => {
+        if (selectedTransactionsKeys.length === 0) {
+            return undefined;
+        }
+
+        // Prefer owner metadata attached to each selection (handles unreported expenses)
+        const ownerFromSelection = selectedTransactionsKeys.map((transactionKey) => selectedTransactions[transactionKey]?.ownerAccountID).find((ownerID) => typeof ownerID === 'number');
+        if (ownerFromSelection !== undefined) {
+            return ownerFromSelection;
+        }
+
+        const reportIDWithOwner = selectedTransactionsKeys
+            .map((transactionKey) => selectedTransactions[transactionKey]?.reportID)
+            .find((reportID) => reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+
+        if (!reportIDWithOwner) {
+            return undefined;
+        }
+
+        const report = getReportOrDraftReport(reportIDWithOwner);
+        return report?.ownerAccountID;
+    }, [selectedTransactions, selectedTransactionsKeys]);
 
     const createReport = () => {
         if (shouldSelectPolicy) {
@@ -109,6 +133,8 @@ function SearchTransactionsChangeReport() {
             removeFromReport={removeFromReport}
             createReport={createReport}
             isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
         />
     );
 }
