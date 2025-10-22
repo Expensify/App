@@ -1083,7 +1083,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport);
+                retractReport(moneyRequestReport, chatReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -1363,11 +1363,14 @@ function MoneyReportHeader({
                                 duplicateTransactionViolations,
                                 iouReport,
                                 chatIOUReport,
+                                false,
+                                undefined,
+                                undefined,
                                 isChatIOUReportArchived,
                             );
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, false, isChatIOUReportArchived);
                     }
 
                     if (goBackRoute) {
