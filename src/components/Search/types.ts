@@ -49,9 +49,6 @@ type SelectedTransactionInfo = {
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
-
-    /** Account ID of the report owner */
-    ownerAccountID?: number;
 };
 
 /** Model of selected transactions */
