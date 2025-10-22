@@ -3988,6 +3988,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.splashBG,
             alignItems: 'center',
             justifyContent: 'center',
+            zIndex: 20,
         },
 
         headerEnvBadge: {
@@ -5222,7 +5223,8 @@ const staticStyles = (theme: ThemeColors) =>
         avatarSelectorListContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: 2,
+            gap: 0,
+            justifyContent: 'space-between',
         },
 
         avatarSelected: {borderColor: theme.success, borderWidth: 2},
