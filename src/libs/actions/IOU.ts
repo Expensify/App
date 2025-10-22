@@ -12671,6 +12671,9 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     let rejectedToReportID;
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
+    let createdIOUReportActionID;
+    let expenseMovedReportActionID;
+    let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
@@ -12887,15 +12890,11 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
+            createdIOUReportActionID = iouAction.reportActionID;
+            expenseMovedReportActionID = movedTransactionAction.reportActionID;
+            expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
             optimisticData.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat?.reportID}`,
-                    value: {
-                        lastVisibleActionCreated: reportPreviewAction.created,
-                    },
-                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat?.reportID}`,
@@ -12908,6 +12907,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                     key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
                     value: {
                         ...newExpenseReport,
+                        pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                     },
                 },
                 {
@@ -12919,7 +12919,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
                     value: {[createdActionForExpenseReport.reportActionID]: createdActionForExpenseReport, [iouAction.reportActionID]: iouAction},
                 },
@@ -12932,16 +12932,74 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.chatReportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                     value: {
                         [reportPreviewAction.reportActionID]: reportPreviewAction,
                     },
                 },
+            );
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
+                    value: {
+                        pendingFields: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${rejectedToReportID}`,
+                    value: {
+                        isOptimisticReport: null,
+                    },
+                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
+                    value: {[createdActionForExpenseReport.reportActionID]: {pendingAction: null}, [iouAction.reportActionID]: {pendingAction: null}},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                     value: {
-                        lastVisibleActionCreated: reportPreviewAction.created,
+                        [reportPreviewAction.reportActionID]: {pendingAction: null},
+                    },
+                },
+            );
+
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat?.reportID}`,
+                    value: {
+                        lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${rejectedToReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
+                    value: {
+                        [reportPreviewAction.reportActionID]: null,
                     },
                 },
             );
@@ -13171,6 +13229,9 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
+        createdIOUReportActionID,
+        expenseMovedReportActionID,
+        expenseCreatedReportActionID,
     };
 
     // Make API call

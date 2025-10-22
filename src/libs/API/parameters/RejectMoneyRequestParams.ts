@@ -6,6 +6,9 @@ type RejectMoneyRequestParams = {
     reportPreviewReportActionID?: string;
     rejectedActionReportActionID: string;
     rejectedCommentReportActionID: string;
+    createdIOUReportActionID?: string;
+    expenseMovedReportActionID?: string;
+    expenseCreatedReportActionID?: string;
 };
 
 export default RejectMoneyRequestParams;
