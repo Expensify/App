@@ -11,19 +11,17 @@ describe('SafeString', () => {
         expect(SafeString('')).toBe('');
     });
 
-    test('handles numbers, booleans, bigint, symbol', () => {
+    test('handles numbers, booleans, functions, bigint, symbol', () => {
         expect(SafeString(123)).toBe('123');
         expect(SafeString(0)).toBe('0');
         expect(SafeString(true)).toBe('true');
         expect(SafeString(false)).toBe('false');
+        expect(SafeString(() => 1)).toBe(`function () {
+      return 1;
+    }`);
         expect(SafeString(BigInt(10))).toBe('10');
         const sym = Symbol('x');
         expect(SafeString(sym)).toBe(String(sym));
-    });
-
-    test('handles functions as [Function]', () => {
-        const arrow = () => 1;
-        expect(SafeString(arrow)).toBe('[Function]');
     });
 
     test('handles arrays via JSON, including nested', () => {
@@ -74,5 +72,30 @@ describe('SafeString', () => {
         expect(comparisonWithSafeString).toBe('');
         expect(comparisonWithToString).toBe('');
         expect(comparisonWithSafeString).toBe(comparisonWithToString);
+    });
+
+    test('returns same results as String() for dates', () => {
+        const now = new Date();
+        expect(SafeString(now)).toBe(String(now));
+    });
+
+    test('returns same results as String() for errors', () => {
+        const error = new Error('test');
+        expect(SafeString(error)).toBe(String(error));
+    });
+
+    test('returns same results as String() for collection objects', () => {
+        expect(SafeString(new Map())).toBe('[object Map]');
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        expect(SafeString(new Map())).toBe(String(new Map()));
+
+        expect(SafeString(new Set())).toBe('[object Set]');
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        expect(SafeString(new Set())).toBe(String(new Set()));
+    });
+
+    test('returns same results as String() for regexes', () => {
+        const regex = /test/;
+        expect(SafeString(regex)).toBe(String(regex));
     });
 });

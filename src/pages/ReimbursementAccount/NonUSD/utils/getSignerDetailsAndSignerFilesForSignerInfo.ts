@@ -38,7 +38,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
 
         if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
             signerDetails[ADDRESS] = signerDetails[ADDRESS]
-                ? `${SafeString(signerDetails[ADDRESS])}, ${String(reimbursementAccountDraft?.[fieldName])}`
+                ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[fieldName])}`
                 : reimbursementAccountDraft?.[fieldName];
             return;
         }

@@ -5,7 +5,6 @@
  * @param value - The value to convert to a string.
  * @returns The string representation of the value.
  */
-
 export default function SafeString(value: unknown): string {
     if (value === undefined || value === null) {
         return '';
@@ -16,13 +15,10 @@ export default function SafeString(value: unknown): string {
     if (valueType === 'string') {
         return value as string;
     }
-    if (valueType === 'number' || valueType === 'boolean' || valueType === 'bigint' || valueType === 'symbol') {
-        const primitive = value as number | boolean | bigint | symbol;
+    if (valueType === 'number' || valueType === 'boolean' || valueType === 'function' || valueType === 'bigint' || valueType === 'symbol') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+        const primitive = value as number | boolean | Function | bigint | symbol;
         return String(primitive);
-    }
-
-    if (valueType === 'function') {
-        return '[Function]';
     }
 
     if (valueType === 'object') {
@@ -40,12 +36,20 @@ export default function SafeString(value: unknown): string {
             return obj.toString();
         }
 
+        if (value instanceof Map) {
+            return '[object Map]';
+        }
+
+        if (value instanceof Set) {
+            return '[object Set]';
+        }
+
         try {
             return JSON.stringify(obj);
         } catch {
             return '[object Object]';
         }
     }
-
+    // Unreachable fallback
     return '';
 }
