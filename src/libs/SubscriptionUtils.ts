@@ -330,7 +330,7 @@ function hasRetryBillingError(): boolean {
 /**
  * @returns Whether the retry billing was successful.
  */
-function isRetryBillingSuccessful(retryBillingSuccessful: OnyxEntry<boolean>): boolean {
+function isRetryBillingSuccessful(retryBillingSuccessful: boolean | undefined): boolean {
     return !!retryBillingSuccessful;
 }
 
@@ -342,7 +342,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -439,14 +439,14 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, re
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): boolean {
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
     return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: OnyxEntry<boolean>): boolean {
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
     return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError === false;
 }
 
