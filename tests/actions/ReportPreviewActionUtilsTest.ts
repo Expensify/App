@@ -550,6 +550,48 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(violations, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
+    it('should return REVIEW when strict policy rules are enabled and report has violations', async () => {
+        const hasAnyViolationsMock = ReportUtils.hasAnyViolations as jest.Mock;
+        hasAnyViolationsMock.mockReturnValue(true);
+
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                } as TransactionViolation,
+            ],
+        };
+
+        const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // When strict policy rules are enabled, REVIEW should be shown instead of SUBMIT
+        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction], undefined, false, false, false, true)).toBe(
+            CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW,
+        );
+    });
+
     it('canView should return true for reports in which we are waiting for user to add a bank account', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),

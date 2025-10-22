@@ -80,6 +80,7 @@ import {
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
+    shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
     shouldEnableNegative,
@@ -8196,6 +8197,108 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+    });
+
+    describe('shouldBlockSubmitDueToStrictPolicyRules', () => {
+        const reportID = 'report123';
+
+        it('should return false when areStrictPolicyRulesEnabled is false regardless of violations', () => {
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}transaction1`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when areStrictPolicyRulesEnabled is true but no violations exist', () => {
+            const transactionViolations = {};
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when reportID is undefined', () => {
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}transaction1`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when areStrictPolicyRulesEnabled is false even with violations and transactions provided', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactions = [transaction];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, transactions);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when areStrictPolicyRulesEnabled is true and violations exist', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactions = [transaction];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, transactions);
+
+            expect(result).toBe(true);
         });
     });
 });
