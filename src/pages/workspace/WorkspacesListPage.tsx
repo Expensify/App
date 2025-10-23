@@ -516,12 +516,12 @@ function WorkspacesListPage() {
             return [];
         }
 
-        return Object.values(allDomains).reduce<DomainItem[]>((acc, domain) => {
+        return Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
             if (!domain) {
-                return acc;
+                return domainItems;
             }
 
-            acc.push({
+            domainItems.push({
                 listItemType: 'domain',
                 title: Str.extractEmailDomain(domain.email),
                 action: navigateToDomain,
@@ -529,7 +529,7 @@ function WorkspacesListPage() {
                 pendingAction: domain.pendingAction,
             });
 
-            return acc;
+            return domainItems;
         }, []);
     }, [navigateToDomain, allDomains, adminAccess]);
 
@@ -636,8 +636,11 @@ function WorkspacesListPage() {
         const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
 
         return [
+            // workspaces empty state
             !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
+            // workspaces
             filteredWorkspaces,
+            // domains header and domains
             shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
         ].flat();
     }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
