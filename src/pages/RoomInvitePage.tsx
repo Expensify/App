@@ -24,7 +24,6 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
-import getFirstReportRouteOnBack from '@libs/Navigation/helpers/getFirstReportRouteOnBack';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -212,7 +211,11 @@ function RoomInvitePage({
         if (reportID) {
             inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
-            Navigation.goBack(getFirstReportRouteOnBack());
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            }
         }
     }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
 
