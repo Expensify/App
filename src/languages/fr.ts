@@ -804,7 +804,7 @@ const translations = {
     },
     customApprovalWorkflow: {
         title: "Flux d'approbation personnalisé",
-        description: "Votre entreprise dispose d'un flux d'approbation personnalisé sur cet espace de travail, veuillez effectuer cette action dans Expensify Classic",
+        description: "Votre entreprise dispose d'un flux d'approbation personnalisé sur cet espace de travail. Veuillez effectuer cette action dans Expensify Classic",
         goToExpensifyClassic: 'Passer à Expensify Classic',
     },
     emptyList: {

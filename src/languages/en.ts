@@ -792,7 +792,7 @@ const translations = {
     },
     customApprovalWorkflow: {
         title: 'Custom approval workflow',
-        description: 'Your company has a custom approval workflow on this workspace, please take this action in Expensify Classic',
+        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
         goToExpensifyClassic: 'Switch to Expensify Classic',
     },
     emptyList: {
