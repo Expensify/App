@@ -224,15 +224,16 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
             attendees: mergeTransaction.attendees,
+            udfs: {
+                modifiedTaxAmount: mergeTransaction.taxAmount,
+                value: mergeTransaction.taxValue,
+            },
         }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
-        taxValue: mergeTransaction.taxValue,
-        taxAmount: mergeTransaction.taxAmount,
-        taxCode: mergeTransaction.taxCode,
     };
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories);
