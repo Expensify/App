@@ -35,7 +35,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
-    saveSplitTransactions,
+    retractReport,
     sendInvoice,
     setDraftSplitTransaction,
     setMoneyRequestCategory,
@@ -49,6 +49,7 @@ import {
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
+    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
@@ -58,6 +59,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -1641,6 +1643,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
@@ -1943,6 +1946,7 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
@@ -2836,7 +2840,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('saveSplitTransactions', () => {
+    describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -2870,13 +2874,58 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
                 [iouAction.reportActionID]: iouAction,
             });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             const draftTransaction: OnyxEntry<Transaction> = {
                 ...transaction,
                 comment: {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(transaction.transactionID, draftTransaction, 1, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, iouAction, undefined);
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReportNameValuePairs = value;
+                },
+            });
+
+            updateSplitTransactionsFromSplitExpensesFlow({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash: 1,
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                firstIOU: iouAction,
+                isNewDotRevertSplitsEnabled: true,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2926,6 +2975,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
                 [iouAction.reportActionID]: iouAction,
             });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             const draftTransaction: OnyxEntry<Transaction> = {
                 ...transaction,
                 comment: {
@@ -2935,7 +2985,50 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReportNameValuePairs = value;
+                },
+            });
+            updateSplitTransactionsFromSplitExpensesFlow({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash,
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                firstIOU: undefined,
+                isNewDotRevertSplitsEnabled: true,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2994,6 +3087,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
                 [iouAction.reportActionID]: iouAction,
             });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             const splitTransactionID1 = '34';
             const splitTransactionID2 = '35';
             const draftTransaction: OnyxEntry<Transaction> = {
@@ -3009,7 +3103,51 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReportNameValuePairs = value;
+                },
+            });
+
+            updateSplitTransactionsFromSplitExpensesFlow({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash,
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: expenseReport,
+                chatReport,
+                firstIOU: undefined,
+                isNewDotRevertSplitsEnabled: true,
+            });
 
             await waitForBatchedUpdates();
 
@@ -3459,6 +3597,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
@@ -3836,7 +3975,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -3915,7 +4054,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
             }
             await waitForBatchedUpdates();
 
@@ -6884,7 +7023,24 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            initSplitExpense(transaction);
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+
+            initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6910,7 +7066,24 @@ describe('actions/IOU', () => {
         it('should not initialize split expense for null transaction', async () => {
             const transaction: Transaction | undefined = undefined;
 
-            initSplitExpense(transaction);
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+
+            initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
             expect(transaction).toBeFalsy();
@@ -6934,7 +7107,24 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            initSplitExpense(transaction);
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+
+            initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7299,7 +7489,7 @@ describe('actions/IOU', () => {
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
-        describe('saveSplitTransactions', () => {
+        describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             it("should update split transaction's description correctly ", async () => {
                 const amount = 10000;
                 let expenseReport: OnyxEntry<Report>;
@@ -7391,18 +7581,50 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(
-                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    draftTransaction,
-                    -2,
-                    undefined,
-                    undefined,
-                    [],
-                    expenseReport,
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allTransactions = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReports = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReportNameValuePairs = value;
+                    },
+                });
+
+                updateSplitTransactionsFromSplitExpensesFlow({
+                    allTransactionsList: allTransactions,
+                    allReportsList: allReports,
+                    allReportNameValuePairsList: allReportNameValuePairs,
+                    transactionData: {
+                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                        splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                    },
+                    hash: -2,
+                    policyCategories: undefined,
+                    policy: undefined,
+                    policyRecentlyUsedCategories: [],
+                    iouReport: expenseReport,
                     chatReport,
-                    undefined,
-                    undefined,
-                );
+                    firstIOU: undefined,
+                    isNewDotRevertSplitsEnabled: true,
+                });
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -7502,18 +7724,50 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(
-                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    draftTransaction,
-                    -2,
-                    undefined,
-                    undefined,
-                    [],
-                    expenseReport,
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allTransactions = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReports = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReportNameValuePairs = value;
+                    },
+                });
+
+                updateSplitTransactionsFromSplitExpensesFlow({
+                    allTransactionsList: allTransactions,
+                    allReportsList: allReports,
+                    allReportNameValuePairsList: allReportNameValuePairs,
+                    transactionData: {
+                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                        splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                    },
+                    hash: -2,
+                    policyCategories: undefined,
+                    policy: undefined,
+                    policyRecentlyUsedCategories: [],
+                    iouReport: expenseReport,
                     chatReport,
-                    undefined,
-                    undefined,
-                );
+                    firstIOU: undefined,
+                    isNewDotRevertSplitsEnabled: true,
+                });
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -8942,6 +9196,38 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('retractReport', () => {
+        it('should restore the chat report iouReportID', async () => {
+            // Given a chat report with no iouReportID
+            const chatReport: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: undefined,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+            };
+
+            // When retracting the submitted expense report
+            retractReport(expenseReport, chatReport);
+
+            // Then the chat report iouReportID should be set back to the retracted expense report
+            const iouReportID = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.iouReportID);
+                    },
+                });
+            });
+            expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
 });

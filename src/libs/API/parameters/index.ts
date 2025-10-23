@@ -71,6 +71,7 @@ export type {default as RequestReplacementExpensifyCardParams} from './RequestRe
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
+export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
@@ -175,7 +176,7 @@ export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
-export type {SplitTransactionParams, SplitTransactionSplitsParam} from './SplitTransactionParams';
+export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams} from './SplitTransactionParams';
 export type {default as DeleteMoneyRequestParams} from './DeleteMoneyRequestParams';
 export type {default as CreateDistanceRequestParams} from './CreateDistanceRequestParams';
 export type {default as StartSplitBillParams} from './StartSplitBillParams';

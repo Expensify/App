@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -906,17 +907,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ten czat jest przeznaczony do wszystkiego, co związane z <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>, aby wysłać fakturę.`,
+            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku <strong>+</strong>, aby wysłać fakturę.`,
         beginningOfChatHistory: 'Ta rozmowa jest z',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku <strong>+</strong>.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja przestrzeń osobista. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Czat z Twoim opiekunem konta tutaj',
         sayHello: 'Powiedz cześć!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Użyj przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}, aby ${additionalText} wydatek.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Użyj przycisku <strong>+</strong>, aby ${additionalText} wydatek.`,
         askConcierge: 'Zadawaj pytania i otrzymuj wsparcie w czasie rzeczywistym 24/7.',
         conciergeSupport: 'Całodobowe wsparcie',
         create: 'utwórz',
@@ -2429,7 +2430,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
@@ -2442,7 +2443,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Bevestig de details.\n' +
@@ -2455,7 +2456,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Kies uw *persoonlijke* ruimte.\n' +
@@ -2550,7 +2551,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer een e-mailadres of telefoonnummer in.\n' +
                     '\n' +
@@ -2563,7 +2564,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer e-mailadressen of telefoonnummers in.\n' +
                     '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
@@ -2585,7 +2586,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     'Zo maakt u een rapport:\n' +
                     '\n' +
-                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
                     '2. Kies *Rapport aanmaken*.\n' +
                     '3. Klik op *Uitgave toevoegen*.\n' +
                     '4. Voeg uw eerste uitgave toe.\n' +
@@ -2738,8 +2739,8 @@ ${amount} dla ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Witamy w trybie #focus!',
-        prompt: 'Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty, które wymagają Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w',
-        settings: 'ustawienia',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty, które wymagają Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawienia</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Nie można znaleźć czatu, którego szukasz.',
@@ -3668,6 +3669,8 @@ ${amount} dla ${merchant} - ${date}`,
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Oczekujące',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
+                centralBillingAccount: 'Centralne konto rozliczeniowe',
+                centralBillingDescription: 'Wybierz, gdzie importować wszystkie paragony z Ubera.',
                 invitationFailure: 'Nie można zaprosić członka do Ubera dla Firm.',
                 autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
                 autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
@@ -5376,7 +5379,6 @@ ${amount} dla ${merchant} - ${date}`,
                 `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Upewnij się, że to konto pasuje do Twojego <a href="${settlementAccountUrl}">Konto rozliczeniowe karty Expensify</a> (kończący się na ${lastFourPAN}), aby Ciągła Rekonsyliacja działała poprawnie.`,
             },
@@ -5717,6 +5719,7 @@ ${amount} dla ${merchant} - ${date}`,
             chatWithYourAdmin: 'Porozmawiaj ze swoim administratorem',
             chatInAdmins: 'Czat w #admins',
             addPaymentCard: 'Dodaj kartę płatniczą',
+            goToSubscriptions: 'Przejdź do subskrypcji',
         },
         rules: {
             individualExpenseRules: {
@@ -6134,7 +6137,7 @@ ${amount} dla ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
-                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą zielonego przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
+                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą przycisku <strong>+</strong>.`,
             },
             emptyExpenseResults: {
                 title: 'Nie utworzyłeś jeszcze żadnych wydatków.',
@@ -6662,14 +6665,9 @@ ${amount} dla ${merchant} - ${date}`,
         copyReferralLink: 'Skopiuj link zaproszenia',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Porozmawiaj ze swoim specjalistą ds. konfiguracji w',
-            phrase2: 'po pomoc',
-        },
-        default: {
-            phrase1: 'Wiadomość',
-            phrase2: 'w celu uzyskania pomocy przy konfiguracji',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Porozmawiaj ze swoim specjalistą ds. konfiguracji w <a href="${href}">${adminReportName}</a> po pomoc`,
+        default: `Wiadomość <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> w celu uzyskania pomocy przy konfiguracji`,
     },
     violations: {
         allTagLevelsRequired: 'Wszystkie wymagane tagi',
@@ -7304,7 +7302,7 @@ ${amount} dla ${merchant} - ${date}`,
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
-    avatarPage: {title: 'Edytuj zdjęcie profilowe', uploadPhoto: 'Prześlij zdjęcie'},
+    avatarPage: {title: 'Edytuj zdjęcie profilowe', upload: 'Prześlij', uploadPhoto: 'Prześlij zdjęcie', selectAvatar: 'Wybierz awatar', chooseCustomAvatar: 'Lub wybierz własny awatar'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

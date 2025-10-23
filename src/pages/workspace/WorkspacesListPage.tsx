@@ -90,10 +90,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         policyID?: string;
         isJoinRequestPending?: boolean;
     };
-type DomainItem = {listItemType: 'domain'; domainAccountID: number; title: string; action: () => void; isAdmin: boolean; isValidated: boolean} & Pick<
-    OfflineWithFeedbackProps,
-    'pendingAction'
->;
+type DomainItem = {listItemType: 'domain'; accountID: number; title: string; action: () => void; isAdmin: boolean; isValidated: boolean} & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
 
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
@@ -136,6 +133,7 @@ function WorkspacesListPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
@@ -219,7 +217,7 @@ function WorkspacesListPage() {
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
@@ -413,7 +411,7 @@ function WorkspacesListPage() {
                           {
                               icon: Expensicons.Globe,
                               text: translate('domain.verifyDomain.title'),
-                              onSelected: () => Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(item.domainAccountID)),
+                              onSelected: () => Navigation.navigate(ROUTES.DOMAIN_VERIFY_DOMAIN.getRoute(item.accountID)),
                           },
                       ]
                     : undefined;
@@ -539,16 +537,16 @@ function WorkspacesListPage() {
             return [];
         }
 
-        return Object.values(allDomains).reduce<DomainItem[]>((acc, domain) => {
+        return Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
             if (!domain) {
-                return acc;
+                return domainItems;
             }
 
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
 
-            acc.push({
+            domainItems.push({
                 listItemType: 'domain',
-                domainAccountID: domain.accountID,
+                accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
                 action: () => navigateToDomain({accountID: domain.accountID, isAdmin, isValidated: domain.validated}),
                 isAdmin,
@@ -556,7 +554,7 @@ function WorkspacesListPage() {
                 pendingAction: domain.pendingAction,
             });
 
-            return acc;
+            return domainItems;
         }, []);
     }, [navigateToDomain, allDomains, adminAccess]);
 
@@ -663,8 +661,11 @@ function WorkspacesListPage() {
         const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
 
         return [
+            // workspaces empty state
             !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
+            // workspaces
             filteredWorkspaces,
+            // domains header and domains
             shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
         ].flat();
     }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
