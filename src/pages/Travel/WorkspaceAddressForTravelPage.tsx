@@ -1,6 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -9,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateAddress} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,12 +50,16 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     };
 
     return (
-        <AddressPage
-            isLoadingApp={false}
-            updateAddress={updatePolicyAddress}
-            title={translate('common.companyAddress')}
-            backTo={route.params.backTo}
-        />
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <ScreenWrapper testID={WorkspaceAddressForTravelPage.displayName}>
+                <AddressPage
+                    isLoadingApp={false}
+                    updateAddress={updatePolicyAddress}
+                    title={translate('common.companyAddress')}
+                    backTo={route.params.backTo}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

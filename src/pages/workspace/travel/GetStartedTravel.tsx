@@ -17,25 +17,23 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
-        <View>
-            <FeatureList
-                menuItems={[]}
-                title={translate('workspace.moreFeatures.travel.getStarted.title')}
-                subtitle={translate('workspace.moreFeatures.travel.getStarted.subtitle')}
-                onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.tangerine700}
-                illustration={PendingTravel}
-                illustrationStyle={styles.travelCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-                titleStyles={styles.textHeadlineH1}
-                footer={
-                    <BookTravelButton
-                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
-                        activePolicyID={policyID}
-                    />
-                }
-            />
-        </View>
+        <FeatureList
+            menuItems={[]}
+            title={translate('workspace.moreFeatures.travel.getStarted.title')}
+            subtitle={translate('workspace.moreFeatures.travel.getStarted.subtitle')}
+            onCtaPress={handleCtaPress}
+            illustrationBackgroundColor={colors.tangerine700}
+            illustration={PendingTravel}
+            illustrationStyle={styles.travelCardIllustration}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            titleStyles={styles.textHeadlineH1}
+            footer={
+                <BookTravelButton
+                    text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
+                    activePolicyID={policyID}
+                />
+            }
+        />
     );
 }
 

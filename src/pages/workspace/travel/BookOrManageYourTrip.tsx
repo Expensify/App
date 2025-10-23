@@ -29,25 +29,23 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
-        <View>
-            <FeatureList
-                menuItems={tripsFeatures}
-                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
-                subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
-                onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.blue600}
-                illustration={Illustrations.EmptyStateTravel}
-                illustrationStyle={styles.travelCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-                titleStyles={styles.textHeadlineH1}
-                footer={
-                    <BookTravelButton
-                        text={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                        activePolicyID={policyID}
-                    />
-                }
-            />
-        </View>
+        <FeatureList
+            menuItems={tripsFeatures}
+            title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
+            subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
+            onCtaPress={handleCtaPress}
+            illustrationBackgroundColor={colors.blue600}
+            illustration={Illustrations.EmptyStateTravel}
+            illustrationStyle={styles.travelCardIllustration}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            titleStyles={styles.textHeadlineH1}
+            footer={
+                <BookTravelButton
+                    text={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                    activePolicyID={policyID}
+                />
+            }
+        />
     );
 }
 

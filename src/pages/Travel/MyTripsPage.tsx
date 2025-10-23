@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type SCREENS from '@src/SCREENS';
 import ManageTrips from './ManageTrips';
 
@@ -14,19 +15,21 @@ function MyTripsPage({route}: MyTripsPageProps) {
     const {translate} = useLocalize();
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            testID={MyTripsPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-        >
-            <HeaderWithBackButton
-                title={translate('travel.header')}
-                shouldShowBackButton
-            />
-            <ManageTrips policyID={policyID} />
-        </ScreenWrapper>
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                testID={MyTripsPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    title={translate('travel.header')}
+                    shouldShowBackButton
+                />
+                <ManageTrips policyID={policyID} />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

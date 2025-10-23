@@ -15,6 +15,7 @@ import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,33 +74,35 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            testID={DomainSelectorPage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('travel.domainSelector.title')}
-                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
-            />
-            <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
-            <SelectionList
-                onSelectRow={(option) => setSelectedDomain(option.value)}
-                sections={[{title: translate('travel.domainSelector.title'), data}]}
-                canSelectMultiple
-                ListItem={TravelDomainListItem}
-                shouldShowTooltips
-                footerContent={
-                    <Button
-                        isDisabled={!selectedDomain}
-                        success
-                        large
-                        style={[styles.w100]}
-                        onPress={provisionTravelForDomain}
-                        text={translate('common.continue')}
-                    />
-                }
-            />
-        </ScreenWrapper>
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                testID={DomainSelectorPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('travel.domainSelector.title')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
+                <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
+                <SelectionList
+                    onSelectRow={(option) => setSelectedDomain(option.value)}
+                    sections={[{title: translate('travel.domainSelector.title'), data}]}
+                    canSelectMultiple
+                    ListItem={TravelDomainListItem}
+                    shouldShowTooltips
+                    footerContent={
+                        <Button
+                            isDisabled={!selectedDomain}
+                            success
+                            large
+                            style={[styles.w100]}
+                            onPress={provisionTravelForDomain}
+                            text={translate('common.continue')}
+                        />
+                    }
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
