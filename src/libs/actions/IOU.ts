@@ -91,7 +91,6 @@ import {
     getPolicy,
     getSubmitToAccountID,
     hasDependentTags,
-    hasDynamicExternalWorkflow,
     hasNoPolicyOtherThanPersonalType,
     isControlPolicy,
     isDelayedSubmissionEnabled,
@@ -10192,15 +10191,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         return;
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(expenseReport.policyID);
-    if (hasDynamicExternalWorkflow(policy)) {
-        // DEW is not supported in NewDot, block the action
-        // The UI component should show a modal directing users to Expensify Classic
-        return;
-    }
-
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
@@ -10796,12 +10786,6 @@ function submitReport(
     }
     if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
-        return;
-    }
-
-    if (hasDynamicExternalWorkflow(policy)) {
-        // DEW is not supported in NewDot, block the action
-        // The UI component should show a modal directing users to Expensify Classic
         return;
     }
 
