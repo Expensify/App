@@ -8274,7 +8274,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: 1,
             };
-            const policy: Policy = {
+            const reportPolicy: Policy = {
                 ...createRandomPolicy(0),
                 approver,
             };
@@ -8282,7 +8282,7 @@ describe('ReportUtils', () => {
                 accountID: 2,
             });
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
-            expect(canRejectReportAction(approver, expenseReport, policy)).toBe(false);
+            expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });
 });
