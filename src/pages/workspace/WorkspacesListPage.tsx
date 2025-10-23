@@ -150,6 +150,7 @@ function WorkspacesListPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
@@ -301,7 +302,7 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
