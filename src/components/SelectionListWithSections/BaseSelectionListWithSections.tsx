@@ -43,8 +43,21 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
-const getDefaultItemHeight = () => variables.optionRowHeight;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getDefaultItemHeight = (ListItem: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    switch (ListItem?.displayName) {
+        case 'SingleSelectListItem':
+        case 'MultiSelectListItem':
+        case 'UserSelectionListItem':
+            return variables.optionRowHeightCompact;
+        case 'UserListItem':
+        case 'NewChatListItem':
+        case 'InviteMemberListItem':
+        default:
+            return variables.optionRowHeight;
+    }
+};
 function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
     ListItem,
@@ -55,7 +68,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     onCheckboxPress,
     onSelectAll,
     onDismissError,
-    getItemHeight = getDefaultItemHeight,
+    getItemHeight,
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
@@ -257,8 +270,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 }
                 disabledIndex += 1;
 
+                const defaultItemHeight = getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
+                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : defaultItemHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -291,7 +305,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight, ListItem]);
 
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
@@ -644,8 +658,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
-        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
+        const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
 
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
@@ -683,6 +698,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
+                    accessibilityState={accessibilityState}
                 />
             </View>
         );

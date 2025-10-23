@@ -1818,7 +1818,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -2696,10 +2695,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 8,
             height: 52,
             alignItems: 'center',
-        },
-
-        sectionSelectCircle: {
-            backgroundColor: theme.cardBG,
         },
 
         sectionMenuItemTopDescription: {

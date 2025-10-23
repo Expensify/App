@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -85,7 +85,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroBankAccountSelectPage.displayName}
             sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}

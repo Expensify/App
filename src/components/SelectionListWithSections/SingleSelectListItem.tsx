@@ -23,6 +23,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -32,9 +33,12 @@ function SingleSelectListItem<TItem extends ListItem>({
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
+                style={styles.ml2}
+                containerStyle={styles.m0}
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
             />
         );
     }, [isSelected, item, onSelectRow]);
@@ -56,6 +60,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }

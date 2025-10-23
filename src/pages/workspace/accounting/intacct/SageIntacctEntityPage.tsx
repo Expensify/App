@@ -1,5 +1,5 @@
 import React from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +48,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctEntityPage.displayName}
             sections={sections ? [{data: sections}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={sections?.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.dismissModal()}

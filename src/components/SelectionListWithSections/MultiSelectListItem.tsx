@@ -23,6 +23,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    accessibilityState,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -34,6 +35,8 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isChecked={isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
+                containerStyle={styles.m0}
             />
         );
     }, [isSelected, item, onSelectRow]);
@@ -55,6 +58,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={[wrapperStyle, isAlternateTextMultilineSupported ? styles.optionRowWithPadding : styles.optionRowCompact]}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }
