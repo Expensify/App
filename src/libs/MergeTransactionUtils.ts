@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Receipt, Routes} from '@src/types/onyx/Transaction';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
