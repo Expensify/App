@@ -26,7 +26,6 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import render from 'dom-serializer';
 
 OnyxUpdateManager();
 
@@ -1558,7 +1557,7 @@ describe('actions/Policy', () => {
             };
 
             mockFetch.pause();
-
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
 
@@ -1601,9 +1600,10 @@ describe('actions/Policy', () => {
 
             mockFetch.pause();
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
-            
+
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When setPolicyTagsRequired is called with requiresTag = false
@@ -1645,6 +1645,7 @@ describe('actions/Policy', () => {
 
             mockFetch.pause();
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             await waitForBatchedUpdates();
