@@ -105,6 +105,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const hintAttachmentButtonText = Localize.translateLocal('common.create');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
@@ -118,6 +119,7 @@ test('[ReportActionCompose] should press create button', async () => {
 test('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const hintSendButtonText = Localize.translateLocal('common.send');
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 
