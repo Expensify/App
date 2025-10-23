@@ -205,9 +205,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!lastAccessedReportID) {
             return;
         }
-
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-        navigation.setParams({reportID: lastAccessedReportID});
+        Navigation.isNavigationReady().then(() => {
+            Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+            navigation.setParams({reportID: lastAccessedReportID});
+        });
     }, [isBetaEnabled, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
