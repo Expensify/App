@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -10,6 +10,8 @@ import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,8 +40,17 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+
+    const hasPerDiemTransactions = useMemo(() => {
+        return selectedTransactionIDs.some((transactionID) => {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            return transaction && isPerDiemRequest(transaction);
+        });
+    }, [selectedTransactionIDs, allTransactions]);
+
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
@@ -77,8 +88,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReport = () => {
+        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+            return;
+        }
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
+            return;
+        }
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
@@ -94,6 +112,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
             createReport={createReport}
+            isPerDiemRequest={hasPerDiemTransactions}
         />
     );
 }

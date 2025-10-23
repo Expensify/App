@@ -16,11 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -158,7 +158,7 @@ function ShareRootPage() {
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {
