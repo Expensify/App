@@ -22,22 +22,13 @@ function print_error_and_exit {
     exit 1
 }
 
-# Parse arguments
-BUILD=""
-DEV_SERVER_FLAG=""
-
-# Check for dev-server flag
-if [[ "$1" == "--dev" ]]; then
-    DEV_SERVER_FLAG="--dev-server"
-    BUILD="$2"
-else
-    BUILD="$1"
-fi
-
 # Assign the arguments to variables if arguments are correct
-if [[ "$BUILD" != "--ios" && "$BUILD" != "--ipad" && "$BUILD" != "--ipad-sm" && "$BUILD" != "--android" ]]; then
+if [ "$#" -ne 1 ] || [[ "$1" != "--ios" && "$1" != "--ipad" && "$1" != "--ipad-sm" && "$1" != "--android" ]]; then
     print_error_and_exit
 fi
+
+BUILD="$1"
+DEV_SERVER_FLAG="--dev-server"
 
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
@@ -45,7 +36,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 # See if we should force standalone NewDot build
 NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
- if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
