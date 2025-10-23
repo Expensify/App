@@ -5418,8 +5418,8 @@ ${date} - ${merchant}に${amount}`,
             enableRate: 'レートを有効にする',
             status: 'ステータス',
             unit: '単位',
-            taxFeatureNotEnabledMessage: 'この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して',
-            changePromptMessage: 'その変更を行うために。',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して <a href="#">さらに多くの機能</a> に行ってその変更を行ってください。</muted-text>',
             deleteDistanceRate: '距離料金を削除',
             areYouSureDelete: () => ({
                 one: 'このレートを削除してもよろしいですか？',

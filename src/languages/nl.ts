@@ -5458,8 +5458,8 @@ ${amount} voor ${merchant} - ${date}`,
             enableRate: 'Tarief inschakelen',
             status: 'Status',
             unit: 'Eenheid',
-            taxFeatureNotEnabledMessage: 'Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar',
-            changePromptMessage: 'om die wijziging door te voeren.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om die wijziging door te voeren.</muted-text>',
             deleteDistanceRate: 'Verwijder afstandstarief',
             areYouSureDelete: () => ({
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',

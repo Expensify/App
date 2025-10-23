@@ -5456,8 +5456,8 @@ ${amount} für ${merchant} - ${date}`,
             enableRate: 'Rate aktivieren',
             status: 'Status',
             unit: 'Einheit',
-            taxFeatureNotEnabledMessage: 'Steuern müssen im Arbeitsbereich aktiviert sein, um diese Funktion zu nutzen. Gehen Sie zu',
-            changePromptMessage: 'um diese Änderung vorzunehmen.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Steuern müssen im Arbeitsbereich aktiviert sein, um diese Funktion zu nutzen. Gehen Sie zu <a href="#">Mehr Funktionen</a> um diese Änderung vorzunehmen.</muted-text>',
             deleteDistanceRate: 'Entfernen Sie den Distanzsatz',
             areYouSureDelete: () => ({
                 one: 'Möchten Sie diesen Satz wirklich löschen?',

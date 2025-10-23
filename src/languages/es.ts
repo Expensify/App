@@ -5436,8 +5436,8 @@ ${amount} para ${merchant} - ${date}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
-            taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
-            changePromptMessage: ' para hacer ese cambio.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
             deleteDistanceRate: 'Eliminar tasa de distancia',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',

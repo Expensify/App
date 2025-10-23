@@ -5417,8 +5417,8 @@ const translations = {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
-            changePromptMessage: ' to make that change.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',

@@ -4,12 +4,12 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import CategorySelector from '@components/CategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -154,20 +154,15 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </View>
                                 {!isPolicyTrackTaxEnabled && (
                                     <View style={[styles.mh5]}>
-                                        <Text style={styles.colorMuted}>
-                                            {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                            <TextLink
-                                                onPress={() => {
-                                                    Navigation.dismissModal();
-                                                    Navigation.isNavigationReady().then(() => {
-                                                        Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-                                                    });
-                                                }}
-                                            >
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>
-                                            {translate('workspace.distanceRates.changePromptMessage')}
-                                        </Text>
+                                        <RenderHTML
+                                            html={translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
+                                            onLinkPress={() => {
+                                                Navigation.dismissModal();
+                                                Navigation.isNavigationReady().then(() => {
+                                                    Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                });
+                                            }}
+                                        />
                                     </View>
                                 )}
                             </OfflineWithFeedback>

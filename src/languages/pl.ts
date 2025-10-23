@@ -5446,8 +5446,8 @@ ${amount} dla ${merchant} - ${date}`,
             enableRate: 'Włącz stawkę',
             status: 'Status',
             unit: 'Jednostka',
-            taxFeatureNotEnabledMessage: 'Podatki muszą być włączone w przestrzeni roboczej, aby użyć tej funkcji. Przejdź do',
-            changePromptMessage: 'aby dokonać tej zmiany.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Podatki muszą być włączone w przestrzeni roboczej, aby użyć tej funkcji. Przejdź do <a href="#">Więcej funkcji</a>aby dokonać tej zmiany.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za odległość',
             areYouSureDelete: () => ({
                 one: 'Czy na pewno chcesz usunąć tę stawkę?',
