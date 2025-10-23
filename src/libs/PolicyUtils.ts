@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -1090,6 +1091,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
@@ -1393,10 +1395,13 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.collect');
         default:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.free');
     }
 }
@@ -1420,25 +1425,6 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
-}
-
-/**
- * This method checks if the active policy has expense chat enabled and is a paid group policy.
- * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
- *
- * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
- * and the user would be taken to the workspace selection page.
- */
-function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-        return activePolicy;
-    }
-
-    if (groupPoliciesWithChatEnabled.length === 1) {
-        return groupPoliciesWithChatEnabled.at(0);
-    }
-
-    return undefined;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {
@@ -1690,7 +1676,6 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getGroupPaidPoliciesWithExpenseChatEnabled,
-    getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
