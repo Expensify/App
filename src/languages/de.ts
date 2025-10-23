@@ -674,6 +674,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        domains: 'Domänen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -5732,6 +5733,7 @@ ${amount} für ${merchant} - ${date}`,
             chatWithYourAdmin: 'Mit Ihrem Administrator chatten',
             chatInAdmins: 'Im #admins chatten',
             addPaymentCard: 'Zahlungskarte hinzufügen',
+            goToSubscriptions: 'Zu den Abonnements',
         },
         rules: {
             individualExpenseRules: {

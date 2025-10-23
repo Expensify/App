@@ -672,6 +672,7 @@ const translations = {
         pinned: 'Przypięte',
         read: 'Przeczytane',
         copyToClipboard: 'Skopiuj do schowka',
+        domains: 'Domeny',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -5378,7 +5379,6 @@ ${amount} dla ${merchant} - ${date}`,
                 `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Upewnij się, że to konto pasuje do Twojego <a href="${settlementAccountUrl}">Konto rozliczeniowe karty Expensify</a> (kończący się na ${lastFourPAN}), aby Ciągła Rekonsyliacja działała poprawnie.`,
             },
@@ -5719,6 +5719,7 @@ ${amount} dla ${merchant} - ${date}`,
             chatWithYourAdmin: 'Porozmawiaj ze swoim administratorem',
             chatInAdmins: 'Czat w #admins',
             addPaymentCard: 'Dodaj kartę płatniczą',
+            goToSubscriptions: 'Przejdź do subskrypcji',
         },
         rules: {
             individualExpenseRules: {

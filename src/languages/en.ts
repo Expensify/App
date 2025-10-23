@@ -667,6 +667,7 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        domains: 'Domains',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -5690,6 +5691,7 @@ const translations = {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
+            goToSubscriptions: 'Go to Subscriptions',
         },
         rules: {
             individualExpenseRules: {

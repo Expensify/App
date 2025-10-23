@@ -672,6 +672,7 @@ const translations = {
         pinned: 'Fissato',
         read: 'Letto',
         copyToClipboard: 'Copia negli appunti',
+        domains: 'Domini',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -5396,7 +5397,6 @@ ${amount} per ${merchant} - ${date}`,
                 `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Assicurati che questo account corrisponda al tuo <a href="${settlementAccountUrl}">Conto di regolamento della carta Expensify</a> (terminante con ${lastFourPAN}) affinché la Riconciliazione Continua funzioni correttamente.`,
             },
@@ -5742,6 +5742,7 @@ ${amount} per ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chatta con il tuo amministratore',
             chatInAdmins: 'Chatta in #admins',
             addPaymentCard: 'Aggiungi carta di pagamento',
+            goToSubscriptions: 'Vai agli abbonamenti',
         },
         rules: {
             individualExpenseRules: {
