@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -672,6 +673,7 @@ const translations = {
         pinned: 'Épinglé',
         read: 'Lu',
         copyToClipboard: 'Copier dans le presse-papiers',
+        domains: 'Domaines',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -908,17 +910,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ce salon de discussion est destiné à tout ce qui concerne <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton <strong>+</strong> pour envoyer une facture.`,
+            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> pour envoyer une facture.`,
         beginningOfChatHistory: 'Ce chat est avec',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton <strong>+</strong>.`,
+            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: "C'est votre espace personnel. Utilisez-le pour des notes, des tâches, des brouillons et des rappels.",
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Utilisez le bouton <strong>+</strong> pour ${additionalText} une dépense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Utilisez le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} pour ${additionalText} une dépense.`,
         askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24h/24 et 7j/7.',
         conciergeSupport: 'Support 24h/24 et 7j/7',
         create: 'créer',
@@ -1695,7 +1697,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: "Réinitialiser à l'état d'origine",
             usingImportedState: 'Vous utilisez un état importé. Appuyez ici pour le réinitialiser.',
-            shouldBlockTransactionThreadReportCreation: 'Bloquer la création de rapports de fil de transaction',
             debugMode: 'Mode débogage',
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
@@ -2441,7 +2442,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Soumettre une dépense',
                 description:
                     '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     `4. Ajoutez l’email ou numéro de téléphone de votre responsable.\n` +
@@ -2452,7 +2453,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Soumettre une dépense',
                 description:
                     '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     '4. Confirmez les détails.\n' +
@@ -2463,7 +2464,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Suivre une dépense',
                 description:
                     '*Suivez une dépense* dans n’importe quelle devise, avec ou sans reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     '4. Choisissez votre espace *personnel*.\n' +
@@ -2546,7 +2547,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Démarrer un chat',
                 description:
                     '*Démarrez un chat* avec quelqu’un grâce à son email ou numéro.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Démarrer un chat*.\n' +
                     '3. Entrez un email ou numéro de téléphone.\n\n' +
                     'S’ils ne sont pas encore sur Expensify, une invitation sera envoyée automatiquement.\n\n' +
@@ -2556,7 +2557,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Partager une dépense',
                 description:
                     '*Partagez une dépense* avec une ou plusieurs personnes.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Démarrer un chat*.\n' +
                     '3. Entrez des emails ou numéros de téléphone.\n' +
                     '4. Cliquez sur le bouton gris *+* > *Partager une dépense*.\n' +
@@ -2576,7 +2577,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Créer votre premier rapport',
                 description:
                     'Voici comment créer un rapport :\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Choisissez *Créer un rapport*.\n' +
                     '3. Cliquez sur *Ajouter une dépense*.\n' +
                     '4. Ajoutez votre première dépense.\n\n' +
@@ -2933,8 +2934,8 @@ ${amount} pour ${merchant} - ${date}`,
         needSSNFull9: 'Nous rencontrons des difficultés pour vérifier votre SSN. Veuillez entrer les neuf chiffres complets de votre SSN.',
         weCouldNotVerify: "Nous n'avons pas pu vérifier",
         pleaseFixIt: 'Veuillez corriger ces informations avant de continuer.',
-        failedKYCTextBefore: "Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter",
-        failedKYCTextAfter: 'si vous avez des questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> si vous avez des questions.`,
     },
     termsStep: {
         headerTitle: 'Conditions et frais',
@@ -4415,8 +4416,7 @@ ${amount} pour ${merchant} - ${date}`,
             employeeDefaultDescription: "Le département par défaut de l'employé sera appliqué à ses dépenses dans Sage Intacct si un existe.",
             displayedAsTagDescription: "Le département sera sélectionnable pour chaque dépense individuelle sur le rapport d'un employé.",
             displayedAsReportFieldDescription: "La sélection du département s'appliquera à toutes les dépenses sur le rapport d'un employé.",
-            toggleImportTitleFirstPart: 'Choisissez comment gérer Sage Intacct',
-            toggleImportTitleSecondPart: 'dans Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Choisissez comment gérer Sage Intacct <strong>${mappingTitle}</strong> dans Expensify.`,
             expenseTypes: 'Types de dépenses',
             expenseTypesDescription: 'Vos types de dépenses Sage Intacct seront importés dans Expensify en tant que catégories.',
             accountTypesDescription: 'Votre plan comptable Sage Intacct sera importé dans Expensify en tant que catégories.',
@@ -5738,7 +5738,7 @@ ${amount} pour ${merchant} - ${date}`,
             chatWithYourAdmin: 'Discutez avec votre administrateur',
             chatInAdmins: 'Discuter dans #admins',
             addPaymentCard: 'Ajouter une carte de paiement',
-            goToSubscriptions: 'Aller aux abonnements',
+            goToSubscription: "Accéder à l'abonnement",
         },
         rules: {
             individualExpenseRules: {
@@ -6160,7 +6160,7 @@ ${amount} pour ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Rien à afficher',
-                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton <strong>+</strong>.`,
+                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton vert ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: "Vous n'avez pas encore créé de dépenses.",
@@ -6777,7 +6777,8 @@ ${amount} pour ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: "Reçu en attente en raison d'une connexion bancaire interrompue",
-        adminBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défaillante. Veuillez résoudre dans",
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Reçu en attente en raison d'une connexion bancaire rompue. Veuillez résoudre ce problème dans <a href="${workspaceCompanyCardRoute}">Cartes d'entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défectueuse. Veuillez demander à un administrateur de l'espace de travail de résoudre le problème.",
         markAsCashToIgnore: 'Marquer comme espèce pour ignorer et demander un paiement.',
         smartscanFailed: ({canEdit = true}) => `Échec de la numérisation du reçu.${canEdit ? 'Saisir les détails manuellement.' : ''}`,
@@ -7334,6 +7335,11 @@ ${amount} pour ${merchant} - ${date}`,
         uploadPhoto: 'Télécharger une photo',
         selectAvatar: 'Sélectionner un avatar',
         chooseCustomAvatar: 'Ou choisissez un avatar personnalisé',
+    },
+    openAppFailureModal: {
+        title: "Quelque chose s'est mal passé...",
+        subtitle: `Nous n'avons pas pu charger toutes vos données. Nous avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
+        refreshAndTryAgain: 'Actualisez puis réessayez',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
