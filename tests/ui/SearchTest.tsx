@@ -8,7 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type {TransactionListItemType, TransactionGroupListItemProps, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
