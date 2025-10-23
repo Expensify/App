@@ -85,6 +85,7 @@ const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [
     ONYXKEYS.PLAID_LINK_TOKEN,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
+    ONYXKEYS.TRAVEL_PROVISIONING,
 ];
 
 const keysToMask = [
@@ -98,6 +99,7 @@ const keysToMask = [
     'cardName',
     'cardNumber',
     'city',
+    'cityName',
     'comment',
     'description',
     'displayName',
@@ -121,6 +123,7 @@ const keysToMask = [
     'policyName',
     'primaryLogin',
     'reportName',
+    'reservationList',
     'routingNumber',
     'source',
     'state',
@@ -239,6 +242,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
             return;
         }
 
+
         // loginList is an object that contains emails as keys, the keys should be masked as well
         let propertyName = '';
         if (Str.isValidEmail(key)) {
@@ -284,10 +288,230 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     return newState;
 };
 
+/**
+ * Helper function to remove collection items based on extracted ID matching a set
+ */
+const removeCollectionItemsByID = (
+    onyxState: OnyxState,
+    collectionPrefix: string,
+    excludedIDs: Set<string>,
+    idExtractor: (key: string) => string = (key) => key.replace(collectionPrefix, ''),
+): void => {
+    Object.keys(onyxState).forEach((key) => {
+        if (key.startsWith(collectionPrefix)) {
+            const id = idExtractor(key);
+            if (excludedIDs.has(id)) {
+                delete onyxState[key];
+            }
+        }
+    });
+};
+
+/**
+ * Helper function to remove collection items with nested objects that have reportID or policyID
+ */
+const removeCollectionItemsByNestedID = (
+    onyxState: OnyxState,
+    collectionPrefix: string,
+    excludedIDs: Set<string>,
+    idField: 'reportID' | 'policyID',
+): void => {
+    Object.keys(onyxState).forEach((key) => {
+        if (key.startsWith(collectionPrefix)) {
+            const item = onyxState[key] as Record<string, unknown>;
+            if (item && typeof item[idField] === 'string' && excludedIDs.has(item[idField])) {
+                delete onyxState[key];
+            }
+        }
+    });
+};
+
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = {...data};
 
+    // FIRST: Identify policies owned by accounting@expensify.com or payroll@expensify.com (only when masking is enabled)
+    // Do this BEFORE any processing to ensure policy owners haven't been masked yet
+    const excludedEmails = ['accounting@expensify.com', 'payroll@expensify.com'];
+    const excludedPolicyIDs = new Set<string>();
+    
+    if (isMaskingFragileDataEnabled) {
+        Object.keys(data).forEach((key) => {
+            if (key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
+                const policy = data[key] as Record<string, unknown>;
+                const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+                
+                if (policy && typeof policy.owner === 'string' && excludedEmails.includes(policy.owner.toLowerCase())) {
+                    excludedPolicyIDs.add(policyID);
+                }
+            }
+        });
+    }
+
     onyxState = removePrivateOnyxKeys(onyxState);
+
+    // Remove search snapshots when masking is enabled - they contain duplicate transaction/report data
+    if (isMaskingFragileDataEnabled) {
+        Object.keys(onyxState).forEach((key) => {
+            if (key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
+                delete onyxState[key];
+            }
+        });
+    }
+
+    // Identify reports that belong to excluded policies, or are paycheck reports (when masking enabled)
+    const excludedReportIDs = new Set<string>();
+    Object.keys(onyxState).forEach((key) => {
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            const report = onyxState[key] as Record<string, unknown>;
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+            
+            if (report && typeof report.policyID === 'string' && excludedPolicyIDs.has(report.policyID)) {
+                excludedReportIDs.add(reportID);
+                delete onyxState[key];
+            }
+            // If masking is enabled, also remove paycheck reports
+            else if (isMaskingFragileDataEnabled && report && report.type === 'paycheck') {
+                excludedReportIDs.add(reportID);
+                delete onyxState[key];
+            }
+        }
+    });
+
+    // Track orphaned reports (those that don't exist in COLLECTION.REPORT) - will be populated when filtering derived keys
+    const orphanedReportIDs = new Set<string>();
+
+    // Remove transactions that belong to excluded reports
+    const excludedTransactionIDs = new Set<string>();
+    Object.keys(onyxState).forEach((key) => {
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            const transaction = onyxState[key] as Record<string, unknown>;
+            const transactionID = key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
+            
+            if (transaction && typeof transaction.reportID === 'string') {
+                // Remove if the report is in the excluded list
+                if (excludedReportIDs.has(transaction.reportID)) {
+                    excludedTransactionIDs.add(transactionID);
+                    delete onyxState[key];
+                }
+                // Also check if the report exists and belongs to an excluded policy or is a paycheck (when masking enabled)
+                else {
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`;
+                    const txReport = data[reportKey] as Record<string, unknown> | undefined;
+                    
+                    // Remove if report belongs to excluded policy or is paycheck (when masking enabled)
+                    if (txReport && typeof txReport.policyID === 'string' && excludedPolicyIDs.has(txReport.policyID)) {
+                        excludedTransactionIDs.add(transactionID);
+                        delete onyxState[key];
+                    } else if (isMaskingFragileDataEnabled && txReport && txReport.type === 'paycheck') {
+                        excludedTransactionIDs.add(transactionID);
+                        delete onyxState[key];
+                    }
+                }
+            }
+        }
+    });
+
+    // Remove related data for excluded reports and transactions
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_ACTIONS, excludedReportIDs);
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, excludedReportIDs);
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, excludedReportIDs);
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_METADATA, excludedReportIDs);
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, excludedReportIDs);
+    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, excludedTransactionIDs);
+    
+    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.REPORT_DRAFT, excludedPolicyIDs, 'policyID');
+    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, excludedReportIDs, 'reportID');
+    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_BACKUP, excludedReportIDs, 'reportID');
+
+    // Filter derived keys to remove data for excluded reports
+    if (onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] && typeof onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] === 'object') {
+        const reportTransactions = onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] as Record<string, unknown>;
+        
+        // We need to check ALL reports - some reports only exist here and not in COLLECTION.REPORT
+        Object.keys(reportTransactions).forEach((reportID) => {
+            const reportData = reportTransactions[reportID] as Record<string, unknown>;
+            
+            // Check if this report exists in the original data to get its policyID
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            const originalReport = data[reportKey] as Record<string, unknown> | undefined;
+            
+            // If this report was already removed, or if it exists in original data with excluded policyID
+            if (excludedReportIDs.has(reportID) || 
+                (originalReport && typeof originalReport.policyID === 'string' && excludedPolicyIDs.has(originalReport.policyID))) {
+                delete reportTransactions[reportID];
+            }
+            // If masking is enabled and this is a paycheck report, remove it
+            else if (isMaskingFragileDataEnabled && originalReport && originalReport.type === 'paycheck') {
+                orphanedReportIDs.add(reportID); // Track for transaction removal
+                delete reportTransactions[reportID];
+            }
+            // If report doesn't exist in collection, it's orphaned/stale data - track it and remove it
+            else if (!originalReport) {
+                orphanedReportIDs.add(reportID);
+                delete reportTransactions[reportID];
+            }
+            // Otherwise, check if transactions within the report should be filtered
+            else if (reportData && reportData.transactions && typeof reportData.transactions === 'object') {
+                const transactions = reportData.transactions as Record<string, unknown>;
+                Object.keys(transactions).forEach((transactionKey) => {
+                    const transaction = transactions[transactionKey] as Record<string, unknown>;
+                    // Check if this transaction belongs to an excluded report
+                    if (transaction && typeof transaction.reportID === 'string' && excludedReportIDs.has(transaction.reportID)) {
+                        delete transactions[transactionKey];
+                    }
+                });
+            }
+        });
+        
+        onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] = reportTransactions;
+    }
+
+    // Second pass: Remove root-level transactions that belong to orphaned reports (or paycheck reports if masking enabled)
+    if (orphanedReportIDs.size > 0) {
+        Object.keys(onyxState).forEach((key) => {
+            if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                const transaction = onyxState[key] as Record<string, unknown>;
+                
+                if (transaction && typeof transaction.reportID === 'string' && orphanedReportIDs.has(transaction.reportID)) {
+                    delete onyxState[key];
+                }
+            }
+        });
+    }
+
+    if (onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES] && typeof onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES] === 'object') {
+        const reportAttributes = onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES] as Record<string, unknown>;
+        if (reportAttributes.reports && typeof reportAttributes.reports === 'object') {
+            const filteredReports: Record<string, unknown> = {};
+            const reports = reportAttributes.reports as Record<string, unknown>;
+            Object.keys(reports).forEach((reportID) => {
+                // Check if report exists in original data
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+                const originalReport = data[reportKey] as Record<string, unknown> | undefined;
+                
+                // Skip if excluded, paycheck (when masking), or orphaned
+                const shouldRemove = excludedReportIDs.has(reportID) || 
+                                    orphanedReportIDs.has(reportID) || 
+                                    (isMaskingFragileDataEnabled && originalReport && originalReport.type === 'paycheck');
+                
+                if (!shouldRemove) {
+                    filteredReports[reportID] = reports[reportID];
+                }
+            });
+            reportAttributes.reports = filteredReports;
+        }
+        onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES] = reportAttributes;
+    }
+
+    if (onyxState[ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID] && typeof onyxState[ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID] === 'object') {
+        const outstandingReports = onyxState[ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID] as Record<string, unknown>;
+        Object.keys(outstandingReports).forEach((policyID) => {
+            if (excludedPolicyIDs.has(policyID)) {
+                delete outstandingReports[policyID];
+            }
+        });
+        onyxState[ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID] = outstandingReports;
+    }
 
     Object.keys(onyxState).forEach((key) => {
         let ruleKey = key;
