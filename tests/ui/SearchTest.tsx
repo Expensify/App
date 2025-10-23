@@ -8,8 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type {TransactionGroupListItemProps, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType, TransactionGroupListItemProps, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -22,6 +21,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
 }));
+
+const mockOnSelectRow = jest.fn();
+const mockOnCheckboxPress = jest.fn();
 
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
@@ -182,9 +184,6 @@ describe('Search - Empty Report Selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
     });
-
-    const mockOnSelectRow = jest.fn();
-    const mockOnCheckboxPress = jest.fn();
 
     const defaultProps: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
         item: mockEmptyReport,
