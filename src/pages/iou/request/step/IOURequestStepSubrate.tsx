@@ -137,7 +137,7 @@ function IOURequestStepSubrate({
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
-        const transactionReportID = transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : reportID;
+        const transactionReportID = transaction?.participants?.at(0)?.reportID ?? transaction?.reportID ?? reportID;
 
         if (parsedIndex === filledSubrateCount) {
             addSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
