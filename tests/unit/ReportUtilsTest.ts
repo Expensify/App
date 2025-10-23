@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
@@ -10,7 +10,7 @@ import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -54,7 +54,6 @@ import {
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
-    getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionActorAccountID,
     getReportIDFromLink,
@@ -64,7 +63,6 @@ import {
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
-    hasEmptyReportsForPolicy,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -113,6 +111,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -378,7 +377,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
@@ -488,7 +487,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -498,7 +497,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -879,7 +878,7 @@ describe('ReportUtils', () => {
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translate(CONST.LOCALES.EN, 'parentReportAction.deletedTask'));
             });
         });
 
@@ -2207,6 +2206,30 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: true,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
@@ -3641,6 +3664,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3664,6 +3688,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3692,6 +3717,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3744,6 +3770,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3766,6 +3793,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3788,6 +3816,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3810,6 +3839,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3845,6 +3875,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3931,6 +3962,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeSelfDM,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3957,6 +3989,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3976,6 +4009,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3998,6 +4032,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4040,6 +4075,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4059,6 +4095,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4080,6 +4117,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4125,6 +4163,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4144,6 +4183,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4177,6 +4217,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -5759,6 +5800,28 @@ describe('ReportUtils', () => {
             // Then the result is null
             expect(result).toBe(null);
         });
+        it('should return null for an archived report when there is a policy pending join request', async () => {
+            // Given an archived admin room with a pending join request
+            const joinRequestReportAction: ReportAction = {
+                ...createRandomReportAction(50400),
+                originalMessage: {
+                    choice: '' as JoinWorkspaceResolution,
+                    policyID: '1',
+                },
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            };
+
+            const adminReport = createAdminRoom(34001);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReport.reportID}`, {[joinRequestReportAction.reportActionID]: joinRequestReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, undefined, isReportArchived.current);
+
+            // Then the result is null
+            expect(result).toBe(null);
+        });
     });
 
     describe('canEditReportDescription', () => {
@@ -6945,31 +7008,31 @@ describe('ReportUtils', () => {
 
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
@@ -8199,262 +8262,6 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
-        });
-    });
-
-    describe('hasEmptyReportsForPolicy', () => {
-        const policyID = 'workspace-001';
-        const otherPolicyID = 'workspace-002';
-        const accountID = 987654;
-        const otherAccountID = 123456;
-
-        const buildReport = (overrides: Partial<Report> = {}): Report => ({
-            reportID: overrides.reportID ?? 'report-1',
-            policyID,
-            ownerAccountID: accountID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            total: 0,
-            nonReimbursableTotal: 0,
-            pendingAction: null,
-            errors: undefined,
-            ...overrides,
-        });
-
-        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
-            reports.reduce<Record<string, Report>>((acc, report, index) => {
-                acc[report.reportID ?? String(index)] = report;
-                return acc;
-            }, {});
-
-        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
-            ...createRandomTransaction(index),
-            reportID,
-            transactionID: `${reportID}-transaction-${index}`,
-        });
-
-        it('returns false when policyID is missing or accountID invalid', () => {
-            const reportID = 'report-1';
-            const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, undefined, accountID, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
-        });
-
-        it('returns true when an owned open expense report has no transactions', () => {
-            const reportID = 'empty-report';
-            const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
-        });
-
-        it('returns false when an owned expense report already has transactions', () => {
-            const reportID = 'with-transaction';
-            const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [createTransactionForReport(reportID)],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
-        });
-
-        it('ignores reports owned by other users or policies', () => {
-            const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
-            const transactions: Record<string, Transaction[]> = {
-                'other-owner': [],
-                'other-policy': [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
-        });
-
-        it('ignores reports that are not open expense reports even if they have no transactions', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'closed', statusNum: CONST.REPORT.STATUS_NUM.CLOSED}),
-                buildReport({reportID: 'approved', stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
-                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
-            );
-            const transactions: Record<string, Transaction[]> = {
-                closed: [],
-                approved: [],
-                chat: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
-        });
-
-        it('ignores reports flagged for deletion or with errors', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
-                buildReport({reportID: 'with-errors', errors: {test: 'error'}}),
-            );
-
-            const transactions: Record<string, Transaction[]> = {
-                'pending-delete': [],
-                'with-errors': [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
-        });
-
-        it('returns true when at least one qualifying report exists among mixed data', () => {
-            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
-
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
-        });
-
-        it('returns false when accountID is the default one', () => {
-            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
-
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
-        });
-
-        it('supports minimal report summaries array', () => {
-            const reportID = 'summary-report';
-            const minimalReports = [
-                {
-                    reportID,
-                    policyID,
-                    ownerAccountID: accountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    total: 0,
-                    nonReimbursableTotal: 0,
-                    pendingAction: null,
-                    errors: undefined,
-                },
-            ];
-
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(minimalReports, policyID, accountID, transactions)).toBe(true);
-        });
-    });
-
-    describe('getPolicyIDsWithEmptyReportsForAccount', () => {
-        const policyID = 'workspace-001';
-        const otherPolicyID = 'workspace-002';
-        const accountID = 555555;
-        const otherAccountID = 999999;
-
-        const buildReport = (overrides: Partial<Report> = {}): Report => ({
-            reportID: overrides.reportID ?? 'report-1',
-            policyID,
-            ownerAccountID: accountID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            total: 0,
-            nonReimbursableTotal: 0,
-            pendingAction: null,
-            errors: undefined,
-            ...overrides,
-        });
-
-        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
-            reports.reduce<Record<string, Report>>((acc, report, index) => {
-                acc[report.reportID ?? String(index)] = report;
-                return acc;
-            }, {});
-
-        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
-            ...createRandomTransaction(index),
-            reportID,
-            transactionID: `${reportID}-txn-${index}`,
-        });
-
-        it('returns empty object when accountID is missing', () => {
-            const reportID = 'empty';
-            const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
-
-            expect(getPolicyIDsWithEmptyReportsForAccount(reports, undefined, transactions)).toEqual({});
-        });
-
-        it('marks policy IDs that have empty reports owned by the user', () => {
-            const reportA = 'policy-a';
-            const reportB = 'policy-b';
-            const reports = toCollection(buildReport({reportID: reportA, policyID}), buildReport({reportID: reportB, policyID: otherPolicyID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportA]: [],
-                [reportB]: [],
-            };
-
-            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
-                [policyID]: true,
-                [otherPolicyID]: true,
-            });
-        });
-
-        it('supports minimal summaries input', () => {
-            const reportID = 'summary-report';
-            const summaries = [
-                {
-                    reportID,
-                    policyID,
-                    ownerAccountID: accountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    total: 0,
-                    nonReimbursableTotal: 0,
-                    pendingAction: null,
-                    errors: undefined,
-                },
-            ];
-
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
-
-            expect(getPolicyIDsWithEmptyReportsForAccount(summaries, accountID, transactions)).toEqual({
-                [policyID]: true,
-            });
-        });
-
-        it('ignores reports that do not qualify', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'with-money', total: 100}),
-                buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}),
-                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
-                buildReport({reportID: 'with-errors', errors: {message: 'error'}}),
-                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
-            );
-
-            const transactions: Record<string, Transaction[]> = {
-                'with-money': [createTransactionForReport('with-money')],
-                'other-owner': [],
-                'pending-delete': [],
-                'with-errors': [],
-                chat: [],
-            };
-
-            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
     });
 });

@@ -311,7 +311,7 @@ const config = defineConfig([
                 {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
                     message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into documentation and use alternative routing methods instead.',
+                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
 
                 // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
@@ -399,7 +399,6 @@ const config = defineConfig([
             // These rules could indicate potential bugs in the source code.
             // After fixing the source code, remove these so they become errors instead of warnings.
             '@typescript-eslint/no-base-to-string': 'warn',
-            '@typescript-eslint/no-unsafe-call': 'warn',
 
             // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
             'lines-between-class-members': 'error',
@@ -493,6 +492,7 @@ const config = defineConfig([
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
             'rulesdir/prefer-locale-compare-from-context': 'error',
+            'rulesdir/no-object-keys-includes': 'error',
         },
     },
 
@@ -545,6 +545,20 @@ const config = defineConfig([
             'testing-library/prefer-find-by': 'error',
             'testing-library/prefer-presence-queries': 'error',
             'testing-library/prefer-screen-queries': 'error',
+        },
+    },
+
+    {
+        files: ['src/libs/Navigation/types.ts'],
+        rules: {
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: 'TSPropertySignature[key.name="backTo"]',
+                    message:
+                        'The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
+                },
+            ],
         },
     },
 

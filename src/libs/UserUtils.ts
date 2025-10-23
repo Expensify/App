@@ -8,8 +8,11 @@ import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/typ
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {ALL_CUSTOM_AVATARS, getAvatarLocal} from './Avatars/CustomAvatarCatalog';
+import type {CustomAvatarID} from './Avatars/CustomAvatarCatalog.types';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -136,7 +139,7 @@ function getAccountIDHashBucket(accountID = -1, accountEmail?: string, avatarURL
 /**
  * Helper method to return the default avatar associated with the given accountID
  */
-function getDefaultAvatar(accountID = -1, accountEmail?: string, avatarURL?: string): IconAsset | undefined {
+function getDefaultAvatar(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
@@ -153,17 +156,41 @@ function getDefaultAvatar(accountID = -1, accountEmail?: string, avatarURL?: str
 }
 
 /**
+ * Helper method to return default avatar name associated with the accountID
+ */
+function getDefaultAvatarName(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, accountEmail, avatarURL);
+    const avatarPrefix = `default-avatar`;
+
+    return `${avatarPrefix}_${accountIDHashBucket}`;
+}
+
+/**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID: string | number = '', accountEmail?: string, avatarURL?: string): string {
+function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, accountEmail, avatarURL);
-    const avatarPrefix = `default-avatar`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${getDefaultAvatarName(accountID, accountEmail, avatarURL)}.png`;
+}
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
+/**
+ * Helper method to extract the avatar name from a default avatar URL
+ * @param avatarURL - the URL returned by getDefaultAvatarURL
+ * @returns the avatar name (e.g., 'default-avatar_5', 'concierge') or undefined if not a valid default avatar URL
+ */
+function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefined {
+    if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
+        return undefined;
+    }
+
+    // Extract avatar name from CloudFront URL and make sure it's one of defaults
+    const match = avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '';
+    if (ALL_CUSTOM_AVATARS[match as CustomAvatarID]) {
+        return match;
+    }
 }
 
 /**
@@ -229,6 +256,10 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number, acc
     if (typeof source !== 'string') {
         return source;
     }
+    const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(avatarSource);
+    if (maybeDefaultAvatarName) {
+        return getAvatarLocal(maybeDefaultAvatarName as CustomAvatarID);
+    }
 
     // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
     if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
@@ -279,10 +310,13 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
 
         let description = '';
         if (defaultEmail === login?.partnerUserID) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.getInTouch');
         } else if (login?.errorFields?.addedLogin) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.pleaseVerify');
         }
         let indicator;
