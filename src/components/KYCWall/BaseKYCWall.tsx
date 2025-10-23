@@ -177,7 +177,20 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [onSelectPaymentMethod, iouReport, addDebitCardRoute, reimbursementAccount?.achData, reimbursementAccountDraft?.country, canLinkExistingBusinessBankAccount, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
+        [
+            onSelectPaymentMethod,
+            iouReport,
+            addDebitCardRoute,
+            reimbursementAccount?.achData,
+            reimbursementAccountDraft?.country,
+            canLinkExistingBusinessBankAccount,
+            addBankAccountRoute,
+            chatReport,
+            policies,
+            introSelected,
+            formatPhoneNumber,
+            lastPaymentMethod,
+        ],
     );
 
     /**
