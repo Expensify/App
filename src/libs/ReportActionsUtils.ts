@@ -2951,11 +2951,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePerso
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
-    return (
-        (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) &&
-        isCardPendingActivate(card) &&
-        !missingDetails
-    );
+    return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) && isCardPendingActivate(card) && !missingDetails;
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
@@ -2980,14 +2976,12 @@ function getCardIssuedMessage({
     policyID = '-1',
     expensifyCard,
     companyCard,
-    privatePersonalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
-    privatePersonalDetails?: PrivatePersonalDetails;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -3006,19 +3000,19 @@ function getCardIssuedMessage({
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
             : translateLocal('workspace.companyCards.companyCard');
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, privatePersonalDetails);
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED: {
+            if (cardIssuedActionOriginalMessage?.hadMissingAddress) {
+                return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
+            }
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
+        }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            if (shouldShowAddMissingDetailsMessage) {
-                return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
-            }
-            return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
+            return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
             return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.replacementCard'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:

@@ -935,6 +935,9 @@ type OriginalMessageCard = {
 
     /** The id of the card */
     cardID: number;
+
+    /** Whether the card was issued without a shipping address */
+    hadMissingAddress?: boolean;
 };
 
 /**
