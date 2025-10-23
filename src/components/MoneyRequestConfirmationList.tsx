@@ -332,17 +332,37 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
+    // Track the currency/rate for which we last set the tax code
+    // This allows us to detect when currency changes without using usePrevious
+    const lastTaxCodeCurrencyRef = useRef<{currency?: string; modifiedCurrency?: string; customUnitRateID?: string}>({});
+
     useEffect(() => {
-        // Set the default tax code when conditions change
+        // Set the default tax code when there isn't one or when currency/rate changes
         if (!shouldShowTax || !transaction || !transactionID) {
             return;
         }
-        const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        const currentTaxCode = transaction.taxCode ?? '';
 
-        // Update tax code if it's different from what should be the default
-        if (defaultTaxCode !== currentTaxCode) {
+        const currentCurrency = transaction.currency;
+        const currentModifiedCurrency = transaction.modifiedCurrency;
+        const lastTrackedCurrency = lastTaxCodeCurrencyRef.current;
+
+        // Check if currency or custom unit rate changed since we last set the tax code
+        const didCurrencyChange =
+            lastTrackedCurrency.currency !== currentCurrency || lastTrackedCurrency.modifiedCurrency !== currentModifiedCurrency || lastTrackedCurrency.customUnitRateID !== customUnitRateID;
+
+        // Only update tax code if:
+        // 1. Tax code isn't set yet, OR
+        // 2. Currency/rate changed (which may require a different default)
+        if (!transaction.taxCode || didCurrencyChange) {
+            const defaultTaxCode = getDefaultTaxCode(policy, transaction);
             setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+
+            // Track that we set the tax code for this currency/rate combination
+            lastTaxCodeCurrencyRef.current = {
+                currency: currentCurrency,
+                modifiedCurrency: currentModifiedCurrency,
+                customUnitRateID,
+            };
         }
     }, [customUnitRateID, policy, shouldShowTax, transaction, transactionID]);
 
