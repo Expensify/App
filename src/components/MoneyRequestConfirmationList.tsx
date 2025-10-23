@@ -242,7 +242,6 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
-    console.log(policyID);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
