@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
