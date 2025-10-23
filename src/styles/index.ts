@@ -1595,37 +1595,6 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
-        floatingReconnectButton: {
-            position: 'absolute',
-            top: 100,
-            right: 20,
-            zIndex: 10,
-        },
-
-        floatingReconnectButtonInner: {
-            backgroundColor: theme.success,
-            borderRadius: 20,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-            shadowColor: theme.shadow,
-            shadowOffset: {
-                width: 0,
-                height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
-        },
-
-        floatingReconnectButtonText: {
-            color: theme.textLight,
-            fontSize: variables.fontSizeSmall,
-            marginLeft: 6,
-            fontWeight: 'bold',
-        },
-
         topBarLabel: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
