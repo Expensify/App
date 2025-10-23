@@ -332,7 +332,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
-        routes: mergeTransaction.routes as Routes | undefined,
+        routes: mergeTransaction.routes,
     };
 }
 
