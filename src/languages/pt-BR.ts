@@ -440,6 +440,7 @@ const translations = {
         whatThis: 'O que é isso?',
         iAcceptThe: 'Eu aceito o',
         iAcceptTheFull: `Eu aceito o <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço da Expensify</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>`,
+        iAcceptTheConfirmAgreements: `Eu aceito o <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">termos e condições</a>`,
         remove: 'Remover',
         admin: 'Administração',
         owner: 'Proprietário',

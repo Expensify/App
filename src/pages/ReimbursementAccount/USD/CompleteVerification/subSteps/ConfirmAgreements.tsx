@@ -3,6 +3,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -35,12 +36,7 @@ function CertifyTrueAndAccurateLabel() {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('common.iAcceptThe')}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}>{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={translate('common.iAcceptTheConfirmAgreements')} />;
 }
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
