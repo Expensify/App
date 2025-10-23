@@ -68,7 +68,7 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
