@@ -48,7 +48,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose()}
+            onClose={onClose}
             onModalHide={onClose}
             onBackdropPress={() => {
                 onClose();
