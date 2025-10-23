@@ -269,7 +269,8 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
+    const shouldShowCategory =
+        (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || (isExpenseUnreported && (!policyForMovingExpenses || policy?.areCategoriesEnabled));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
@@ -310,6 +311,8 @@ function MoneyRequestView({
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
+
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
@@ -616,7 +619,7 @@ function MoneyRequestView({
     const shouldShowReport = !!parentReportID || !!actualParentReport;
     const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
 
-    // In this case we want to use this value. The  shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
+    // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
@@ -757,16 +760,27 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!policy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             action: CONST.IOU.ACTION.EDIT,
                                             iouType,
                                             transactionID: transaction.transactionID,
                                             reportID: report.reportID,
-                                            backTo: getReportRHPActiveRoute(),
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
+                                    );
+                                } else if (!policy && shouldSelectPolicy) {
+                                    Navigation.navigate(
+                                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transaction.transactionID,
+                                                report.reportID,
+                                                getReportRHPActiveRoute(),
+                                            ),
+                                        ),
                                     );
                                 } else {
                                     Navigation.navigate(
@@ -908,7 +922,7 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-                                if (!policyForMovingExpenses && !shouldSelectPolicy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             iouType,
