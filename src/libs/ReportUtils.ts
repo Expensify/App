@@ -8670,6 +8670,22 @@ function hasReportViolations(reportID: string | undefined) {
     return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
+/**
+ * Checks if submission should be blocked due to strict policy rules being enabled and violations present.
+ * When a user's domain has "strictly enforce workspace rules" enabled, they cannot submit reports with violations.
+ */
+function shouldBlockSubmitDueToStrictPolicyRules(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    areStrictPolicyRulesEnabled: boolean,
+    reportTransactions?: Transaction[] | SearchTransaction[],
+) {
+    if (!areStrictPolicyRulesEnabled) {
+        return false;
+    }
+    return hasAnyViolations(reportID, transactionViolations, reportTransactions as SearchTransaction[]);
+}
+
 type ReportErrorsAndReportActionThatRequiresAttention = {
     errors: ErrorFields;
     reportAction?: OnyxEntry<ReportAction>;
@@ -12545,6 +12561,7 @@ export {
     doesReportContainRequestsFromMultipleUsers,
     hasUnresolvedCardFraudAlert,
     getUnresolvedCardFraudAlertAction,
+    shouldBlockSubmitDueToStrictPolicyRules,
 };
 export type {
     Ancestor,
