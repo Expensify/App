@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,7 +14,15 @@ import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
-import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
+import {
+    canSendInvoice,
+    isControlPolicy,
+    isPaidGroupPolicy,
+    isPolicyAccessible,
+    isPolicyAdmin,
+    isPolicyAuditor,
+    isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
+} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {IOUType} from '@src/CONST';
@@ -33,6 +41,7 @@ const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isPaidGroupPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => isPolicyAdmin(policy, login),
+    [CONST.POLICY.ACCESS_VARIANTS.AUDITOR]: (policy: OnyxEntry<Policy>, login: string) => isPolicyAuditor(policy),
     [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
         policy: OnyxEntry<Policy>,
         login: string,
@@ -179,13 +188,32 @@ function AccessOrNotFoundWrapper({
     const {isOffline} = useNetwork();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isPageAccessible = accessVariants.reduce((acc, variant) => {
-        const accessFunction = ACCESS_VARIANTS[variant];
-        if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived, isRestrictedToPreferredPolicy);
-        }
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
-    }, true);
+    const [roleVariants, otherVariants] = useMemo(() => {
+        const roleKeys: AccessVariant[] = [CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.AUDITOR];
+
+        const roleVariants = accessVariants.filter((variant) => roleKeys.includes(variant));
+        const otherVariants = accessVariants.filter((variant) => !roleKeys.includes(variant));
+
+        return [roleVariants, otherVariants];
+    }, [accessVariants]);
+
+    const isPageAccessible = useMemo(() => {
+        const hasRoleAccess = !roleVariants.length || roleVariants.some((roleVariant) => ACCESS_VARIANTS[roleVariant](policy, login, report, allPolicies ?? null, iouType, isReportArchived));
+
+        const hasOtherAccess = otherVariants.every((variant) =>
+            ACCESS_VARIANTS[variant](
+                policy,
+                login,
+                report,
+                allPolicies ?? null,
+                iouType,
+                isReportArchived,
+                variant === CONST.IOU.ACCESS_VARIANTS.CREATE ? isRestrictedToPreferredPolicy : undefined,
+            ),
+        );
+
+        return hasRoleAccess && hasOtherAccess;
+    }, [roleVariants, otherVariants, policy, login, report, allPolicies, iouType, isReportArchived, isRestrictedToPreferredPolicy]);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;

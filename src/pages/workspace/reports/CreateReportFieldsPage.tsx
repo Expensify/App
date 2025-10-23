@@ -125,7 +125,7 @@ function WorkspaceCreateReportFieldsPage({
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN,CONST.POLICY.ACCESS_VARIANTS.AUDITOR, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
             shouldBeBlocked={hasAccountingConnections(policy)}

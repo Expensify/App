@@ -41,6 +41,7 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyAuditor,
     isPolicyFeatureEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -186,7 +187,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
         !isEmptyObject(policy?.errorFields?.outputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
-    const shouldShowProtectedItems = isPolicyAdmin(policy, login);
+    const shouldShowProtectedItems = isPolicyAdmin(policy, login) || isPolicyAuditor(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);

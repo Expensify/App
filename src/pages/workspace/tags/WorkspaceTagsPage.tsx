@@ -654,7 +654,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         <>
             <AccessOrNotFoundWrapper
                 policyID={policyID}
-                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.AUDITOR, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             >
                 <ScreenWrapper
