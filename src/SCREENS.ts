@@ -813,6 +813,8 @@ const SCREENS = {
         NOTIFICATION: 'MultifactorAuthentication_Notification',
         FALLBACK: 'MultifactorAuthentication_Fallback',
         REVOKE: 'MultifactorAuthentication_Revoke',
+        ENABLE_BIOMETRICS_PROMPT: 'MultifactorAuthentication_Enable_Biometrics_Prompt',
+        ENABLE_PASSKEY_PROMPT: 'MultifactorAuthentication_Enable_Passkey_Prompt',
     }
 } as const;
 

@@ -7298,6 +7298,12 @@ const translations = {
             confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
             bottomButtonContent: 'Revoke access',
         },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verify yourself with your face or fingerprint',
+            enableBiometricsPromptContent: 'Enable quick, secure verification using your face or fingerprint—no passwords or codes required.',
+            enablePasskeyPromptTitle: 'Verify yourself with a passkey',
+            enablePasskeyPromptContent: 'Enable quick, secure verification using a passkey - no passwords or codes required.',
+        }
     },
 };
 

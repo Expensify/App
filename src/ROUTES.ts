@@ -3313,6 +3313,10 @@ const ROUTES = {
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
+    
+    MULTIFACTORAUTHENTICATION_ENABLE_BIOMETRICS_PROMPT: 'multifactorauthentication/prompt/enable-biometrics',
+
+    MULTIFACTORAUTHENTICATION_ENABLE_PASSKEY_PROMPT: 'multifactorauthentication/prompt/enable-passkey',
 } as const;
 
 /**

@@ -38,12 +38,12 @@ function ApproveTransactionPage() {
         Navigation.goBack();
     }, []);
 
-    const fakeBiometryCall = useCallback(() => {}); // TODO:remove -> AFTER DISCUSSION IT SEEMS THAT WE WILL USE WRAPPER SOMEWHERE IN THIS PAGE - PROBABLY SOMEWHERE AROUND THE VERIFY BUTTON
+    const fakeBiometryCall = useCallback(() => {}); // TODO: replace with proper logic from MFAContext
 
     // TODO: replace with the correct logic
     const approveTransaction = useCallback(() => {
         if (!isBiometryAvailable) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_FALLBACK);
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_ENABLE_BIOMETRICS_PROMPT);
         }
         fakeBiometryCall();
     }, [isBiometryAvailable]);

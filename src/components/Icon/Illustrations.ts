@@ -115,7 +115,7 @@ import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.sv
 import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 import RunOutOfTime from '@assets/images/running-out-of-time.svg';
 import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
-import SimpleSmartscan from '@assets/images/simple-smartscan.svg';
+import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 
 export {
     Abracadabra,
@@ -235,5 +235,5 @@ export {
     DeniedTransactionHand,
     RunOutOfTime,
     HumptyDumpty,
-    SimpleSmartscan,
+    EncryptionMan,
 };

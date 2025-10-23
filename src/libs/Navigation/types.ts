@@ -2418,6 +2418,8 @@ type MultiFactorAuthenticationParamList = {
         notificationType: notificationType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.ENABLE_BIOMETRICS_PROMPT]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.ENABLE_PASSKEY_PROMPT]: undefined;
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
@@ -2522,7 +2524,5 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
-    // MultiFactorAuthenticationApproveTransactionParamList,
-    // MultiFactorAuthenticationNotificaitonParamList,
     MultiFactorAuthenticationParamList,
 };
