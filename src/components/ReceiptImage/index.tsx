@@ -37,28 +37,35 @@ type ReceiptImageProps = (
           source?: ReceiptSource;
 
           /** Whether it is a pdf thumbnail we are displaying */
-          isPDFThumbnail?: boolean;
+          isPDFThumbnail?: false;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail: boolean;
           source?: ReceiptSource;
-          isPDFThumbnail?: boolean;
+          isPDFThumbnail?: false;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
           source: ReceiptSource;
-          isPDFThumbnail?: boolean;
+          isPDFThumbnail?: false;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
           source: ReceiptSource;
-          isPDFThumbnail?: string;
+          isPDFThumbnail?: false;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
+          source?: string;
+          isPDFThumbnail: true;
       }
 ) & {
     /** Whether we should display the receipt with ThumbnailImage component */
@@ -120,7 +127,7 @@ type ReceiptImageProps = (
 
 function ReceiptImage({
     transactionID,
-    isPDFThumbnail = false,
+    isPDFThumbnail,
     isThumbnail = false,
     shouldUseThumbnailImage = false,
     isEReceipt = false,
@@ -163,7 +170,7 @@ function ReceiptImage({
     if (isPDFThumbnail) {
         return (
             <PDFThumbnail
-                previewSourceURL={source?.toString() ?? ''}
+                previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
                 onLoadSuccess={onLoad}
             />
