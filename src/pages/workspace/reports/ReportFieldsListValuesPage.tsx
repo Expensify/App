@@ -102,7 +102,7 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
                 return;
             }
 
@@ -112,7 +112,7 @@ function ReportFieldsListValuesPage({
                 disabledListValues,
             });
         },
-        [disabledListValues, policyID, reportFieldID],
+        [disabledListValues, policy, reportFieldID],
     );
 
     useSearchBackPress({
@@ -179,7 +179,7 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: valuesToDelete});
         } else {
             deleteReportFieldsListValue({
                 valueIndexes: valuesToDelete,
@@ -190,7 +190,7 @@ function ReportFieldsListValuesPage({
 
         setDeleteValuesConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });
@@ -252,7 +252,7 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToDisable, enabled: false});
                             return;
                         }
 
@@ -288,7 +288,7 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToEnable, enabled: true});
                             return;
                         }
 
