@@ -219,20 +219,23 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         />
                         {isLargeScreenWidth && (
-                            <View>
-                                <PressableWithFeedback
-                                    onPress={() => openReportInRHP(transaction)}
-                                    style={[styles.p3Half, styles.mt1Half, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={CONST.ROLE.BUTTON}
-                                >
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        small
-                                    />
-                                </PressableWithFeedback>
-                            </View>
+                            <PressableWithFeedback
+                                onPress={() => openReportInRHP(transaction)}
+                                style={[styles.p3Half, styles.mt1Half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                            >
+                                {({hovered}) => {
+                                    return (
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                            additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                            small
+                                        />
+                                    );
+                                }}
+                            </PressableWithFeedback>
                         )}
                     </View>
                     {!isLastTransaction(index) && !isLargeScreenWidth && (

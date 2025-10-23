@@ -117,7 +117,8 @@ function AnimatedCollapsible({
                         {({hovered}) => (
                             <Icon
                                 src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                                fill={hovered ? theme.textSupporting : theme.icon}
+                                fill={theme.icon}
+                                additionalStyles={!hovered && styles.opacitySemiTransparent}
                                 small
                             />
                         )}
