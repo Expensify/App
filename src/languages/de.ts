@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -117,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -911,17 +911,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Dieser Chatraum ist für alles, was mit <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> zu tun hat.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwenden Sie die Schaltfläche <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>, um eine Rechnung zu senden.`,
+            `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwenden Sie die Schaltfläche <strong>+</strong>, um eine Rechnung zu senden.`,
         beginningOfChatHistory: 'Dieser Chat ist mit',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Hier wird <strong>${submitterDisplayName}</strong> die Ausgaben an <strong>${workspaceName}</strong> übermitteln. Verwenden Sie einfach die Schaltfläche <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `Hier wird <strong>${submitterDisplayName}</strong> die Ausgaben an <strong>${workspaceName}</strong> übermitteln. Verwenden Sie einfach die Schaltfläche <strong>+</strong>.`,
         beginningOfChatHistorySelfDM: 'Dies ist Ihr persönlicher Bereich. Nutzen Sie ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns mit der Einrichtung beginnen.',
         chatWithAccountManager: 'Hier mit Ihrem Kundenbetreuer chatten',
         sayHello: 'Hallo!',
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Verwenden Sie die ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} Taste, um ${additionalText} einen Ausgabenposten hinzuzufügen.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Verwenden Sie die <strong>+</strong> Taste, um ${additionalText} einen Ausgabenposten hinzuzufügen.`,
         askConcierge: 'Stellen Sie Fragen und erhalten Sie rund um die Uhr Unterstützung in Echtzeit.',
         conciergeSupport: '24/7 Support',
         create: 'erstellen',
@@ -1282,7 +1282,7 @@ const translations = {
         forwarded: `genehmigt`,
         rejectedThisReport: 'diesen Bericht abgelehnt',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} hat die Zahlung storniert`,
+        adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -2444,7 +2444,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
@@ -2455,7 +2455,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Details bestätigen.\n' +
@@ -2466,7 +2466,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Verfolge eine Ausgabe',
                 description:
                     '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Wähle deinen *persönlichen* Bereich.\n' +
@@ -2550,7 +2550,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Starte einen Chat',
                 description:
                     '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
                     'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
@@ -2560,7 +2560,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Teile eine Ausgabe',
                 description:
                     '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
                     '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
@@ -2580,7 +2580,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Erstelle deinen ersten Bericht',
                 description:
                     'So erstellst du einen Bericht:\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
+                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
                     '2. Wähle *Bericht erstellen*.\n' +
                     '3. Klicke auf *Ausgabe hinzufügen*.\n' +
                     '4. Füge deine erste Ausgabe hinzu.\n\n' +
@@ -2734,8 +2734,8 @@ ${amount} für ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Willkommen im #Fokus-Modus!',
-        prompt: 'Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in  ändern.',
-        settings: 'Einstellungen',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Bleiben Sie auf dem Laufenden, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Der gesuchte Chat kann nicht gefunden werden.',
@@ -3292,7 +3292,7 @@ ${amount} für ${merchant} - ${date}`,
     },
     signerInfoStep: {
         signerInfo: 'Unterzeichnerinformationen',
-        areYouDirector: ({companyName}: CompanyNameParams) => `Sind Sie ein Direktor oder leitender Angestellter bei ${companyName}?`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `Sind Sie Direktor bei ${companyName}?`,
         regulationRequiresUs: 'Die Vorschrift erfordert, dass wir überprüfen, ob der Unterzeichner die Befugnis hat, diese Handlung im Namen des Unternehmens durchzuführen.',
         whatsYourName: 'Wie lautet Ihr gesetzlicher Name?',
         fullName: 'Vollständiger rechtlicher Name',
@@ -3304,13 +3304,13 @@ ${amount} für ${merchant} - ${date}`,
         letsDoubleCheck: 'Lassen Sie uns noch einmal überprüfen, ob alles richtig aussieht.',
         legalName: 'Rechtlicher Name',
         proofOf: 'Nachweis der persönlichen Adresse',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mail-Adresse des Direktors oder leitenden Angestellten bei ${companyName} ein.`,
-        regulationRequiresOneMoreDirector: 'Die Vorschrift erfordert mindestens einen weiteren Direktor oder leitenden Angestellten als Unterzeichner.',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mail-Adresse des Direktors bei ${companyName} ein.`,
+        regulationRequiresOneMoreDirector: 'Die Vorschrift erfordert mindestens einen weiteren Direktor als Unterzeichner.',
         hangTight: 'Bitte warten...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mails von zwei Direktoren oder leitenden Angestellten bei ${companyName} ein.`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mails von zwei Direktoren bei ${companyName} ein.`,
         sendReminder: 'Erinnere senden',
         chooseFile: 'Datei auswählen',
-        weAreWaiting: 'Wir warten darauf, dass andere ihre Identität als Direktoren oder leitende Angestellte des Unternehmens verifizieren.',
+        weAreWaiting: 'Wir warten darauf, dass andere ihre Identität als Direktoren des Unternehmens verifizieren.',
         id: 'Kopie des Ausweises',
         proofOfDirectors: 'Nachweis des/der Direktors/Direktoren',
         proofOfDirectorsDescription: 'Beispiele: Unternehmensprofil von Oncorp oder Geschäftsregistrierung.',
@@ -3319,11 +3319,11 @@ ${amount} für ${merchant} - ${date}`,
         PDSandFSG: 'PDS + FSG Offenlegungsunterlagen',
         PDSandFSGDescription:
             'Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um das umfangreiche Netzwerk internationaler Bankpartner zu nutzen und globale Rückerstattungen in Expensify zu ermöglichen. Gemäß der australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG) und die Product Disclosure Statement (PDS) von Corpay zur Verfügung.\n\nBitte lesen Sie die FSG- und PDS-Dokumente sorgfältig durch, da sie vollständige Details und wichtige Informationen zu den von Corpay angebotenen Produkten und Dienstleistungen enthalten. Bewahren Sie diese Dokumente für zukünftige Referenz auf.',
-        pleaseUpload: 'Bitte laden Sie zusätzliche Unterlagen hoch, um uns bei der Überprüfung Ihrer Identität als Direktor oder leitender Angestellter des Unternehmens zu unterstützen.',
+        pleaseUpload: 'Bitte laden Sie zusätzliche Unterlagen hoch, um uns bei der Überprüfung Ihrer Identität als Direktor des Unternehmens zu unterstützen.',
         enterSignerInfo: 'Unterschriftsberechtigte Person eingeben',
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+            `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen eines unterschriftsberechtigten Direktors.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
         },
@@ -3483,6 +3483,8 @@ ${amount} für ${merchant} - ${date}`,
         verifyCompany: {
             title: 'Beginnen Sie noch heute mit dem Reisen!',
             message: `Bitte kontaktieren Sie Ihren Account Manager oder salesteam@expensify.com, um eine Demo von Travel zu erhalten und es für Ihr Unternehmen zu aktivieren.`,
+            confirmText: 'Verstanden',
+            conciergeMessage: ({domain}: {domain: string}) => `Reiseaktivierung für die Domain: ${domain} fehlgeschlagen. Bitte überprüfen und aktivieren Sie Reisen für diese Domain.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -3664,6 +3666,8 @@ ${amount} für ${merchant} - ${date}`,
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
+                centralBillingAccount: 'Zentrales Abrechnungskonto',
+                centralBillingDescription: 'Wählen Sie, wohin alle Uber-Belege importiert werden sollen.',
                 invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
@@ -5728,6 +5732,7 @@ ${amount} für ${merchant} - ${date}`,
             chatWithYourAdmin: 'Mit Ihrem Administrator chatten',
             chatInAdmins: 'Im #admins chatten',
             addPaymentCard: 'Zahlungskarte hinzufügen',
+            goToSubscriptions: 'Zu den Abonnements',
         },
         rules: {
             individualExpenseRules: {
@@ -6149,7 +6154,7 @@ ${amount} für ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Nichts zu zeigen',
-                subtitle: `Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem grünen ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} Button zu erstellen.`,
+                subtitle: `Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem <strong>+</strong> Button zu erstellen.`,
             },
             emptyExpenseResults: {
                 title: 'Sie haben noch keine Ausgaben erstellt.',
@@ -6677,14 +6682,9 @@ ${amount} für ${merchant} - ${date}`,
         copyReferralLink: 'Einladungslink kopieren',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatte mit deinem Setup-Spezialisten in',
-            phrase2: 'für Hilfe',
-        },
-        default: {
-            phrase1: 'Nachricht',
-            phrase2: 'für Hilfe bei der Einrichtung',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatte mit deinem Setup-Spezialisten in <a href="${href}">${adminReportName}</a> für Hilfe`,
+        default: `Nachricht <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
@@ -7326,7 +7326,13 @@ ${amount} für ${merchant} - ${date}`,
         exportInProgress: 'Export läuft',
         conciergeWillSend: 'Concierge sendet dir die Datei in Kürze.',
     },
-    avatarPage: {title: 'Profilbild bearbeiten', uploadPhoto: 'Foto hochladen'},
+    avatarPage: {
+        title: 'Profilbild bearbeiten',
+        upload: 'Hochladen',
+        uploadPhoto: 'Foto hochladen',
+        selectAvatar: 'Avatar auswählen',
+        chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

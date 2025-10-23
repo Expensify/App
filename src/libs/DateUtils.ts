@@ -39,6 +39,7 @@ import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -468,9 +469,11 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
 function getLocalizedTimePeriodDescription(data: string): string {
     switch (data) {
         case getEndOfToday():
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('statusPage.timePeriods.afterToday');
         case CONST.CUSTOM_STATUS_TYPES.NEVER:
         case '':
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('statusPage.timePeriods.never');
         default:
             return formatDateTimeTo12Hour(data);
@@ -491,20 +494,24 @@ function getStatusUntilDate(inputDate: string): string {
 
     // If the date is adjusted to the following day
     if (isSameSecond(input, endOfToday)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTomorrow');
     }
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
     }
 
     // If it's in another year
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
@@ -633,6 +640,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
@@ -656,6 +664,7 @@ const isFutureDay = (inputDate: Date): boolean => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
@@ -732,9 +741,11 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${format(date1, 'MMM d')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
     }
     // Dates differ by years, months, days
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${format(date1, 'MMM d, yyyy')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
 }
 
@@ -757,9 +768,11 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${format(date1, 'EEEE, MMM d')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d')}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${format(date1, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy')}`;
 }
 
@@ -771,8 +784,10 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  */
 function getFormattedTransportDate(date: Date): string {
     if (isThisYear(date)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
 }
 
