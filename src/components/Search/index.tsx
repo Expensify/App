@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import OfflineIndicator from '@components/OfflineIndicator';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -35,6 +36,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    calculateSearchPageFooterData,
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
@@ -73,6 +75,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
+import type {SearchPageFooterProps} from './SearchPageFooter';
+import SearchPageFooter from './SearchPageFooter';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -838,6 +842,40 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
 
+    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    const deletedData = data.filter((item) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline);
+
+    const searchMetadata = searchResults?.search;
+    const footerData = useMemo(() => {
+        let calculatedFooterData: SearchPageFooterProps | null;
+        const shouldUseClientTotal = Object.keys(selectedTransactions).length > 0 && !areAllMatchingItemsSelected;
+        if (shouldUseClientTotal) {
+            calculatedFooterData = calculateSearchPageFooterData(selectedTransactions, null, groupBy, searchMetadata?.currency);
+        } else {
+            calculatedFooterData = {count: searchMetadata?.count, total: searchMetadata?.total, currency: searchMetadata?.currency};
+        }
+
+        if (!calculatedFooterData?.count) {
+            return null;
+        }
+
+        // Substitute the deleted data from the calculated footer data so that the footer shows optimistic data
+        if (deletedData.length > 0 && calculatedFooterData.count) {
+            const deletedTransactionsData = calculateSearchPageFooterData({}, deletedData, groupBy, searchMetadata?.currency);
+            calculatedFooterData.count -= deletedTransactionsData?.count ?? 0;
+            if (calculatedFooterData.total) {
+                calculatedFooterData.total -= deletedTransactionsData?.total ?? 0;
+            }
+        }
+        return calculatedFooterData;
+    }, [areAllMatchingItemsSelected, searchMetadata, selectedTransactions, groupBy]);
+
+    const offlineIndicatorStyles = useMemo(() => {
+        const baseStyles = shouldUseNarrowLayout ? [styles.mtAuto, styles.pb3] : [styles.pAbsolute, styles.h10, styles.b0];
+
+        return [...baseStyles, styles.pl5];
+    }, [shouldUseNarrowLayout, styles]);
+
     if (shouldShowLoadingState) {
         return (
             <Animated.View
@@ -871,7 +909,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }
 
-    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -951,6 +988,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                 />
+                <View style={[styles.mtAuto]}>
+                    {!!footerData && (
+                        <SearchPageFooter
+                            count={footerData.count}
+                            total={footerData.total}
+                            currency={footerData.currency}
+                        />
+                    )}
+                    <OfflineIndicator containerStyles={offlineIndicatorStyles} />
+                </View>
             </Animated.View>
         </SearchScopeProvider>
     );

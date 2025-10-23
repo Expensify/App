@@ -7,6 +7,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import type {SearchPageFooterProps} from '@components/Search/SearchPageFooter';
 import type {
     SearchAction,
     SearchColumnType,
@@ -16,6 +17,7 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -2364,6 +2366,51 @@ function getColumnsToShow(
     return columns;
 }
 
+/**
+ * Calculates footer data for expense search results
+ * If transactions are selected, shows count and total for selected transactions only
+ * Otherwise, calculates count and total for given search data
+ *
+ * @param selectedTransactions - The currently selected transactions
+ * @param searchData - The search data to calculate the footer data for
+ * @param groupBy - The groupBy parameter from the search query
+ * @param currency - The currency from search results metadata (common currency for all transactions)
+ * @returns Footer data with count, total, and currency or null if not applicable
+ */
+function calculateSearchPageFooterData(
+    selectedTransactions: SelectedTransactions,
+    searchData: SearchListItem[] | null,
+    groupBy: SearchGroupBy | undefined,
+    currency: string | undefined,
+): SearchPageFooterProps | null {
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+
+    let transactions: TransactionListItemType[];
+
+    // If transactions are selected, use selected transactions only
+    if (selectedTransactionsKeys.length > 0) {
+        transactions = Object.values(selectedTransactions) as unknown as TransactionListItemType[];
+    } else {
+        // Otherwise, use all visible transactions
+        if (!searchData || searchData.length === 0) {
+            return null;
+        }
+
+        transactions = groupBy ? (searchData as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : (searchData as TransactionListItemType[]);
+        if (transactions.length === 0) {
+            return null;
+        }
+    }
+
+    // Use convertedCurrency from first transaction or fallback to metadata currency
+    const firstTransactionCurrency = transactions.at(0)?.convertedCurrency;
+    const footerCurrency = firstTransactionCurrency && firstTransactionCurrency !== '' ? firstTransactionCurrency : currency;
+    const count = transactions.length;
+    const total = transactions.reduce((sum, transaction) => sum - (transaction.convertedAmount ?? 0), 0);
+
+    return {count, total, currency: footerCurrency};
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -2405,5 +2452,6 @@ export {
     getActionOptions,
     getColumnsToShow,
     getHasOptions,
+    calculateSearchPageFooterData,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
