@@ -123,6 +123,7 @@ function IOURequestStepUpgrade({
                 },
             ],
             adminParticipant,
+            hasOutstandingChildRequest: false,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
