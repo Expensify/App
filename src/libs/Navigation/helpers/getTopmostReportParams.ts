@@ -19,7 +19,7 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
         return;
     }
 
-    const topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)
+    const topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     if (!topmostReportsSplitNavigator) {
         return;

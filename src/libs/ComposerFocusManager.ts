@@ -124,7 +124,7 @@ function focus(input: InputElement, shouldIgnoreFocused = false) {
 }
 
 function tryRestoreTopmostFocus(shouldIgnoreFocused: boolean, isInUploadingContext = false) {
-    const topmost = [...focusMap].findLast(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext)
+    const topmost = [...focusMap].findLast(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext);
     if (topmost === undefined) {
         return;
     }
