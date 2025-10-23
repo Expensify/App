@@ -17,7 +17,7 @@ type SocialSecurityNumberUBOProps = SubStepProps & {beneficialOwnerBeingModified
 
 function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: SocialSecurityNumberUBOProps) {
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/provide-canBeMissing-in-useOnyx
+
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}` as const;
