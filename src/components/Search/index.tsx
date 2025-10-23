@@ -75,7 +75,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchPageFooter, {SearchPageFooterProps} from './SearchPageFooter';
+import type {SearchPageFooterProps} from './SearchPageFooter';
+import SearchPageFooter from './SearchPageFooter';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -854,16 +855,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             calculatedFooterData = {count: searchMetadata?.count, total: searchMetadata?.total, currency: searchMetadata?.currency};
         }
 
-        if (!calculatedFooterData || !calculatedFooterData.count) {
+        if (!calculatedFooterData?.count) {
             return null;
         }
 
         // Substitute the deleted data from the calculated footer data so that the footer shows optimistic data
         if (deletedData.length > 0 && calculatedFooterData.count) {
             const deletedTransactionsData = calculateSearchPageFooterData({}, deletedData, groupBy, searchMetadata?.currency);
-            calculatedFooterData.count = calculatedFooterData.count - (deletedTransactionsData?.count ?? 0);
+            calculatedFooterData.count -= (deletedTransactionsData?.count ?? 0);
             if (calculatedFooterData.total) {
-                calculatedFooterData.total = calculatedFooterData.total - (deletedTransactionsData?.total ?? 0);
+                calculatedFooterData.total -= (deletedTransactionsData?.total ?? 0);
             }
         }
         return calculatedFooterData;
