@@ -14,6 +14,7 @@ import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -35,6 +36,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -92,7 +94,6 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -8365,6 +8366,26 @@ describe('ReportUtils', () => {
             const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, transactions);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('canRejectReportAction', () => {
+        it('should return false if the user is not the report manager', async () => {
+            const approver = 'approver@gmail.com';
+            const expenseReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: 1,
+            };
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(0),
+                approver,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: 2,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
+            expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });
 });

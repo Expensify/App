@@ -242,7 +242,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -11853,12 +11852,11 @@ function canRejectReportAction(currentUserLogin: string, report: Report, policy?
 
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
-    const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = (isReportApprover && isCurrentUserManager) || isReportPayer;
+    const userCanReject = isReportApprover && isCurrentUserManager;
 
     if (!userCanReject) {
         return false; // must be approver or payer
