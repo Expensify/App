@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,7 +77,6 @@ import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -328,7 +328,8 @@ function MoneyRequestConfirmationList({
     const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
-    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice || isTrackExpense) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})) || shouldSelectPolicy);
+    const shouldShowCategories =
+        (isPolicyExpenseChat || isTypeInvoice || isTrackExpense) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})) || shouldSelectPolicy);
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
