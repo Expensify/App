@@ -98,7 +98,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -205,7 +205,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             onButtonPress={() => {
                                 openReportInRHP(transaction);
                             }}
-                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.pl3, styles.pv1Half], styles.flex1]}
+                            style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt2] : [styles.pl3, styles.pv1Half], styles.flex1]}
                             isReportItemChild
                             isInSingleTransactionReport={isInSingleTransactionReport}
                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
