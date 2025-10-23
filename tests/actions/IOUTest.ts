@@ -513,6 +513,7 @@ describe('actions/IOU', () => {
                 selfDMReport.reportID,
                 CONST.IOU.ACTION.CATEGORIZE,
                 reportActionableTrackExpense?.reportActionID,
+                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             );
             await waitForBatchedUpdates();
 
