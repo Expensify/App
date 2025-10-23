@@ -19,11 +19,13 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
     hasViolations as hasViolationsReportUtils,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -775,6 +777,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                comment: {
+                    hold: null,
+                },
             },
         });
 
@@ -791,6 +796,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                comment: {
+                    hold: transaction.comment?.hold,
+                },
             },
         });
 
@@ -875,10 +883,12 @@ function changeTransactionsReport(
             }
         }
 
+        const allowNegative = shouldEnableNegative(newReport);
+
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction);
+        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
@@ -1107,6 +1117,33 @@ function changeTransactionsReport(
             };
         } else {
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
+
+        // Build unhold report action
+        if (isOnHold(transaction)) {
+            const unHoldAction = buildOptimisticUnHoldReportAction();
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: unHoldAction},
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: {pendingAction: null}},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: null},
+            });
+
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...transactionIDToReportActionAndThreadData[transaction.transactionID],
+                unholdReportActionID: unHoldAction.reportActionID,
+            };
         }
     });
 

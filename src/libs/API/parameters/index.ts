@@ -28,6 +28,7 @@ export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetS
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
 export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
+export type {default as UpdateQuickbooksDesktopAccountingMethodParams} from './UpdateQuickbooksDesktopAccountingMethodParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
@@ -63,12 +64,14 @@ export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
+export type {default as ResolveFraudAlertParams} from './ResolveFraudAlertParams';
 export type {default as RequestContactMethodValidateCodeParams} from './RequestContactMethodValidateCodeParams';
 export type {default as RequestNewValidateCodeParams} from './RequestNewValidateCodeParams';
 export type {default as RequestReplacementExpensifyCardParams} from './RequestReplacementExpensifyCardParams';
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
+export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
@@ -156,6 +159,7 @@ export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMem
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
+export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
@@ -196,6 +200,7 @@ export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspace
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
 export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
+export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAutoHarvestingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
