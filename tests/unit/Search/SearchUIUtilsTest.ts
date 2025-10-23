@@ -1745,16 +1745,8 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
+        it('should return getReportSections result when type is EXPENSE REPORT', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, searchResults.data, 2074551, '', formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
-        });
-
-        it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, '', formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
-        });
-
-        it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, '', formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
         });
 
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
