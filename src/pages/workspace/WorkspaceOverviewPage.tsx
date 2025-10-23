@@ -513,7 +513,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
-                                        title={getUserFriendlyWorkspaceType(policy.type)}
+                                        title={getUserFriendlyWorkspaceType(policy.type, translate)}
                                         description={translate('workspace.common.planType')}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}

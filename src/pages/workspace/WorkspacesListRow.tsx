@@ -277,7 +277,7 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
-                                    {getUserFriendlyWorkspaceType(workspaceType)}
+                                    {getUserFriendlyWorkspaceType(workspaceType, translate)}
                                 </Text>
                             )}
                             <Text
