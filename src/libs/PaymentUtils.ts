@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
@@ -5,6 +6,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -16,6 +18,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
 import {approveMoneyRequest} from './actions/IOU';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
@@ -49,12 +52,15 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
 function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount, bankCurrency?: string): string {
     if (account) {
         if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${bankCurrency ? `${bankCurrency} ${CONST.DOT_SEPARATOR} ` : ''}${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT && 'accountNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
         }
     }
@@ -168,5 +174,42 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
     return isPaymentInArray.length > 0;
 };
 
-export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee, selectPaymentType, isSecondaryActionAPaymentOption};
+/**
+ * Get the appropriate payment type, selected policy, and whether a payment method should be selected
+ * based on the provided payment method, active admin policies, and latest bank items.
+ */
+function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
+    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
+    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
+
+    let paymentType;
+    switch (paymentMethod) {
+        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            break;
+        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+            break;
+        default:
+            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            break;
+    }
+
+    return {
+        paymentType,
+        selectedPolicy,
+        shouldSelectPaymentMethod,
+    };
+}
+
+export {
+    hasExpensifyPaymentMethod,
+    getPaymentMethodDescription,
+    formatPaymentMethods,
+    calculateWalletTransferBalanceFee,
+    selectPaymentType,
+    isSecondaryActionAPaymentOption,
+    getActivePaymentType,
+};
 export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption};

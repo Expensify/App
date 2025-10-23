@@ -1,10 +1,11 @@
 import {exec} from 'child_process';
-import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import contextMenu from 'electron-context-menu';
-import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
+import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
+import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
@@ -13,6 +14,8 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
+import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
+import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
@@ -23,6 +26,61 @@ const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownload
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
+
+const MAC_PERMISSION_STATUSES = {
+    AUTHORIZED: 'authorized',
+    DENIED: 'denied',
+    RESTRICTED: 'restricted',
+    NOT_DETERMINED: 'not determined',
+} as const;
+
+type MacPermissionsModule = {
+    getAuthStatus?: (authType: AuthType) => PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED;
+};
+
+type MacGetAuthStatus = MacPermissionsModule['getAuthStatus'];
+
+let macGetAuthStatusPromise: Promise<MacGetAuthStatus | undefined> | undefined;
+
+const logMacPermissionsWarning = (message: string, error?: unknown) => {
+    if (error instanceof Error) {
+        log.warn(message, error.message);
+    } else if (typeof error === 'string') {
+        log.warn(message, error);
+    } else {
+        log.warn(message);
+    }
+};
+
+const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => {
+    if (!macGetAuthStatusPromise) {
+        if (process.platform !== 'darwin') {
+            macGetAuthStatusPromise = Promise.resolve<MacGetAuthStatus | undefined>(undefined);
+        } else {
+            try {
+                macGetAuthStatusPromise = Promise.resolve(((await import('node-mac-permissions')) as MacPermissionsModule).getAuthStatus);
+            } catch (error: unknown) {
+                logMacPermissionsWarning('node-mac-permissions not available, defaulting to denied:', error);
+                return undefined;
+            }
+        }
+    }
+
+    return macGetAuthStatusPromise;
+};
+
+const resolveLocationPermissionStatus = (status: PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED): LocationPermissionState => {
+    switch (status) {
+        case MAC_PERMISSION_STATUSES.AUTHORIZED:
+            return LOCATION_PERMISSION_STATES.GRANTED;
+        case MAC_PERMISSION_STATUSES.NOT_DETERMINED:
+            return LOCATION_PERMISSION_STATES.PROMPT;
+        case MAC_PERMISSION_STATUSES.DENIED:
+        case MAC_PERMISSION_STATUSES.RESTRICTED:
+        default:
+            return LOCATION_PERMISSION_STATES.DENIED;
+    }
+};
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
@@ -59,7 +117,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
 
     if ('webContents' in browserWindow) {
         // https://github.com/sindresorhus/electron-context-menu is passing in deprecated `BrowserView` to this function
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         browserWindow.webContents.insertText(text);
     }
 }
@@ -373,6 +431,21 @@ const mainWindow = (): Promise<void> => {
                             resolve(undefined);
                         });
                     });
+                });
+
+                ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, async () => {
+                    const getAuthStatus = await loadMacGetAuthStatus();
+
+                    if (!getAuthStatus) {
+                        return LOCATION_PERMISSION_STATES.DENIED;
+                    }
+
+                    try {
+                        return resolveLocationPermissionStatus(getAuthStatus('location'));
+                    } catch (error) {
+                        log.warn('node-mac-permissions threw while checking location permission, defaulting to denied:', (error as Error)?.message);
+                        return LOCATION_PERMISSION_STATES.DENIED;
+                    }
                 });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
