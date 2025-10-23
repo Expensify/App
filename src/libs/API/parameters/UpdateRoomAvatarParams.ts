@@ -1,8 +1,8 @@
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 
-type UpdatePolicyRoomAvatarParams = {
+type UpdateRoomAvatarParams = {
     reportID: string;
     file: File | CustomRNImageManipulatorResult | undefined;
 };
 
-export default UpdatePolicyRoomAvatarParams;
+export default UpdateRoomAvatarParams;

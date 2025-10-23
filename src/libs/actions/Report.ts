@@ -50,11 +50,11 @@ import type {
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
     UpdateGroupChatMemberRolesParams,
-    UpdatePolicyRoomAvatarParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
+    UpdateRoomAvatarParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
@@ -995,8 +995,8 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
  */
 function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
-    const parameters: UpdatePolicyRoomAvatarParams = {reportID, file};
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
+    const parameters: UpdateRoomAvatarParams = {reportID, file};
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
