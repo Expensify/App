@@ -127,7 +127,7 @@ function TagPicker({
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
     return (
         <SelectionList
