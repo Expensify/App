@@ -11,6 +11,7 @@ import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListPr
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect' | 'canShowProductTrainingTooltip'> & {
         index: number;
+        sectionIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         normalizedIndex: number;
@@ -27,6 +28,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
     index,
+    sectionIndex,
     isFocused,
     isDisabled,
     showTooltip,
@@ -55,6 +57,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
+    shouldShowRightCaret,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -111,6 +114,8 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 index={index}
+                shouldShowRightCaret={shouldShowRightCaret}
+                sectionIndex={sectionIndex}
             />
             {item.footerContent && item.footerContent}
         </>

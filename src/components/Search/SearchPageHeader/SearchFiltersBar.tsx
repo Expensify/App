@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -42,14 +43,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {
-    buildFilterFormValuesFromQuery,
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    isFilterSupported,
-    isSearchDatePreset,
-} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -99,6 +93,7 @@ function SearchFiltersBar({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -256,9 +251,7 @@ function SearchFiltersBar({
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
-            const searchQueryJSON = buildSearchQueryJSON(filterString);
-            const queryString = buildSearchQueryString(searchQueryJSON);
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
                 Navigation.setParams({q: queryString});
@@ -656,6 +649,7 @@ function SearchFiltersBar({
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <KYCWall
+                    ref={kycWallRef}
                     chatReportID={currentSelectedReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     iouReport={selectedIOUReport}

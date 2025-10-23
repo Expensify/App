@@ -8,6 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -141,6 +142,7 @@ function SettlementButton({
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const kycWallRef = useContext(KYCWallContext);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
 
@@ -151,12 +153,14 @@ function SettlementButton({
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
 
         return policyBankAccounts.map((formattedPaymentMethod) => {
-            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
+            const {icon, iconStyles, iconSize, title, description, methodID} = formattedPaymentMethod ?? {};
 
             return {
                 text: title ?? '',
                 description: description ?? '',
                 icon: typeof icon === 'number' ? Bank : icon,
+                iconStyles: typeof icon === 'number' ? undefined : iconStyles,
+                iconSize: typeof icon === 'number' ? undefined : iconSize,
                 onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
                 methodID,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -241,6 +245,9 @@ function SettlementButton({
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
+                    iconStyles: latestBankItem.at(0)?.iconStyles,
+                    iconWidth: latestBankItem.at(0)?.iconSize,
+                    iconHeight: latestBankItem.at(0)?.iconSize,
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                     description: latestBankItem.at(0)?.description,
                 });
@@ -487,6 +494,7 @@ function SettlementButton({
 
     return (
         <KYCWall
+            ref={kycWallRef}
             onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
             enablePaymentsRoute={enablePaymentsRoute}
             addDebitCardRoute={addDebitCardRoute}
