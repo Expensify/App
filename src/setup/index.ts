@@ -53,6 +53,7 @@ export default function () {
             },
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });

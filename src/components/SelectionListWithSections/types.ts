@@ -21,7 +21,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
-import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -108,7 +107,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
@@ -486,6 +485,8 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
 };
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
@@ -579,8 +580,7 @@ type ValidListItem =
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
     | typeof TravelDomainListItem
-    | typeof UnreportedExpenseListItem
-    | typeof SpendCategorySelectorListItem;
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
