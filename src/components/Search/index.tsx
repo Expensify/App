@@ -480,7 +480,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         return;
                     }
-                    if (reportKey && (Object.keys(selectedTransactions).includes(reportKey) || areAllMatchingItemsSelected)) {
+                    if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
