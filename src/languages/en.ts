@@ -5690,6 +5690,7 @@ const translations = {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
+            goToSubscriptions: 'Go to Subscriptions',
         },
         rules: {
             individualExpenseRules: {
