@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
@@ -31,10 +32,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         selector: selectFilteredReportActions,
     });
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: selectArchivedReportsIdSet,
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];

@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -226,6 +226,7 @@ const ViolationsUtils = {
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
+        isSelfDM?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -272,12 +273,12 @@ const ViolationsUtils = {
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (hasMissingCategoryViolation && isCategoryInPolicy) {
+            if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         }
@@ -292,10 +293,9 @@ const ViolationsUtils = {
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
-        if (customUnitRateID && customUnitRateID.length > 0) {
+        if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
-
             if (customRate) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
@@ -318,7 +318,9 @@ const ViolationsUtils = {
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
-        const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+        const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
+        const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
