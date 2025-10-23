@@ -619,6 +619,10 @@ export default {
         paddingLeft: 0,
     },
 
+    pl0half: {
+        paddingLeft: 2,
+    },
+
     pl1: {
         paddingLeft: 4,
     },

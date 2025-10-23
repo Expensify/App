@@ -2377,6 +2377,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        borderBottomHovered: {
+            borderBottomWidth: 1,
+            borderColor: theme.buttonHoveredBG,
+        },
+
         borderNone: {
             borderWidth: 0,
             borderBottomWidth: 0,
