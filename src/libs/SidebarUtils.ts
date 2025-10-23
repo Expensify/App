@@ -1041,8 +1041,13 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return `${displayName}, ${translateLocal('common.and')}`;
+                if (displayNamesWithTooltips.length > 2) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName}, ${translateLocal('common.and')}`;
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName} ${translateLocal('common.and')}`;
+                }
             }
             if (index < displayNamesWithTooltips.length - 2) {
                 return `${displayName},`;
