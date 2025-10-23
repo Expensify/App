@@ -59,6 +59,7 @@ import {
     getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
+    getReportOrDraftReport,
     getReportStatusTranslation,
     getReportURLForCurrentContext,
     getSearchReportName,
@@ -115,7 +116,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -8283,6 +8284,132 @@ describe('ReportUtils', () => {
             });
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
             expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
+        });
+    });
+
+    describe('getReportOrDraftReport', () => {
+        const mockReportID = '12345';
+        const mockSearchReport: SearchReport = {
+            reportID: mockReportID,
+            reportName: 'Test Search Report',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            participants: {},
+            policyID: '',
+            ownerAccountID: 0,
+            managerID: 0,
+            accountID: 0,
+            isPolicyExpenseChat: false,
+            isOwnPolicyExpenseChat: false,
+            parentReportID: '',
+            parentReportActionID: '',
+            private_isArchived: '0',
+        };
+        const mockOnyxReport: Report = {
+            ...createPolicyExpenseChat(1),
+            reportID: mockReportID,
+            reportName: 'Test Onyx Report',
+        };
+        const mockDraftReport: Report = {
+            ...createExpenseReport(2),
+            reportID: mockReportID,
+            reportName: 'Test Draft Report',
+        };
+        const mockFallbackReport: Report = {
+            ...createExpenseRequestReport(3),
+            reportID: mockReportID,
+            reportName: 'Test Fallback Report',
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('returns search report when found in searchReports array', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockSearchReport);
+        });
+
+        test('returns onyx report when search report is not found but onyx report exists', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockOnyxReport);
+        });
+
+        test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockDraftReport);
+        });
+
+        test('returns fallback report when no other reports exist', () => {
+            const searchReports: SearchReport[] = [];
+            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
+            expect(result).toEqual(mockFallbackReport);
+        });
+
+        test('returns undefined when no reports exist and no fallback provided', () => {
+            const searchReports: SearchReport[] = [];
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toBeUndefined();
+        });
+
+        test('returns undefined when reportID is undefined', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(undefined, searchReports);
+            expect(result).toBeUndefined();
+        });
+
+        test('prioritizes search report over onyx report when both exist', async () => {
+            const searchReports = [mockSearchReport];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockSearchReport);
+            expect(result).not.toEqual(mockOnyxReport);
+        });
+
+        test('prioritizes onyx report over draft report when both exist', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockOnyxReport);
+            expect(result).not.toEqual(mockDraftReport);
+        });
+
+        test('prioritizes draft report over fallback when both exist', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
+            expect(result).toEqual(mockDraftReport);
+            expect(result).not.toEqual(mockFallbackReport);
+        });
+
+        test('handles empty searchReports array gracefully', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID);
+            expect(result).toEqual(mockOnyxReport);
+        });
+
+        test('handles different reportID formats correctly', async () => {
+            const numericReportID = '12345';
+            const stringReportID = 'abc123';
+            const uuidReportID = '550e8400-e29b-41d4-a716-446655440000';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${numericReportID}`, {...mockOnyxReport, reportID: numericReportID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${stringReportID}`, {...mockOnyxReport, reportID: stringReportID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${uuidReportID}`, {...mockOnyxReport, reportID: uuidReportID});
+
+            const numericResult = getReportOrDraftReport(numericReportID);
+            const stringResult = getReportOrDraftReport(stringReportID);
+            const uuidResult = getReportOrDraftReport(uuidReportID);
+
+            expect(numericResult?.reportID).toBe(numericReportID);
+            expect(stringResult?.reportID).toBe(stringReportID);
+            expect(uuidResult?.reportID).toBe(uuidReportID);
         });
     });
 });
