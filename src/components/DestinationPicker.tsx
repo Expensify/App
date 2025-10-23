@@ -66,7 +66,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
 
     const selectedOptionKey = useMemo(
-        () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
+        () => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList,
         [sections, selectedDestination],
     );
 

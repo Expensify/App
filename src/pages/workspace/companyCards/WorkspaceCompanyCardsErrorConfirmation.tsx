@@ -40,8 +40,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
         const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
-            .filter((feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .at(0);
+            .find((feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, newFeed, cardIDs, feedToOpen);
     };
 
