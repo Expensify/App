@@ -29,14 +29,15 @@ type GetBillingStatusProps = {
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
+    retryBillingSuccessful: OnyxEntry<boolean>;
 };
 
-function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({translate, stripeCustomerId, accountData, purchase, retryBillingSuccessful}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful);
 
     const endDate = getOverdueGracePeriodDate();
 

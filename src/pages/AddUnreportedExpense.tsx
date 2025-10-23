@@ -24,7 +24,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -71,6 +71,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return Object.values(transactions || {}).filter((item) => {
                 const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
                 if (!isUnreported) {
+                    return false;
+                }
+
+                // Negative values are not allowed for unreported expenses
+                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
                     return false;
                 }
 
@@ -151,7 +156,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return;
         }
         Navigation.dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
                 convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
