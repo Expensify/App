@@ -10,6 +10,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -100,6 +101,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Submit the form
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         fireEvent.press(screen.getByText(translateLocal('common.continue')));
 
         await waitFor(() => {
@@ -131,6 +133,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Submit the form
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         fireEvent.press(screen.getByText(translateLocal('common.continue')));
 
         await waitFor(() => {
