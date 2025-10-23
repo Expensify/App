@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
@@ -102,6 +103,10 @@ function isCategoryMissing(category: string | undefined): boolean {
     return emptyCategories.includes(category ?? '');
 }
 
+function getCleanCategoryName(categoryName: string) {
+    return Str.htmlDecode(categoryName);
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -111,4 +116,5 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
+    getCleanCategoryName,
 };

@@ -3,10 +3,11 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 
 function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: BaseListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const {groupID, categoryID} = item;
+    const {groupID, categoryID: category} = item;
 
     if (!groupID) {
         return;
@@ -24,7 +25,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
         >
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={categoryID}
+                title={getCleanCategoryName(category ?? '')}
                 description={groupID[0].toUpperCase() + groupID.slice(1)}
                 descriptionTextStyle={[styles.textNormal]}
                 wrapperStyle={[styles.ph5]}

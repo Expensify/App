@@ -7,6 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -61,7 +62,10 @@ function SearchFiltersCategoryPage() {
         items.push(
             ...Array.from(uniqueCategoryNames)
                 .filter(Boolean)
-                .map((categoryName) => ({name: categoryName, value: categoryName})),
+                .map((categoryName) => {
+                    const cleanCategoryName = getCleanCategoryName(categoryName);
+                    return {name: cleanCategoryName, value: categoryName};
+                }),
         );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
