@@ -889,38 +889,27 @@ function changeTransactionsReport(
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
-        const isTransactionNegative = (getTransactionDetails(transaction, undefined, undefined, allowNegative)?.amount ?? 0) < 0;
-        console.log('isTransactionNegative', isTransactionNegative);
-        console.log('getTransactionDetails(transaction, undefined, undefined, allowNegative)', getTransactionDetails(transaction, undefined, undefined, allowNegative));
+        const transactionAmount = getTransactionDetails(transaction, undefined, undefined, allowNegative)?.amount ?? 0;
 
         if (oldReport) {
-            console.log('oldReport', oldReport);
-            console.log('updatedReportTotals[oldReportID]', updatedReportTotals[oldReportID]);
             updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : transactionAmount;
-            console.log('updatedReportTotals[oldReportID]', updatedReportTotals[oldReportID]);
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
-            console.log('updatedReportNonReimbursableTotals[oldReportID]', updatedReportNonReimbursableTotals[oldReportID]);
             updatedReportUnheldNonReimbursableTotals[oldReportID] =
                 (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            console.log('updatedReportUnheldNonReimbursableTotals[oldReportID]', updatedReportUnheldNonReimbursableTotals[oldReportID]);
         }
         if (reportID && newReport) {
-            console.log('targetReportID', targetReportID);
-            console.log('updatedReportTotals[targetReportID]', updatedReportTotals[targetReportID]);
             updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
-            console.log('updatedReportTotals[targetReportID]', updatedReportTotals[targetReportID]);
+
             updatedReportNonReimbursableTotals[targetReportID] =
                 (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
                 (transactionReimbursable ? 0 : transactionAmount);
-            console.log('updatedReportNonReimbursableTotals[targetReportID]', updatedReportNonReimbursableTotals[targetReportID]);
+
             updatedReportUnheldNonReimbursableTotals[targetReportID] =
                 (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
                 (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            console.log('updatedReportUnheldNonReimbursableTotals[targetReportID]', updatedReportUnheldNonReimbursableTotals[targetReportID]);
         }
 
         // 4. Optimistically update the IOU action reportID
