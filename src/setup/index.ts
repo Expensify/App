@@ -2,8 +2,10 @@ import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
+import cachePreloader from '@libs/PreloadCache';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -60,6 +62,47 @@ export default function () {
     initOnyxDerivedValues();
 
     setDeviceID();
+
+    // 🚀 AGGRESSIVE CACHE PRELOADING
+    // Onyx cache preloading - loads ALL existing data into memory for faster access
+    // WARNING: This will load ALL stored data into memory on startup!
+    if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || process.env.ENABLE_CACHE_PRELOAD === 'true') {
+        // Only run in development or when explicitly enabled
+        setTimeout(() => {
+            console.log('🚀 Starting Onyx cache preloading...');
+            console.warn('⚠️  Loading ALL existing data into memory cache!');
+
+            cachePreloader
+                .preloadAllData({
+                    maxConcurrency: 2, // Reduced concurrency to prevent overwhelming
+                    collections: true, // Load all collections
+                    singleKeys: true, // Load all single keys
+                    loadExisting: true, // Discover and load any other existing data
+                    onProgress: (progress) => {
+                        const completed = progress.filter((p) => p.status === 'completed').length;
+                        const total = progress.length;
+                        const failed = progress.filter((p) => p.status === 'failed').length;
+
+                        console.log(`📊 Cache Preload Progress: ${completed}/${total} completed${failed > 0 ? `, ${failed} failed` : ''}`);
+                    },
+                })
+                .then((results) => {
+                    const summary = cachePreloader.getPreloadSummary();
+                    console.log('✅ Onyx cache preloading completed!', summary);
+
+                    if (summary.totalSizeMB > 100) {
+                        console.warn(`⚠️  High memory usage: ${summary.totalSizeMB}MB loaded into cache`);
+                    } else {
+                        console.log(`📈 Cache size: ${summary.totalSizeMB}MB loaded into memory`);
+                    }
+
+                    console.log(`🚀 Subsequent Onyx access should be much faster now!`);
+                })
+                .catch((error) => {
+                    console.error('❌ Cache preloading failed:', error);
+                });
+        }, 2000); // Wait 2 seconds after app initialization
+    }
 
     // Preload all icons early in app initialization
     // This runs outside React lifecycle for optimal performance
