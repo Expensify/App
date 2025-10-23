@@ -9,14 +9,14 @@ function getDecodedContactMethodFromUriParam(contactMethodParam: string) {
     const lastPercentIndex = contactMethodParam.lastIndexOf('%');
     const encodePercents = contactMethodParam.substring(lastPercentIndex).match(/25/g);
     let numberEncodePercents = encodePercents?.length ?? 0;
-    const beforeAtSign = contactMethodParam.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
+    const beforeAtSign = contactMethodParam.substring(0, lastPercentIndex).replaceAll(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
         if (numberEncodePercents > 0) {
             numberEncodePercents--;
             return '%';
         }
         return match;
     });
-    const afterAtSign = contactMethodParam.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
+    const afterAtSign = contactMethodParam.substring(lastPercentIndex).replaceAll(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
 
     return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
 }

@@ -80,7 +80,7 @@ filterList
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {

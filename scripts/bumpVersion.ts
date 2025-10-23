@@ -95,8 +95,8 @@ async function updateAndroid(version: string) {
             console.log(`Updating ${BUILD_GRADLE_PATH}:`, {version, versionCode});
             const fileContent = await fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'});
             const updatedContent = fileContent
-                .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
-                .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
+                .replaceAll(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
+                .replaceAll(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
             await fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'});
             console.log(`Updated ${BUILD_GRADLE_PATH}`);
         };
@@ -107,8 +107,8 @@ async function updateAndroid(version: string) {
             console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, {version, versionCode});
             const fileContent = await fs.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, {encoding: 'utf8'});
             const updatedContent = fileContent
-                .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName="${version}"`)
-                .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode="${versionCode}"`);
+                .replaceAll(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName="${version}"`)
+                .replaceAll(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode="${versionCode}"`);
             await fs.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, {encoding: 'utf8'});
             console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
         };

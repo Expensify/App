@@ -230,7 +230,7 @@ function BaseTextInput({
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        const formattedValue = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+        const formattedValue = isMultiline ? newValue : newValue.replaceAll('\n', ' ');
 
         onInputChange?.(formattedValue);
 

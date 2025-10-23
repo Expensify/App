@@ -129,7 +129,7 @@ function ReportFooter({
             if (!match) {
                 return false;
             }
-            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
             if (!title) {
                 return false;
             }

@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 
-const sanitizePhoneOrEmail = (value: string) => value.replace(/\s/g, '').toLowerCase();
+const sanitizePhoneOrEmail = (value: string) => value.replaceAll(/\s/g, '').toLowerCase();
 
 const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string) => {
     const errors: {phoneOrEmail?: string} = {};

@@ -117,7 +117,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             if (match) {
                 // Remove it from the PR body
                 console.log('Check has been removed from the checklist:', check);
-                checklist = checklist.replace(match[0], '');
+                checklist = checklist.replaceAll(match[0], '');
                 didChecklistChange = true;
             }
         }

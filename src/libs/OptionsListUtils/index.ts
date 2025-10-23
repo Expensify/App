@@ -513,8 +513,8 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(/\s+/));
-    const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
+    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
+    const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
         // if one of the word is not matching, we don't need to check further
@@ -2439,7 +2439,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
                 const values: string[] = [];
                 if (item.text) {
                     values.push(StringUtils.normalizeAccents(item.text));
-                    values.push(StringUtils.normalizeAccents(item.text).replace(/['-]/g, ''));
+                    values.push(StringUtils.normalizeAccents(item.text).replaceAll(/['-]/g, ''));
                 }
 
                 if (item.login) {

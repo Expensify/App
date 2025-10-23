@@ -109,7 +109,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
     list.getEntriesByType('mark').forEach((mark) => {
         if (mark.name.endsWith('_end')) {
             const end = mark.name;
-            const name = end.replace(/_end$/, '');
+            const name = end.replaceAll(/_end$/, '');
             const start = `${name}_start`;
             measureFailSafe(name, start, end);
         }
