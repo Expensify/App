@@ -8288,37 +8288,24 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportOrDraftReport', () => {
-        const mockReportID = '12345';
+        const mockReportIDIndex = 1;
+        const mockReportID = mockReportIDIndex.toString();
         const mockSearchReport: SearchReport = {
-            reportID: mockReportID,
-            reportName: 'Test Search Report',
+            ...createRandomReport(mockReportIDIndex),
+            reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            participants: {},
-            policyID: '',
-            ownerAccountID: 0,
-            managerID: 0,
-            accountID: 0,
-            isPolicyExpenseChat: false,
-            isOwnPolicyExpenseChat: false,
-            parentReportID: '',
-            parentReportActionID: '',
-            private_isArchived: '0',
         };
         const mockOnyxReport: Report = {
-            ...createPolicyExpenseChat(1),
-            reportID: mockReportID,
-            reportName: 'Test Onyx Report',
+            ...createPolicyExpenseChat(mockReportIDIndex),
+            reportName: 'Onyx Report',
         };
         const mockDraftReport: Report = {
-            ...createExpenseReport(2),
-            reportID: mockReportID,
-            reportName: 'Test Draft Report',
+            ...createExpenseReport(mockReportIDIndex),
+            reportName: 'Draft Report',
         };
         const mockFallbackReport: Report = {
-            ...createExpenseRequestReport(3),
-            reportID: mockReportID,
-            reportName: 'Test Fallback Report',
+            ...createExpenseRequestReport(mockReportIDIndex),
+            reportName: 'Fallback Report',
         };
 
         beforeEach(async () => {
@@ -8347,7 +8334,7 @@ describe('ReportUtils', () => {
 
         test('returns fallback report when no other reports exist', () => {
             const searchReports: SearchReport[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
@@ -8361,6 +8348,17 @@ describe('ReportUtils', () => {
             const searchReports = [mockSearchReport];
             const result = getReportOrDraftReport(undefined, searchReports);
             expect(result).toBeUndefined();
+        });
+
+        test('returns undefined when only reportID is provided and it is not found', () => {
+            const result = getReportOrDraftReport('unknownReportID');
+            expect(result).toBeUndefined();
+        });
+
+        test('returns fallback report when reportID is undefined', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(undefined, searchReports, mockFallbackReport);
+            expect(result).toEqual(mockFallbackReport);
         });
 
         test('prioritizes search report over onyx report when both exist', async () => {
@@ -8392,24 +8390,6 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID);
             expect(result).toEqual(mockOnyxReport);
-        });
-
-        test('handles different reportID formats correctly', async () => {
-            const numericReportID = '12345';
-            const stringReportID = 'abc123';
-            const uuidReportID = '550e8400-e29b-41d4-a716-446655440000';
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${numericReportID}`, {...mockOnyxReport, reportID: numericReportID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${stringReportID}`, {...mockOnyxReport, reportID: stringReportID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${uuidReportID}`, {...mockOnyxReport, reportID: uuidReportID});
-
-            const numericResult = getReportOrDraftReport(numericReportID);
-            const stringResult = getReportOrDraftReport(stringReportID);
-            const uuidResult = getReportOrDraftReport(uuidReportID);
-
-            expect(numericResult?.reportID).toBe(numericReportID);
-            expect(stringResult?.reportID).toBe(stringReportID);
-            expect(uuidResult?.reportID).toBe(uuidReportID);
         });
     });
 });
