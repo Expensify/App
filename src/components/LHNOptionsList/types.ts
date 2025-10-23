@@ -31,6 +31,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Whether the list is currently in a loading state */
+    isLoading: boolean;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;
