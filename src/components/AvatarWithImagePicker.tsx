@@ -215,6 +215,7 @@ function AvatarWithImagePicker({
 
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
+            anchorRef.current?.blur();
             if (disabled && enablePreview && onViewPhotoPress) {
                 onViewPhotoPress();
                 return;
