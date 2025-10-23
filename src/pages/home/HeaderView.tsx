@@ -21,6 +21,7 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -109,6 +110,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -288,7 +290,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         <CaretWrapper>
                                             <DisplayNames
                                                 fullTitle={title}
-                                                shouldParseFullTitle={false}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 tooltipEnabled
                                                 numberOfLines={1}
@@ -363,7 +364,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

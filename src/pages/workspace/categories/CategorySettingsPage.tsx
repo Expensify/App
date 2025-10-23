@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -59,6 +60,7 @@ function CategorySettingsPage({
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
     const cleanCategoryName = getCleanCategoryName(policyCategory?.name ?? '');
@@ -142,6 +144,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyCategories,
             policyTagLists,
             allTransactionViolations,
@@ -161,6 +164,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyTagLists,
             policyCategories,
             allTransactionViolations,

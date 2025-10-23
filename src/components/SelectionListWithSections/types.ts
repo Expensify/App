@@ -108,7 +108,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
