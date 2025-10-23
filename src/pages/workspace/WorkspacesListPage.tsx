@@ -614,6 +614,7 @@ function WorkspacesListPage() {
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={shouldUseNarrowLayout ? styles.pb14 : {}}
                 />
             </View>
             <ConfirmModal
