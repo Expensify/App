@@ -232,6 +232,8 @@ function PolicyDistanceRatesPage({
                     value.pendingFields?.currency ??
                     value.pendingFields?.taxRateExternalID ??
                     value.pendingFields?.taxClaimablePercentage ??
+                    value.pendingFields?.name ??
+                    customUnit?.pendingFields?.attributes ??
                     (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                 errors: value.errors ?? undefined,
                 rightElement: (
