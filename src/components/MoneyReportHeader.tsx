@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,22 +24,14 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {
-    createTransactionThreadReport,
-    deleteAppReport,
-    downloadReportPDF,
-    exportReportToCSV,
-    exportReportToPDF,
-    exportToIntegration,
-    markAsManuallyExported,
-    openUnreportedExpense,
-} from '@libs/actions/Report';
+import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -47,7 +40,7 @@ import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButt
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
+import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
@@ -57,6 +50,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    getAddExpenseDropdownOptions,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -74,6 +68,7 @@ import {
     navigateOnDeleteExpense,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
+    shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -95,7 +90,6 @@ import {
     canApproveIOU,
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
-    deleteMoneyRequest,
     dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
@@ -104,7 +98,6 @@ import {
     payMoneyRequest,
     reopenReport,
     retractReport,
-    startDistanceRequest,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -209,6 +202,9 @@ function MoneyReportHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -225,6 +221,10 @@ function MoneyReportHeader({
         return Object.values(reportTransactions);
     }, [reportTransactions]);
 
+    const shouldBlockSubmit = useMemo(() => {
+        return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, transactions);
+    }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, transactions]);
+
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
         canBeMissing: true,
@@ -240,6 +240,7 @@ function MoneyReportHeader({
     );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
+    const {deleteTransactions} = useDeleteTransactions({report: chatReport, reportActions, policy});
     const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
@@ -317,7 +318,7 @@ function MoneyReportHeader({
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
-    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
@@ -399,7 +400,11 @@ function MoneyReportHeader({
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+
+    if (shouldBlockSubmit && isReportOwner(moneyRequestReport)) {
+        optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
+    }
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -640,52 +645,9 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    const addExpenseDropdownOptions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                text: translate('iou.createExpense'),
-                icon: Expensicons.Plus,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-                text: translate('iou.trackDistance'),
-                icon: Expensicons.Location,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, lastDistanceExpenseType);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-                text: translate('iou.addUnreportedExpense'),
-                icon: Expensicons.ReceiptPlus,
-                onSelected: () => {
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    openUnreportedExpense(moneyRequestReport?.reportID);
-                },
-            },
-        ],
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, translate],
+    const addExpenseDropdownOptions = useMemo(
+        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -759,7 +721,7 @@ function MoneyReportHeader({
                 success
                 text={translate('common.submit')}
                 onPress={() => {
-                    if (!moneyRequestReport) {
+                    if (!moneyRequestReport || shouldBlockSubmit) {
                         return;
                     }
                     startSubmittingAnimation();
@@ -776,6 +738,7 @@ function MoneyReportHeader({
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
+                isDisabled={shouldBlockSubmit}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
@@ -1068,7 +1031,7 @@ function MoneyReportHeader({
                 }
 
                 const currentTransaction = transactions.at(0);
-                initSplitExpense(currentTransaction);
+                initSplitExpense(allTransactions, allReports, currentTransaction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -1136,18 +1099,7 @@ function MoneyReportHeader({
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteMoneyRequest(
-                                transaction?.transactionID,
-                                requestParentReportAction,
-                                duplicateTransactions,
-                                duplicateTransactionViolations,
-                                iouReport,
-                                chatIOUReport,
-                                false,
-                                undefined,
-                                undefined,
-                                isChatIOUReportArchived,
-                            );
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             removeTransaction(transaction.transactionID);
                         });
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
