@@ -1,3 +1,4 @@
+
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -121,7 +122,7 @@ function ReportFieldsInitialValuePage({
                         validate={validateForm}
                         style={styles.flex1}
                         enabledWhenOffline
-                        isSubmitButtonVisible={isTextFieldType}
+                        isSubmitButtonVisible={isTextFieldType || isFormulaFieldType}
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >
