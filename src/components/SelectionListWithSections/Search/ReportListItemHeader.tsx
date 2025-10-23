@@ -93,6 +93,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
 
+        // In some cases, the report total may be 0 even though it has transactions.
+        // This happens with orphaned transactions (transactions without IOU report actions).
+        // These are typically legacy transactions from OldDot or imported card transactions
+        // that don't yet have the proper IOU action linking them to the report structure.
+        // When the report total hasn't been calculated yet, we sum the transaction amounts manually.
+        if (reportTotal == 0 && reportItem.transactions) {
+            reportTotal = reportItem.transactions.reduce((acc, transaction) => acc + (transaction.modifiedAmount || transaction.amount || 0), 0);
+        }
+
         if (reportTotal) {
             if (reportItem.type === CONST.REPORT.TYPE.IOU) {
                 reportTotal = Math.abs(reportTotal ?? 0);
