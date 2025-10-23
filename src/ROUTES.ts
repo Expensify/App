@@ -2277,6 +2277,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/billing-account',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/receipt-partners/${integration}/billing-account` as const,
+    },
     WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
         route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
         getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {

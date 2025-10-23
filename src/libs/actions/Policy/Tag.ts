@@ -20,6 +20,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -96,7 +97,9 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
                     },
                 },
@@ -109,6 +112,7 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
             },
@@ -653,7 +657,13 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
-function enablePolicyTags(policyID: string, enabled: boolean) {
+type EnablePolicyTagsProps = {
+    policyID: string;
+    enabled: boolean;
+    policyTags?: PolicyTagLists;
+};
+
+function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -692,8 +702,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
         ],
     };
 
-    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
-    if (!policyTagList) {
+    if (!policyTags) {
         const defaultTagList: PolicyTagLists = {
             Tag: {
                 name: 'Tag',
@@ -713,7 +722,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             value: null,
         });
     } else if (!enabled) {
-        const policyTag = PolicyUtils.getTagLists(policyTagList).at(0);
+        const policyTag = PolicyUtils.getTagLists(policyTags).at(0);
 
         if (!policyTag) {
             return;
@@ -800,6 +809,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
                 },
             },
@@ -817,6 +827,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
             },
@@ -964,14 +975,16 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
-function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type SetPolicyTagsRequiredProps = {
+    policyID: string;
+    requiresTag: boolean;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-    if (!policyTag) {
-        return;
-    }
-
-    if (!policyTag.name) {
+function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}: SetPolicyTagsRequiredProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
+    if (!policyTag?.name) {
         return;
     }
 
