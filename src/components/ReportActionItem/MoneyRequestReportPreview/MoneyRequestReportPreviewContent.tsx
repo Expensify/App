@@ -256,11 +256,11 @@ function MoneyRequestReportPreviewContent({
     );
 
     const confirmApproval = () => {
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (hasDynamicExternalWorkflow(policy)) {
             setIsDEWModalVisible(true);
             return;
         }
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
