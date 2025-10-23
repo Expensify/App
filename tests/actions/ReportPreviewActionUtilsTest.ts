@@ -595,7 +595,7 @@ describe('getReportPreviewAction', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When strict policy rules are enabled, REVIEW should be shown instead of SUBMIT
-        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction], undefined, false, false, false, true)).toBe(
+        expect(getReportPreviewAction(violations, isReportArchived.current, CURRENT_USER_EMAIL, report, policy, [transaction], undefined, false, false, false, true)).toBe(
             CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW,
         );
     });

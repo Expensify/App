@@ -247,7 +247,7 @@ function getReportPreviewAction(
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
     const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
-    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, policy, transactions)) {
+    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
