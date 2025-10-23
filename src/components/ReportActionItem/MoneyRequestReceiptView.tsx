@@ -208,7 +208,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, iouReport, chatIOUReport, true, isChatIOUReportArchived);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, iouReport, chatIOUReport, isChatIOUReportArchived, true);
                 return;
             }
         }
@@ -223,7 +223,7 @@ function MoneyRequestReceiptView({
         revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, isChatIOUReportArchived, linkedTransactionID, report?.reportID, iouReport, chatIOUReport]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, iouReport, chatIOUReport, isChatIOUReportArchived]);
 
     let receiptStyle: StyleProp<ViewStyle>;
 
