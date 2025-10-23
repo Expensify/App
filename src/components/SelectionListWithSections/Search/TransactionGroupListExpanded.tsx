@@ -10,13 +10,13 @@ import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemTyp
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -46,6 +46,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {currentSearchHash} = useSearchContext();
     const transactionsSnapshotMetadata = useMemo(() => {
@@ -106,8 +107,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report?.reportID, transactionItem.moneyRequestReportActionID);
-                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
+                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo);
                 return;
             }
             markReportIDAsExpense(reportID);
@@ -181,7 +181,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     <TransactionItemRow
                         report={transaction.report}
                         transactionItem={transaction}
-                        violations={getTransactionViolations(transaction, violations)}
+                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
                         isSelected={!!transaction.isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

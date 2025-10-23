@@ -1,7 +1,5 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
 import {TextEncoder} from 'util';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
@@ -22,6 +20,7 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+import {translateLocal} from '../utils/TestHelper';
 
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
@@ -216,7 +215,6 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
@@ -225,7 +223,6 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
@@ -233,7 +230,6 @@ describe('ValidationUtils', () => {
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
             const error = getAgeRequirementError(invalidDate, 18, 150);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
