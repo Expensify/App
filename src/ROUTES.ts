@@ -457,6 +457,11 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SET_DEFAULT_WORKSPACE: {
+        route: 'set-default-workspace',
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam('set-default-workspace', backTo),
+    },
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
@@ -2271,6 +2276,10 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
         },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/billing-account',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/receipt-partners/${integration}/billing-account` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
         route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
