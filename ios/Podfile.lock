@@ -244,7 +244,7 @@ PODS:
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.2)
-  - fullstory_react-native (1.7.6):
+  - fullstory_react-native (1.7.8):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -1849,7 +1849,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.19.4):
+  - react-native-blob-util (0.22.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2857,8 +2857,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - RNReanimated/worklets
     - Yoga
-  - RNLocalize (2.2.6):
+  - RNLocalize (3.5.4):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - rnmapbox-maps (10.1.44):
     - MapboxMaps (~> 10.19.0)
     - React
@@ -3778,7 +3800,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
-  fullstory_react-native: eea992f5f335d6b73cb5c3cc06942660388ef92f
+  fullstory_react-native: 5b94e0ee51a46073bb2c88836708f734ac6807a1
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -3843,7 +3865,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: e5fa44f25ae16ab5b8da75b5aed4236a5400a770
   react-native-airship: ff2599900d29e0e64ff2b2dd9f897c0c220a9163
   react-native-app-logs: 6540c5f6f66f33cb52d0bb62f0a10131ff3a9589
-  react-native-blob-util: a013bd1bb12de304a726c2308cc0e219f34ab66c
+  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
   react-native-cameraroll: d98f8a64b53620754864c33a034e054ca4a3b360
   react-native-config: ab9f9cc16883aed5355ca43478fe39e6aec5ebb9
   react-native-document-picker: 06ad77eb1650e628def114ff74f9f767f1888edd
@@ -3907,7 +3929,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 6a36c82776afa8fd2c41c2c6e299c6dd77f249ce
-  RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
+  RNLocalize: e3a384870bd61fccfcc46de28089371907ed2e14
   rnmapbox-maps: f3875edd847c82d770d1b57852b36d45b3ea8a01
   RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
