@@ -459,6 +459,11 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SET_DEFAULT_WORKSPACE: {
+        route: 'set-default-workspace',
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam('set-default-workspace', backTo),
+    },
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
