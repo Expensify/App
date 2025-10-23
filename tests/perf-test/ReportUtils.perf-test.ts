@@ -1,8 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import createRandomPolicyCategories from 'tests/utils/collections/policyCategory';
-import createRandomPolicyTags from 'tests/utils/collections/policyTags';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import usePolicyData from '@hooks/usePolicyData';
 import {
     canDeleteReportAction,

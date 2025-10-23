@@ -157,7 +157,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 currentUserPersonalDetails.accountID,
             );
         },
-        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport,  currentUserPersonalDetails.accountID],
+        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -268,7 +268,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const handleDeleteCategories = () => {
         if (policy !== undefined && selectedCategories.length >= 0) {
-            deleteWorkspaceCategories(policyData, selectedCategories, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport,  currentUserPersonalDetails.accountID);
+            deleteWorkspaceCategories(
+                policyData,
+                selectedCategories,
+                isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
+            );
         }
         setDeleteCategoriesConfirmModalVisible(false);
 
@@ -374,7 +381,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyData, categoriesToDisable, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport,  currentUserPersonalDetails.accountID);
+                        setWorkspaceCategoryEnabled(
+                            policyData,
+                            categoriesToDisable,
+                            isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
+                        );
                     },
                 });
             }
@@ -396,7 +410,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyData, categoriesToEnable, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport,  currentUserPersonalDetails.accountID);
+                        setWorkspaceCategoryEnabled(
+                            policyData,
+                            categoriesToEnable,
+                            isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
+                        );
                     },
                 });
             }

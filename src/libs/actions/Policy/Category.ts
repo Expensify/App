@@ -319,9 +319,6 @@ function setWorkspaceCategoryEnabled(
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
-    policyCategories: PolicyCategories = {},
-    policyTagLists: PolicyTagLists = {},
-    allTransactionViolations: OnyxCollection<TransactionViolations> = {},
 ) {
     const policyID = policyData.policy.id;
     const policyCategoriesOptimisticData = {

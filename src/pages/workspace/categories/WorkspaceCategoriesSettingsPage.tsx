@@ -136,7 +136,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
-                        {!!policyData.policy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                        {!!policyData.policy && (data?.length ?? 0) > 0 && (
                             <SelectionList
                                 addBottomSafeAreaPadding
                                 customListHeaderContent={selectionListHeaderContent}

@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -26,6 +26,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import render from 'dom-serializer';
 
 OnyxUpdateManager();
 
@@ -1559,13 +1560,16 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When setPolicyTagsRequired is called with requiresTag = true
-            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: fakePolicyTags});
+            setPolicyTagsRequired(policyData.current, true, 0);
             await waitForBatchedUpdates();
 
             // Then the tag list should be marked as required with pending fields
-            let updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            let updatedPolicyTags = policyData.current.tags;
 
             expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
             // Check optimistic data - pendingFields should be set
@@ -1598,13 +1602,17 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+            
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When setPolicyTagsRequired is called with requiresTag = false
-            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: false, tagListIndex: 0, policyTags: fakePolicyTags});
+            setPolicyTagsRequired(policyData.current, false, 0);
             await waitForBatchedUpdates();
 
+            rerender(fakePolicy.id);
             // Then the tag list should be marked as not required with pending fields
-            let updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            let updatedPolicyTags = policyData.current.tags;
 
             expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
             // Check optimistic data - pendingFields should be set
@@ -1615,8 +1623,9 @@ describe('actions/Policy', () => {
             mockFetch.resume();
             await waitForBatchedUpdates();
 
+            rerender(fakePolicy.id);
             // Then after API success, pending fields should be cleared
-            updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            updatedPolicyTags = policyData.current.tags;
 
             expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
             expect(updatedPolicyTags?.[tagListName]?.pendingFields?.required).toBeUndefined();
@@ -1638,17 +1647,21 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When setPolicyTagsRequired is called and API fails
             mockFetch.fail();
-            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: fakePolicyTags});
+            setPolicyTagsRequired(policyData.current, true, 0);
             await waitForBatchedUpdates();
 
             mockFetch.resume();
             await waitForBatchedUpdates();
+            rerender(fakePolicy.id);
 
             // Then the tag list should be restored to original state with error
-            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
-
+            const updatedPolicyTags = policyData.current.tags;
             expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
             expect(updatedPolicyTags?.[tagListName]?.pendingFields?.required).toBeUndefined();
             expect(updatedPolicyTags?.[tagListName]?.errorFields?.required).toBeTruthy();
@@ -1674,14 +1687,16 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             await act(async () => {
                 // When setPolicyTagsRequired is called with data from useOnyx
-                setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: result.current[0]});
+                setPolicyTagsRequired(policyData.current, true, 0);
                 await waitForBatchedUpdates();
             });
 
             // Then the tag list should be marked as required
-            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            const updatedPolicyTags = policyData.current.tags;
 
             expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
             // Check optimistic data - pendingFields should be set
