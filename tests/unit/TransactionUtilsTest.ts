@@ -760,7 +760,7 @@ describe('TransactionUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                 };
 
-                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY)).toBe(true);
+                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, CURRENT_USER_EMAIL)).toBe(true);
             });
 
             it('should return false when policy is not a paid group policy', () => {
@@ -775,7 +775,7 @@ describe('TransactionUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                 };
 
-                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY)).toBe(false);
+                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, CURRENT_USER_EMAIL)).toBe(false);
             });
         });
     });
