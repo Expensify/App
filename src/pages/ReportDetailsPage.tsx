@@ -30,7 +30,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -149,7 +148,6 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -559,7 +557,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        isBetaEnabled,
         currentUserPersonalDetails?.accountID,
         isTaskActionable,
         isRootGroupChat,
@@ -795,18 +792,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport,
-                iouTransactionID,
-                requestParentReportAction,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                chatReport: moneyRequestReport,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
                 iouReport,
                 chatIOUReport,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 isSingleTransactionView,
-                isMoneyRequestReportArchived,
+                isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
-            );
+            });
         } else {
             deleteMoneyRequest(
                 iouTransactionID,
@@ -815,10 +813,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactionViolations,
                 iouReport,
                 chatIOUReport,
-                isSingleTransactionView,
-                undefined,
-                undefined,
                 isChatIOUReportArchived,
+                isSingleTransactionView,
             );
             removeTransaction(iouTransactionID);
         }
@@ -873,13 +869,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
                     moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isSingleTransactionView,
                     isChatIOUReportArchived,
+                    isSingleTransactionView,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -887,8 +884,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isSingleTransactionView,
                     isChatIOUReportArchived,
+                    isSingleTransactionView,
                 );
             }
         }

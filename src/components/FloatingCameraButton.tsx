@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
+import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,6 +55,7 @@ function FloatingCameraButton() {
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     };

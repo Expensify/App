@@ -4,6 +4,7 @@
         "--longpress",
         "Accelo",
         "achreimburse",
+        "actool",
         "adbd",
         "ADDCOMMENT",
         "Addendums",
@@ -12,6 +13,7 @@
         "Aeroplan",
         "águero",
         "Aircall",
+        "Airplus",
         "airshipconfig",
         "airside",
         "Amal",
@@ -253,6 +255,7 @@
         "GDSO",
         "genkey",
         "GEOLOCATION",
+        "getenv",
         "getprop",
         "gibsdk",
         "glcode",
@@ -294,6 +297,7 @@
         "inputmethod",
         "instancetype",
         "Intacct",
+        "INTECOMS",
         "intenthandler",
         "ionatan",
         "iOSQRCode",
@@ -326,6 +330,7 @@
         "killall",
         "kilometres",
         "kilometre",
+        "Kort",
         "Kowalski",
         "Krasoń",
         "labelledby",
@@ -396,6 +401,7 @@
         "Navan",
         "navattic",
         "navigations",
+        "NBSA",
         "nbta",
         "ndkversion",
         "Nederlands",
@@ -763,7 +769,8 @@
         "Dtype",
         "Areport",
         "mple",
-        "Selec"
+        "Selec",
+        "setuptools"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -813,7 +820,8 @@
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
         "modules/group-ib-fp",
-        "web/snippets/gib.js"
+        "web/snippets/gib.js",
+        "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

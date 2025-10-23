@@ -128,19 +128,31 @@ function WorkspacesListPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const continueDeleteWorkspace = useCallback(() => {
+        if (isOffline) {
+            setPolicyIDToDelete(undefined);
+            setPolicyNameToDelete(undefined);
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
+        setIsDeleteModalOpen(true);
+    }, [isOffline]);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -197,7 +209,7 @@ function WorkspacesListPage() {
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
@@ -301,14 +313,7 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        if (isOffline) {
-                            setPolicyIDToDelete(undefined);
-                            setPolicyNameToDelete(undefined);
-                            setShouldShowOfflineModal(true);
-                            return;
-                        }
-
-                        setIsDeleteModalOpen(true);
+                        continueDeleteWorkspace();
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
@@ -386,8 +391,8 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
+            continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
-            isOffline,
         ],
     );
 
