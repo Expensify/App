@@ -19,9 +19,9 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -34,7 +34,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -46,6 +45,7 @@ import {
     getReportRecipientAccountIDs,
     isChatRoom,
     isGroupChat,
+    isInvoiceReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
@@ -56,7 +56,6 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
@@ -65,6 +64,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
@@ -147,6 +147,7 @@ function ReportActionCompose({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
@@ -155,28 +156,9 @@ function ReportActionCompose({
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
-    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
-    const isScrollLikelyLayoutTriggered = useRef(false);
-
-    /**
-     * Reset isScrollLikelyLayoutTriggered to false.
-     *
-     * The function is debounced with a handpicked wait time to address 2 issues:
-     * 1. There is a slight delay between onChangeText and onScroll
-     * 2. Layout change will trigger onScroll multiple times
-     */
-    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
-        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
-        500,
-    );
-
-    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
-        isScrollLikelyLayoutTriggered.current = true;
-        debouncedLowerIsScrollLikelyLayoutTriggered();
-    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
+    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
@@ -242,7 +224,7 @@ function ReportActionCompose({
         const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
     }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
@@ -534,7 +516,7 @@ function ReportActionCompose({
                             setMenuVisibility={setMenuVisibility}
                             isMenuVisible={isMenuVisible}
                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                             onAddActionPressed={onAddActionPressed}
                             onItemSelected={onItemSelected}
                             onCanceledAttachmentPicker={() => {
@@ -555,8 +537,8 @@ function ReportActionCompose({
                             }}
                             suggestionsRef={suggestionsRef}
                             isNextModalWillOpenRef={isNextModalWillOpenRef}
-                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
+                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                             reportID={reportID}
                             policyID={report?.policyID}
                             includeChronos={chatIncludesChronos(report)}
