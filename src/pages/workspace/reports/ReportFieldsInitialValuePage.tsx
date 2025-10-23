@@ -1,4 +1,3 @@
-
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
