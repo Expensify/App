@@ -90,11 +90,11 @@ function IOURequestStepCategory({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const fetchData = () => {
-        if ((!!policy && !!policyCategories) || !report?.policyID) {
+        if ((!!policy && !!policyCategories) || !policyID) {
             return;
         }
 
-        getPolicyCategories(report?.policyID);
+        getPolicyCategories(policyID);
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;

@@ -43,7 +43,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
+        mentionDisplayText = getDisplayNameOrDefault(user) || formatPhoneNumber(user?.login ?? '');
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
@@ -56,9 +56,15 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
         );
 
-        accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        accountID = getAccountIDsByLogins([mentionDisplayText], false)?.at(0) ?? -1;
+        if (accountID !== -1) {
+            const user = personalDetails?.[accountID];
+            mentionDisplayText = getDisplayNameOrDefault(user) || formatPhoneNumber(user?.login ?? '');
+            mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
+        } else {
+            mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+        }
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
-        mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -114,7 +120,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
-                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
+                            {accountID && accountID !== -1 ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>

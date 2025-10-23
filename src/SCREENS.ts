@@ -405,7 +405,6 @@ const SCREENS = {
         ROOT: 'SetDefaultWorkspace_Root',
     },
 
-
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
