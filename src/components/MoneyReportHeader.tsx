@@ -135,8 +135,6 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
-import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
@@ -267,9 +265,6 @@ function MoneyReportHeader({
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -405,20 +400,11 @@ function MoneyReportHeader({
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
-            if (!type || !chatReport) {
+            if (!type || !chatReport || isAnyTransactionOnHold) {
                 return;
             }
-            setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                if (getPlatform() === CONST.PLATFORM.IOS) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-                } else {
-                    setIsHoldMenuVisible(true);
-                }
             } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
@@ -455,12 +441,9 @@ function MoneyReportHeader({
     );
 
     const confirmApproval = () => {
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else {
+        } else if (!isAnyTransactionOnHold) {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
             if (currentSearchQueryJSON) {
@@ -734,7 +717,6 @@ function MoneyReportHeader({
                 nonHeldAmount={nonHeldAmount}
                 fullAmount={fullAmount}
                 onApprove={(isFullApproval) => {
-                    setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                     startApprovedAnimation();
                     approveMoneyRequest(moneyRequestReport, isFullApproval);
                     if (currentSearchQueryJSON) {
@@ -1261,26 +1243,6 @@ function MoneyReportHeader({
             )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => setIsHoldMenuVisible(false)}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    chatReport={chatReport}
-                    moneyRequestReport={moneyRequestReport}
-                    startAnimation={() => {
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
-                    transactionCount={transactionIDs?.length ?? 0}
-                />
-            )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
