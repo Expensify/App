@@ -658,7 +658,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,

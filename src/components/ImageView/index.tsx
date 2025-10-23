@@ -21,6 +21,8 @@ import type ImageViewProps from './types';
 type ZoomDelta = {offsetX: number; offsetY: number};
 
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
+    'use no memo';
+
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
