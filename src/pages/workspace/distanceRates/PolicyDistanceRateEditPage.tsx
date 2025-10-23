@@ -51,7 +51,10 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
         Navigation.goBack();
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, toLocaleDigit), [toLocaleDigit]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        [toLocaleDigit, translate],
+    );
 
     if (!rate) {
         return <NotFoundPage />;
