@@ -1050,9 +1050,8 @@ function getWelcomeMessage(
             return '';
         })
         .join(' ');
-        
-        welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
-        console.log({displayNamesWithTooltipsText}, {welcomeMessage})
+
+    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
     return welcomeMessage;
 }
 
