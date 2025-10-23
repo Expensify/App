@@ -332,12 +332,13 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
-    // Track the currency/rate for which we last set the tax code
-    // This allows us to detect when currency changes without using usePrevious
+    // We need to set the default tax code when currency/rate changes, but NOT override manual tax code selections.
+    // Since both scenarios result in transaction.taxCode changing, we track the currency/rate for which we last
+    // set the tax code. This allows us to distinguish "currency changed" from "user manually changed tax code".
     const lastTaxCodeCurrencyRef = useRef<{currency?: string; modifiedCurrency?: string; customUnitRateID?: string}>({});
 
+    // Set the default tax code when there isn't one or when currency/rate changes
     useEffect(() => {
-        // Set the default tax code when there isn't one or when currency/rate changes
         if (!shouldShowTax || !transaction || !transactionID) {
             return;
         }
@@ -350,9 +351,7 @@ function MoneyRequestConfirmationList({
         const didCurrencyChange =
             lastTrackedCurrency.currency !== currentCurrency || lastTrackedCurrency.modifiedCurrency !== currentModifiedCurrency || lastTrackedCurrency.customUnitRateID !== customUnitRateID;
 
-        // Only update tax code if:
-        // 1. Tax code isn't set yet, OR
-        // 2. Currency/rate changed (which may require a different default)
+        // Only update tax code if there isn't one yet, or if currency/rate changed (affecting which default applies)
         if (!transaction.taxCode || didCurrencyChange) {
             const defaultTaxCode = getDefaultTaxCode(policy, transaction);
             setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
