@@ -778,8 +778,8 @@ function changeTransactionsReport(
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
-    // TODO: Replace getPolicyTagsData  with useOnyx hook (https://github.com/Expensify/App/issues/72720)
-    // eslint-disable-next-line deprecation/deprecation
+    // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72720)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 

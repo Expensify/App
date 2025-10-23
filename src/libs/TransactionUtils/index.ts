@@ -1845,7 +1845,7 @@ function compareDuplicateTransactionFields(
                 }
             } else if (fieldName === 'tag') {
                 // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72719)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policyTags = report?.policyID ? getPolicyTagsData(report?.policyID) : {};
                 const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
                 if (isMultiLevelTags) {
