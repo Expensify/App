@@ -99,7 +99,6 @@ const keysToMask = [
     'cardName',
     'cardNumber',
     'city',
-    'cityName',
     'comment',
     'description',
     'displayName',
@@ -329,8 +328,8 @@ const removeCollectionItemsByNestedID = (
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = {...data};
 
-    // FIRST: Identify policies owned by accounting@expensify.com or payroll@expensify.com (only when masking is enabled)
-    // Do this BEFORE any processing to ensure policy owners haven't been masked yet
+    // Identify policies owned by accounting@expensify.com or payroll@expensify.com (only when masking is enabled)
+    // Do this before any processing to ensure policy owners haven't been masked yet
     const excludedEmails = ['accounting@expensify.com', 'payroll@expensify.com'];
     const excludedPolicyIDs = new Set<string>();
     
@@ -393,7 +392,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
                     excludedTransactionIDs.add(transactionID);
                     delete onyxState[key];
                 }
-                // Also check if the report exists and belongs to an excluded policy or is a paycheck (when masking enabled)
+                // Also check if the report exists and belongs to an excluded policy or is a paycheck
                 else {
                     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`;
                     const txReport = data[reportKey] as Record<string, unknown> | undefined;
@@ -466,7 +465,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
         onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] = reportTransactions;
     }
 
-    // Second pass: Remove root-level transactions that belong to orphaned reports (or paycheck reports if masking enabled)
+    // Remove root-level transactions that belong to orphaned reports (or paycheck reports if masking enabled)
     if (orphanedReportIDs.size > 0) {
         Object.keys(onyxState).forEach((key) => {
             if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -489,7 +488,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
                 const originalReport = data[reportKey] as Record<string, unknown> | undefined;
                 
-                // Skip if excluded, paycheck (when masking), or orphaned
+                // Skip if excluded, paycheck or orphaned
                 const shouldRemove = excludedReportIDs.has(reportID) || 
                                     orphanedReportIDs.has(reportID) || 
                                     (isMaskingFragileDataEnabled && originalReport && originalReport.type === 'paycheck');
