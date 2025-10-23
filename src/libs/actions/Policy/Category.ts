@@ -1042,7 +1042,7 @@ function enablePolicyCategories(
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
     shouldGoBack = true,
 ) {
- const onyxData: OnyxData = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1053,7 +1053,6 @@ function enablePolicyCategories(
                         {
                             enabled,
                         },
-                        categoryName
                     ]),
                 ),
             },
