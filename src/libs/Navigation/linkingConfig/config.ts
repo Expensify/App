@@ -4,7 +4,7 @@ import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedCo
 import type {RootNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
@@ -157,6 +157,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
+                        [SCREENS.SETTINGS.VERIFY_ACCOUNT]: {
+                            path: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
                             path: ROUTES.SETTINGS_PRIORITY_MODE,
                             exact: true,
@@ -1290,6 +1293,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT_DYNAMIC]: DYNAMIC_ROUTES.CONFIRM_WORKSPACE.path,
                         [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },
