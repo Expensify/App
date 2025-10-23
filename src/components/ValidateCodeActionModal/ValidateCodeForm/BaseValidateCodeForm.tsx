@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -11,10 +11,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -109,7 +109,7 @@ function BaseValidateCodeForm({
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -179,9 +179,9 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the wide RHP from flickering in the background while modal with validation slides out and gains focus (https://github.com/Expensify/App/issues/73030)
-        // Keyboard on Mobile Safari won't show if we focus the input with a delay, so we need to focus immediately; wide RHP SCREENS.RIGHT_MODAL.SEARCH_REPORT is accessible only when isSmallScreenWidth is false.
-        if (!isSmallScreenWidth && !isMobileSafari()) {
+        // Delay prevents the input from gaining focus before the animation finishes,
+        // which would cause the wide RHP to flicker in the background while the modal with validation slides out over it.
+        if (wideRHPRouteKeys.length > 0 && !isMobileSafari()) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
             }, CONST.ANIMATED_TRANSITION);
