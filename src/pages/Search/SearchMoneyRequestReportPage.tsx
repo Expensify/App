@@ -18,7 +18,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchReportParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -32,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
