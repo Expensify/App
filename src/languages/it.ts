@@ -3389,7 +3389,7 @@ ${amount} per ${merchant} - ${date}`,
         subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestire tutte le tue spese aziendali in un unico posto.',
         features: {
             saveMoney: 'Risparmia sui tuoi prenotazioni',
-            alerts: 'Ricevi aggiornamenti e avvisi in tempo reale',
+            alerts: 'Ricevi avvisi in tempo reale se i tuoi piani di viaggio cambiano',
         },
         bookTravel: 'Prenota viaggio',
         bookDemo: 'Prenota una demo',

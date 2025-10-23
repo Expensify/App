@@ -3389,7 +3389,7 @@ ${amount} voor ${merchant} - ${date}`,
         subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en al uw zakelijke uitgaven op één plek te beheren.',
         features: {
             saveMoney: 'Bespaar geld op uw boekingen',
-            alerts: 'Ontvang realtime updates en meldingen',
+            alerts: 'Ontvang realtime meldingen als uw reisplannen veranderen',
         },
         bookTravel: 'Boek reis',
         bookDemo: 'Demo boeken',

@@ -3338,7 +3338,7 @@ ${merchant}的${amount} - ${date}`,
         subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理您所有的商务开支。',
         features: {
             saveMoney: '在您的预订上省钱',
-            alerts: '获取实时更新和提醒',
+            alerts: '如果您的旅行计划发生变化，获取实时提醒',
         },
         bookTravel: '预订旅行',
         bookDemo: '预订演示',

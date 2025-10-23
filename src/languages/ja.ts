@@ -3370,7 +3370,7 @@ ${date} - ${merchant}に${amount}`,
         subtitle: 'Expensify Travelを利用して、最高の旅行オファーを手に入れ、すべてのビジネス経費を一か所で管理しましょう。',
         features: {
             saveMoney: '予約でお金を節約する',
-            alerts: 'リアルタイムの更新とアラートを受け取る',
+            alerts: '旅行計画が変更された場合のリアルタイムアラートを受け取る',
         },
         bookTravel: '旅行を予約する',
         bookDemo: 'デモを予約する',
