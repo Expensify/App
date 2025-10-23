@@ -105,6 +105,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -667,6 +668,7 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        domains: 'Domains',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -896,17 +898,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button to send an invoice.`,
+            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <strong>+</strong> button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button.`,
+            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <strong>+</strong> button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button to ${additionalText} an expense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the <strong>+</strong> button to ${additionalText} an expense.`,
         askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
@@ -1680,7 +1682,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
-            shouldBlockTransactionThreadReportCreation: 'Block transaction thread report creation',
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
@@ -2406,7 +2407,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     `4. Add your boss's email or phone number.\n` +
@@ -2419,7 +2420,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Confirm details.\n' +
@@ -2432,7 +2433,7 @@ const translations = {
                 description:
                     '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Choose your *personal* space.\n' +
@@ -2531,7 +2532,7 @@ const translations = {
                 description:
                     '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter an email or phone number.\n' +
                     '\n' +
@@ -2545,7 +2546,7 @@ const translations = {
                 description:
                     '*Split expenses* with one or more people.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter emails or phone numbers.\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
@@ -2568,7 +2569,7 @@ const translations = {
                 description:
                     'Here’s how to create a report:\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the <strong>+</strong> button.\n` +
                     '2. Choose *Create report*.\n' +
                     '3. Click *Add expense*.\n' +
                     '4. Add your first expense.\n' +
@@ -2668,6 +2669,11 @@ const translations = {
         ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
         onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
     },
+    openAppFailureModal: {
+        title: 'Something went wrong...',
+        subtitle: `We have not been able to load all of your data. We have been notified and are looking into the problem. If this persists, please reach out to`,
+        refreshAndTryAgain: 'Refresh and try again',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
@@ -2718,8 +2724,8 @@ const translations = {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
-        settings: 'settings',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -2918,8 +2924,8 @@ const translations = {
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
         weCouldNotVerify: "We couldn't verify",
         pleaseFixIt: 'Please fix this information before continuing',
-        failedKYCTextBefore: "We weren't able to verify your identity. Please try again later or reach out to ",
-        failedKYCTextAfter: ' if you have any questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `We weren't able to verify your identity. Please try again later or reach out to <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> if you have any questions.`,
     },
     termsStep: {
         headerTitle: 'Terms and fees',
@@ -5690,6 +5696,7 @@ const translations = {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
+            goToSubscriptions: 'Go to Subscriptions',
         },
         rules: {
             individualExpenseRules: {
@@ -6110,7 +6117,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: `Try adjusting your search criteria or creating something with the green ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.`,
+                subtitle: `Try adjusting your search criteria or creating something with the <strong>+</strong> button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -6633,14 +6640,9 @@ const translations = {
         copyReferralLink: 'Copy invite link',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
-        },
-        default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chat with your setup specialist in <a href="${href}">${adminReportName}</a> for help`,
+        default: `Message <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> for help with setup`,
     },
     violations: {
         allTagLevelsRequired: 'All tags required',

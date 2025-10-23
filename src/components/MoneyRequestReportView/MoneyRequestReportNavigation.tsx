@@ -2,10 +2,12 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
@@ -21,8 +23,7 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
-
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber} = useLocalize();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -31,15 +32,22 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         selector: selectFilteredReportActions,
     });
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: selectArchivedReportsIdSet,
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const searchData = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
+        const searchData = getSections(
+            type,
+            currentSearchResults.data,
+            currentUserDetails.accountID,
+            currentUserDetails.email ?? '',
+            formatPhoneNumber,
+            groupBy,
+            exportReportActions,
+            lastSearchQuery?.searchKey,
+            archivedReportsIdSet,
+        );
         results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
