@@ -54,7 +54,8 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     chatReportID?: string;
 };
 
-const isAmountInvalid = (amount: string, iouType?: ValueOf<typeof CONST.IOU.TYPE>) => !amount.length || parseFloat(amount) < 0 || (parseFloat(amount) < 0.01 && (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.INVOICE));
+const nonZeroExpenses: Array<ValueOf<typeof CONST.IOU.TYPE>> = [CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT];
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>) => !amount.length || parseFloat(amount) < 0 || (parseFloat(amount) < 0.01 && nonZeroExpenses.includes(iouType));
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
