@@ -2918,8 +2918,8 @@ const translations = {
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
         weCouldNotVerify: "We couldn't verify",
         pleaseFixIt: 'Please fix this information before continuing',
-        failedKYCTextBefore: "We weren't able to verify your identity. Please try again later or reach out to ",
-        failedKYCTextAfter: ' if you have any questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `We weren't able to verify your identity. Please try again later or reach out to <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> if you have any questions.`,
     },
     termsStep: {
         headerTitle: 'Terms and fees',

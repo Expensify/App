@@ -2933,8 +2933,8 @@ ${amount} pour ${merchant} - ${date}`,
         needSSNFull9: 'Nous rencontrons des difficultés pour vérifier votre SSN. Veuillez entrer les neuf chiffres complets de votre SSN.',
         weCouldNotVerify: "Nous n'avons pas pu vérifier",
         pleaseFixIt: 'Veuillez corriger ces informations avant de continuer.',
-        failedKYCTextBefore: "Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter",
-        failedKYCTextAfter: 'si vous avez des questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> si vous avez des questions.`,
     },
     termsStep: {
         headerTitle: 'Conditions et frais',

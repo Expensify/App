@@ -2937,8 +2937,8 @@ ${amount} para ${merchant} - ${date}`,
         needSSNFull9: 'Estamos tendo problemas para verificar seu SSN. Por favor, insira os nove dígitos completos do seu SSN.',
         weCouldNotVerify: 'Não conseguimos verificar',
         pleaseFixIt: 'Por favor, corrija esta informação antes de continuar.',
-        failedKYCTextBefore: 'Não conseguimos verificar sua identidade. Por favor, tente novamente mais tarde ou entre em contato com',
-        failedKYCTextAfter: 'se você tiver alguma dúvida.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Não conseguimos verificar sua identidade. Por favor, tente novamente mais tarde ou entre em contato com <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> se você tiver alguma dúvida.`,
     },
     termsStep: {
         headerTitle: 'Termos e taxas',

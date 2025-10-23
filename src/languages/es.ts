@@ -2911,8 +2911,8 @@ ${amount} para ${merchant} - ${date}`,
         needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
         weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrige esta información antes de continuar.',
-        failedKYCTextBefore: 'No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunicate con ',
-        failedKYCTextAfter: ' si tienes alguna pregunta.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunícate con <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> si tienes alguna pregunta.`,
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
