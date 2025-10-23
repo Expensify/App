@@ -1042,9 +1042,8 @@ function enablePolicyCategories(
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
     shouldGoBack = true,
 ) {
-    const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
-    if (!enabled) {
-        onyxUpdatesToDisableCategories.push(
+ const onyxData: OnyxData = {
+        optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
@@ -1052,8 +1051,9 @@ function enablePolicyCategories(
                     Object.entries(policyCategories).map(([categoryName]) => [
                         categoryName,
                         {
-                            enabled: false,
+                            enabled,
                         },
+                        categoryName
                     ]),
                 ),
             },
@@ -1061,18 +1061,8 @@ function enablePolicyCategories(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    requiresCategory: false,
-                },
-            },
-        );
-    }
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
                     areCategoriesEnabled: enabled,
+                    requiresCategory: enabled,
                     pendingFields: {
                         areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -1093,8 +1083,21 @@ function enablePolicyCategories(
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: Object.fromEntries(
+                    Object.entries(policyCategories).map(([categoryName]) => [
+                        categoryName,
+                        {
+                            enabled: !enabled,
+                        },
+                    ]),
+                ),
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    requiresCategory: !enabled,
                     areCategoriesEnabled: !enabled,
                     pendingFields: {
                         areCategoriesEnabled: null,
@@ -1117,10 +1120,6 @@ function enablePolicyCategories(
     );
 
     pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, policyUpdate, policyCategoriesUpdate);
-
-    if (onyxUpdatesToDisableCategories.length > 0) {
-        onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);
-    }
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
