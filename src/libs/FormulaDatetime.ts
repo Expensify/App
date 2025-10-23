@@ -28,8 +28,9 @@ function calculateISOWeekNumber(date: Date): number {
     const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 
     // Set to nearest Thursday: current date + 4 - current day number
-    // Make Sunday's day number 7
-    const dayNum = target.getUTCDay() ?? 7;
+    // Make Sunday's day number 7 (getUTCDay returns 0 for Sunday)
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const dayNum = target.getUTCDay() || 7;
     target.setUTCDate(target.getUTCDate() + 4 - dayNum);
 
     // Get first day of year for the Thursday's year (in UTC)
@@ -136,9 +137,6 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getUTCTimeComponents(date);
 
     return [
-        // Special combinations first
-        {token: 'jS', value: `${day}${getOrdinalSuffix(day)}`},
-
         // Year formats (longest to shortest)
         {token: 'yyyy', value: year.toString()},
         {token: 'YYYY', value: year.toString()},
