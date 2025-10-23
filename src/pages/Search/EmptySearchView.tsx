@@ -43,7 +43,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetails, Policy, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -144,6 +144,10 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
 const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
     Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
+const hasExpenseReportsSelector = (reports: OnyxCollection<Report>) =>
+    Object.values(reports ?? {}).filter((report) => report?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length >
+    0;
+
 function EmptySearchViewContent({
     similarSearchHash,
     type,
@@ -173,6 +177,11 @@ function EmptySearchViewContent({
         canBeMissing: true,
         selector: hasTransactionsSelector,
     });
+    const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: hasExpenseReportsSelector,
+    });
+
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
     const {
         taskReport: viewTourTaskReport,
@@ -288,71 +297,7 @@ function EmptySearchViewContent({
             );
         };
 
-        // If we are grouping by reports, show a custom message rather than a type-specific message
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            if (hasResults) {
-                return {
-                    ...defaultViewItemHeader,
-                    title: translate('search.searchResults.emptyResults.title'),
-                    subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                };
-            }
-
-            return {
-                ...defaultViewItemHeader,
-                title: translate('search.searchResults.emptyReportResults.title'),
-                subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
-                buttons: [
-                    ...(!hasSeenTour
-                        ? [
-                              {
-                                  buttonText: translate('emptySearchView.takeATestDrive'),
-                                  buttonAction: startTestDriveAction,
-                              },
-                          ]
-                        : []),
-                    ...(groupPoliciesWithChatEnabled.length > 0
-                        ? [
-                              {
-                                  buttonText: translate('quickAction.createReport'),
-                                  buttonAction: () => {
-                                      interceptAnonymousUser(() => {
-                                          let workspaceIDForReportCreation: string | undefined;
-
-                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              workspaceIDForReportCreation = activePolicyID;
-                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                              // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                          }
-
-                                          if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                                              // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                              return;
-                                          }
-
-                                          if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                              const createdReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
-                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                              });
-                                          } else {
-                                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                          }
-                                      });
-                                  },
-                                  success: true,
-                              },
-                          ]
-                        : []),
-                ],
-            };
-        }
-
-        // If we didn't match a specific search hash, show a specific message
-        // based on the type of the data
+        // If we didn't match a specific search hash, show a specific message based on the type of the data
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
@@ -363,6 +308,76 @@ function EmptySearchViewContent({
                     children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
+            case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+                if (hasResults) {
+                    return {
+                        ...defaultViewItemHeader,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
+                if (!hasResults || !hasExpenseReports) {
+                    return {
+                        ...defaultViewItemHeader,
+                        title: translate('search.searchResults.emptyReportResults.title'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
+                        buttons: [
+                            ...(!hasSeenTour
+                                ? [
+                                      {
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
+                                          buttonAction: startTestDriveAction,
+                                      },
+                                  ]
+                                : []),
+                            ...(groupPoliciesWithChatEnabled.length > 0
+                                ? [
+                                      {
+                                          buttonText: translate('quickAction.createReport'),
+                                          buttonAction: () => {
+                                              interceptAnonymousUser(() => {
+                                                  let workspaceIDForReportCreation: string | undefined;
+
+                                                  if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                                      // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                                      workspaceIDForReportCreation = activePolicyID;
+                                                  } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                                      // If the user has only one paid group workspace with chat enabled, we create a report with it
+                                                      workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                                  }
+
+                                                  if (
+                                                      !workspaceIDForReportCreation ||
+                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)
+                                                  ) {
+                                                      // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                                      Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                                      return;
+                                                  }
+
+                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                                      const createdReportID = createNewReport(
+                                                          currentUserPersonalDetails,
+                                                          isASAPSubmitBetaEnabled,
+                                                          hasViolations,
+                                                          workspaceIDForReportCreation,
+                                                      );
+                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                      });
+                                                  } else {
+                                                      Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                                  }
+                                              });
+                                          },
+                                          success: true,
+                                      },
+                                  ]
+                                : []),
+                        ],
+                    };
+                }
+            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (hasResults) {
                     return {
@@ -471,6 +486,7 @@ function EmptySearchViewContent({
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
+        hasExpenseReports,
     ]);
 
     return (
