@@ -6116,7 +6116,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: `Try adjusting your search criteria or creating something with the <strong>+</strong> button.`,
+                subtitle: `Try adjusting your search criteria or creating something with the + button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
