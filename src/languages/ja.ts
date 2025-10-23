@@ -7266,6 +7266,11 @@ ${date} - ${merchant}に${amount}`,
         selectAvatar: 'アバターを選択',
         chooseCustomAvatar: 'またはカスタムアバターを選択',
     },
+    openAppFailureModal: {
+        title: '問題が発生しました...',
+        subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
+        refreshAndTryAgain: '再読み込みして、もう一度お試しください',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

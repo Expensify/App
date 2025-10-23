@@ -7333,6 +7333,11 @@ ${amount} für ${merchant} - ${date}`,
         selectAvatar: 'Avatar auswählen',
         chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
     },
+    openAppFailureModal: {
+        title: 'Etwas ist schiefgelaufen...',
+        subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und untersuchen das Problem. Wenn das weiterhin besteht, wenden Sie sich bitte an`,
+        refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

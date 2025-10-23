@@ -7335,6 +7335,11 @@ ${amount} pour ${merchant} - ${date}`,
         selectAvatar: 'Sélectionner un avatar',
         chooseCustomAvatar: 'Ou choisissez un avatar personnalisé',
     },
+    openAppFailureModal: {
+        title: "Quelque chose s'est mal passé...",
+        subtitle: `Nous n'avons pas pu charger toutes vos données. Nous avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
+        refreshAndTryAgain: 'Actualisez puis réessayez',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

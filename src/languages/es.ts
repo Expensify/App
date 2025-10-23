@@ -7769,6 +7769,11 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
     },
+    openAppFailureModal: {
+        title: 'Algo salió mal...',
+        subtitle: `No hemos podido cargar todos sus datos. Hemos sido notificados y estamos investigando el problema. Si esto persiste, por favor comuníquese con`,
+        refreshAndTryAgain: 'Actualizar e intentar de nuevo',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

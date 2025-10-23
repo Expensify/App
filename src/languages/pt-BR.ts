@@ -7309,12 +7309,18 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
+
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',
         uploadPhoto: 'Carregar foto',
         selectAvatar: 'Selecionar avatar',
         chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+    },
+    openAppFailureModal: {
+        title: 'Algo deu errado...',
+        subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
+        refreshAndTryAgain: 'Atualize e tente novamente',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
