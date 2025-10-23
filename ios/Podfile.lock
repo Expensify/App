@@ -4652,7 +4652,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: 29b5e5f750285ab67b3b269ff7663cf72f73919e
   react-native-airship: b6a9f25708c5fbeac756cbf4a7bf2492d234c2ca
   react-native-app-logs: 96f74a4fccb9a14337be91819cb023122a06670b
-  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
+  react-native-blob-util: 9027c999d7d2b7d4b087ea40413eddc899af46fe
   react-native-cameraroll: 557bf71cccc7b97a2f1dc394615b9acca65951b9
   react-native-config: e4214ee0806b12c2e5d7b1fd446813e0a2b05ce8
   react-native-document-picker: 2b89e7ea851124ec30dd1877ecb2ea60a87735ec
@@ -4714,7 +4714,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9339994ea5d1ff6ad2679b7d0cc3d49053111369
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 835074fb8fd0afb493c7c2b73076a0f2738a8f63
+  RNLiveMarkdown: f81032d27c8a1bca99d3f146bfae50e76623a330
   RNLocalize: 0aa716b7d0f1316ca5f8f16ed42b79b9e3093279
   rnmapbox-maps: 870cd752e1d132e05465f3074b582ce6c7e742e9
   RNNitroSQLite: d5cf8c550c51015e1ecc93ff6e7509187c6c1c9e
