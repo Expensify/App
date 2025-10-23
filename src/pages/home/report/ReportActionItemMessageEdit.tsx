@@ -309,7 +309,7 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
+        editReportComment(originalReport, action, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 

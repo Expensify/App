@@ -2305,7 +2305,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-blob-util (0.19.4):
+  - react-native-blob-util (0.22.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4652,7 +4652,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: 29b5e5f750285ab67b3b269ff7663cf72f73919e
   react-native-airship: b6a9f25708c5fbeac756cbf4a7bf2492d234c2ca
   react-native-app-logs: 96f74a4fccb9a14337be91819cb023122a06670b
-  react-native-blob-util: 1685918f22189d309d194f5ecb672e1287383527
+  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
   react-native-cameraroll: 557bf71cccc7b97a2f1dc394615b9acca65951b9
   react-native-config: e4214ee0806b12c2e5d7b1fd446813e0a2b05ce8
   react-native-document-picker: 2b89e7ea851124ec30dd1877ecb2ea60a87735ec
