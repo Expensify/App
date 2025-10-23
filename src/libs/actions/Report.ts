@@ -6205,11 +6205,7 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
  * @param transactions - Array of transactions to evaluate
  * @param transactionViolations - Collection of transaction violations indexed by transaction violation key
  */
-function createThreadsForOrphanedTransactions(
-    iouReport?: OnyxEntry<Report>,
-    transactions?: Transaction[],
-    transactionViolations?: OnyxCollection<TransactionViolations>,
-) {
+function createThreadsForOrphanedTransactions(iouReport?: OnyxEntry<Report>, transactions?: Transaction[], transactionViolations?: OnyxCollection<TransactionViolations>) {
     if (!iouReport?.reportID || !transactions?.length) {
         return;
     }
