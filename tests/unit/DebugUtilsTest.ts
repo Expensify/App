@@ -1681,7 +1681,7 @@ describe('DebugUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
-                            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            name: CONST.VIOLATIONS.MISSING_TAG,
                             showInReview: true,
                         },
                     ],

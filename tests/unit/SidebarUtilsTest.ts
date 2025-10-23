@@ -96,7 +96,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        name: CONST.VIOLATIONS.MISSING_TAG,
                         showInReview: true,
                     },
                 ],
@@ -466,7 +466,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        name: CONST.VIOLATIONS.MISSING_TAG,
                         showInReview: true,
                     },
                 ],
