@@ -1349,12 +1349,23 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
 
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
-    const previewData = transactionPreviewData
-        ? {...transactionPreviewData, hasTransactionThreadReport: true}
-        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
+    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
 
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
+    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
+    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
+    if (reportActionID) {
+        const previewData = transactionPreviewData
+            ? {...transactionPreviewData, hasTransactionThreadReport: true}
+            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+        setOptimisticDataForTransactionThreadPreview(item, previewData);
+    }
+
+    // For legacy transactions without an IOU action in the backend, pass transaction data
+    // This allows OpenReport to create the IOU action and transaction thread on the backend
+    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
+    const transactionViolations = !reportActionID ? item.violations : undefined;
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
