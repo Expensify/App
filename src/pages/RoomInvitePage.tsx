@@ -22,7 +22,7 @@ import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomM
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
-import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -132,7 +132,7 @@ function RoomInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
-                const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCode ?? CONST.DEFAULT_COUNTRY_CODE));
+                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCode ?? CONST.DEFAULT_COUNTRY_CODE));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
                 const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -226,8 +226,8 @@ function RoomInvitePage({
         if (
             !inviteOptions.userToInvite &&
             excludedUsers[
-                parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE)).possible
-                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE))
+                parsePhoneNumber(appendCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE)).possible
+                    ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE))
                     : searchValue
             ]
         ) {
