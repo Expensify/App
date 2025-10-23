@@ -14,6 +14,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -46,8 +47,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getReportOrDraftReport, isArchivedReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -59,7 +59,6 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -94,6 +93,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -208,23 +208,7 @@ function IOURequestStepConfirmation({
         taskParentReport: viewTourTaskParentReport,
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
-
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const receiptFilename = getReceiptFilenameFromTransaction(transaction);
     const receiptPath = transaction?.receipt?.source;
@@ -237,21 +221,6 @@ function IOURequestStepConfirmation({
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
-    const payeePersonalDetails = useMemo(() => {
-        if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
-            return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
-        }
-
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.at(0) ?? -1));
-
-        return {
-            login: participant?.login ?? '',
-            accountID: participant?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            avatar: Expensicons.FallbackAvatar,
-            displayName: participant?.login ?? '',
-            isOptimisticPersonalDetail: true,
-        };
-    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -442,6 +411,7 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
                 const itemReceiptPath = item.receipt?.source;
@@ -825,6 +795,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
+                            policyRecentlyUsedCategories,
                         });
                     });
                 }
@@ -851,9 +822,9 @@ function IOURequestStepConfirmation({
                         reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
-                        splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -877,9 +848,9 @@ function IOURequestStepConfirmation({
                         reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
-                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -1258,7 +1229,6 @@ function IOURequestStepConfirmation({
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
-                        payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
                         iouIsReimbursable={transaction?.reimbursable}

@@ -368,7 +368,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread
-                expect(ReportUtils.isUnread(report, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
 
                 // And show a green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
@@ -382,7 +382,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
@@ -394,7 +394,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
-                expect(ReportUtils.isUnread(report, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
@@ -406,7 +406,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
@@ -418,7 +418,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
@@ -429,7 +429,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
@@ -503,13 +503,13 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then no change will occur
                 expect(report?.lastReadTime).toBe(reportActionCreatedDate);
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 Report.markCommentAsUnread(REPORT_ID, reportActions[400]);
@@ -517,15 +517,15 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
-                expect(ReportUtils.isUnread(report, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                expect(ReportUtils.isUnread(report, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
@@ -916,7 +916,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -949,7 +949,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -995,7 +995,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -1010,7 +1010,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1059,7 +1059,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1121,7 +1121,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1190,7 +1190,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1385,7 +1385,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1468,7 +1468,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1512,7 +1512,7 @@ describe('actions/Report', () => {
             reportActionID,
         );
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -1560,7 +1560,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -1604,9 +1604,9 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID,
         };
-        Report.editReportComment(originalReport, action, 'value1');
-        Report.editReportComment(originalReport, action, 'value2');
-        Report.editReportComment(originalReport, action, 'value3');
+        Report.editReportComment(originalReport, action, 'value1', undefined, undefined);
+        Report.editReportComment(originalReport, action, 'value2', undefined, undefined);
+        Report.editReportComment(originalReport, action, 'value3', undefined, undefined);
 
         const requests = PersistedRequests?.getAll();
 
@@ -1651,8 +1651,8 @@ describe('actions/Report', () => {
             lastMentionedTime: mentionAction2.created,
         });
 
-        Report.deleteReportComment(reportID, mentionAction);
-        Report.deleteReportComment(reportID, mentionAction2);
+        Report.deleteReportComment(reportID, mentionAction, undefined, undefined);
+        Report.deleteReportComment(reportID, mentionAction2, undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -1840,7 +1840,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            Report.markAllMessagesAsRead();
+            Report.markAllMessagesAsRead(new Set<string>());
 
             await waitForBatchedUpdates();
 
@@ -1852,7 +1852,7 @@ describe('actions/Report', () => {
                             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                             callback: (reportVal) => {
                                 Onyx.disconnect(connection);
-                                resolve(ReportUtils.isUnread(reportVal, undefined));
+                                resolve(ReportUtils.isUnread(reportVal, undefined, undefined));
                             },
                         });
                     });
@@ -2425,7 +2425,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy = createRandomPolicy(Number(1));
-            Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true);
+            Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
                 policy,
@@ -2484,5 +2484,43 @@ describe('actions/Report', () => {
 
         // testDriveModalDismissed should remain true and not be overwritten to false
         expect(onboarding?.testDriveModalDismissed).toBe(true);
+    });
+
+    describe('setOptimisticTransactionThread', () => {
+        it('should set optimistic transaction thread data with the provided parameters', async () => {
+            const reportID = 'report12';
+            const parentReportID = 'parentReport34';
+            const parentReportActionID = 'parentAction56';
+            const policyID = 'policy78';
+
+            Report.setOptimisticTransactionThread(reportID, parentReportID, parentReportActionID, policyID);
+
+            await waitForBatchedUpdates();
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+            expect(report).toMatchObject({
+                reportID,
+                policyID,
+                parentReportID,
+                parentReportActionID,
+                chatReportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            expect(report?.lastReadTime).toBeTruthy();
+            expect(report?.lastVisibleActionCreated).toBeTruthy();
+        });
+
+        it('should not set anything if no reportID was provided', async () => {
+            const reportID = undefined;
+
+            Report.setOptimisticTransactionThread(reportID);
+
+            await waitForBatchedUpdates();
+
+            const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
+
+            expect(reportsCollectionAfter).toBeUndefined();
+        });
     });
 });
