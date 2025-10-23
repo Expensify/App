@@ -5236,7 +5236,8 @@ const staticStyles = (theme: ThemeColors) =>
         avatarSelectorListContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: 2,
+            gap: 0,
+            justifyContent: 'space-between',
         },
 
         avatarSelected: {borderColor: theme.success, borderWidth: 2},

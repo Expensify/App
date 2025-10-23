@@ -325,18 +325,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                 });
             } else {
-                deleteMoneyRequest(
-                    originalMessage?.IOUTransactionID,
-                    reportAction,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    iouReport,
-                    chatReport,
-                    undefined,
-                    undefined,
-                    undefined,
-                    isChatIOUReportArchived,
-                );
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, iouReport, chatReport, isChatIOUReportArchived);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
@@ -349,7 +338,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport, report]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
