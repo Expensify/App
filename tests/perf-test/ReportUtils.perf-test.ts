@@ -171,7 +171,17 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false, draftComment: undefined}),
+            shouldReportBeInOptionList({
+                report,
+                chatReport,
+                currentReportId,
+                isInFocusMode,
+                betas,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: false,
+            }),
         );
     });
 

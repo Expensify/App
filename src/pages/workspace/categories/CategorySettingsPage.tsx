@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -55,6 +56,7 @@ function CategorySettingsPage({
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {environmentURL} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyCategory = policyData.categories?.[categoryName] ?? Object.values(policyData.categories ?? {}).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policyData.policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -137,6 +139,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
         );
     };
 
@@ -147,7 +150,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyData, [categoryName], isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport);
+        deleteWorkspaceCategories(policyData, [categoryName], isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
