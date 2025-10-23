@@ -16,7 +16,7 @@ import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */

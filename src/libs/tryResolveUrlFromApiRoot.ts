@@ -1,7 +1,7 @@
 import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {Request} from '@src/types/onyx';
-import {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import * as ApiUtils from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT

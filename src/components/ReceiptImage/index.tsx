@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
@@ -13,7 +13,7 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
