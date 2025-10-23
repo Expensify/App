@@ -287,45 +287,6 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     return newState;
 };
 
-/**
- * Helper function to remove collection items based on extracted ID matching a set
- */
-const removeCollectionItemsByID = (
-    onyxState: OnyxState,
-    collectionPrefix: string,
-    excludedIDs: Set<string>,
-    idExtractor: (key: string) => string = (key) => key.replace(collectionPrefix, ''),
-): void => {
-    Object.keys(onyxState).forEach((key) => {
-        if (!key.startsWith(collectionPrefix)) {
-            return;
-        }
-        const id = idExtractor(key);
-        if (!excludedIDs.has(id)) {
-            return;
-        }
-        // eslint-disable-next-line no-param-reassign
-        delete onyxState[key];
-    });
-};
-
-/**
- * Helper function to remove collection items with nested objects that have reportID or policyID
- */
-const removeCollectionItemsByNestedID = (onyxState: OnyxState, collectionPrefix: string, excludedIDs: Set<string>, idField: 'reportID' | 'policyID'): void => {
-    Object.keys(onyxState).forEach((key) => {
-        if (!key.startsWith(collectionPrefix)) {
-            return;
-        }
-        const item = onyxState[key] as Record<string, unknown>;
-        if (!item || typeof item[idField] !== 'string' || !excludedIDs.has(item[idField])) {
-            return;
-        }
-        // eslint-disable-next-line no-param-reassign
-        delete onyxState[key];
-    });
-};
-
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = {...data};
 
@@ -421,16 +382,71 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     });
 
     // Remove related data for excluded reports and transactions
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_ACTIONS, excludedReportIDs);
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, excludedReportIDs);
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, excludedReportIDs);
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_METADATA, excludedReportIDs);
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, excludedReportIDs);
-    removeCollectionItemsByID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, excludedTransactionIDs);
-
-    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.REPORT_DRAFT, excludedPolicyIDs, 'policyID');
-    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, excludedReportIDs, 'reportID');
-    removeCollectionItemsByNestedID(onyxState, ONYXKEYS.COLLECTION.TRANSACTION_BACKUP, excludedReportIDs, 'reportID');
+    Object.keys(onyxState).forEach((key) => {
+        // Remove report actions for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+            if (excludedReportIDs.has(reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove report actions drafts for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, '');
+            if (excludedReportIDs.has(reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove report violations for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, '');
+            if (excludedReportIDs.has(reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove report metadata for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_METADATA)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
+            if (excludedReportIDs.has(reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove report name-value pairs for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+            if (excludedReportIDs.has(reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove transaction violations for excluded transactions
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) {
+            const transactionID = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+            if (excludedTransactionIDs.has(transactionID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove report drafts for excluded policies
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_DRAFT)) {
+            const report = onyxState[key] as Record<string, unknown>;
+            if (report?.policyID && typeof report.policyID === 'string' && excludedPolicyIDs.has(report.policyID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove transaction drafts for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT)) {
+            const transaction = onyxState[key] as Record<string, unknown>;
+            if (transaction?.reportID && typeof transaction.reportID === 'string' && excludedReportIDs.has(transaction.reportID)) {
+                delete onyxState[key];
+            }
+        }
+        // Remove transaction backups for excluded reports
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_BACKUP)) {
+            const transaction = onyxState[key] as Record<string, unknown>;
+            if (transaction?.reportID && typeof transaction.reportID === 'string' && excludedReportIDs.has(transaction.reportID)) {
+                delete onyxState[key];
+            }
+        }
+    });
 
     // Filter derived keys to remove data for excluded reports
     if (onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] && typeof onyxState[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] === 'object') {
