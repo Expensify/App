@@ -435,13 +435,13 @@ function updateAvatar(
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'>) {
+function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
 
     const optimisticData: OnyxUpdate[] = [
         {
