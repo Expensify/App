@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type {MaskOnyxState} from './types';
@@ -363,7 +364,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
                 delete onyxState[key];
             }
             // If masking is enabled, also remove paycheck reports
-            else if (isMaskingFragileDataEnabled && report && report.type === 'paycheck') {
+            else if (isMaskingFragileDataEnabled && report && report.type === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK) {
                 excludedReportIDs.add(reportID);
                 delete onyxState[key];
             }
@@ -395,7 +396,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
                     if (txReport && typeof txReport.policyID === 'string' && excludedPolicyIDs.has(txReport.policyID)) {
                         excludedTransactionIDs.add(transactionID);
                         delete onyxState[key];
-                    } else if (isMaskingFragileDataEnabled && txReport && txReport.type === 'paycheck') {
+                    } else if (isMaskingFragileDataEnabled && txReport && txReport.type === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK) {
                         excludedTransactionIDs.add(transactionID);
                         delete onyxState[key];
                     }
@@ -433,7 +434,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
                 delete reportTransactions[reportID];
             }
             // If masking is enabled and this is a paycheck report, remove it
-            else if (isMaskingFragileDataEnabled && originalReport && originalReport.type === 'paycheck') {
+            else if (isMaskingFragileDataEnabled && originalReport && originalReport.type === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK) {
                 orphanedReportIDs.add(reportID); // Track for transaction removal
                 delete reportTransactions[reportID];
             }
@@ -483,7 +484,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
 
                 // Skip if excluded, paycheck or orphaned
                 const shouldRemove =
-                    excludedReportIDs.has(reportID) || orphanedReportIDs.has(reportID) || (isMaskingFragileDataEnabled && originalReport && originalReport.type === 'paycheck');
+                    excludedReportIDs.has(reportID) || orphanedReportIDs.has(reportID) || (isMaskingFragileDataEnabled && originalReport && originalReport.type === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK);
 
                 if (!shouldRemove) {
                     filteredReports[reportID] = reports[reportID];
