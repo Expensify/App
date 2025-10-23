@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,10 +11,10 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import Switch from '@components/Switch';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +25,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -37,7 +37,6 @@ import {
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
@@ -64,8 +63,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -115,9 +113,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+            setWorkspaceTagEnabled({policyID, tagsToUpdate: {[tagName]: {name: tagName, enabled: value}}, tagListIndex: route.params.orderWeight, policyTags});
         },
-        [policyID, route.params.orderWeight],
+        [policyID, route.params.orderWeight, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(
@@ -133,7 +131,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightElement: hasDependentTags ? (
-                    <ListItemRightCaretWithLabel shouldShowCaret />
+                    <ListItemRightCaretWithLabel />
                 ) : (
                     <Switch
                         isOn={tag.enabled}
@@ -159,7 +157,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
         return tagText.includes(normalizedSearchInput) || tagValue.includes(normalizedSearchInput);
     }, []);
-    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
+    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const tagListKeyedByName = useMemo(
@@ -200,6 +198,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -213,9 +212,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
         });
@@ -283,7 +283,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToDisable, tagListIndex: route.params.orderWeight, policyTags});
                 },
             });
         }
@@ -295,7 +295,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToEnable, tagListIndex: route.params.orderWeight, policyTags});
                 },
             });
         }
@@ -316,7 +316,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+        setPolicyTagsRequired({policyID, requiresTag: false, tagListIndex: route.params.orderWeight, policyTags});
     }
 
     const navigateToEditTag = () => {
@@ -376,11 +376,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                     return;
                                 }
 
-                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                                setPolicyTagsRequired({policyID, requiresTag: on, tagListIndex: route.params.orderWeight, policyTags});
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: route.params.orderWeight, errorField: 'required', policyTags})}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                             showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
@@ -403,7 +403,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {tagList.length > 0 && !isLoading && (
@@ -426,8 +425,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding
                         onDismissError={(item) => {
-                            clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
+                            clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: route.params.orderWeight, policyTags});
                         }}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal

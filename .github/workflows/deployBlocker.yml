@@ -9,6 +9,7 @@ jobs:
   updateChecklist:
     if: github.event.label.name == 'DeployBlockerCash'
     uses: ./.github/workflows/createDeployChecklist.yml
+    secrets: inherit
 
   deployBlocker:
     if: github.event.label.name == 'DeployBlockerCash'

@@ -1,10 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import BaseLoginForm from './BaseLoginForm';
-import type {InputHandle} from './types';
 import type LoginFormProps from './types';
 
-function LoginForm(props: LoginFormProps, ref: ForwardedRef<InputHandle>) {
+function LoginForm({ref, ...props}: LoginFormProps) {
     return (
         <BaseLoginForm
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -16,4 +14,4 @@ function LoginForm(props: LoginFormProps, ref: ForwardedRef<InputHandle>) {
 
 LoginForm.displayName = 'LoginForm';
 
-export default forwardRef(LoginForm);
+export default LoginForm;

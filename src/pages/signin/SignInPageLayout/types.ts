@@ -1,4 +1,5 @@
 import type React from 'react';
+import type {ForwardedRef} from 'react';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */
@@ -25,6 +26,9 @@ type SignInPageLayoutProps = {
     customHeroBody?: string;
 
     navigateFocus?: () => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SignInPageLayoutRef>;
 };
 
 type SignInPageLayoutRef = {

@@ -21,13 +21,19 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 type CardNameStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function CardNameStep({policyID}: CardNameStepProps) {
+function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
@@ -73,8 +79,8 @@ function CardNameStep({policyID}: CardNameStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>

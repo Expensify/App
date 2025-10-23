@@ -3,7 +3,6 @@ title: Share Verified Business Bank Account
 description: Learn how to share access to a verified business bank account in Expensify to reimburse employees or pay vendor bills.
 keywords: [Expensify Classic, share bank account, reimburse, vendor payments, Workspace Admin]
 ---
-<div id="expensify-classic" markdown="1">
 
 If another Admin needs access to an existing verified bank account to reimburse employees, the account needs to be shared with them first.
 
@@ -34,4 +33,3 @@ If an admin or accountant leaves the company or no longer needs access to the wo
 1. Go to **Settings > Account > Wallet**.
 2. Under **Bank Accounts**, click **Unshare** next to the admin’s name.
 
-</div>

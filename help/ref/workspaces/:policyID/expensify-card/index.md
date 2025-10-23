@@ -19,4 +19,4 @@ The Expensify Card is a smart company card with real-time controls and built-in 
 
 ---
 
-More details on setting up the Expensify Card for your business can be found here ➡️ **[The Expensify Card](https://help.expensify.com/new-expensify/hubs/expensify-card/)**.
+More details on setting up the Expensify Card for your business can be found here ➡️ [The Expensify Card](https://help.expensify.com/new-expensify/hubs/expensify-card/).

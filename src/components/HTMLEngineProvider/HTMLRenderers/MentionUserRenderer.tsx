@@ -11,10 +11,10 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
@@ -30,6 +30,7 @@ type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRend
 function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const htmlAttributeAccountID = tnode.attributes.accountid;
@@ -37,16 +38,16 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     let accountID: number;
     let mentionDisplayText: string;
     let navigationRoute: Route;
-
-    const tnodeClone = cloneDeep(tnode);
+    let tnodeClone: typeof tnode | undefined;
 
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
+        mentionDisplayText = getDisplayNameOrDefault(user) || formatPhoneNumber(user?.login ?? '');
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
-    } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
+        tnodeClone = cloneDeep(tnode);
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
@@ -55,9 +56,15 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
         );
 
-        accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        accountID = getAccountIDsByLogins([mentionDisplayText], false)?.at(0) ?? -1;
+        if (accountID !== -1) {
+            const user = personalDetails?.[accountID];
+            mentionDisplayText = getDisplayNameOrDefault(user) || formatPhoneNumber(user?.login ?? '');
+            mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
+        } else {
+            mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+        }
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
-        mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -101,12 +108,19 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         <Text
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
-                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            style={[
+                                styles.link,
+                                styleWithoutColor,
+                                StyleUtils.getMentionStyle(isOurMention),
+                                {color: StyleUtils.getMentionTextColor(isOurMention)},
+                                styles.breakWord,
+                                styles.textWrap,
+                            ]}
                             role={CONST.ROLE.LINK}
                             testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
-                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
+                            {accountID && accountID !== -1 ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>

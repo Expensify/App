@@ -3,7 +3,7 @@
 .well-known
 desktop/dist/**/*.js
 dist/**/*.js
-.rnef
+.rock
 assets/animations
 android
 ios
@@ -17,6 +17,8 @@ package-lock.json
 *.scss
 *.md
 *.markdown
+# We need to ignore index.js because it should always have plyfill on top of imports and we don't want prettier to sort them
+index.js
 # We need to modify the import here specifically, hence we disable prettier to get rid of the sorted imports
 src/libs/E2E/reactNativeLaunchingTest.ts
 
@@ -26,3 +28,4 @@ src/libs/SearchParser/autocompleteParser.js
 
 # Disable prettier in the submodule
 Mobile-Expensify
+modules/group-ib-fp

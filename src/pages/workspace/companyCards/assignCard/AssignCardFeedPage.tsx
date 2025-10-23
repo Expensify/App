@@ -1,3 +1,4 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,7 +30,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
     const firstAssigneeEmail = useInitial(assignCard?.data?.email);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
 
@@ -60,7 +61,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
-            return <PlaidConnectionStep feed={feed} />;
+            return (
+                <PlaidConnectionStep
+                    feed={feed}
+                    policyID={policyID}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return (
                 <AssigneeStep
@@ -89,6 +95,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
+                    feed={feed}
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );

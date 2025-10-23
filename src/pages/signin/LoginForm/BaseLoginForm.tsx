@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -23,7 +22,7 @@ import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
@@ -38,14 +37,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
-import type {InputHandle} from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -69,7 +68,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
                 return false;
             }
 
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
+            const phoneLogin = appendCountryCodeWithCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
@@ -84,7 +83,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
             setFormError(undefined);
             return true;
         },
-        [setFormError],
+        [setFormError, countryCode],
     );
 
     /**
@@ -140,12 +139,12 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
 
         const loginTrim = StringUtils.removeInvisibleCharacters(login.trim());
 
-        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
+        const phoneLogin = appendCountryCodeWithCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account, closeAccount, isOffline, validate]);
+    }, [login, account, closeAccount, isOffline, validate, countryCode]);
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
@@ -218,6 +217,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });
@@ -334,4 +334,4 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(forwardRef(BaseLoginForm));
+export default withToggleVisibilityView(BaseLoginForm);

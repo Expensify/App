@@ -4,7 +4,6 @@ description: Learn how to create, customize, and manage your Expensify workspace
 keywords: [New Expensify, how to get started, new workspace, create workspace, add members, approval workflows, connect accounting software]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to a **Setup Specialist** via the **#admins chat room** or **Concierge** in your Inbox.
 
@@ -15,7 +14,7 @@ Setting up a workspace in New Expensify is the first step to managing company ex
 Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
 
 **To create a workspace:**
-1. In the left-hand menu, select **Workspaces**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**.
 2. Click **New workspace**.
 3. Click **Name** to give your workspace a name.
 4. Click **Default Currency** to set your preferred currency.
@@ -142,4 +141,3 @@ Track your trial under **Account > Subscription**:
 - Get help from **Concierge** or your **Setup Specialist**
 - Add a **billing card** to continue using Expensify
  
-</div>

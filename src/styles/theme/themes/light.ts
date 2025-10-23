@@ -74,11 +74,9 @@ const lightTheme = {
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
     attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
     attachmentDropUIBGActive: 'rgba(90, 176, 255, 0.96)',
-    attachmentDropBorderColor: 'rgba(176, 217, 255, 0)',
     attachmentDropBorderColorActive: colors.blue100,
     receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
     receiptDropUIBGActive: 'rgba(3, 212, 124, 0.96)',
-    receiptDropBorderColor: 'rgba(177, 242, 214, 0)',
     receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
@@ -157,6 +155,29 @@ const lightTheme = {
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+    },
+
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue200,
+            textColor: colors.blue700,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine200,
+            textColor: colors.tangerine700,
+        },
+        approved: {
+            backgroundColor: colors.ice200,
+            textColor: colors.ice700,
+        },
+        paid: {
+            backgroundColor: colors.green200,
+            textColor: colors.green700,
+        },
+        closed: {
+            backgroundColor: colors.pink200,
+            textColor: colors.pink700,
         },
     },
 

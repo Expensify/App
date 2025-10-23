@@ -5,6 +5,7 @@ import {
     getIcons,
     isAdminRoom,
     isAnnounceRoom,
+    isArchivedNonExpenseReport,
     isChatReport,
     isChatRoom,
     isChatThread,
@@ -142,6 +143,22 @@ describe('getIcons', () => {
         const icons = getIcons(report, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.name).toBe('Email One');
+    });
+
+    it('should return the correct icons for archived non expense request/report', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            type: CONST.REPORT.CHAT_TYPE.INVOICE,
+        };
+        const policy = LHNTestUtils.getFakePolicy('1');
+
+        // Verify report type conditions
+        expect(isArchivedNonExpenseReport(report, true)).toBe(true);
+
+        const icons = getIcons(report, FAKE_PERSONAL_DETAILS, null, '', -1, policy, undefined, true);
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.name).toBe(policy.name);
+        expect(icons.at(0)?.type).toBe('workspace');
     });
 
     it('should return the correct icons for a chat thread', () => {

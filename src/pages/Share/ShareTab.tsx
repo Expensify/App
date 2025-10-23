@@ -1,17 +1,17 @@
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import type {Ref} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
-import {saveUnknownUserDetails} from '@libs/actions/Share';
+import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -32,13 +32,20 @@ type ShareTabRef = {
     focus?: () => void;
 };
 
-function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
+type ShareTabProps = {
+    /** Reference to the outer element */
+    ref?: Ref<ShareTabRef>;
+};
+
+function ShareTab({ref}: ShareTabProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -55,27 +62,34 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false, false);
-    }, [areOptionsInitialized, betas, options]);
-
-    const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+        return getSearchOptions({
+            options,
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: false,
+            includeReadOnly: false,
+            searchQuery: textInputValue,
+            maxResults: 20,
+            includeUserToInvite: true,
+            countryCode,
+        });
+    }, [areOptionsInitialized, betas, draftComments, options, textInputValue, countryCode]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
-            return optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+            return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
         }
-        const filteredOptions = filterOptions(textInputValue);
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
+        if (searchOptions.userToInvite) {
+            reportOptions.push(searchOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [filterOptions, searchOptions.recentReports, textInputValue]);
+    }, [searchOptions, textInputValue]);
 
     useEffect(() => {
         searchInServer(debouncedTextInputValue.trim());
@@ -91,9 +105,9 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     const [sections, header] = useMemo(() => {
         const newSections = [];
         newSections.push({title: textInputValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false);
+        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false, countryCode);
         return [newSections, headerMessage];
-    }, [textInputValue, styledRecentReports, translate]);
+    }, [textInputValue, styledRecentReports, translate, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
@@ -107,6 +121,7 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
+            clearUnknownUserDetails();
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
@@ -131,4 +146,4 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     );
 }
 
-export default forwardRef(ShareTab);
+export default ShareTab;

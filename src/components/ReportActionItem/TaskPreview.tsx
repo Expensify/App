@@ -120,7 +120,7 @@ function TaskPreview({
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) =>
@@ -144,7 +144,7 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, taskReportID);
+                                    reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
                                     completeTask(taskReport, taskReportID);
                                 }

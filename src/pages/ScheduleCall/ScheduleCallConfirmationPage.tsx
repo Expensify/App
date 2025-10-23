@@ -1,11 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import {addMinutes, format} from 'date-fns';
-import React, {useCallback, useMemo} from 'react';
+import {addMinutes} from 'date-fns';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -16,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {confirmBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -71,7 +71,7 @@ function ScheduleCallConfirmationPage() {
         if (!scheduleCallDraft?.timeSlot || !scheduleCallDraft.date) {
             return '';
         }
-        const dateString = format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
         const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
@@ -82,6 +82,13 @@ function ScheduleCallConfirmationPage() {
 
         return `${dateString} from ${timeString} ${timezoneString}`;
     }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, userTimezone]);
+
+    useEffect(() => {
+        const guideAccountID = scheduleCallDraft?.guide?.accountID;
+        if (guideAccountID && !personalDetails?.[guideAccountID]) {
+            openPublicProfilePage(guideAccountID);
+        }
+    }, [scheduleCallDraft?.guide?.accountID, personalDetails]);
 
     return (
         <ScreenWrapper
@@ -106,14 +113,7 @@ function ScheduleCallConfirmationPage() {
                         description={guideDetails?.login}
                         label={translate('scheduledCall.confirmation.setupSpecialist')}
                         interactive={false}
-                        icon={[
-                            {
-                                id: guideDetails?.accountID,
-                                source: guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
-                                name: guideDetails?.login,
-                                type: CONST.ICON_TYPE_AVATAR,
-                            },
-                        ]}
+                        iconAccountID={guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     />
                     <MenuItemWithTopDescription
                         title={dateTimeString}

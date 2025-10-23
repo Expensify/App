@@ -7,7 +7,6 @@ function SearchFiltersExportedPage() {
         <SearchDatePresetFilterBasePage
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}
             titleKey="search.filters.exported"
-            presets={CONST.SEARCH.FILTER_DATE_PRESETS[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]}
         />
     );
 }

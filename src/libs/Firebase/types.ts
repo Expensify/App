@@ -17,8 +17,6 @@ type PerfAttributes = {
     transactionViolationsLength: string;
     policiesLength: string;
     transactionsLength: string;
-    policyType: string;
-    policyRole: string;
 };
 
 // TODO confirm which attributes are required for Firebase

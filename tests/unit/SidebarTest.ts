@@ -1,4 +1,4 @@
-import {screen} from '@testing-library/react-native';
+import {act, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -10,7 +10,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
@@ -31,17 +31,26 @@ describe('Sidebar', () => {
         initOnyxDerivedValues();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-        // Initialize the network key for OfflineWithFeedback
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            // Initialize the network key for OfflineWithFeedback
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        });
+
+        await waitForBatchedUpdatesWithAct();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+
+        await waitForBatchedUpdatesWithAct();
     });
 
     describe('archived chats', () => {
@@ -67,7 +76,7 @@ describe('Sidebar', () => {
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             return (
-                waitForBatchedUpdates()
+                waitForBatchedUpdatesWithAct()
                     .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
@@ -83,21 +92,24 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
                         };
 
-                        return Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportNameValuePairsCollection,
-                            ...reportCollection,
-                            ...reportAction,
+                        return act(async () => {
+                            await Onyx.multiSet({
+                                [ONYXKEYS.BETAS]: betas,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                ...reportNameValuePairsCollection,
+                                ...reportCollection,
+                                ...reportAction,
+                            });
                         });
                     })
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat room has been archived.');
@@ -129,7 +141,7 @@ describe('Sidebar', () => {
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             return (
-                waitForBatchedUpdates()
+                waitForBatchedUpdatesWithAct()
                     .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
@@ -145,21 +157,24 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
                         };
 
-                        return Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportNameValuePairsCollection,
-                            ...reportCollection,
-                            ...reportAction,
+                        return act(async () => {
+                            await Onyx.multiSet({
+                                [ONYXKEYS.BETAS]: betas,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                ...reportNameValuePairsCollection,
+                                ...reportCollection,
+                                ...reportAction,
+                            });
                         });
                     })
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat is no longer active because Vikings Policy is no longer an active workspace.');

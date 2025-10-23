@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -12,7 +12,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -25,7 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,11 +34,11 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -49,7 +49,6 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -58,7 +57,10 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+// eslint-disable-next-line no-restricted-imports
+import findNodeHandle from '@src/utils/findNodeHandle';
 
 type SyncSelection = {
     position: number;
@@ -98,14 +100,11 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The placeholder for the input */
     inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFilesInModal: (file: FileObject[]) => void;
+    /** Callback when a file is pasted */
+    onPasteFile: (file: FileObject | FileObject[]) => void;
 
-    /** Whether the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
-
-    /** Whether the input is disabled */
-    disabled: boolean;
+    /** Whether the input is disabled, defaults to false */
+    disabled?: boolean;
 
     /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
@@ -145,6 +144,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ComposerRef>;
 };
 
 type SwitchToCurrentReportProps = {
@@ -195,60 +197,57 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
  * However, double check if the component really needs access, as it will re-render
  * on every key press.
  */
-function ComposerWithSuggestions(
-    {
-        // Props: Report
-        reportID,
-        includeChronos,
-        lastReportAction,
-        isGroupPolicyReport,
-        policyID,
+function ComposerWithSuggestions({
+    // Props: Report
+    reportID,
+    includeChronos,
+    lastReportAction,
+    isGroupPolicyReport,
+    policyID,
 
-        // Focus
-        onFocus,
-        onBlur,
-        onValueChange,
+    // Focus
+    onFocus,
+    onBlur,
+    onValueChange,
 
-        // Composer
-        isComposerFullSize,
-        setIsFullComposerAvailable,
-        isMenuVisible,
-        inputPlaceholder,
-        displayFilesInModal,
-        isBlockedFromConcierge,
-        disabled,
-        setIsCommentEmpty,
-        handleSendMessage,
-        shouldShowComposeInput,
-        measureParentContainer = () => {},
-        isScrollLikelyLayoutTriggered,
-        raiseIsScrollLikelyLayoutTriggered,
-        onCleared = () => {},
-        onLayout: onLayoutProps,
+    // Composer
+    isComposerFullSize,
+    setIsFullComposerAvailable,
+    isMenuVisible,
+    inputPlaceholder,
+    onPasteFile,
+    disabled,
+    setIsCommentEmpty,
+    handleSendMessage,
+    shouldShowComposeInput,
+    measureParentContainer = () => {},
+    isScrollLikelyLayoutTriggered,
+    raiseIsScrollLikelyLayoutTriggered,
+    onCleared = () => {},
+    onLayout: onLayoutProps,
 
-        // Refs
-        suggestionsRef,
-        isNextModalWillOpenRef,
+    // Refs
+    suggestionsRef,
+    isNextModalWillOpenRef,
+    ref,
 
-        // For testing
-        children,
-        didHideComposerInput,
-    }: ComposerWithSuggestionsProps,
-    ref: ForwardedRef<ComposerRef>,
-) {
+    // For testing
+    children,
+    didHideComposerInput,
+}: ComposerWithSuggestionsProps) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanel();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
+    const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const [value, setValue] = useState(() => {
         if (draftComment) {
             emojisPresentBefore.current = extractEmojis(draftComment);
@@ -305,8 +304,8 @@ function ComposerWithSuggestions(
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
+        RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
+    }, []);
 
     const debouncedSaveReportComment = useMemo(
         () =>
@@ -377,9 +376,30 @@ function ComposerWithSuggestions(
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
+
+            // previous text before change
+            const prevText = lastTextRef.current;
+            // snapshot selection (should be the selection that was active just before the paste/change)
+            const prevSelectionStart = selection?.start ?? 0;
+            const prevSelectionEnd = selection?.end ?? 0;
+
+            // detect newly added text (existing helper)
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(prevText, commentValue);
+
+            // Try to rewrite if this looks like "selected text replaced with a single URL"
+            const {text: rewritten, didReplace} = detectAndRewritePaste(prevText, prevSelectionStart, prevSelectionEnd, diff);
+
+            // Use the rewritten text when we replaced; otherwise fall back to the original commentValue pipeline
+            const effectiveCommentValue = didReplace ? (rewritten ?? commentValue) : commentValue;
+
+            // Emoji handling: skip the "emoji inserted" special-case when we performed the markdown rewrite.
+            const isEmojiInserted =
+                !didReplace && // <-- use the didReplace flag instead of searching for '['
+                diff.length &&
+                endIndex > startIndex &&
+                diff.trim() === diff &&
+                containsOnlyEmojis(diff);
+            const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: newComment, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -427,7 +447,18 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
+        [
+            findNewlyAddedChars,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            setIsCommentEmpty,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+            selection?.end,
+            selection?.start,
+        ],
     );
 
     /**
@@ -511,6 +542,7 @@ function ComposerWithSuggestions(
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -810,12 +842,12 @@ function ComposerWithSuggestions(
                     }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={(file) => {
+                    onPasteFile={(files) => {
                         textInputRef.current?.blur();
-                        displayFilesInModal([file]);
+                        onPasteFile(files);
                     }}
                     onClear={onClear}
-                    isDisabled={isBlockedFromConcierge || disabled}
+                    isDisabled={disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
@@ -862,6 +894,6 @@ function ComposerWithSuggestions(
 
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-export default memo(forwardRef(ComposerWithSuggestions));
+export default memo(ComposerWithSuggestions);
 
 export type {ComposerWithSuggestionsProps, ComposerRef};

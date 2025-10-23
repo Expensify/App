@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,8 +57,8 @@ function IOURequestStepTaxAmountPage({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-
     const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
@@ -100,7 +101,7 @@ function IOURequestStepTaxAmountPage({
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, {taxAmount: taxAmountInSmallestCurrencyUnits});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
             navigateBack();
             return;
         }

@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
@@ -5,7 +6,7 @@ import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
-function sortEmailObjects(emails?: StringHolder[]): string[] {
+function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextProps['localeCompare']): string[] {
     if (!emails?.length) {
         return [];
     }
@@ -23,14 +24,14 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
         const isExpensifyB = b.toLowerCase().includes(expensifyDomain);
 
         // Prioritize Expensify emails, then sort alphabetically
-        return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : a.localeCompare(b);
+        return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : localeCompare(a, b);
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: LocaleContextProps['localeCompare'], countryCode: number): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
-            const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
+            const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarSource = (contact?.imageData || RandomAvatarUtils.getAvatarForContact(`${contact?.firstName}${email}${contact?.lastName}`)) ?? '';
             const phoneNumber = contact.phoneNumbers?.[0]?.value ?? '';
@@ -46,9 +47,11 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<P
                 email,
                 phone: phoneNumber,
                 avatar: avatarSource,
+                countryCode,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);
 };
 
 export default getContacts;
+export {sortEmailObjects};

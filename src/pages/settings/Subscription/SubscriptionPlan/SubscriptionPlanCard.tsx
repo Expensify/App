@@ -5,8 +5,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
-import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSubscriptionPlanInfo} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
+import useOnyx from '@src/hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
@@ -35,9 +36,16 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentSubscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
-    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
+    const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE, {canBeMissing: true});
+    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
+        subscriptionPlan,
+        privateSubscription?.type,
+        preferredCurrency,
+        isFromComparisonModal,
+        firstPolicyDate,
+    );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 

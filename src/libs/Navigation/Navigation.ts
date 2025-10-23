@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -10,12 +10,11 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridAppRoute, Route} from '@src/ROUTES';
-import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
@@ -44,7 +43,8 @@ const SET_UP_2FA_ROUTES: Route[] = [
 ];
 
 let account: OnyxEntry<Account>;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
@@ -60,7 +60,7 @@ const navigationIsReadyPromise = new Promise<void>((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let pendingRoute: Route | null = null;
+let pendingNavigationCall: {route: Route; options?: LinkToOptions} | null = null;
 
 let shouldPopToSidebar = false;
 
@@ -117,23 +117,6 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 /**
- * Function that generates dynamic urls from paths passed from OldDot.
- */
-function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
-    switch (url) {
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        default:
-            return url;
-    }
-}
-
-/**
  * Returns the current active route.
  */
 function getActiveRoute(): string {
@@ -154,6 +137,11 @@ function getActiveRoute(): string {
  * Returns the route of a report opened in RHP.
  */
 function getReportRHPActiveRoute(): string {
+    // Safe handling when navigation is not yet initialized
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        return '';
+    }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
         return getActiveRoute();
     }
@@ -202,7 +190,7 @@ function navigate(route: Route, options?: LinkToOptions) {
             // Store intended route if the navigator is not yet available,
             // we will try again after the NavigationContainer is ready
             Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-            pendingRoute = route;
+            pendingNavigationCall = {route, options};
         }
         return;
     }
@@ -472,12 +460,12 @@ function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationCo
  * but the NavigationContainer was not ready when navigate() was called
  */
 function goToPendingRoute() {
-    if (pendingRoute === null) {
+    if (pendingNavigationCall === null) {
         return;
     }
-    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
-    navigate(pendingRoute);
-    pendingRoute = null;
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingNavigationCall.route}`);
+    navigate(pendingNavigationCall.route, pendingNavigationCall.options);
+    pendingNavigationCall = null;
 }
 
 function isNavigationReady(): Promise<void> {
@@ -561,6 +549,11 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        // Let React Navigation finish modal transition
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            fireModalDismissed();
+        });
     });
 };
 
@@ -569,10 +562,7 @@ const dismissModal = (ref = navigationRef) => {
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModalWithReport = (
-    {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
-    ref = navigationRef,
-) => {
+const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
         const areReportsIDsDefined = !!topmostReportID && !!reportID;
@@ -581,12 +571,13 @@ const dismissModalWithReport = (
             dismissModal();
             return;
         }
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo);
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
             return;
         }
         dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });
@@ -646,10 +637,47 @@ function removeScreenByKey(key: string) {
     });
 }
 
+function removeReportScreen(reportIDSet: Set<string>) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state?.routes.filter((route) => {
+                if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
+                    return !reportIDSet.has(route.params?.reportID as string);
+                }
+                return true;
+            });
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 function isOnboardingFlow() {
     const state = navigationRef.getRootState();
     const currentFocusedRoute = findFocusedRoute(state);
     return isOnboardingFlowName(currentFocusedRoute?.name);
+}
+
+function clearPreloadedRoutes() {
+    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
+    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+}
+
+const modalDismissedListeners: Array<() => void> = [];
+
+function onModalDismissedOnce(callback: () => void) {
+    modalDismissedListeners.push(callback);
+}
+
+// Wrap modal dismissal so listeners get called
+function fireModalDismissed() {
+    while (modalDismissedListeners.length) {
+        const cb = modalDismissedListeners.pop();
+        cb?.();
+    }
 }
 
 export default {
@@ -671,7 +699,6 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
-    parseHybridAppUrl,
     resetToHome,
     goBackToHome,
     closeRHPFlow,
@@ -681,10 +708,14 @@ export default {
     pop,
     removeScreenFromNavigationState,
     removeScreenByKey,
+    removeReportScreen,
     getReportRouteByID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    clearPreloadedRoutes,
+    onModalDismissedOnce,
+    fireModalDismissed,
 };
 
 export {navigationRef};

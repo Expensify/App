@@ -79,11 +79,9 @@ type ThemeColors = {
     fileDropUIBG: Color;
     attachmentDropUIBG: Color;
     attachmentDropUIBGActive: Color;
-    attachmentDropBorderColor: Color;
     attachmentDropBorderColorActive: Color;
     receiptDropUIBG: Color;
     receiptDropUIBGActive: Color;
-    receiptDropBorderColor: Color;
     receiptDropBorderColorActive: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
@@ -113,6 +111,14 @@ type ThemeColors = {
     travelBG: Color;
     todoBG: Color;
     trialTimer: Color;
+
+    reportStatusBadge: Record<
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed',
+        {
+            backgroundColor: Color;
+            textColor: Color;
+        }
+    >;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

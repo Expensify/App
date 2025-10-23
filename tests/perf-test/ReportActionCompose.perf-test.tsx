@@ -21,14 +21,19 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
-    LayoutAnimationConfig: () => {
-        return ({children}: {children: React.ReactNode}) => children;
-    },
+    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
+    Keyframe: jest.fn().mockImplementation(() => ({
+        duration: jest.fn().mockReturnThis(),
+        delay: jest.fn().mockReturnThis(),
+        easing: jest.fn().mockReturnThis(),
+        withCallback: jest.fn().mockReturnThis(),
+    })),
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getReportRHPActiveRoute: jest.fn(),
+    isTopmostRouteModalScreen: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -78,7 +83,6 @@ function ReportActionComposeWrapper() {
             <ReportActionCompose
                 onSubmit={() => jest.fn()}
                 reportID="1"
-                disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
             />
@@ -101,6 +105,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const hintAttachmentButtonText = Localize.translateLocal('common.create');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
@@ -114,6 +119,7 @@ test('[ReportActionCompose] should press create button', async () => {
 test('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const hintSendButtonText = Localize.translateLocal('common.send');
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 

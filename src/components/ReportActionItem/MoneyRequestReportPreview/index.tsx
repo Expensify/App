@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -52,11 +53,42 @@ function MoneyRequestReportPreview({
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState<number>(0);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
+
+    const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
+    const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
+
+    const updateWidths = useCallback(() => {
+        const {currentWidth, currentWrapperWidth} = widthsRef.current;
+
+        if (currentWidth && currentWrapperWidth) {
+            setWidths({currentWidth, currentWrapperWidth});
+        }
+    }, []);
+
+    const onCarouselLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWidth !== newWidth) {
+                widthsRef.current.currentWidth = newWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+    const onWrapperLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWrapperWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+                widthsRef.current.currentWrapperWidth = newWrapperWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
-        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
@@ -74,7 +106,7 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
@@ -100,6 +132,8 @@ function MoneyRequestReportPreview({
         />
     );
 
+    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
+
     return (
         <MoneyRequestReportPreviewContent
             iouReportID={iouReportID}
@@ -121,18 +155,15 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
-            onCarouselLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width);
-            }}
-            onWrapperLayout={(e: LayoutChangeEvent) => {
-                setCurrentWrapperWidth(e.nativeEvent.layout.width);
-            }}
-            currentWidth={currentWidth}
+            onCarouselLayout={onCarouselLayout}
+            onWrapperLayout={onWrapperLayout}
+            currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
+            forwardedFSClass={fsClass}
         />
     );
 }

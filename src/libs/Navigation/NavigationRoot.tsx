@@ -1,5 +1,5 @@
-import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
-import {FSPage} from '@libs/Fullstory';
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
@@ -81,7 +81,7 @@ function parseAndLogRoute(state: NavigationState) {
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
-        new FSPage(focusedRouteName, {path: currentPath}).start();
+        new FS.Page(focusedRouteName, {path: currentPath}).start();
     }
 }
 
@@ -104,6 +104,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         canBeMissing: true,
     });
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -128,6 +131,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
+        // If we have a transition URL, don't restore last visited path - let React Navigation handle it
+        // This prevents reusing deep links after logout regardless of authentication status
+        if (isTransitioning) {
+            return undefined;
+        }
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
@@ -135,25 +144,28 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 getOnboardingInitialPath({
                     isUserFromPublicDomain: !!account.isFromPublicDomain,
                     hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                    currentOnboardingPurposeSelected,
+                    currentOnboardingCompanySize,
+                    onboardingInitialPath,
                 }),
                 linkingConfig.config,
             );
         }
 
-        // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!shouldOpenLastVisitedPath(lastVisitedPath) || CONFIG.IS_HYBRID_APP) {
-            return undefined;
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
+            // Only skip restoration if there's a specific deep link that's not the root
+            // This allows restoration when app is killed and reopened without a deep link
+            const isRootPath = !path || path === '' || path === '/';
+            const isSpecificDeepLink = path && !isRootPath;
+
+            if (!isSpecificDeepLink) {
+                Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
+                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            }
         }
 
-        // If the user opens the root of app "/" it will be parsed to empty string "".
-        // If the path is defined and different that empty string we don't want to modify the default behavior.
-        if (path) {
-            return;
-        }
-
-        // Otherwise we want to redirect the user to the last visited path.
-        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        // Default behavior - let React Navigation handle the initial state
+        return undefined;
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -167,10 +179,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             ...defaultNavigationTheme,
             colors: {
                 ...defaultNavigationTheme.colors,
-                background: theme.appBG,
+                /**
+                 * We want to have a stack with variable size of screens in RHP (wide layout).
+                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
+                 * The stack has to be this size because it has a container with overflow: hidden.
+                 * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
+                 * On narrow layout, we use theme.appBG to match the standard app background.
+                 */
+                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

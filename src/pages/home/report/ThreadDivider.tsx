@@ -6,6 +6,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const isReportArchived = useReportIsArchived(ancestor.report.reportID);
 
     return (
         <View
@@ -46,7 +48,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                 </>
             ) : (
                 <PressableWithoutFeedback
-                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report), isOffline)}
+                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report, isReportArchived), isOffline)}
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}

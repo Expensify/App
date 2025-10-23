@@ -2,14 +2,12 @@ import {Str} from 'expensify-common';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import Text from '@components/Text';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -33,52 +31,48 @@ const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTo
 
 const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1));
 
-let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
-Onyx.connect({
-    key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        frequentlyUsedEmojis =
-            val
-                ?.map((item) => {
-                    let emoji = item;
-                    if (!item.code) {
-                        emoji = {...emoji, ...findEmojiByName(item.name)};
-                    }
-                    if (!item.name) {
-                        emoji = {...emoji, ...findEmojiByCode(item.code)};
-                    }
-                    const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
-                    if (!emojiWithSkinTones) {
-                        return null;
-                    }
-                    return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
-                })
-                .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
+    if (!emojiList) {
+        return [];
+    }
+    const processedFrequentlyUsedEmojis =
+        emojiList
+            ?.map((item) => {
+                let emoji = item;
+                if (!item.code) {
+                    emoji = {...emoji, ...findEmojiByName(item.name)};
+                }
+                if (!item.name) {
+                    emoji = {...emoji, ...findEmojiByCode(item.code)};
+                }
+                const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                if (!emojiWithSkinTones) {
+                    return null;
+                }
+                return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+            })
+            .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
 
-        // On AddComment API response, each variant of the same emoji (with different skin tones) is
-        // treated as a separate entry due to unique emoji codes for each variant.
-        // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
-        const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
-        frequentlyUsedEmojis.forEach((emoji) => {
-            const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
-            if (existingEmoji) {
-                existingEmoji.count += emoji.count;
-                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
-            } else {
-                frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
-            }
-        });
-        frequentlyUsedEmojis = Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
-            if (a.count !== b.count) {
-                return b.count - a.count;
-            }
-            return b.lastUpdatedAt - a.lastUpdatedAt;
-        });
-    },
-});
+    // On AddComment API response, each variant of the same emoji (with different skin tones) is
+    // treated as a separate entry due to unique emoji codes for each variant.
+    // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
+    const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+    processedFrequentlyUsedEmojis.forEach((emoji) => {
+        const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+        if (existingEmoji) {
+            existingEmoji.count += emoji.count;
+            existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+        } else {
+            frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+        }
+    });
+    return Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+        if (a.count !== b.count) {
+            return b.count - a.count;
+        }
+        return b.lastUpdatedAt - a.lastUpdatedAt;
+    });
+};
 
 /**
  * Given an English emoji name, get its localized version
@@ -232,7 +226,7 @@ function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
 /**
  * Get a merged array with frequently used emojis
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerList {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUsedEmojis: FrequentlyUsedEmoji[]): EmojiPickerList {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
@@ -706,4 +700,5 @@ export {
     splitTextWithEmojis,
     containsCustomEmoji,
     containsOnlyCustomEmoji,
+    processFrequentlyUsedEmojis,
 };

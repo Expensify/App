@@ -11,14 +11,13 @@ import createOnyxContext from './createOnyxContext';
 const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
-const [ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-const [PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
-const [FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
-const [PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+const [BetaConfigurationProvider, BetaConfigurationContext, useBetaConfiguration] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
 const [ReportTransactionsAndViolationsProvider, , useAllReportsTransactionsAndViolations] = createOnyxContext(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+const [CardListProvider, , useCardList] = createOnyxContext(ONYXKEYS.CARD_LIST);
+const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
 type OnyxListItemProviderProps = {
     /** Rendered child component */
@@ -32,14 +31,13 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 PersonalDetailsProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
-                ReportCommentDraftsProvider,
-                PreferredThemeProvider,
-                FrequentlyUsedEmojisProvider,
-                PreferredEmojiSkinToneProvider,
+                BetaConfigurationProvider,
                 SessionProvider,
                 PolicyCategoriesProvider,
                 PolicyTagsProvider,
                 ReportTransactionsAndViolationsProvider,
+                CardListProvider,
+                WorkspaceCardListProvider,
             ]}
         >
             {props.children}
@@ -54,14 +52,15 @@ export default OnyxListItemProvider;
 export {
     usePersonalDetails,
     BetasContext,
-    PreferredThemeContext,
+    BetaConfigurationContext,
     useBetas,
-    useFrequentlyUsedEmojis,
+    useBetaConfiguration,
     PersonalDetailsContext,
-    PreferredEmojiSkinToneContext,
     useBlockedFromConcierge,
     useSession,
     usePolicyCategories,
     usePolicyTags,
     useAllReportsTransactionsAndViolations,
+    useCardList,
+    useWorkspaceCardList,
 };

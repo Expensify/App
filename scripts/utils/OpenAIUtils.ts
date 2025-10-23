@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
+import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
 
 class OpenAIUtils {
@@ -13,6 +15,21 @@ class OpenAIUtils {
      * The maximum amount of time to wait for a thread to produce a response.
      */
     private static readonly POLL_TIMEOUT = 90000;
+
+    /**
+     * The role of the `user` in the OpenAI model.
+     */
+    private static readonly USER = 'user';
+
+    /**
+     * The role of the `assistant` in the OpenAI model.
+     */
+    private static readonly ASSISTANT = 'assistant';
+
+    /**
+     * The status of a completed run in the OpenAI model.
+     */
+    private static readonly OPENAI_RUN_COMPLETED = 'completed';
 
     /**
      * The maximum number of requests to make when polling for thread completion.
@@ -31,7 +48,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
+    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-5'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
         if (systemPrompt) {
             messages.unshift({role: 'system', content: systemPrompt});
@@ -42,7 +59,8 @@ class OpenAIUtils {
                 this.client.chat.completions.create({
                     model,
                     messages,
-                    temperature: 0.3,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reasoning_effort: 'low',
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
@@ -58,26 +76,34 @@ class OpenAIUtils {
      * Prompt a pre-defined assistant.
      */
     public async promptAssistant(assistantID: string, userMessage: string): Promise<string> {
-        // start a thread run
-        let threadRun = await retryWithBackoff(
+        // 1. Create a thread
+        const thread = await retryWithBackoff(
             () =>
-                this.client.beta.threads.createAndRun({
-                    /* eslint-disable @typescript-eslint/naming-convention */
-                    assistant_id: assistantID,
-                    thread: {
-                        messages: [{role: 'user', content: userMessage}],
-                    },
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this.client.beta.threads.create({
+                    messages: [{role: OpenAIUtils.USER, content: userMessage}],
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
-        // poll for completion
+        // 2. Create a run on the thread
+        let run = await retryWithBackoff(
+            () =>
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this.client.beta.threads.runs.create(thread.id, {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    assistant_id: assistantID,
+                }),
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
+        );
+
+        // 3. Poll for completion
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, {thread_id: threadRun.id});
-            if (threadRun.status !== 'completed') {
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
+            run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
+            if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
                 await new Promise((resolve) => {
                     setTimeout(resolve, OpenAIUtils.POLL_RATE);
@@ -85,8 +111,9 @@ class OpenAIUtils {
                 continue;
             }
 
-            for await (const message of this.client.beta.threads.messages.list(threadRun.thread_id)) {
-                if (message.role !== 'assistant') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            for await (const message of this.client.beta.threads.messages.list(thread.id)) {
+                if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
                 }
                 response += message.content
@@ -132,6 +159,25 @@ class OpenAIUtils {
         }
 
         return false;
+    }
+
+    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
+        const sanitized = sanitizeJSONStringValues(response);
+        let parsed: T;
+
+        try {
+            parsed = JSON.parse(sanitized) as T;
+        } catch (e) {
+            console.error('Failed to parse AI response as JSON:', response);
+            return null;
+        }
+
+        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+            console.error('AI response missing required fields:', parsed);
+            return null;
+        }
+
+        return parsed;
     }
 }
 

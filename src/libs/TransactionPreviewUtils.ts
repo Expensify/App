@@ -10,10 +10,17 @@ import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './acti
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
-import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
 import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {hasActionsWithErrors, hasReceiptError, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
+import {
+    hasActionWithErrorsForTransaction,
+    hasReceiptError,
+    hasReportViolations,
+    isPaidGroupPolicyExpenseReport,
+    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isReportApproved,
+    isReportOwner,
+    isSettled,
+} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -27,10 +34,10 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
-    isCardTransaction,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isMerchantMissing,
     isOnHold,
     isPending,
@@ -66,16 +73,16 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
 }
 
 const getReviewNavigationRoute = (
-    route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
+    backTo: string,
+    threadReportID: string,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
+    policyCategories: OnyxTypes.PolicyCategories | undefined,
 ) => {
-    const backTo = route.params.backTo;
-
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID);
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID, policyCategories);
     setReviewDuplicatesKey({
         ...comparisonResult.keep,
         duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
@@ -84,28 +91,28 @@ const getReviewNavigationRoute = (
     });
 
     if (comparisonResult.change.merchant) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.category) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.tag) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.description) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.taxCode) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.billable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.reimbursable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo);
     }
 
-    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
+    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo);
 };
 
 type TranslationPathOrText = {
@@ -115,11 +122,34 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
-function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
-    const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
+    return violations?.reduce((acc, violation) => {
+        if (violation.type === CONST.VIOLATION_TYPES.VIOLATION && violation.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED) {
+            const violationCount = violation?.data?.errorIndexes?.length ?? 0;
+            return acc + violationCount;
+        }
+        return acc;
+    }, 0);
+}
 
+function getViolationTranslatePath(
+    violations: OnyxTypes.TransactionViolations,
+    hasFieldErrors: boolean,
+    violationMessage: string,
+    isTransactionOnHold: boolean,
+    shouldShowOnlyViolations: boolean,
+): TranslationPathOrText {
+    const filteredViolations = violations.filter((violation) => {
+        if (shouldShowOnlyViolations) {
+            return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+        }
+        return true;
+    });
+
+    const violationsCount = filteredViolations.length ?? 0;
+    const tagViolationsCount = getMultiLevelTagViolationsCount(filteredViolations) ?? 0;
     const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
-    const isTooLong = violationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
+    const isTooLong = violationsCount > 1 || tagViolationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
     return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
@@ -130,11 +160,17 @@ function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, 
  * it returns an empty array. It identifies the latest error in each action and filters out duplicates to
  * ensure only unique error messages are returned.
  */
-function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
+function getUniqueActionErrorsForTransaction(reportActions: OnyxTypes.ReportActions, transaction: OnyxTypes.Transaction | undefined) {
     const reportErrors = Object.values(reportActions).map((reportAction) => {
         const errors = reportAction.errors ?? {};
         const key = Object.keys(errors).sort().reverse().at(0) ?? '';
         const error = errors[key];
+        if (isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID) {
+            if (getOriginalMessage(reportAction)?.IOUTransactionID === transaction?.transactionID) {
+                return typeof error === 'string' ? error : '';
+            }
+            return '';
+        }
         return typeof error === 'string' ? error : '';
     });
 
@@ -164,7 +200,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
@@ -174,8 +210,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy(iouReport);
-    const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy;
+    const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
@@ -189,7 +226,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -211,7 +248,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasActionWithErrors && !!reportActions) {
-        const actionsWithErrors = getUniqueActionErrors(reportActions);
+        const actionsWithErrors = getUniqueActionErrorsForTransaction(reportActions, transaction);
         RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
@@ -311,7 +348,7 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations) && iouReport && isPaidGroupPolicyUtil(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -331,10 +368,10 @@ function createTransactionPreviewConditionals({
         isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
-        hasWarningTypeViolation(transaction, violations, true) ||
+        hasWarningTypeViolation(transaction, violations) ||
         hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
+    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
@@ -372,6 +409,6 @@ export {
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,
     getViolationTranslatePath,
-    getUniqueActionErrors,
+    getUniqueActionErrorsForTransaction,
 };
 export type {TranslationPathOrText};

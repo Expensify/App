@@ -5,7 +5,6 @@ keywords: [Expensify Classic, Insights, spending analysis]
 redirect_from: articles/other/Insights/
 ---
 
-<div id="expensify-classic" markdown="1">
 
 The Insights dashboard in Expensify provides a real-time overview of company spending across categories, employees, projects, and departments. It allows you to identify trends, forecast budgets, and create unlimited custom reports with the help of our support team.
 
@@ -90,4 +89,3 @@ Yes! We offer [seven default reports](https://help.expensify.com/articles/expens
 
 Looking for a custom report? Reach out to your Account Manager for assistance! 
 
-</div>

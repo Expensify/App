@@ -13,7 +13,7 @@ function goBackFromExportConnection(shouldGoBackToSpecificRoute: boolean, backTo
         return Navigation.goBack();
     }
     const companyCardDetailsPage = replaceCompanyCardsRoute(backTo);
-    return Navigation.goBack(companyCardDetailsPage);
+    return Navigation.goBack(companyCardDetailsPage, {compareParams: false});
 }
 
 export default goBackFromExportConnection;

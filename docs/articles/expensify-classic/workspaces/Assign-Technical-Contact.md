@@ -4,7 +4,6 @@ description: Learn how to assign a Technical Contact in Expensify Classic to rec
 keywords: [Expensify Classic, technical contact, integrations, error notifications]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 When your workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/), the assigned **Technical Contact** will receive email notifications about any export or sync errors that may occur. These notifications ensure that someone is alerted to troubleshoot and resolve any integration issues promptly.  
 
@@ -16,4 +15,3 @@ To assign a Technical Contact:
 1. Go to **Settings > Workspace > [Workspace Name] > Accounting**. 
 2. In the **Technical Contact** field, you can enter the email address of the person you want to assign.  
 
-</div>

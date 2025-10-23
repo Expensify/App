@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,11 +40,11 @@ function SearchFiltersStatusPage() {
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((statusOption) => ({
-            text: translate(statusOption.translation),
+            text: statusOption.text,
             keyForList: statusOption.value,
             isSelected: selectedItems.includes(statusOption.value),
         }));
-    }, [items, selectedItems, translate]);
+    }, [items, selectedItems]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
@@ -71,7 +71,7 @@ function SearchFiltersStatusPage() {
         updateAdvancedFilters({
             status: newStatus,
         });
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItems]);
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
@@ -88,13 +88,13 @@ function SearchFiltersStatusPage() {
             <HeaderWithBackButton
                 title={translate('common.status')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                 />

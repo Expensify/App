@@ -1,12 +1,13 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import localeCompare from './LocaleCompare';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -85,18 +86,20 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
  */
 function getCategoryListSections({
     categories,
+    localeCompare,
     searchValue,
     selectedOptions = [],
     recentlyUsedCategories = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
 }: {
     categories: PolicyCategories;
+    localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Category[];
     searchValue?: string;
     recentlyUsedCategories?: string[];
     maxRecentReportsToShow?: number;
 }): CategoryTreeSection[] {
-    const sortedCategories = sortCategories(categories);
+    const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
     const enabledCategoriesNames = enabledCategories.map((category) => category.name);
     const selectedOptionsWithDisabledState: Category[] = [];
@@ -188,6 +191,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('common.recent'),
             shouldShow: true,
             data,
@@ -198,6 +202,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('common.all'),
         shouldShow: true,
         data,
@@ -212,7 +217,7 @@ function getCategoryListSections({
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, Category>): Category[] {
+function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextProps['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
     const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 
@@ -264,7 +269,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (!isEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
-                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
+                acc.push(...nestedCategories.sort((a, b) => localeCompare(a.name, b.name)));
             }
 
             return acc;

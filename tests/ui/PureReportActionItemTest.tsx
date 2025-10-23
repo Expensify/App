@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,10 +9,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
@@ -53,22 +55,27 @@ describe('PureReportActionItem', () => {
         jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}).then(() =>
-            Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
                     displayName: actorEmail,
                     login: actorEmail,
                 },
-            }),
-        );
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     function renderItemWithAction(action: ReportAction) {
@@ -101,40 +108,57 @@ describe('PureReportActionItem', () => {
     }
 
     describe('Automatic actions', () => {
-        it('APPROVED action via workspace rules', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+        const testCases = [
+            {
+                testTitle: 'APPROVED action via workspace rules',
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessageExtras: {automaticAction: true},
+                translationKey: 'iou.automaticallyApproved',
+            },
+            {
+                testTitle: 'FORWARDED action via workspace rules',
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessageExtras: {automaticAction: true},
+                translationKey: 'iou.automaticallyForwarded',
+            },
+            {
+                testTitle: 'SUBMITTED action via harvesting',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessageExtras: {harvesting: true},
+                translationKey: 'iou.automaticallySubmitted',
+            },
+            {
+                testTitle: 'SUBMITTED_AND_CLOSED action via harvesting',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessageExtras: {harvesting: true},
+                translationKey: 'iou.automaticallySubmitted',
+            },
+        ];
+
+        const parseTextWithTrailingLink = (translatedText: string) => {
+            const match = translatedText.match(/^(.*?)(<a[^>]*>)(.*?)(<\/a>)$/);
+            if (!match) {
+                return null;
+            }
+            const [, textBeforeLink, , linkText] = match;
+            return {textBeforeLink, linkText};
+        };
+
+        it.each(testCases)('$testTitle', async ({actionName, originalMessageExtras, translationKey}) => {
+            const action = createReportAction(actionName, originalMessageExtras);
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallyApproved'))).toBeOnTheScreen();
-        });
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
+            if (!parsedText) {
+                throw new Error('Text cannot be parsed, translation failed');
+            }
 
-        it('FORWARDED action via workspace rules', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallyForwarded'))).toBeOnTheScreen();
-        });
-
-        it('SUBMITTED action via harvesting', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
-        });
-
-        it('SUBMITTED_AND_CLOSED action via harvesting', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+            const {textBeforeLink, linkText} = parsedText;
+            expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
+            expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
     });
 
@@ -145,6 +169,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.approvedMessage'))).toBeOnTheScreen();
         });
 
@@ -154,6 +179,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
         });
 
@@ -163,7 +189,19 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+        });
+
+        it('SUBMITTED action with memo', async () => {
+            const memo = 'memo message';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -172,7 +210,8 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
     });
 });

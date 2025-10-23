@@ -13,9 +13,19 @@ import {
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
+    handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions} from './types';
+import type {
+    DismissModalActionType,
+    OpenWorkspaceSplitActionType,
+    PreloadActionType,
+    PushActionType,
+    ReplaceActionType,
+    RootStackNavigatorAction,
+    RootStackNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
+} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
@@ -33,6 +43,14 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
+function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
+
+function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
+}
+
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
@@ -42,6 +60,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
         return true;
     }
@@ -67,6 +86,14 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
+            if (isPreloadAction(action) && action.payload.name === state.routes.at(-1)?.name) {
+                return state;
+            }
+
+            if (isToggleSidePanelWithHistoryAction(action)) {
+                return handleToggleSidePanelWithHistoryAction(state, action);
+            }
+
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
             }

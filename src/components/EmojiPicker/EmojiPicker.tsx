@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -18,6 +18,7 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import DomUtils from '@libs/DomUtils';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -27,9 +28,10 @@ const DEFAULT_ANCHOR_ORIGIN = {
 
 type EmojiPickerProps = {
     viewportOffsetTop: number;
+    ref?: ForwardedRef<EmojiPickerRef>;
 };
 
-function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
+function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -96,22 +98,24 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
-            close(() => {
-                onWillShow?.();
-                setIsEmojiPickerVisible(true);
-                setEmojiPopoverAnchorPosition({
-                    horizontal: value.horizontal,
-                    vertical: value.vertical,
+        KeyboardUtils.dismiss().then(() =>
+            calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
+                close(() => {
+                    onWillShow?.();
+                    setIsEmojiPickerVisible(true);
+                    setEmojiPopoverAnchorPosition({
+                        horizontal: value.horizontal,
+                        vertical: value.vertical,
+                    });
+                    emojiAnchorDimension.current = {
+                        width: value.width,
+                        height: value.height,
+                    };
+                    setEmojiPopoverAnchorOrigin(anchorOriginValue);
+                    setActiveID(id);
                 });
-                emojiAnchorDimension.current = {
-                    width: value.width,
-                    height: value.height,
-                };
-                setEmojiPopoverAnchorOrigin(anchorOriginValue);
-                setActiveID(id);
-            });
-        });
+            }),
+        );
     };
 
     /**
@@ -243,4 +247,4 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 }
 
 EmojiPicker.displayName = 'EmojiPicker';
-export default withViewportOffsetTop(forwardRef(EmojiPicker));
+export default withViewportOffsetTop(EmojiPicker);

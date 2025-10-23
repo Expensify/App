@@ -4,13 +4,6 @@ import * as API from '@libs/API';
 import type {GetValidateCodeForAccountMergeParams, MergeWithValidateCodeParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Session from '@src/types/onyx/Session';
-
-let session: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => (session = value ?? {}),
-});
 
 function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
     const optimisticData: OnyxUpdate[] = [
@@ -58,7 +51,6 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
     ];
 
     const parameters: GetValidateCodeForAccountMergeParams = {
-        authToken: session.authToken ?? '',
         email,
     };
 

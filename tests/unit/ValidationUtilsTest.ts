@@ -1,7 +1,9 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
 import {TextEncoder} from 'util';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import {
     getAgeRequirementError,
     isRequiredFulfilled,
@@ -13,6 +15,7 @@ import {
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidRegistrationNumber,
     isValidRoomName,
     isValidTwoFactorCode,
     isValidWebsite,
@@ -20,7 +23,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
 
-global.TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
@@ -45,6 +48,12 @@ describe('ValidationUtils', () => {
         test('Should return false for a date after the range', () => {
             const futureDate = '3042-07-18';
             const isValid = isValidDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a invalid date format', () => {
+            const validDate = '2025-07';
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(false);
         });
     });
@@ -207,6 +216,7 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
@@ -215,6 +225,7 @@ describe('ValidationUtils', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
             );
         });
@@ -222,6 +233,7 @@ describe('ValidationUtils', () => {
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
             const error = getAgeRequirementError(invalidDate, 18, 150);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
@@ -492,6 +504,48 @@ describe('ValidationUtils', () => {
             test('handles special characters (e.g., newlines, tabs)', () => {
                 expect(isValidInputLength('\n\t', 1)).toEqual({isValid: false, byteLength: 2}); // 2 bytes > 1
                 expect(isValidInputLength('\n\t', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
+            });
+        });
+    });
+
+    describe('isValidRegistrationNumber', () => {
+        describe('EU countries', () => {
+            test.each([
+                ['AT', 'FN123456', true],
+                ['AT', 'FN654321a', true],
+                ['AT', '123456', false],
+                ['BE', '0123.456.789', true],
+                ['BE', '1234.567.890', false],
+                ['BG', '123456789', true],
+                ['BG', '1234567890123', true],
+                ['BG', '12345678', false],
+                ['DE', 'HRB12345', true],
+                ['DE', 'HRA 6789', true],
+                ['DE', 'XYZ123', false],
+                ['ES', 'A12345678', true],
+                ['ES', 'B87654321', true],
+                ['ES', '12345678A', false],
+            ])('validates EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+            });
+        });
+
+        describe('Non-EU countries', () => {
+            test.each([
+                ['AU', '51824753556', true],
+                ['AU', '004085616', true],
+                ['AU', '123456789', false],
+                ['AU', '51824753557', false],
+                ['GB', '12345678', true],
+                ['GB', 'SC123456', true],
+                ['GB', 'S1234567', false],
+                ['GB', '1234567A', false],
+                ['CA', '123456789', true],
+                ['CA', '123456789RC0001', true],
+                ['CA', '12345678', false],
+                ['CA', '123456789XX123', false],
+            ])('validates Non-EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
             });
         });
     });

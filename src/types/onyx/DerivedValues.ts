@@ -1,6 +1,8 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Errors} from './OnyxCommon';
+import type Report from './Report';
 import type Transaction from './Transaction';
 import type TransactionViolations from './TransactionViolation';
 
@@ -63,5 +65,10 @@ type ReportTransactionsAndViolations = {
  */
 type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransactionsAndViolations>;
 
+/**
+ * The derived value for report outstanding reports.
+ */
+type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
 export default ReportAttributesDerivedValue;
-export type {ReportAttributes, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, ReportTransactionsAndViolations};
+export type {ReportAttributes, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, ReportTransactionsAndViolations, OutstandingReportsByPolicyIDDerivedValue};

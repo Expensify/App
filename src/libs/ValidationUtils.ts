@@ -10,8 +10,9 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -67,6 +68,15 @@ function isValidDate(date: string | Date): boolean {
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
@@ -118,7 +128,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
     });
 
@@ -207,6 +217,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -218,9 +229,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
@@ -233,6 +245,7 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -240,6 +253,7 @@ function getDatePassedError(inputDate: string): string {
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -533,8 +547,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
@@ -637,12 +650,36 @@ function isValidCARegistrationNumber(registrationNumber: string): boolean {
     return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
 }
 
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): boolean {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
 /**
  * Validates the given value if it is correct registration number for the given country.
  * @param registrationNumber
  * @param country
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+    }
+
     switch (country) {
         case CONST.COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);
