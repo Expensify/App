@@ -33,15 +33,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (!url) {
-                if (currentlyPlayingURL) {
-                    video.pause();
-                }
-                return;
-            }
-
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 video.pause();
+            }
+
+            // If there's no URL (image case), pause the player by setting currentlyPlayingURL
+            // without triggering the resetPlayerData in useEffect below
+            if (!url) {
+                setCurrentlyPlayingURL(reportID);
+                return;
             }
 
             const report = getReportOrDraftReport(reportID);
