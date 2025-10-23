@@ -674,6 +674,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        domains: 'Domänen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
