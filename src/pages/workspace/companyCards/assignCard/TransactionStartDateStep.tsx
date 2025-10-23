@@ -11,24 +11,26 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
-type TransactionStartDateStepProps = {
-    policyID: string | undefined;
-    feed: CompanyCardFeed;
-    backTo?: Route;
-};
+type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
 
-function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
+function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
+    const policyID = route.params?.policyID;
+    const backTo = route.params?.backTo;
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
@@ -36,6 +38,8 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+
+    useAssignCardStepNavigation(policyID, feed, backTo);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

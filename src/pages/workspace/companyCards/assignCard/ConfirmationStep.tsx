@@ -19,29 +19,26 @@ import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import { useAssignCardStepNavigation } from "@pages/workspace/companyCards/utils";
 
-type ConfirmationStepProps = {
-    /** Current policy id */
-    policyID: string | undefined;
 
-    /** Route to go back to */
-    backTo?: Route;
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
-    /** Selected feed */
-    feed: CompanyCardFeed;
-};
-
-function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({route}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    const policyID = route.params?.policyID;
+    const backTo = route.params?.backTo;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
@@ -52,7 +49,9 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((_route) => isFullScreenName(_route.name)));
+
+    useAssignCardStepNavigation(policyID, feed, backTo);
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
