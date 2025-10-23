@@ -346,6 +346,7 @@ function ReportActionsList({
     // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
+    const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
@@ -442,6 +443,10 @@ function ReportActionsList({
         }
     }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
+    useEffect(() => {
+        sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
+    }, [sortedVisibleReportActions]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -460,7 +465,7 @@ function ReportActionsList({
                     });
                     return;
                 }
-                const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
+                const index = sortedVisibleReportActionsRef.current.findIndex((item) => keyExtractor(item) === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
                         setTimeout(() => {
