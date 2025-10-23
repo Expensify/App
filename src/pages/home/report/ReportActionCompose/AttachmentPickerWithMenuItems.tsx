@@ -305,10 +305,10 @@ function AttachmentPickerWithMenuItems({
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => clearOutTaskInfoAndNavigate(reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, reportID, report),
             },
         ];
-    }, [report, reportID, translate, shouldUseNarrowLayout]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
