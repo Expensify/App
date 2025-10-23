@@ -46,7 +46,7 @@ type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
 
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
@@ -89,11 +89,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
 
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {

@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,7 +14,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -40,6 +41,12 @@ type ParentNavigationSubtitleProps = {
 
     /** The status text of the expense report */
     statusText?: string;
+
+    /** The background color for the status text */
+    statusTextBackgroundColor?: ColorValue;
+
+    /** The text color for the status text */
+    statusTextColor?: ColorValue;
 };
 
 function ParentNavigationSubtitle({
@@ -49,6 +56,8 @@ function ParentNavigationSubtitle({
     pressableStyles,
     openParentReportInCurrentTab = false,
     statusText,
+    statusTextBackgroundColor,
+    statusTextColor,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -67,8 +76,8 @@ function ParentNavigationSubtitle({
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
-    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty or user lacks access)
-    if (!reportName || !canCurrentUserOpenReport(report, isReportArchived)) {
+    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
+    if (!reportName) {
         return;
     }
 
@@ -108,29 +117,43 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <Text
-            style={[styles.optionAlternateText, styles.textLabelSupporting]}
-            numberOfLines={1}
-        >
-            {!!statusText && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${statusText} ${CONST.DOT_SEPARATOR} `}</Text>}
-            {!!reportName && (
-                <>
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
-                    <TextLink
-                        onMouseEnter={onMouseEnter}
-                        onMouseLeave={onMouseLeave}
-                        onPress={onPress}
-                        accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                        style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
-                    >
-                        {reportName}
-                    </TextLink>
-                </>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            {!!statusText && (
+                <View
+                    style={[
+                        styles.reportStatusContainer,
+                        styles.mr1,
+                        {
+                            backgroundColor: statusTextBackgroundColor,
+                        },
+                    ]}
+                >
+                    <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
+                </View>
             )}
-            {!!workspaceName && workspaceName !== reportName && (
-                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
-            )}
-        </Text>
+            <Text
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                numberOfLines={1}
+            >
+                {!!reportName && (
+                    <>
+                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
+                        <TextLink
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave}
+                            onPress={onPress}
+                            accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
+                        >
+                            {reportName}
+                        </TextLink>
+                    </>
+                )}
+                {!!workspaceName && workspaceName !== reportName && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                )}
+            </Text>
+        </View>
     );
 }
 

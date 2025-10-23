@@ -34,10 +34,10 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
-    isCardTransaction,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isMerchantMissing,
     isOnHold,
     isPending,
@@ -72,11 +72,17 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
     };
 }
 
-const getReviewNavigationRoute = (backTo: string, threadReportID: string, transaction: OnyxEntry<OnyxTypes.Transaction>, duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+const getReviewNavigationRoute = (
+    backTo: string,
+    threadReportID: string,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
+    policyCategories: OnyxTypes.PolicyCategories | undefined,
+) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID);
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID, policyCategories);
     setReviewDuplicatesKey({
         ...comparisonResult.keep,
         duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
@@ -194,7 +200,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;

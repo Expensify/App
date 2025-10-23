@@ -6,6 +6,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
+    getCustomUnitsForDuplication,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -13,6 +14,7 @@ import {
     getSubmitToAccountID,
     getTagList,
     getTagListByOrderWeight,
+    getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
@@ -272,6 +274,53 @@ describe('PolicyUtils', () => {
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
         });
     });
+    describe('getCustomUnitsForDuplication', () => {
+        const perDiemUnit = {
+            customUnitID: '123',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            enabled: true,
+            rates: {},
+        };
+        const otherUnit = {
+            customUnitID: '456',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            enabled: true,
+            rates: {},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                [perDiemUnit.customUnitID]: perDiemUnit,
+                [otherUnit.customUnitID]: otherUnit,
+            },
+        };
+
+        const policyWithoutCustomUnits: Policy = {
+            ...createRandomPolicy(0),
+        };
+
+        it('returns undefined if neither option is selected', () => {
+            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+        });
+
+        it('returns all custom units if both options are selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, true);
+            expect(result).toEqual(policy.customUnits);
+        });
+        it('returns only non-per-diem units if only custom units option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, false);
+            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+        });
+
+        it('returns only per diem unit if only per diem option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, false, true);
+            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+        });
+
+        it('returns undefined if customUnits is empty', () => {
+            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
+        });
+    });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
             const rate = getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
@@ -315,6 +364,50 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
+        });
+    });
+
+    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+        it('should return true if Uber connection is enabled and has an error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+        });
+
+        it('should return false if Uber connection is enabled but has no error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: undefined,
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection does not exist', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if policy is undefined', () => {
+            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
@@ -748,7 +841,7 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+        it('returns true if policy is paid group policy and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
