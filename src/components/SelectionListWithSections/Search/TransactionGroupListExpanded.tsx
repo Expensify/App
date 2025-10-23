@@ -20,7 +20,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -118,8 +117,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report?.reportID, transactionItem.moneyRequestReportActionID);
-                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
+                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo);
                 return;
             }
             markReportIDAsExpense(reportID);
