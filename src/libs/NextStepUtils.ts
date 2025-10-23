@@ -492,7 +492,7 @@ function buildNextStep(
                         : {
                               text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
-                              clickToCopyText: reimburserAccountID === currentUserAccountID ? currentUserEmail : getPersonalDetailsForAccountID(reimburserAccountID).login,
+                              clickToCopyText: reimburserAccountID === currentUserAccountID ? currentUserEmail : '',
                           },
                     {
                         text: ' to ',
@@ -853,7 +853,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
                         : {
                               text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
-                              clickToCopyText: reimburserAccountID === currentUserAccountIDParam ? currentUserEmailParam : getPersonalDetailsForAccountID(reimburserAccountID).login,
+                              clickToCopyText: reimburserAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
                           },
                     {
                         text: ' to ',

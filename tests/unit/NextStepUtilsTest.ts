@@ -478,7 +478,7 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -732,7 +732,7 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
