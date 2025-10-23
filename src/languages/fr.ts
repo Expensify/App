@@ -5738,7 +5738,7 @@ ${amount} pour ${merchant} - ${date}`,
             chatWithYourAdmin: 'Discutez avec votre administrateur',
             chatInAdmins: 'Discuter dans #admins',
             addPaymentCard: 'Ajouter une carte de paiement',
-            goToSubscriptions: 'Aller aux abonnements',
+            goToSubscription: "Accéder à l'abonnement",
         },
         rules: {
             individualExpenseRules: {
