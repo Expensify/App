@@ -6191,6 +6191,40 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+/**
+ * Creates transaction threads for orphaned transactions (transactions without IOU report actions).
+ * This is typically needed for past transactions from OldDot that don't yet have
+ * the proper IOU report action linking them to the report structure.
+ *
+ * For each transaction without an IOU action:
+ * - Creates an optimistic transaction thread
+ * - Calls OpenReport API to sync with backend and create the IOU action
+ * - Backend (OpenReport command) will call createMoneyRequestFromTransaction to create the action
+ *
+ * @param iouReport - The IOU/expense report containing the transactions
+ * @param transactions - Array of transactions to evaluate
+ * @param transactionViolations - Collection of transaction violations indexed by transaction violation key
+ */
+function createThreadsForOrphanedTransactions(
+    iouReport?: OnyxEntry<Report>,
+    transactions?: Transaction[],
+    transactionViolations?: OnyxCollection<TransactionViolations>,
+) {
+    if (!iouReport?.reportID || !transactions?.length) {
+        return;
+    }
+
+    transactions.forEach((transaction) => {
+        const iouReportAction = ReportActionsUtils.getIOUActionForReportID(iouReport.reportID, transaction.transactionID);
+
+        // Only create thread for orphaned transactions (no IOU action linking them)
+        if (!iouReportAction && transaction.transactionID) {
+            const violations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            createTransactionThreadReport(iouReport, undefined, transaction, violations);
+        }
+    });
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6305,4 +6339,5 @@ export {
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
+    createThreadsForOrphanedTransactions,
 };
