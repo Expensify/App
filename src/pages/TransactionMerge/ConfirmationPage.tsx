@@ -85,6 +85,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
+        console.log('isLoadingOnyxValue', isLoadingOnyxValue(mergeTransactionMetadata));
+        console.log('!transactionThreadReportID', !targetTransactionThreadReport?.reportID);
         return <FullScreenLoadingIndicator />;
     }
 

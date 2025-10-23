@@ -1,0 +1,768 @@
+import {Str} from 'expensify-common';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
+import ViolationMessages from '@components/ViolationMessages';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useActiveRoute from '@hooks/useActiveRoute';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+import type {ViolationField} from '@hooks/useViolations';
+import useViolations from '@hooks/useViolations';
+import {getCompanyCardDescription} from '@libs/CardUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
+import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
+import {
+    canEditFieldOfMoneyRequest,
+    canEditMoneyRequest,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getReportName,
+    getReportOrDraftReport,
+    getTransactionDetails,
+    getTripIDFromTransactionParentReportID,
+    isInvoiceReport,
+    isPaidGroupPolicy,
+    isReportApproved,
+    isReportInGroupPolicy,
+    isSettled as isSettledReportUtils,
+    isTrackExpenseReport,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    getBillable,
+    getCurrency,
+    getDescription,
+    getDistanceInMeters,
+    getFormattedCreated,
+    getOriginalTransactionWithSplitInfo,
+    getReimbursable,
+    getTagForDisplay,
+    getTaxName,
+    hasMissingSmartscanFields,
+    hasReservationList,
+    hasRoute as hasRouteTransactionUtils,
+    isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isScanning,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import Navigation from '@navigation/Navigation';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+
+type MoneyRequestViewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
+    /** The report currently being looked at */
+    report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Policy that the report belongs to */
+    expensePolicy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground: boolean;
+
+    /** Whether we should show Money Request with disabled all fields */
+    readonly?: boolean;
+
+    /** whether this report is from review duplicates */
+    isFromReviewDuplicates?: boolean;
+
+    /** Updated transaction to show in duplicate & merge transaction flow  */
+    updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Merge transaction ID to show in merge transaction flow */
+    mergeTransactionID?: string;
+};
+
+function MoneyRequestView({
+    allReports,
+    expensePolicy,
+    shouldShowAnimatedBackground,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    mergeTransactionID,
+}: MoneyRequestViewProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {getReportRHPActiveRoute} = useActiveRoute();
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+
+    const isFromMergeTransaction = !!mergeTransactionID;
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
+
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
+    const allPolicyTags = usePolicyTags();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+
+    const {
+        created: transactionDate,
+        amount: transactionAmount,
+        attendees: transactionAttendees,
+        taxAmount: transactionTaxAmount,
+        currency: transactionCurrency,
+        comment: transactionDescription,
+        merchant: transactionMerchant,
+        reimbursable: transactionReimbursable,
+        billable: transactionBillable,
+        category: transactionCategory,
+        tag: transactionTag,
+        originalAmount: transactionOriginalAmount,
+        originalCurrency: transactionOriginalCurrency,
+        postedDate: transactionPostedDate,
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(updatedTransaction, undefined, undefined, true) ?? {}, [updatedTransaction]);
+
+    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(updatedTransaction);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(updatedTransaction);
+    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(updatedTransaction);
+    const isTransactionScanning = isScanning(updatedTransaction ?? updatedTransaction);
+    const hasRoute = hasRouteTransactionUtils(updatedTransaction, isDistanceRequest);
+
+    const actualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
+
+    // Use the updated transaction amount in merge flow to have correct positive/negative sign
+    const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
+    const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
+
+    const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
+    const isCardTransaction = isCardTransactionTransactionUtils(updatedTransaction);
+    const cardProgramName = getCompanyCardDescription(updatedTransaction?.cardName, updatedTransaction?.cardID, cardList);
+    const shouldShowCard = isCardTransaction && cardProgramName;
+
+    const formattedTaxAmount = updatedTransaction?.taxAmount ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency) : 0;
+
+    const taxRatesDescription = taxRates?.name;
+    const taxRateTitle = getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
+
+    const actualTransactionDate = getFormattedCreated(updatedTransaction);
+    const fallbackTaxRateTitle = updatedTransaction?.taxValue;
+
+    const category = transactionCategory ?? '';
+    const categoryForDisplay = isCategoryMissing(category) ? '' : category;
+
+    // Flags for showing categories and tags
+    // transactionCategory can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowCategory = isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
+    // transactionTag can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
+        policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
+    const shouldShowReimbursable =
+        isPolicyExpenseChat && (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
+    const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
+    const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
+
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
+    const hasViolations = useCallback(
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
+        [getViolationsForField],
+    );
+
+    let amountDescription = `${translate('iou.amount')}`;
+    let dateDescription = `${translate('common.date')}`;
+
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
+    const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
+    const currency = transactionCurrency ?? CONST.CURRENCY.USD;
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
+    const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
+    let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
+    let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    if (isTransactionScanning) {
+        merchantTitle = translate('iou.receiptStatusTitle');
+        amountTitle = translate('iou.receiptStatusTitle');
+    }
+
+    const updatedTransactionDescription = useMemo(() => {
+        if (!updatedTransaction) {
+            return undefined;
+        }
+        return getDescription(updatedTransaction ?? null);
+    }, [updatedTransaction]);
+    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+
+    const saveBillable = useCallback(
+        (newBillable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
+                return;
+            }
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
+        },
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
+    );
+
+    const saveReimbursable = useCallback(
+        (newReimbursable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
+                return;
+            }
+            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
+        },
+        [transaction, report, policy, policyTagList, policyCategories],
+    );
+
+    if (isCardTransaction) {
+        if (transactionPostedDate) {
+            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
+        }
+        if (formattedOriginalAmount) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
+        }
+        if (isCancelled) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+        }
+    } else {
+        if (!isDistanceRequest && !isPerDiemRequest) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
+        }
+        if (isCancelled) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+        } else if (isApproved) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
+        } else if (shouldShowPaid) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
+        }
+    }
+    if (isExpenseSplit) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
+    }
+
+    const hasErrors = hasMissingSmartscanFields(transaction);
+    const pendingAction = transaction?.pendingAction;
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+
+    const getErrorForField = useCallback(
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+            // Checks applied when creating a new expense
+            // NOTE: receipt field can return multiple violations, so we need to handle it separately
+            const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
+                amount: {
+                    isError: transactionAmount === 0,
+                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
+                },
+                merchant: {
+                    isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
+                    translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
+                },
+                date: {
+                    isError: transactionDate === '',
+                    translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
+                },
+            };
+
+            const {isError, translationPath} = fieldChecks[field] ?? {};
+
+            if (readonly) {
+                return '';
+            }
+
+            // Return form errors if there are any
+            if (hasErrors && isError && translationPath) {
+                return translate(translationPath);
+            }
+
+            if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+                return translate('violations.customUnitOutOfPolicy');
+            }
+
+            // Return violations if there are any
+            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
+                const firstViolation = violations.at(0);
+
+                if (firstViolation) {
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
+                }
+            }
+
+            return '';
+        },
+        [
+            transactionAmount,
+            isSettled,
+            isCancelled,
+            isPolicyExpenseChat,
+            isEmptyMerchant,
+            transactionDate,
+            readonly,
+            hasErrors,
+            hasViolations,
+            translate,
+            getViolationsForField,
+            canEditAmount,
+            canEditDate,
+            canEditMerchant,
+            canEdit,
+            isCustomUnitOutOfPolicy,
+        ],
+    );
+
+    const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
+    const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
+    const amountCopyValue = !canEditAmount ? amountTitle : undefined;
+    const descriptionCopyValue = useMemo(() => {
+        if (canEdit) {
+            return undefined;
+        }
+
+        const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
+        if (!descriptionHTML) {
+            return undefined;
+        }
+
+        return Parser.htmlToText(descriptionHTML);
+    }, [canEdit, transactionDescription, updatedTransactionDescription]);
+    const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
+    const dateCopyValue = !canEditDate ? transactionDate : undefined;
+    const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
+    const categoryCopyValue = !canEdit ? categoryValue : undefined;
+    const cardCopyValue = cardProgramName;
+    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
+    const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
+    const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
+
+    const distanceRequestFields = (
+        <>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.distance')}
+                    title={distanceToDisplay}
+                    interactive={canEditDistance}
+                    shouldShowRightIcon={canEditDistance}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transaction?.transactionID || !report?.reportID) {
+                            return;
+                        }
+
+                        if (isExpenseSplit) {
+                            initSplitExpense(transaction);
+                            return;
+                        }
+
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                            );
+                            return;
+                        }
+
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                        );
+                    }}
+                    copyValue={distanceCopyValue}
+                    copyable={!!distanceCopyValue}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.rate')}
+                    title={rateToDisplay}
+                    interactive={canEditDistanceRate}
+                    shouldShowRightIcon={canEditDistanceRate}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transaction?.transactionID || !report?.reportID) {
+                            return;
+                        }
+
+                        if (isExpenseSplit) {
+                            initSplitExpense(transaction);
+                            return;
+                        }
+
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                        );
+                    }}
+                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={getErrorForField('customUnitRateID')}
+                    copyValue={distanceRateCopyValue}
+                    copyable={!!distanceRateCopyValue}
+                />
+            </OfflineWithFeedback>
+        </>
+    );
+
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
+
+    const previousTransactionTag = usePrevious(transactionTag);
+
+    const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
+    const [currentTransactionTag, setCurrentTransactionTag] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (transactionTag === previousTransactionTag) {
+            return;
+        }
+        setPreviousTag(previousTransactionTag);
+        setCurrentTransactionTag(transactionTag);
+    }, [transactionTag, previousTransactionTag]);
+
+    const getAttendeesTitle = useMemo(() => {
+        return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
+    }, [transactionAttendees]);
+    const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
+
+    const previousTagLength = getLengthOfTag(previousTag ?? '');
+    const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
+
+    const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
+        const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
+        let shouldShow = false;
+        if (hasDependentTags) {
+            if (index === 0) {
+                shouldShow = true;
+            } else {
+                const prevTagValue = getTagForDisplay(transaction, index - 1);
+                shouldShow = !!prevTagValue;
+            }
+        } else {
+            shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+        }
+
+        if (!shouldShow) {
+            return null;
+        }
+
+        const tagError = getErrorForField(
+            'tag',
+            {
+                tagListIndex: index,
+                tagListName: name,
+            },
+            hasDependentTags,
+            tagForDisplay,
+        );
+        const tagCopyValue = !canEdit ? tagForDisplay : undefined;
+
+        return (
+            <OfflineWithFeedback
+                key={name}
+                pendingAction={getPendingFieldAction('tag')}
+            >
+                <MenuItemWithTopDescription
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
+                    description={name ?? translate('common.tag')}
+                    title={tagForDisplay}
+                    numberOfLinesTitle={2}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transaction?.transactionID || !report?.reportID) {
+                            return;
+                        }
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                        );
+                    }}
+                    brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={tagError}
+                    shouldShowBasicTitle
+                    shouldShowDescriptionOnTop
+                    copyValue={tagCopyValue}
+                    copyable={!!tagCopyValue}
+                />
+            </OfflineWithFeedback>
+        );
+    });
+
+    const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
+    const shouldShowReport = !!parentReportID || !!actualParentReport;
+    const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
+
+    // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+
+    if (updatedTransaction?.transactionID) {
+        return <ReportActionsSkeletonView />;
+    }
+
+    return (
+        <View style={styles.pRelative}>
+            {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
+            <>
+                {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
+                    <MoneyRequestReceiptView
+                        allReports={allReports}
+                        report={report}
+                        readonly={readonly}
+                        updatedTransaction={updatedTransaction}
+                        isFromReviewDuplicates={isFromReviewDuplicates}
+                        mergeTransactionID={mergeTransactionID}
+                    />
+                )}
+                {isCustomUnitOutOfPolicy && isPerDiemRequest && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.danger}
+                            height={16}
+                            width={16}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[StyleUtils.getDotIndicatorTextStyles(true), styles.pre, styles.flexShrink1]}
+                        >
+                            {translate('violations.customUnitOutOfPolicy')}
+                        </Text>
+                    </View>
+                )}
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
+                    <MenuItemWithTopDescription
+                        title={amountTitle}
+                        shouldShowTitleIcon={shouldShowPaid}
+                        titleIcon={Expensicons.Checkmark}
+                        description={amountDescription}
+                        titleStyle={styles.textHeadlineH2}
+                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={getErrorForField('amount')}
+                        copyValue={amountCopyValue}
+                        copyable={!!amountCopyValue}
+                    />
+                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.description')}
+                        shouldRenderAsHTML
+                        title={updatedTransactionDescription ?? transactionDescription}
+                        titleStyle={styles.flex1}
+                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={getErrorForField('comment')}
+                        numberOfLinesTitle={0}
+                        copyValue={descriptionCopyValue}
+                        copyable={!!descriptionCopyValue}
+                    />
+                </OfflineWithFeedback>
+                {isManualDistanceRequest || (isMapDistanceRequest && updatedTransaction?.comment?.waypoints) ? (
+                    distanceRequestFields
+                ) : (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.merchant')}
+                            title={updatedMerchantTitle}
+                            titleStyle={styles.flex1}
+                            wrapperStyle={[styles.taskDescriptionMenuItem]}
+                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('merchant')}
+                            numberOfLinesTitle={0}
+                            copyValue={merchantCopyValue}
+                            copyable={!!merchantCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
+                    <MenuItemWithTopDescription
+                        description={dateDescription}
+                        title={actualTransactionDate}
+                        titleStyle={styles.flex1}
+                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={getErrorForField('date')}
+                        copyValue={dateCopyValue}
+                        copyable={!!dateCopyValue}
+                    />
+                </OfflineWithFeedback>
+                {!!shouldShowCategory && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.category')}
+                            title={categoryValue}
+                            numberOfLinesTitle={2}
+                            titleStyle={styles.flex1}
+                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('category')}
+                            copyValue={categoryCopyValue}
+                            copyable={!!categoryCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowTag && tagList}
+                {!!shouldShowCard && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
+                        <MenuItemWithTopDescription
+                            description={translate('iou.card')}
+                            title={cardCopyValue}
+                            titleStyle={styles.flex1}
+                            interactive={false}
+                            copyValue={cardCopyValue}
+                            copyable={!!cardCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowTax && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
+                        <MenuItemWithTopDescription
+                            title={taxRateValue}
+                            description={taxRatesDescription}
+                            titleStyle={styles.flex1}
+                            brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('tax')}
+                            copyValue={taxRateCopyValue}
+                            copyable={!!taxRateCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowTax && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
+                        <MenuItemWithTopDescription
+                            title={taxAmountTitle}
+                            description={translate('iou.taxAmount')}
+                            titleStyle={styles.flex1}
+                            copyValue={taxAmountCopyValue}
+                            copyable={!!taxAmountCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowAttendees && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
+                        <MenuItemWithTopDescription
+                            key="attendees"
+                            title={getAttendeesTitle}
+                            description={`${translate('iou.attendees')} ${
+                                Array.isArray(actualAttendees) && actualAttendees.length > 1 && formattedPerAttendeeAmount
+                                    ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
+                                    : ''
+                            }`}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            shouldRenderAsHTML
+                            copyValue={attendeesCopyValue}
+                            copyable={!!attendeesCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowReimbursable && (
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('reimbursable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
+                        <View>
+                            <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
+                            onToggle={saveReimbursable}
+                            disabled={!canEditReimbursable}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowBillable && (
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('billable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
+                        <View>
+                            <Text>{translate('common.billable')}</Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={translate('common.billable')}
+                            isOn={updatedTransaction?.billable ?? !!transactionBillable}
+                            onToggle={saveBillable}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowReport && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                        <MenuItemWithTopDescription
+                            title={getReportName(actualParentReport) || actualParentReport?.reportName}
+                            description={translate('common.report')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            shouldRenderAsHTML
+                            copyValue={reportCopyValue}
+                            copyable={!!reportCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {/* Note: "View trip details" should be always the last item */}
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title={translate('travel.viewTripDetails')}
+                        icon={Expensicons.Suitcase}
+                        onPress={() => {
+                            const reservations = updatedTransaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(updatedTransaction?.reportID, updatedTransaction?.transactionID, getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(updatedTransaction?.reportID, updatedTransaction?.transactionID, '0', 0, getReportRHPActiveRoute()));
+                        }}
+                    />
+                )}
+            </>
+        </View>
+    );
+}
+
+MoneyRequestView.displayName = 'MoneyRequestView';
+
+export default MoneyRequestView;

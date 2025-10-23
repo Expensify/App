@@ -84,6 +84,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
 
+    console.log(targetTransaction);
+    console.log(sourceTransaction);
+
     useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
             return;
@@ -119,6 +122,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
         // We need to wait for report to be loaded completely, avoid still optimistic loading
         if (!targetTransactionThreadReport?.reportID) {
+            console.log('returning');
             return;
         }
 
