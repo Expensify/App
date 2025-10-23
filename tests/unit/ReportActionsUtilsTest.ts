@@ -1,7 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {translateLocal} from '@libs/Localize';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
@@ -14,6 +13,7 @@ import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/typ
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 

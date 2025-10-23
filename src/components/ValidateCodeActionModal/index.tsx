@@ -21,6 +21,7 @@ function ValidateCodeActionModal({
     disableAnimation,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
+    onModalHide = () => {},
 }: ValidateCodeActionModalProps) {
     return (
         <Modal
@@ -31,6 +32,8 @@ function ValidateCodeActionModal({
             onBackdropPress={onClose}
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
+            onModalHide={onModalHide}
+            animationOutTiming={disableAnimation ? 1 : undefined}
         >
             <ValidateCodeActionContent
                 title={title}

@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
-import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
@@ -1079,8 +1078,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
@@ -1093,8 +1091,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
@@ -1109,8 +1106,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
@@ -1128,8 +1124,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
@@ -1140,8 +1135,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace', {}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
@@ -1163,8 +1157,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
     });
 
@@ -1231,7 +1224,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
-            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
         });
@@ -1269,7 +1262,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
-            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
         });
