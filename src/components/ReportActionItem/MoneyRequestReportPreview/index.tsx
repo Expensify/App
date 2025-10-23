@@ -14,6 +14,7 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {createThreadsForOrphanedTransactions} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,10 +105,14 @@ function MoneyRequestReportPreview({
             return;
         }
 
+        // Create transaction threads for any orphaned transactions (transactions without IOU report actions)
+        // This ensures past transactions from OldDot have the proper linking structure
+        createThreadsForOrphanedTransactions(iouReport, transactions, violations);
+
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID]);
+    }, [iouReportID, transactions, iouReport, violations]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
