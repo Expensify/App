@@ -34,6 +34,9 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
+/** Type for merge transaction values that can be null to clear existing values in Onyx */
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
     merchant: 'common.merchant',
@@ -438,8 +441,8 @@ function buildMergeFieldsData(
  * Build updated values for merge transaction field selection
  * Handles special cases like currency for amount field and additional fields for distance requests
  */
-function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): Partial<MergeTransaction> {
-    const updatedValues: Partial<MergeTransaction> = {
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
+    const updatedValues: MergeTransactionUpdateValues = {
         [field]: fieldValue,
     };
 
@@ -451,9 +454,11 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
         const transactionDetails = getTransactionDetails(transaction);
         updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
         updatedValues.currency = getCurrency(transaction);
-        updatedValues.receipt = transaction?.receipt;
         updatedValues.customUnit = transaction?.comment?.customUnit;
-        updatedValues.waypoints = getWaypoints(transaction);
+        updatedValues.iouRequestType = transaction?.iouRequestType;
+        // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
+        updatedValues.receipt = transaction?.receipt ?? null;
+        updatedValues.waypoints = getWaypoints(transaction) ?? null;
         updatedValues.routes = transaction?.routes ?? null;
     }
 
@@ -481,4 +486,4 @@ export {
     MERGE_FIELDS,
 };
 
-export type {MergeFieldKey, MergeFieldData};
+export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

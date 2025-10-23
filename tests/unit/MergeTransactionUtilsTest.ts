@@ -810,6 +810,7 @@ describe('MergeTransactionUtils', () => {
                     waypoint1: {name: 'End Location', address: '456 End Ave'},
                 },
                 routes: null,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             });
         });
     });

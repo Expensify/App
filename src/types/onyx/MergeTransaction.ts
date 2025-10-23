@@ -1,3 +1,4 @@
+import type {IOURequestType} from '@libs/actions/IOU';
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
@@ -59,7 +60,10 @@ type MergeTransaction = {
     waypoints?: WaypointCollection;
 
     /** Routes for distance requests */
-    routes?: Routes | null;
+    routes?: Routes;
+
+    /** The iou request type of the transaction */
+    iouRequestType?: IOURequestType;
 
     /** The attendees of the transaction */
     attendees?: Attendee[];
