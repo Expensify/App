@@ -162,14 +162,17 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     hoverStyle={[styles.hoveredComponentBG]}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
                 >
-                    <WorkspaceCardListRow
-                        lastFourPAN={item.lastFourPAN ?? ''}
-                        cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                        limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                        name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={settlementCurrency}
-                        isVirtual={!!item.nameValuePairs?.isVirtual}
-                    />
+                    {({hovered}) => (
+                        <WorkspaceCardListRow
+                            lastFourPAN={item.lastFourPAN ?? ''}
+                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                            limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
+                            name={item.nameValuePairs?.cardTitle ?? ''}
+                            currency={settlementCurrency}
+                            isVirtual={!!item.nameValuePairs?.isVirtual}
+                            isHovered={hovered}
+                        />
+                    )}
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
