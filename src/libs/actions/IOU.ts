@@ -199,6 +199,7 @@ import {
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    shouldEnableNegative,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -941,6 +942,7 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
                 Navigation.dismissModal();
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 });
@@ -1215,6 +1217,10 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
     });
 }
 
+function setMoneyRequestReportID(transactionID: string, reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
+}
+
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
@@ -1479,7 +1485,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
@@ -4241,6 +4247,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     // Step 2: Get all the collections being updated
@@ -4266,7 +4273,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
     }
 
-    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
+    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
 
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
@@ -4619,6 +4626,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
+            isSelfDM(iouReport),
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -4703,6 +4711,7 @@ function getUpdateTrackExpenseParams(
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     // Step 2: Get all the collections being updated
@@ -4724,7 +4733,7 @@ function getUpdateTrackExpenseParams(
         transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
     }
 
-    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
+    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
 
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
@@ -4762,8 +4771,9 @@ function getUpdateTrackExpenseParams(
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
+    const allowNegative = shouldEnableNegative(transactionThread ?? undefined);
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction)
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction, allowNegative)
         : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -5594,6 +5604,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
             actionableWhisperReportActionID,
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID: selfDMReportID,
+            isLinkedTrackedExpenseReportArchived: false,
         };
 
         const {
@@ -6628,6 +6639,7 @@ function createSplitsAndOnyxData({
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment,
             created,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             merchant: merchant || Localize.translateLocal('iou.expense'),
             receipt,
             category,
@@ -6912,6 +6924,7 @@ function createSplitsAndOnyxData({
                 reportID: oneOnOneIOUReport.reportID,
                 comment,
                 created,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 merchant: merchant || Localize.translateLocal('iou.expense'),
                 category,
                 tag,
@@ -8306,6 +8319,7 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
         payer: getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
         amount: convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
@@ -8362,16 +8376,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         return undefined;
     }
 
-    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(
-        transactionID,
-        reportAction,
-        iouReport,
-        chatReport,
-        isChatReportArchived,
-        undefined,
-        undefined,
-        undefined,
-    );
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatReportArchived);
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -8438,7 +8443,7 @@ function cleanUpMoneyRequest(
     isSingleTransactionView = false,
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
-        prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, false, isChatIOUReportArchived, undefined, undefined);
+        prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false);
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
     // build Onyx data
@@ -8817,6 +8822,7 @@ function deleteMoneyRequest(
                     ...reportAction,
                     pendingAction: null,
                     errors: {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
@@ -8844,6 +8850,7 @@ function deleteMoneyRequest(
                     ...reportPreviewAction,
                     pendingAction: null,
                     errors: {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
@@ -10478,7 +10485,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.REOPEN_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxEntry<OnyxTypes.Report>) {
     if (!expenseReport) {
         return;
     }
@@ -10523,6 +10530,21 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     };
 
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
+
+    if (chatReport) {
+        const iouReportActions = getAllReportActions(chatReport.iouReportID);
+        const expenseReportActions = getAllReportActions(expenseReport.reportID);
+        const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
+        const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                // The report created later will become the iouReportID of the chat report
+                iouReportID: (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport.reportID,
+            },
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -13940,6 +13962,7 @@ export {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     getMoneyRequestParticipantsFromReport,
+    setMoneyRequestReportID,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,

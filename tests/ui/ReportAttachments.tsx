@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {WRITE_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -196,6 +197,7 @@ describe('ReportAttachments', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the not here page and the loading spinner should not appear.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
         expect(screen.queryByTestId('attachment-loading-spinner')).toBeNull();
     });
