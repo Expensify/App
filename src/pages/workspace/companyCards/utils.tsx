@@ -1,11 +1,25 @@
+import {useEffect, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import useOnyx from '@hooks/useOnyx';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+type AssignCardRoute =
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME
+    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION;
 
 type ExportIntegration = {
     title?: string;
@@ -357,5 +371,41 @@ function getExportMenuItem(
     }
 }
 
+function useAssignCardStepNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined ) {
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const currentStep = assignCard?.currentStep;
+    const previousStepRef = useRef(currentStep);
+
+    useEffect(() => {
+        // Skip if currentStep hasn't changed
+        if (currentStep === previousStepRef.current) {
+            return;
+        }
+
+        previousStepRef.current = currentStep;
+
+        if (!policyID || !currentStep || !feed) {
+            return;
+        }
+
+        // Map steps to routes
+        const stepRoutes: Record<string, AssignCardRoute> = {
+            [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
+            [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION,
+            [CONST.COMPANY_CARD.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION,
+            [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT,
+            [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP,
+            [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME,
+            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION,
+        };
+
+
+        const targetRoute: AssignCardRoute = stepRoutes[currentStep];
+        if (targetRoute) {
+            Navigation.navigate(targetRoute.getRoute(policyID, feed, backTo ?? ''));
+        }
+    }, [currentStep, policyID, feed, backTo]);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem};
+export {getExportMenuItem, useAssignCardStepNavigation};

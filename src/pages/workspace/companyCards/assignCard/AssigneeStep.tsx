@@ -15,18 +15,20 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
+import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -41,7 +43,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const feed = route.params?.feed;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const [list] = useCardsList(policyID, feed);
     const [cardFeeds] = useCardFeeds(policyID);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
@@ -57,6 +59,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
     };
+
+    useAssignCardStepNavigation(policyID, feed, route.params?.backTo);
 
     const submit = () => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
@@ -101,7 +105,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
             });
             return;
         }
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;

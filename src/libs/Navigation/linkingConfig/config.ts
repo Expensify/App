@@ -743,19 +743,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: {
-                            path : ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.route,
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP]: {
-                            path : ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.route,
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME]: {
-                            path : ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.route,
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
-                            path : ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.route,
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: {
-                            path : ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.route,
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,

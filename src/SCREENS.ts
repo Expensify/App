@@ -557,7 +557,7 @@ const SCREENS = {
         COMPANY_CARDS_ASSIGN_CARD_NAME: 'Workspace_CompanyCards_AssignCard_CardNameStep',
         COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: 'Workspace_CompanyCards_AssignCard_ConfirmationStep',
         COMPANY_CARDS_PLAID_CONNECTION: 'Workspace_CompanyCards_PlaidConnectionStep',
-        
+
         COMPANY_CARDS_TRANSACTION_START_DATE: 'Workspace_CompanyCards_TransactionStartDate',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
