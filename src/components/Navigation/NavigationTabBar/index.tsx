@@ -122,7 +122,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
         }
 
         if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-            navigationRef.dispatch(CommonActions.navigate(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
             return;
         }
 
