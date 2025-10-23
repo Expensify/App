@@ -10,7 +10,7 @@ import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -35,6 +35,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -111,6 +112,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -376,7 +378,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
@@ -486,7 +488,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -496,7 +498,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -877,7 +879,7 @@ describe('ReportUtils', () => {
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translate(CONST.LOCALES.EN, 'parentReportAction.deletedTask'));
             });
         });
 
@@ -2205,6 +2207,30 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: true,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
@@ -3639,6 +3665,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3662,6 +3689,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3690,6 +3718,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3742,6 +3771,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3764,6 +3794,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3786,6 +3817,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3808,6 +3840,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3843,6 +3876,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3929,6 +3963,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeSelfDM,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3955,6 +3990,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3974,6 +4010,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3996,6 +4033,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4038,6 +4076,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4057,6 +4096,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4078,6 +4118,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4123,6 +4164,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4142,6 +4184,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4175,6 +4218,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -5757,6 +5801,28 @@ describe('ReportUtils', () => {
             // Then the result is null
             expect(result).toBe(null);
         });
+        it('should return null for an archived report when there is a policy pending join request', async () => {
+            // Given an archived admin room with a pending join request
+            const joinRequestReportAction: ReportAction = {
+                ...createRandomReportAction(50400),
+                originalMessage: {
+                    choice: '' as JoinWorkspaceResolution,
+                    policyID: '1',
+                },
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            };
+
+            const adminReport = createAdminRoom(34001);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReport.reportID}`, {[joinRequestReportAction.reportActionID]: joinRequestReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, undefined, isReportArchived.current);
+
+            // Then the result is null
+            expect(result).toBe(null);
+        });
     });
 
     describe('canEditReportDescription', () => {
@@ -5878,7 +5944,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
@@ -6942,31 +7009,31 @@ describe('ReportUtils', () => {
 
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
@@ -8196,6 +8263,26 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+    });
+
+    describe('canRejectReportAction', () => {
+        it('should return false if the user is not the report manager', async () => {
+            const approver = 'approver@gmail.com';
+            const expenseReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: 1,
+            };
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(0),
+                approver,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: 2,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
+            expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });
 });
