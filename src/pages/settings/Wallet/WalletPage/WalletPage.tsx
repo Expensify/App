@@ -164,14 +164,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, accountData),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, accountData),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -240,7 +240,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList ?? {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
@@ -333,7 +333,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
     const isCurrentPaymentMethodDefault = () => {
-        const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
+        const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate).length > 1;
         if (hasMultiplePaymentMethods) {
             if (paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 return paymentMethod.selectedPaymentMethod.bankAccountID === userWallet?.walletLinkedAccountID;
