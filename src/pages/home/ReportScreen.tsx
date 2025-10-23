@@ -341,16 +341,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const reportIdRef = useRef<string | undefined>(null);
 
-    useFocusEffect(() => {
-        if (!reportIdRef.current && reportOnyx?.reportID) {
+    const redirectBackOnDeletedReport = useCallback(() => {
+        if (!reportIdRef.current) {
             reportIdRef.current = reportOnyx?.reportID;
         } else {
             if (reportOnyx?.reportID) {
                 return;
             }
-            Navigation.goBack();
+
+            Navigation.goBack(route.params.backTo ?? undefined);
         }
-    });
+    }, [reportOnyx?.reportID, route.params.backTo]);
+
+    useFocusEffect(redirectBackOnDeletedReport);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
