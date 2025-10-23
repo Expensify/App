@@ -27,7 +27,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {translate} = useLocalize();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
-    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG,
         includeUserToInvite: false,
@@ -66,8 +66,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return '';
         }
 
-        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, searchTerm.trim());
-    }, [areOptionsInitialized, availableOptions.personalDetails?.length, availableOptions.recentReports?.length, availableOptions.userToInvite, searchTerm]);
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm.trim(),
+        );
+    }, [areOptionsInitialized, availableOptions.personalDetails?.length, availableOptions.recentReports?.length, availableOptions.userToInvite, debouncedSearchTerm]);
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
             return;
@@ -78,8 +82,8 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     };
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <ScreenWrapper

@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -207,7 +207,24 @@ function useSearchSelectorBase({
                     excludeLogins,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
-                return getShareLogOptions(optionsWithContacts, draftComments, betas ?? [], computedSearchTerm, maxResults, includeUserToInvite);
+                return getValidOptions(
+                    optionsWithContacts,
+                    draftComments,
+                    {
+                        betas,
+                        includeMultipleParticipantReports: true,
+                        includeP2P: true,
+                        forcePolicyNamePreview: true,
+                        includeOwnedWorkspaceChats: true,
+                        includeSelfDM: true,
+                        includeThreads: true,
+                        includeReadOnly: false,
+                        searchString: computedSearchTerm,
+                        maxElements: maxResults,
+                        includeUserToInvite,
+                    },
+                    countryCode,
+                );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, draftComments, {
                     betas,
