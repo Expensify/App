@@ -269,17 +269,38 @@ function IOURequestStepAmount({
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                        transactionID,
-                        activePolicyExpenseChat?.reportID,
-                    ),
-                );
-            });
+
+            // Check if manually selected participants differ from default workspace
+            const hasExistingParticipants = transaction?.participants && transaction.participants.length > 0;
+            const existingParticipantReportID = transaction?.participants?.at(0)?.reportID;
+            const shouldKeepExistingParticipants = hasExistingParticipants && existingParticipantReportID !== activePolicyExpenseChat?.reportID;
+
+            if (shouldKeepExistingParticipants) {
+                // Navigate with manually selected participants
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            existingParticipantReportID,
+                        ),
+                    );
+                });
+            } else {
+                // Use default workspace participants
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            activePolicyExpenseChat?.reportID,
+                        ),
+                    );
+                });
+            }
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 navigateToParticipantPage(iouType, transactionID, reportID);
