@@ -5621,7 +5621,7 @@ ${merchant}的${amount} - ${date}`,
             chatWithYourAdmin: '与您的管理员聊天',
             chatInAdmins: '在#admins中聊天',
             addPaymentCard: '添加支付卡',
-            goToSubscriptions: '前往订阅',
+            goToSubscription: '前往订阅',
         },
         rules: {
             individualExpenseRules: {

@@ -5687,7 +5687,7 @@ ${date} - ${merchant}に${amount}`,
             chatWithYourAdmin: '管理者とチャットする',
             chatInAdmins: '#adminsでチャットする',
             addPaymentCard: '支払いカードを追加',
-            goToSubscriptions: 'サブスクリプションに移動',
+            goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
             individualExpenseRules: {
