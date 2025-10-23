@@ -2,7 +2,7 @@ import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {Request} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
-import * as ApiUtils from './ApiUtils';
+import {getApiRoot} from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT
 // Legacy attachments can come from either staging or prod, depending on the env they were uploaded by
@@ -29,7 +29,7 @@ function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSou
     if (typeof url !== 'string') {
         return url;
     }
-    const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false} as Request);
+    const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 
