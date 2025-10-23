@@ -2469,12 +2469,11 @@ ${amount} dla ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' swój' : ' z'} ${integrationName}, aby automatycznie kategoryzować wydatki i synchronizować dane, co ułatwi zamknięcie miesiąca.\n` +
                     '\n' +
-                    '1. Kliknij *Ustawienia*.\n' +
-                    '2. Przejdź do *Przestrzenie robocze*.\n' +
-                    '3. Wybierz swoją przestrzeń roboczą.\n' +
-                    '4. Kliknij *Księgowość*.\n' +
-                    `5. Znajdź ${integrationName}.\n` +
-                    '6. Kliknij *Połącz*.\n' +
+                    '1. Kliknij *Przestrzenie robocze*.\n' +
+                    '2. Wybierz swoją przestrzeń roboczą.\n' +
+                    '3. Kliknij *Księgowość*.\n' +
+                    `4. Znajdź ${integrationName}.\n` +
+                    '5. Kliknij *Połącz*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

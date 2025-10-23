@@ -2440,12 +2440,11 @@ ${merchant}的${amount} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '到'} ${integrationName}，实现自动费用编码和同步，让月末结账变得轻而易举。\n` +
                     '\n' +
-                    '1. 点击 *设置*。\n' +
-                    '2. 前往 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *会计*。\n' +
-                    `5. 找到 ${integrationName}。\n` +
-                    '6. 点击 *连接*。\n' +
+                    '1. 点击 *工作区*。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *会计*。\n' +
+                    `4. 找到 ${integrationName}。\n` +
+                    '5. 点击 *连接*。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

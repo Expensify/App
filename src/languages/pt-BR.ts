@@ -2467,12 +2467,11 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' ao seu' : ' ao'} ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
                     '\n' +
-                    '1. Clique em *Configurações*.\n' +
-                    '2. Vá para *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Contabilidade*.\n' +
-                    `5. Encontre ${integrationName}.\n` +
-                    '6. Clique em *Conectar*.\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Contabilidade*.\n' +
+                    `4. Encontre ${integrationName}.\n` +
+                    '5. Clique em *Conectar*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

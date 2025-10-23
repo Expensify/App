@@ -2475,12 +2475,11 @@ ${amount} voor ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' uw' : ' met'} ${integrationName} voor automatische uitgavencodering en synchronisatie die de maandafsluiting een fluitje van een cent maken.\n` +
                     '\n' +
-                    '1. Klik op *Instellingen*.\n' +
-                    '2. Ga naar *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Boekhouding*.\n' +
-                    `5. Zoek ${integrationName}.\n` +
-                    '6. Klik op *Verbinden*.\n' +
+                    '1. Klik op *Werkruimtes*.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Boekhouding*.\n' +
+                    `4. Zoek ${integrationName}.\n` +
+                    '5. Klik op *Verbinden*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

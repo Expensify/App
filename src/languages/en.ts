@@ -2446,12 +2446,11 @@ const translations = {
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Accounting*.\n' +
-                    `5. Find ${integrationName}.\n` +
-                    '6. Click *Connect*.\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Accounting*.\n' +
+                    `4. Find ${integrationName}.\n` +
+                    '5. Click *Connect*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

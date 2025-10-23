@@ -2479,12 +2479,11 @@ ${amount} für ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
                     '\n' +
-                    '1. Klicke auf *Einstellungen*.\n' +
-                    '2. Gehe zu *Workspaces*.\n' +
-                    '3. Wähle deinen Workspace.\n' +
-                    '4. Klicke auf *Buchhaltung*.\n' +
-                    `5. Finde ${integrationName}.\n` +
-                    '6. Klicke auf *Verbinden*.\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Buchhaltung*.\n' +
+                    `4. Finde ${integrationName}.\n` +
+                    '5. Klicke auf *Verbinden*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

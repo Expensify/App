@@ -2463,12 +2463,11 @@ ${date} - ${merchant}に${amount}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}と接続すると、経費の自動コーディングと同期が可能になり、月末の結算が容易になります。\n` +
                     '\n' +
-                    '1. *設定*をクリックします。\n' +
-                    '2. *ワークスペース*に移動します。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *会計*をクリックします。\n' +
-                    `5. ${integrationName}を探します。\n` +
-                    '6. *接続*をクリックします。\n' +
+                    '1. *ワークスペース*をクリックします。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *会計*をクリックします。\n' +
+                    `4. ${integrationName}を探します。\n` +
+                    '5. *接続*をクリックします。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]

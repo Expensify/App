@@ -2474,12 +2474,11 @@ ${amount} per ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' il tuo' : ' a'} ${integrationName} per una codifica automatica delle spese e sincronizzazione che semplifica la chiusura di fine mese.\n` +
                     '\n' +
-                    '1. Clicca su *Impostazioni*.\n' +
-                    '2. Vai a *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Contabilità*.\n' +
-                    `5. Trova ${integrationName}.\n` +
-                    '6. Clicca su *Connetti*.\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Contabilità*.\n' +
+                    `4. Trova ${integrationName}.\n` +
+                    '5. Clicca su *Connetti*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
