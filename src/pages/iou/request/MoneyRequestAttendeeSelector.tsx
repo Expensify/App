@@ -124,6 +124,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         action,
         isPaidGroupPolicy,
         searchTerm,
+        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {

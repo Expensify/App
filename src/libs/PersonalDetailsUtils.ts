@@ -8,6 +8,7 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -45,7 +46,9 @@ Onyx.connect({
         if (value ?? true) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         hiddenTranslation = translateLocal('common.hidden');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         youTranslation = translateLocal('common.you').toLowerCase();
     },
 });
@@ -127,6 +130,7 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
@@ -147,12 +151,12 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  * @param logins Array of user logins
  * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins: string[]): number[] {
+function getAccountIDsByLogins(logins: string[], shouldGenerateAccountID = true): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
         const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(generateAccountID(login));
+            foundAccountIDs.push(shouldGenerateAccountID ? generateAccountID(login) : -1);
         } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }
