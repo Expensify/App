@@ -215,6 +215,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     return true;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
