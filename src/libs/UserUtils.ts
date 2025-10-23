@@ -309,13 +309,10 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
 
         let description = '';
         if (defaultEmail === login?.partnerUserID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translate('contacts.getInTouch');
         } else if (login?.errorFields?.addedLogin) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translate('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translate('contacts.pleaseVerify');
         }
         let indicator;
