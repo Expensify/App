@@ -46,25 +46,22 @@ function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onIma
                     value: null,
                 },
             ];
-            // If current avatar is a default avatar and for no avatar is selected in the form, only show upload option
-            if (isUsingDefaultAvatar && !isAvatarSelected) {
+            // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
+            if (isUsingDefaultAvatar || isAvatarSelected) {
                 return menuItems;
             }
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('avatarWithImagePicker.removePhoto'),
-                value: null,
-                onSelected: () => {
-                    clearError();
-                    onImageRemoved();
-                },
-            });
-            // If an avatar is selected in the form do NOT show view photo
-            if (isAvatarSelected) {
-                return menuItems;
-            }
+
             return [
                 ...menuItems,
+                {
+                    icon: Expensicons.Trashcan,
+                    text: translate('avatarWithImagePicker.removePhoto'),
+                    value: null,
+                    onSelected: () => {
+                        clearError();
+                        onImageRemoved();
+                    },
+                },
                 {
                     value: null,
                     icon: Expensicons.Eye,
