@@ -5223,7 +5223,7 @@ function deleteAppReport(reportID: string | undefined) {
     // 8. Mark chat report preview action as deleted
     const reportActionID = report?.parentReportActionID;
     const parentReportID = report?.parentReportID;
-    const parentReportAction = allReportActions?.[parentReportID ?? '']?.[reportActionID ?? ''];
+    const parentReportAction = parentReportID && reportActionID ? allReportActions?.[parentReportID]?.[reportActionID] : undefined;
 
     if (reportActionID && parentReportAction) {
         optimisticData.push({
