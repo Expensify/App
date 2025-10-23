@@ -371,10 +371,10 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     // Check if any of the selected items have DEW enabled
-                    const selectedPolicyIDs = selectedReports.length
+                    const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
                         : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
-                    const hasDEWPolicy = selectedPolicyIDs.some((policyID) => {
+                    const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
                         return hasDynamicExternalWorkflow(policy);
                     });
