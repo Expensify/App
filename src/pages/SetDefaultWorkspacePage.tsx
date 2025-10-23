@@ -44,7 +44,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
             return;
         }
         if (!navigateTo) {
-            Log.hmmm(`[SeDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
+            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
             return;
         }
         const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedPolicyID}`];
