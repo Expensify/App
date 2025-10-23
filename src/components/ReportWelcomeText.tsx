@@ -180,7 +180,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     )}
                                 </UserDetailsTooltip>
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
-                                {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
+                                {index === displayNamesWithTooltips.length - 2 && <Text>{`, ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}

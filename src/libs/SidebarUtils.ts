@@ -1042,7 +1042,7 @@ function getWelcomeMessage(
             }
             if (index === displayNamesWithTooltips.length - 2) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return `${displayName} ${translateLocal('common.and')}`;
+                return `${displayName}, ${translateLocal('common.and')}`;
             }
             if (index < displayNamesWithTooltips.length - 2) {
                 return `${displayName},`;
@@ -1050,8 +1050,9 @@ function getWelcomeMessage(
             return '';
         })
         .join(' ');
-
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
+        
+        welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
+        console.log({displayNamesWithTooltipsText}, {welcomeMessage})
     return welcomeMessage;
 }
 
