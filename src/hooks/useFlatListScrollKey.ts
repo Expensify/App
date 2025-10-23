@@ -139,7 +139,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
             const scrollViewRef = listRef.current?.getNativeScrollRef();
             // Try to scroll on underlying scrollView if available, fallback to usual listRef
             if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
-                (scrollViewRef as ScrollView).scrollToEnd({animated: false});
+                (scrollViewRef as ScrollView).scrollToEnd({animated: !!params?.animated});
                 return;
             }
             listRef.current?.scrollToEnd(params);
