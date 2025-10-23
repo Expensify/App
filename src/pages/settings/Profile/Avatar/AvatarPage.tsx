@@ -17,9 +17,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AvatarSource} from '@libs/UserUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
@@ -28,8 +30,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 import AvatarCapture from './AvatarCapture';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
-
-const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 type ImageData = {
     uri: string;
@@ -43,16 +43,23 @@ type ErrorData = {
     phraseParam: Record<string, unknown>;
 };
 
+const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
+
 function ProfileAvatar() {
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
 
     const [selected, setSelected] = useState<string | undefined>();
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
+    const isSavingRef = useRef(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
+
+    const isDirty = imageData.uri !== '' || !!selected;
+
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -60,9 +67,17 @@ function ProfileAvatar() {
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     // eslint-disable-next-line no-nested-ternary
-    const avatarURL = selected ? avatars[selected] : imageData.uri !== '' ? imageData.uri : (currentUserPersonalDetails?.avatar ?? '');
+    let avatarURL: AvatarSource = '';
+    if (selected && isCustomAvatarID(selected)) {
+        avatarURL = getAvatarLocal(selected);
+    } else if (selected) {
+        avatarURL = avatars[selected];
+    } else if (imageData.uri) {
+        avatarURL = imageData.uri;
+    } else {
+        avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    }
     const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
-    const isDirty = !!imageData.uri || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -84,7 +99,7 @@ function ProfileAvatar() {
 
                 setIsAvatarCropModalOpen(true);
                 setError(null, {});
-                setImageData({
+                setCropImageData({
                     uri: image.uri ?? '',
                     name: image.name ?? '',
                     type: image.type ?? '',
@@ -99,8 +114,8 @@ function ProfileAvatar() {
     const onImageSelected = useCallback((file: File | CustomRNImageManipulatorResult) => {
         setSelected(undefined);
         setImageData({
-            uri: file.uri ?? '',
-            name: file.name,
+            uri: file?.uri ?? '',
+            name: file?.name,
             file,
             type: '',
         });
@@ -137,6 +152,8 @@ function ProfileAvatar() {
     });
 
     const onPress = useCallback(() => {
+        isSavingRef.current = true;
+
         if (imageData.file) {
             updateAvatar(imageData.file, {
                 avatar: currentUserPersonalDetails?.avatar,
@@ -145,25 +162,43 @@ function ProfileAvatar() {
             });
             setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
+            isSavingRef.current = false;
             return;
         }
-        if (!selected || !avatarCaptureRef.current) {
-            return;
-        }
-        // User selected a letter avatar
-        avatarCaptureRef.current
-            .capture()
-            ?.then((file) => {
-                updateAvatar(file, {
+
+        if (selected && isCustomAvatarID(selected)) {
+            updateAvatar(
+                {
+                    uri: getAvatarURL(selected),
+                    name: selected,
+                    customExpensifyAvatarID: selected,
+                },
+                {
                     avatar: currentUserPersonalDetails?.avatar,
                     avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
                     accountID: currentUserPersonalDetails?.accountID,
-                });
-                setSelected(undefined);
-            })
-            .then(() => {
-                Navigation.dismissModal();
+                },
+            );
+            setSelected(undefined);
+            Navigation.dismissModal();
+            isSavingRef.current = false;
+            return;
+        }
+        if (!selected || !avatarCaptureRef.current) {
+            isSavingRef.current = false;
+            return;
+        }
+        // User selected a letter avatar
+        avatarCaptureRef.current.capture()?.then((file) => {
+            updateAvatar(file, {
+                avatar: currentUserPersonalDetails?.avatar,
+                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                accountID: currentUserPersonalDetails?.accountID,
             });
+            setSelected(undefined);
+            Navigation.dismissModal();
+            isSavingRef.current = false;
+        });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
     return (
@@ -235,7 +270,7 @@ function ProfileAvatar() {
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap3]}>
+                <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
                         label={translate('avatarPage.chooseCustomAvatar')}
                         name={currentUserPersonalDetails?.displayName}
@@ -255,7 +290,7 @@ function ProfileAvatar() {
                     )}
                 </View>
             </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+            <FixedFooter style={styles.mtAuto}>
                 <Button
                     large
                     success
@@ -265,28 +300,22 @@ function ProfileAvatar() {
                     pressOnEnter
                 />
             </FixedFooter>
-            <DiscardChangesConfirmation getHasUnsavedChanges={() => isDirty} />
             <AvatarCropModal
-                onBackButtonPress={() => {
-                    if (!isAvatarCropModalOpen) {
-                        return;
-                    }
-                    setImageData({...EMPTY_FILE});
-                    setIsAvatarCropModalOpen(false);
-                }}
                 onClose={() => {
                     if (!isAvatarCropModalOpen) {
                         return;
                     }
+                    setCropImageData({...EMPTY_FILE});
                     setIsAvatarCropModalOpen(false);
                 }}
                 isVisible={isAvatarCropModalOpen}
                 onSave={onImageSelected}
-                imageUri={imageData.uri}
-                imageName={imageData.name}
-                imageType={imageData.type}
+                imageUri={cropImageData.uri}
+                imageName={cropImageData.name}
+                imageType={cropImageData.type}
                 buttonLabel={translate('avatarPage.upload')}
             />
+            <DiscardChangesConfirmation getHasUnsavedChanges={() => !isSavingRef.current && isDirty} />
         </ScreenWrapper>
     );
 }
