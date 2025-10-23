@@ -99,19 +99,16 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         };
     });
 
-    const listOptions: BankAccountListItem[] =
-        eligibleBankAccountsOptions.length > 0
-            ? eligibleBankAccountsOptions
-            : [
-                  {
-                      value: paymentBankAccountID,
-                      text: paymentBankAccountAddressName,
-                      leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
-                      alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
-                      keyForList: paymentBankAccountID?.toString() ?? '',
-                      isSelected: true,
-                  },
-              ];
+    const fallbackBankAccountOption = {
+        value: paymentBankAccountID,
+        text: paymentBankAccountAddressName,
+        leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
+        alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
+        keyForList: paymentBankAccountID?.toString() ?? '',
+        isSelected: true,
+    };
+
+    const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
 
     const updateSettlementAccount = (value: number) => {
         updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
