@@ -98,7 +98,7 @@ function HeaderFirstRow<TItem extends ListItem>({
         // These are typically legacy transactions from OldDot or imported card transactions
         // that don't yet have the proper IOU action linking them to the report structure.
         // When the report total hasn't been calculated yet, we sum the transaction amounts manually.
-        if (reportTotal == 0 && reportItem.transactions) {
+        if (reportTotal === 0 && reportItem.transactions) {
             reportTotal = reportItem.transactions.reduce((acc, transaction) => acc + (transaction.modifiedAmount || transaction.amount || 0), 0);
         }
 

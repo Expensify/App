@@ -2839,12 +2839,7 @@ describe('SearchUIUtils', () => {
 
             // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
             // '0' is treated as empty string for reportActionID
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(
-                report,
-                {reportActionID: ''},
-                expect.objectContaining(expectedTransaction),
-                violations,
-            );
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: ''}, expect.objectContaining(expectedTransaction), violations);
         });
     });
 
