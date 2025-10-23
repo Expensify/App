@@ -699,6 +699,9 @@ const ONYXKEYS = {
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
 
         REPORT_OLDEST_UNREAD_REPORT_ACTION_ID: 'reportOldestUnreadReportActionID_',
+
+        /** Used for identifying user as admin of a domain */
+        SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
     },
 
     /** List of Form ids */
@@ -1084,6 +1087,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID]: string;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
 };
 
 type OnyxValuesMapping = {

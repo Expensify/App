@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen, waitFor, within} from '@testing-library/react-native';
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import createRandomReportAction from './collections/reportActions';
+import * as TestHelper from './TestHelper';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
@@ -92,8 +92,7 @@ function getReportScreen(reportID = REPORT_ID) {
 }
 
 function scrollToOffset(offset: number) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {

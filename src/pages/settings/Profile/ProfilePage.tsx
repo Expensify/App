@@ -216,6 +216,7 @@ function ProfilePage() {
                                                         avatar: currentUserPersonalDetails?.avatar,
                                                         fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
                                                         accountID: currentUserPersonalDetails?.accountID,
+                                                        email: currentUserPersonalDetails?.email,
                                                     });
                                                 }}
                                                 size={CONST.AVATAR_SIZE.X_LARGE}
