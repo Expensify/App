@@ -1,5 +1,3 @@
-import type {Receipt} from '@src/types/onyx/Transaction';
-
 type CreateDistanceRequestParams = {
     transactionID: string;
     chatReportID: string;
@@ -13,7 +11,6 @@ type CreateDistanceRequestParams = {
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
     category?: string;
-    receipt?: Receipt;
     tag?: string;
     taxCode?: string;
     taxAmount?: number;

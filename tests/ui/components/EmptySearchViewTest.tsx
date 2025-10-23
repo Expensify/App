@@ -12,6 +12,7 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {translateLocal} from '../../utils/TestHelper';
 import type IconAsset from '@src/types/utils/IconAsset';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -166,7 +167,8 @@ describe('EmptySearchView', () => {
 
                 // Given a query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -218,6 +220,7 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );
@@ -239,7 +242,8 @@ describe('EmptySearchView', () => {
 
                 // Given: A query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -286,6 +290,7 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );

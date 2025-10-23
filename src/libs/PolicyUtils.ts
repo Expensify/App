@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -1090,6 +1091,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
@@ -1393,10 +1395,13 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.collect');
         default:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspace.type.free');
     }
 }

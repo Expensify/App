@@ -10,7 +10,7 @@ Expensify is committed to keeping your data secure and transparent. You can acce
 
 You can view or download the following audit documents to verify our security and operational controls:
 
-- [Bridge Letter for SOC 1 and SOC 2 – June 2025](https://drive.google.com/file/d/1kxttniCMLFah4uPNjhknxs0Zor6tWGWE/view?usp=drive_link)
+- [Bridge Letter for SOC 1 and SOC 2](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1759782614043-Bridge_Letter_for_SOC_1_and_SOC_2_-_Sept_30_2025.pdf)
 - [SOC 1 Type 2 Report – September 30, 2024](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1733950182002-SOC+1+Type+2+Report+09-30-24+-+Expensify.pdf)
 - [SOC 2 Type 2 Report – September 30, 2024](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1733950193162-SOC+2+Type+2+Report+09-30-24+-+Expensify.pdf)
 

@@ -20,6 +20,6 @@ export default function useImportPlaidAccounts(policyID?: string) {
         if (!policyID || !plaidToken || !plaidFeed || !plaidFeedName || !country || !plaidAccounts?.length) {
             return;
         }
-        importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), statementPeriodEnd, statementPeriodEndDay);
+        importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), statementPeriodEnd, statementPeriodEndDay, '');
     }, [statementPeriodEnd, statementPeriodEndDay, country, plaidAccounts, plaidFeed, plaidFeedName, plaidToken, policyID]);
 }
