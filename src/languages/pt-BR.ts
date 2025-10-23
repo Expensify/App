@@ -2427,7 +2427,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2440,7 +2440,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2453,7 +2453,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2548,7 +2548,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2561,7 +2561,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2583,7 +2583,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão *+*.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -6145,7 +6145,7 @@ ${amount} para ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão <strong>+</strong>.`,
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão +.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',

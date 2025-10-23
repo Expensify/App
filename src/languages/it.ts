@@ -2434,7 +2434,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2447,7 +2447,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2460,7 +2460,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2555,7 +2555,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2568,7 +2568,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2590,7 +2590,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante *+*.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
@@ -6166,7 +6166,7 @@ ${amount} per ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante <strong>+</strong>.`,
+                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante +.`,
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',

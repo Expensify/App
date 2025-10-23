@@ -2444,7 +2444,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
@@ -2455,7 +2455,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Reiche eine Ausgabe ein',
                 description:
                     '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Details bestätigen.\n' +
@@ -2466,7 +2466,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Verfolge eine Ausgabe',
                 description:
                     '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Ausgabe erstellen*.\n' +
                     '3. Betrag eingeben oder Beleg scannen.\n' +
                     '4. Wähle deinen *persönlichen* Bereich.\n' +
@@ -2550,7 +2550,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Starte einen Chat',
                 description:
                     '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
                     'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
@@ -2560,7 +2560,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Teile eine Ausgabe',
                 description:
                     '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Chat starten*.\n' +
                     '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
                     '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
@@ -2580,7 +2580,7 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Erstelle deinen ersten Bericht',
                 description:
                     'So erstellst du einen Bericht:\n\n' +
-                    `1. Klicke auf den <strong>+</strong>-Button.\n` +
+                    `1. Klicke auf den *+*-Button.\n` +
                     '2. Wähle *Bericht erstellen*.\n' +
                     '3. Klicke auf *Ausgabe hinzufügen*.\n' +
                     '4. Füge deine erste Ausgabe hinzu.\n\n' +
@@ -6154,7 +6154,7 @@ ${amount} für ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Nichts zu zeigen',
-                subtitle: `Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem <strong>+</strong> Button zu erstellen.`,
+                subtitle: `Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem + Button zu erstellen.`,
             },
             emptyExpenseResults: {
                 title: 'Sie haben noch keine Ausgaben erstellt.',

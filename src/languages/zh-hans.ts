@@ -6023,7 +6023,7 @@ ${merchant}的${amount} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: `尝试调整您的搜索条件或使用 <strong>+</strong> 按钮创建内容。`,
+                subtitle: `尝试调整您的搜索条件或使用 + 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',

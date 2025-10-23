@@ -2429,7 +2429,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
@@ -2442,7 +2442,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Bevestig de details.\n' +
@@ -2455,7 +2455,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Kies uw *persoonlijke* ruimte.\n' +
@@ -2550,7 +2550,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer een e-mailadres of telefoonnummer in.\n' +
                     '\n' +
@@ -2563,7 +2563,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer e-mailadressen of telefoonnummers in.\n' +
                     '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
@@ -2585,7 +2585,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     'Zo maakt u een rapport:\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de *+*-knop.\n` +
                     '2. Kies *Rapport aanmaken*.\n' +
                     '3. Klik op *Uitgave toevoegen*.\n' +
                     '4. Voeg uw eerste uitgave toe.\n' +
@@ -6136,7 +6136,7 @@ ${amount} dla ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
-                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą przycisku <strong>+</strong>.`,
+                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą przycisku +.`,
             },
             emptyExpenseResults: {
                 title: 'Nie utworzyłeś jeszcze żadnych wydatków.',

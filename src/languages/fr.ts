@@ -2441,7 +2441,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Soumettre une dépense',
                 description:
                     '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     `4. Ajoutez l’email ou numéro de téléphone de votre responsable.\n` +
@@ -2452,7 +2452,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Soumettre une dépense',
                 description:
                     '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     '4. Confirmez les détails.\n' +
@@ -2463,7 +2463,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Suivre une dépense',
                 description:
                     '*Suivez une dépense* dans n’importe quelle devise, avec ou sans reçu.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Créer une dépense*.\n' +
                     '3. Saisissez un montant ou scannez un reçu.\n' +
                     '4. Choisissez votre espace *personnel*.\n' +
@@ -2546,7 +2546,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Démarrer un chat',
                 description:
                     '*Démarrez un chat* avec quelqu’un grâce à son email ou numéro.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Démarrer un chat*.\n' +
                     '3. Entrez un email ou numéro de téléphone.\n\n' +
                     'S’ils ne sont pas encore sur Expensify, une invitation sera envoyée automatiquement.\n\n' +
@@ -2556,7 +2556,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Partager une dépense',
                 description:
                     '*Partagez une dépense* avec une ou plusieurs personnes.\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Démarrer un chat*.\n' +
                     '3. Entrez des emails ou numéros de téléphone.\n' +
                     '4. Cliquez sur le bouton gris *+* > *Partager une dépense*.\n' +
@@ -2576,7 +2576,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Créer votre premier rapport',
                 description:
                     'Voici comment créer un rapport :\n\n' +
-                    `1. Cliquez sur le bouton <strong>+</strong>.\n` +
+                    `1. Cliquez sur le bouton *+*.\n` +
                     '2. Choisissez *Créer un rapport*.\n' +
                     '3. Cliquez sur *Ajouter une dépense*.\n' +
                     '4. Ajoutez votre première dépense.\n\n' +
@@ -6160,7 +6160,7 @@ ${amount} pour ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Rien à afficher',
-                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton <strong>+</strong>.`,
+                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton +.`,
             },
             emptyExpenseResults: {
                 title: "Vous n'avez pas encore créé de dépenses.",
