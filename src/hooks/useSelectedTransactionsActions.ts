@@ -15,18 +15,16 @@ import {
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getReportOrDraftReport,
-    isArchivedReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -59,7 +57,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {selectedTransactionIDs, clearSelectedTransactions, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -70,7 +68,7 @@ function useSelectedTransactionsActions({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const selectedTransactionsList = useMemo(
+    const selectedTransactions = useMemo(
         () =>
             selectedTransactionIDs.reduce((acc, transactionID) => {
                 const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -81,70 +79,13 @@ function useSelectedTransactionsActions({
             }, [] as Transaction[]),
         [allTransactions, selectedTransactionIDs],
     );
-    const hasTransactionsFromMultipleOwners = useMemo(() => {
-        const knownOwnerIDs = new Set<number>();
-        let hasUnknownOwner = false;
-
-        for (const selectedTransactionInfo of Object.values(selectedTransactionsMeta ?? {})) {
-            const ownerAccountID = selectedTransactionInfo?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                knownOwnerIDs.add(ownerAccountID);
-                if (knownOwnerIDs.size > 1) {
-                    return true;
-                }
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-
-        for (const selectedTransaction of selectedTransactionsList) {
-            const reportID = selectedTransaction?.reportID;
-            if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                hasUnknownOwner = true;
-                continue;
-            }
-
-            const parentReport = getReportOrDraftReport(reportID);
-            const ownerAccountID = parentReport?.ownerAccountID;
-
-            if (typeof ownerAccountID === 'number') {
-                knownOwnerIDs.add(ownerAccountID);
-                if (knownOwnerIDs.size > 1) {
-                    return true;
-                }
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-
-        if (hasUnknownOwner) {
-            return knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1;
-        }
-
-        return false;
-    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs]);
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
@@ -184,10 +125,10 @@ function useSelectedTransactionsActions({
                 duplicateTransactionViolations,
                 iouReport,
                 chatReport,
+                isChatIOUReportArchived,
                 false,
                 deletedTransactionIDs,
                 selectedTransactionIDs,
-                isChatIOUReportArchived,
             );
             deletedTransactionIDs.push(transactionID);
             if (action.childReportID) {
@@ -214,10 +155,10 @@ function useSelectedTransactionsActions({
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        let canHoldTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed;
-        let canUnholdTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport;
+        let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
+        let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
 
-        selectedTransactionsList.forEach((selectedTransaction) => {
+        selectedTransactions.forEach((selectedTransaction) => {
             if (!canHoldTransactions && !canUnholdTransactions) {
                 return;
             }
@@ -314,7 +255,7 @@ function useSelectedTransactionsActions({
             subMenuItems: getExportOptions(),
         });
 
-        const canSelectedExpensesBeMoved = selectedTransactionsList.every((transaction) => {
+        const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
             if (!transaction) {
                 return false;
             }
@@ -325,7 +266,7 @@ function useSelectedTransactionsActions({
         });
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-        if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
+        if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
                 icon: Expensicons.DocumentMerge,
@@ -339,14 +280,14 @@ function useSelectedTransactionsActions({
         }
 
         // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
-        const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
+        const canMergeTransaction = selectedTransactions.length === 1 && report && isMergeAction(report, selectedTransactions, policy);
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),
                 icon: Expensicons.ArrowCollapse,
                 value: MERGE,
                 onSelected: () => {
-                    const targetTransaction = selectedTransactionsList.at(0);
+                    const targetTransaction = selectedTransactions.at(0);
 
                     if (!report || !targetTransaction) {
                         return;
@@ -358,7 +299,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
+        const canAllSelectedTransactionsBeRemoved = Object.values(selectedTransactions).every((transaction) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
@@ -381,7 +322,7 @@ function useSelectedTransactionsActions({
     }, [
         selectedTransactionIDs,
         report,
-        selectedTransactionsList,
+        selectedTransactions,
         translate,
         isReportArchived,
         policy,
@@ -399,7 +340,6 @@ function useSelectedTransactionsActions({
         lastVisitedPath,
         session?.accountID,
         showDeleteModal,
-        hasTransactionsFromMultipleOwners,
     ]);
 
     return {

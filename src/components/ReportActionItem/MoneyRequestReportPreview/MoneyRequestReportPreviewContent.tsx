@@ -473,6 +473,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             violations,
             isIouReportArchived || isChatReportArchived,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
@@ -492,6 +493,7 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
+        currentUserDetails.email,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
