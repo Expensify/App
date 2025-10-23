@@ -4,11 +4,11 @@ import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -33,22 +33,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     /**
      * Delete transactions by IDs
@@ -164,10 +149,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     duplicateTransactionViolations,
                     iouReport,
                     chatReport,
+                    isChatIOUReportArchived,
                     isSingleTransactionView,
                     deletedTransactionIDs,
                     transactionIDs,
-                    isChatIOUReportArchived,
                 );
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
