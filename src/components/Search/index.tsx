@@ -862,9 +862,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // Substitute the deleted data from the calculated footer data so that the footer shows optimistic data
         if (deletedData.length > 0 && calculatedFooterData.count) {
             const deletedTransactionsData = calculateSearchPageFooterData({}, deletedData, groupBy, searchMetadata?.currency);
-            calculatedFooterData.count -= (deletedTransactionsData?.count ?? 0);
+            calculatedFooterData.count -= deletedTransactionsData?.count ?? 0;
             if (calculatedFooterData.total) {
-                calculatedFooterData.total -= (deletedTransactionsData?.total ?? 0);
+                calculatedFooterData.total -= deletedTransactionsData?.total ?? 0;
             }
         }
         return calculatedFooterData;
