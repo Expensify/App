@@ -449,7 +449,7 @@ function submitMoneyRequestOnSearch(
     onDEWModalOpen?: () => void,
 ) {
     const policyData = policy.at(0);
-    if (hasDynamicExternalWorkflow(policyData)) {
+    if (policyData && hasDynamicExternalWorkflow(policyData)) {
         onDEWModalOpen?.();
         return;
     }

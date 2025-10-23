@@ -528,6 +528,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

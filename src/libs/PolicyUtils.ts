@@ -630,7 +630,7 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
 /**
  * Checks if policy has Dynamic External Workflow enabled
  */
-function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
+function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
 
