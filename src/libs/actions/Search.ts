@@ -704,6 +704,7 @@ function getExportTemplates(
     const exportTemplates: ExportTemplate[] = [
         normalizeTemplate(
             CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
             CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
         ),
@@ -714,6 +715,7 @@ function getExportTemplates(
         exportTemplates.push(
             normalizeTemplate(
                 CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
                 CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
             ),
