@@ -95,10 +95,7 @@ function parseMessage(messages: Message[] | undefined) {
         nextStepHTML += `<${tagType}>${content}</${tagType}>`;
     });
 
-    const formattedHtml = nextStepHTML
-        .replaceAll('%expenses', 'expenses')
-        .replaceAll('%Expenses', 'Expenses')
-        .replaceAll('%tobe', 'are');
+    const formattedHtml = nextStepHTML.replaceAll('%expenses', 'expenses').replaceAll('%Expenses', 'Expenses').replaceAll('%tobe', 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
 }
