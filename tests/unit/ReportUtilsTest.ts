@@ -7222,6 +7222,10 @@ describe('ReportUtils', () => {
             ...createRandomReportAction(2),
             reportID: '40004',
             actorAccountID: currentUserAccountID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            originalMessage: {
+                linkedReportID: report.reportID,
+            },
         };
         const reportActions = [reportAction1, parentReportAction1].reduce<ReportActions>((acc, action) => {
             if (action.reportActionID) {
@@ -7274,30 +7278,31 @@ describe('ReportUtils', () => {
                 reportAction: reportActionWithError,
             });
         });
-        it("should return smart scan error with no report action when there's actions required and report is not archived", async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportAction1.reportID}`, {
-                [parentReportAction1.reportActionID]: {
+        it('should return smart scan error for the top-most parent report with smart scan error', async () => {
+            const transactionID = '12345';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {
+                [reportAction1.reportActionID]: {
                     actorAccountID: currentUserAccountID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: '12345',
+                        IOUTransactionID: transactionID,
                     },
                 },
             });
             const transaction: Transaction = {
-                ...createRandomTransaction(12345),
+                ...createRandomTransaction(Number(transactionID)),
                 reportID: parentReport.reportID,
                 amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(parentReport, reportActions, false);
             expect(Object.keys(errors)).toHaveLength(1);
             expect(Object.keys(errors).at(0)).toBe('smartscan');
             expect(Object.keys(errors.smartscan ?? {})).toHaveLength(1);
             expect(errors.smartscan?.[Object.keys(errors.smartscan)[0]]).toEqual('Transaction is missing fields');
-            expect(reportAction).toBeUndefined();
+            expect(reportAction?.reportActionID).toBe(parentReportAction1.reportActionID);
         });
         it("should return no error and no report action when there's actions required and report is archived", async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportAction1.reportID}`, {
