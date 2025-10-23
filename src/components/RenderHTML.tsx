@@ -47,7 +47,16 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         />
     );
 
-    return onLinkPress ? <RenderHTMLConfigProvider renderersProps={renderersProps}>{htmlSource}</RenderHTMLConfigProvider> : htmlSource;
+    return onLinkPress ? (
+        <RenderHTMLConfigProvider
+            defaultTextProps={{selectable: true}}
+            renderersProps={renderersProps}
+        >
+            {htmlSource}
+        </RenderHTMLConfigProvider>
+    ) : (
+        htmlSource
+    );
 }
 
 RenderHTML.displayName = 'RenderHTML';
