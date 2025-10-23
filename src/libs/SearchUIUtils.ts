@@ -89,6 +89,7 @@ import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
     getIcons,
+    getMoneyRequestReportPendingAction,
     getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,
@@ -1445,7 +1446,7 @@ function getReportSections(
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview ?? getMoneyRequestReportPendingAction(reportItem.reportID);
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
                 reportIDToTransactions[reportKey] = {
