@@ -139,6 +139,7 @@ function AttachmentView({
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
     const firstRenderRoute = useFirstRenderRoute();
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
+    const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
 
     useEffect(() => {
         if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
@@ -161,10 +162,9 @@ function AttachmentView({
     }, [file]);
 
     useEffect(() => {
-        const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
         const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
         onAttachmentError?.(source, isErrorInImage && isImageSource);
-    }, [fallbackSource, file?.name, imageError, onAttachmentError, source]);
+    }, [fallbackSource, isImageSource, imageError, onAttachmentError, source]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -193,7 +193,12 @@ function AttachmentView({
         return <PerDiemEReceipt transactionID={transaction.transactionID} />;
     }
 
-    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
+    // During merge transaction flow, target transaction data hasn't been merged yet with source transaction.
+    // Hence, if target transaction has eReceipt, it would render eReceipt which is incorrect if user
+    // selects receipt from source transaction. The !isImageSource check prevents showing eReceipt when
+    // an actual image receipt is provided from the source transaction.
+    // See https://github.com/Expensify/App/issues/70415
+    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction) && !isImageSource) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
