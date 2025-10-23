@@ -281,7 +281,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTags(policyID, isEnabled);
+                enablePolicyTags({policyID, enabled: isEnabled, policyTags: policyTagLists});
             },
         },
         {
