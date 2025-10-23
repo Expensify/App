@@ -5225,7 +5225,8 @@ const staticStyles = (theme: ThemeColors) =>
         avatarSelectorListContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: 2,
+            gap: 0,
+            justifyContent: 'space-between',
         },
 
         avatarSelected: {borderColor: theme.success, borderWidth: 2},
@@ -5450,6 +5451,11 @@ const staticStyles = (theme: ThemeColors) =>
         searchBarMargin: {
             marginHorizontal: 20,
             marginBottom: 20,
+        },
+        domainIcon: {
+            backgroundColor: theme.border,
+            padding: 10,
+            borderRadius: 8,
         },
     }) satisfies StaticStyles;
 
