@@ -441,6 +441,7 @@ const translations = {
         iAcceptThe: '我接受',
         iAcceptTheFull: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a> 和 <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>`,
         iAcceptTheConfirmAgreements: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">条款和条件</a>`,
+        iAcceptTheConfirmation: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a>`,
         remove: '移除',
         admin: '管理员',
         owner: '所有者',

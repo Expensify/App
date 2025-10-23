@@ -434,6 +434,7 @@ const translations = {
         iAcceptThe: 'I accept the ',
         iAcceptTheFull: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy Policy</a>`,
         iAcceptTheConfirmAgreements: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">terms and conditions</a>`,
+        iAcceptTheConfirmation: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Terms of Service</a>`,
         remove: 'Remove',
         admin: 'Admin',
         owner: 'Owner',
