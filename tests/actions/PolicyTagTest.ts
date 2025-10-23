@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
@@ -9,9 +9,11 @@ import {
     clearPolicyTagListErrorField,
     createPolicyTag,
     deletePolicyTags,
+    enablePolicyTags,
     renamePolicyTag,
     renamePolicyTagList,
     setPolicyRequiresTag,
+    setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
@@ -1380,6 +1382,300 @@ describe('actions/Policy', () => {
                     Tag: ['Engineering', 'Marketing', 'Sales'],
                 });
             });
+        });
+    });
+
+    describe('EnablePolicyTags', () => {
+        it('should enable tags and create default tag list if none exists', async () => {
+            // Given a policy without tags
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When enabling tags
+            enablePolicyTags({policyID: fakePolicy.id, enabled: true});
+            await waitForBatchedUpdates();
+
+            // Then the policy should be updated optimistically
+            const optimisticPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(optimisticPolicy?.areTagsEnabled).toBe(true);
+            expect(optimisticPolicy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // And a default tag list should be created
+            const optimisticPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(optimisticPolicyTags?.Tag?.name).toBe('Tag');
+            expect(optimisticPolicyTags?.Tag?.orderWeight).toBe(0);
+            expect(optimisticPolicyTags?.Tag?.required).toBe(false);
+            expect(optimisticPolicyTags?.Tag?.tags).toEqual({});
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // And after API success, pending fields should be cleared
+            const successPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(successPolicy?.pendingFields?.areTagsEnabled).toBeFalsy();
+        });
+
+        it('should disable tags and update existing tag list', async () => {
+            // Given a policy with enabled tags and existing tag list
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const existingTags = fakePolicyTags[tagListName]?.tags ?? {};
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When disabling tags
+            enablePolicyTags({policyID: fakePolicy.id, enabled: false, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            // Then the policy should be updated optimistically
+            const optimisticPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(optimisticPolicy?.areTagsEnabled).toBe(false);
+            expect(optimisticPolicy?.requiresTag).toBe(false);
+            expect(optimisticPolicy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // And all tags should be disabled
+            const optimisticPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            Object.keys(existingTags).forEach((tagName) => {
+                expect(optimisticPolicyTags?.[tagListName]?.tags[tagName]?.enabled).toBe(false);
+            });
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // And after API success, pending fields should be cleared
+            const successPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(successPolicy?.pendingFields?.areTagsEnabled).toBeFalsy();
+        });
+
+        it('should reset changes when API returns error', async () => {
+            // Given a policy with disabled tags
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            mockFetch.fail();
+
+            // When enabling tags fails
+            enablePolicyTags({policyID: fakePolicy.id, enabled: true});
+            await waitForBatchedUpdates();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the policy should be reset to original state
+            const failurePolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(failurePolicy?.areTagsEnabled).toBe(false);
+            expect(failurePolicy?.pendingFields?.areTagsEnabled).toBeFalsy();
+
+            // And no tag list should be created
+            const failurePolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(failurePolicyTags).toBeFalsy();
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            // Given a policy data loaded via useOnyx
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            const {result} = renderHook(() => {
+                const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {canBeMissing: true});
+                const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, {canBeMissing: true});
+                return {policy, policyTags};
+            });
+
+            await waitFor(() => {
+                expect(result.current.policy).toBeDefined();
+            });
+
+            // When enabling tags with data from useOnyx
+            await act(async () => {
+                enablePolicyTags({policyID: fakePolicy.id, enabled: true, policyTags: result.current.policyTags});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the policy should be updated optimistically
+            const optimisticPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(optimisticPolicy?.areTagsEnabled).toBe(true);
+
+            await act(async () => {
+                await mockFetch.resume();
+                await waitForBatchedUpdates();
+            });
+
+            // And after API success, policy should be enabled
+            await waitFor(() => {
+                expect(result.current.policy?.areTagsEnabled).toBe(true);
+            });
+
+            // And default tag list should be created
+            await waitFor(() => {
+                expect(result.current.policyTags?.Tag).toBeDefined();
+            });
+        });
+    });
+
+    describe('SetPolicyTagsRequired', () => {
+        it('should set tag list as required when requiresTag is true', async () => {
+            // Given a policy with a tag list that is not required
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test Tag List';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                required: false,
+                orderWeight: 0,
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When setPolicyTagsRequired is called with requiresTag = true
+            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            // Then the tag list should be marked as required with pending fields
+            let updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
+            // Check optimistic data - pendingFields should be set
+            if (updatedPolicyTags?.[tagListName]?.pendingFields?.required) {
+                expect(updatedPolicyTags[tagListName].pendingFields.required).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then after API success, pending fields should be cleared
+            updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.pendingFields?.required).toBeUndefined();
+        });
+
+        it('should set tag list as not required when requiresTag is false', async () => {
+            // Given a policy with a tag list that is required
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test Tag List';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                required: true,
+                orderWeight: 0,
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When setPolicyTagsRequired is called with requiresTag = false
+            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: false, tagListIndex: 0, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            // Then the tag list should be marked as not required with pending fields
+            let updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
+            // Check optimistic data - pendingFields should be set
+            if (updatedPolicyTags?.[tagListName]?.pendingFields?.required) {
+                expect(updatedPolicyTags[tagListName].pendingFields.required).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then after API success, pending fields should be cleared
+            updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
+            expect(updatedPolicyTags?.[tagListName]?.pendingFields?.required).toBeUndefined();
+        });
+
+        it('should handle API failure and restore original state with error', async () => {
+            // Given a policy with a tag list that is not required
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test Tag List';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                required: false,
+                orderWeight: 0,
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When setPolicyTagsRequired is called and API fails
+            mockFetch.fail();
+            setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the tag list should be restored to original state with error
+            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(false);
+            expect(updatedPolicyTags?.[tagListName]?.pendingFields?.required).toBeUndefined();
+            expect(updatedPolicyTags?.[tagListName]?.errorFields?.required).toBeTruthy();
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            // Given a policy with a tag list that is not required
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test Tag List';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                required: false,
+                orderWeight: 0,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            await act(async () => {
+                // When setPolicyTagsRequired is called with data from useOnyx
+                setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: result.current[0]});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the tag list should be marked as required
+            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
+            // Check optimistic data - pendingFields should be set
+            if (updatedPolicyTags?.[tagListName]?.pendingFields?.required) {
+                expect(updatedPolicyTags[tagListName].pendingFields.required).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            }
         });
     });
 });

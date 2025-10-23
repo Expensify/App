@@ -570,6 +570,81 @@ describe('actions/PersonalDetails', () => {
             );
         });
 
+        it('should call API.write with correct parameters and optimistic data for DefaultAvatarResult', async () => {
+            const mockFile = {
+                uri: 'file://test-avatar.jpg',
+                name: 'test-avatar.jpg',
+                customExpensifyAvatarID: 'default-avatar_7',
+            };
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
+                avatar: 'old-avatar.jpg',
+                avatarThumbnail: 'old-avatar-thumb.jpg',
+                accountID: 123,
+            };
+
+            PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_USER_AVATAR,
+                {customExpensifyAvatarID: mockFile.customExpensifyAvatarID},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                123: {
+                                    avatar: mockFile.uri,
+                                    avatarThumbnail: mockFile.uri,
+                                    originalFileName: mockFile.name,
+                                    errorFields: {
+                                        avatar: null,
+                                    },
+                                    pendingFields: {
+                                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        originalFileName: null,
+                                    },
+                                    fallbackIcon: mockFile.uri,
+                                },
+                            },
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                123: {
+                                    pendingFields: {
+                                        avatar: null,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                123: {
+                                    avatar: currentUserPersonalDetail.avatar,
+                                    avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
+                                    pendingFields: {
+                                        avatar: null,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            );
+        });
+
         it('should handle null avatarThumbnail in failure data', async () => {
             const mockFile = {
                 uri: 'file://test-avatar.jpg',
