@@ -565,7 +565,7 @@ function MoneyRequestConfirmationListFooter({
                         if (shouldNavigateToUpgradePath) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.EDIT,
+                                    action,
                                     iouType,
                                     transactionID,
                                     reportID,
@@ -573,7 +573,7 @@ function MoneyRequestConfirmationListFooter({
                                     upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                 }),
                             );
-                        } else if (shouldSelectPolicy) {
+                        } else if (!policy && shouldSelectPolicy) {
                             Navigation.navigate(
                                 ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
                                     ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
