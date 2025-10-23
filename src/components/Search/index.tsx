@@ -617,8 +617,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                createAndOpenSearchTransactionThread(item, iouReportAction, hash, backTo);
+                createAndOpenSearchTransactionThread(item, hash, backTo, transactionPreviewData);
                 return;
             }
 
@@ -679,7 +678,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                    if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
+                    } else {
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                    }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
@@ -703,7 +706,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
