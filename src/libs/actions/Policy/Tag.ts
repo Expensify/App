@@ -879,21 +879,17 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
     );
 }
 
-function renamePolicyTagList(policyData: PolicyData, policyTagListName: {oldName: string; newName: string}, tagListIndex: number) {
-    const policyID = policyData.policy.id;
+function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
-    const oldPolicyTags = policyData.tags?.[oldName] ?? {};
-    const policyTagsOptimisticData = {
-        [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
-    };
+    const oldPolicyTags = policyTags?.[oldName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    ...policyTagsOptimisticData,
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
                     [oldName]: null,
                 },
             },
@@ -923,15 +919,6 @@ function renamePolicyTagList(policyData: PolicyData, policyTagListName: {oldName
             },
         ],
     };
-
-    const tags = Object.entries(policyData.tags ?? {}).reduce<PolicyTagLists>((acc, [tagName, tag]) => {
-        if (tagName !== oldName) {
-            acc[tagName] = {...tag};
-        }
-        return acc;
-    }, {});
-
-    pushTransactionViolationsOnyxData(onyxData, {...policyData, tags}, {}, {}, policyTagsOptimisticData);
 
     const parameters: RenamePolicyTagListParams = {
         policyID,
