@@ -14,7 +14,7 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {QuickAction} from '@src/types/onyx';
+import type {QuickAction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
