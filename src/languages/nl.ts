@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -671,6 +672,7 @@ const translations = {
         pinned: 'Vastgezet',
         read: 'Gelezen',
         copyToClipboard: 'Kopiëren naar klembord',
+        domains: 'Domeinen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -796,6 +798,11 @@ const translations = {
         nameEmailOrPhoneNumber: 'Naam, e-mail of telefoonnummer',
         findMember: 'Zoek een lid',
         searchForSomeone: 'Zoek iemand',
+    },
+    customApprovalWorkflow: {
+        title: 'Aangepaste goedkeuringsworkflow',
+        description: 'Uw bedrijf heeft een aangepaste goedkeuringsworkflow voor deze werkruimte. Voer deze actie uit in Expensify Classic',
+        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1690,7 +1697,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset naar oorspronkelijke staat',
             usingImportedState: 'U gebruikt geïmporteerde status. Druk hier om het te wissen.',
-            shouldBlockTransactionThreadReportCreation: 'Creatie van transactie thread rapporten blokkeren',
             debugMode: 'Debug-modus',
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
@@ -2944,8 +2950,8 @@ ${amount} voor ${merchant} - ${date}`,
         needSSNFull9: 'We hebben problemen met het verifiëren van uw SSN. Voer alstublieft de volledige negen cijfers van uw SSN in.',
         weCouldNotVerify: 'We konden niet verifiëren',
         pleaseFixIt: 'Pas deze informatie aan voordat u verdergaat.',
-        failedKYCTextBefore: 'We konden uw identiteit niet verifiëren. Probeer het later opnieuw of neem contact op met',
-        failedKYCTextAfter: 'als je vragen hebt.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `We konden uw identiteit niet verifiëren. Probeer het later opnieuw of neem contact op met <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> als je vragen hebt.`,
     },
     termsStep: {
         headerTitle: 'Voorwaarden en kosten',
@@ -4421,8 +4427,7 @@ ${amount} voor ${merchant} - ${date}`,
             employeeDefaultDescription: 'De standaardafdeling van de werknemer wordt toegepast op hun uitgaven in Sage Intacct indien deze bestaat.',
             displayedAsTagDescription: 'Afdeling zal selecteerbaar zijn voor elke individuele uitgave op het rapport van een werknemer.',
             displayedAsReportFieldDescription: 'Afdelingsselectie zal van toepassing zijn op alle uitgaven in het rapport van een werknemer.',
-            toggleImportTitleFirstPart: 'Kies hoe Sage Intacct te beheren',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Kies hoe Sage Intacct <strong>${mappingTitle}</strong> in Expensify te beheren.`,
             expenseTypes: 'Uitgavensoorten',
             expenseTypesDescription: 'Uw Sage Intacct-uitgavensoorten worden in Expensify geïmporteerd als categorieën.',
             accountTypesDescription: 'Uw Sage Intacct-rekeningschema wordt in Expensify geïmporteerd als categorieën.',
@@ -5389,7 +5394,6 @@ ${amount} voor ${merchant} - ${date}`,
                 `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Zorg ervoor dat dit account overeenkomt met uw <a href="${settlementAccountUrl}">Expensify Card afwikkelingsrekening</a> (eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
             },
@@ -5730,6 +5734,7 @@ ${amount} voor ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chat met je beheerder',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Betaalpas toevoegen',
+            goToSubscription: 'Ga naar het abonnement',
         },
         rules: {
             individualExpenseRules: {
@@ -6678,14 +6683,9 @@ ${amount} voor ${merchant} - ${date}`,
         copyReferralLink: 'Kopieer uitnodigingslink',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat met uw setup specialist in',
-            phrase2: 'voor hulp',
-        },
-        default: {
-            phrase1: 'Bericht',
-            phrase2: 'voor hulp bij de installatie',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chat met uw setup specialist in <a href="${href}">${adminReportName}</a> voor hulp`,
+        default: `Bericht <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> voor hulp bij de installatie`,
     },
     violations: {
         allTagLevelsRequired: 'Alle tags vereist',
@@ -6772,7 +6772,8 @@ ${amount} voor ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Ontvangst in behandeling vanwege verbroken bankverbinding',
-        adminBrokenConnectionError: 'Ontvangst in afwachting vanwege verbroken bankverbinding. Los dit alstublieft op in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Bon in afwachting vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ontvangst in afwachting vanwege een verbroken bankverbinding. Vraag een werkruimtebeheerder om het op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
         smartscanFailed: ({canEdit = true}) => `Bonnetjes scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
@@ -7320,6 +7321,11 @@ ${amount} voor ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
     avatarPage: {title: 'Profielfoto bewerken', upload: 'Uploaden', uploadPhoto: 'Foto uploaden', selectAvatar: 'Selecteer avatar', chooseCustomAvatar: 'Of kies een aangepaste avatar'},
+    openAppFailureModal: {
+        title: 'Er is iets misgegaan...',
+        subtitle: `We hebben niet al uw gegevens kunnen laden. We zijn op de hoogte gesteld en onderzoeken het probleem. Als dit aanhoudt, neem dan contact op met`,
+        refreshAndTryAgain: 'Vernieuw en probeer het opnieuw',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
