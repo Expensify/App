@@ -54,6 +54,7 @@ import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMone
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
+import Tab from '@userActions/Tab';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -255,6 +256,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
@@ -368,7 +370,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID: currentUserPersonalDetails.accountID});
                 });
             };
             return [
@@ -415,23 +417,24 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         translate,
         styles.pt3,
         styles.pb2,
-        quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionTitle,
-        quickActionSubtitle,
-        quickActionPolicy,
         quickActionReport,
-        isValidReport,
-        selectOption,
+        quickActionPolicy,
+        isReportArchived,
+        isRestrictedToPreferredPolicy,
+        quickActionTitle,
+        quickActionAvatars,
+        quickActionSubtitle,
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isReportArchived,
+        isValidReport,
+        selectOption,
         lastDistanceExpenseType,
-        allTransactionDrafts,
+        currentUserPersonalDetails.accountID,
+        showDelegateNoAccessModal,
         reportID,
-        isRestrictedToPreferredPolicy,
+        allTransactionDrafts,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -569,6 +572,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   viewTourTaskReport,
                                   viewTourTaskParentReport,
                                   isViewTourTaskParentReportArchived,
+                                  currentUserPersonalDetails.accountID,
                               ),
                           ),
                   },
