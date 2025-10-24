@@ -158,8 +158,10 @@ function maskValuePreservingLength(value: unknown) {
 }
 
 function randomizeAmount(amount: number): number {
+    if (!Number.isFinite(amount)) {
+        return 0;
+    }
     const randomizedValue = Math.floor(Math.random() * 999999) + 1;
-
     return amount < 0 ? -randomizedValue : randomizedValue;
 }
 
