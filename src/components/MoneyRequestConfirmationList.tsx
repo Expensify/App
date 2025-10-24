@@ -259,17 +259,9 @@ function MoneyRequestConfirmationList({
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const isTestReceipt = useMemo(() => {
-        return transaction?.receipt?.isTestReceipt ?? false;
-    }, [transaction?.receipt?.isTestReceipt]);
-
-    const isTestDriveReceipt = useMemo(() => {
-        return transaction?.receipt?.isTestDriveReceipt ?? false;
-    }, [transaction?.receipt?.isTestDriveReceipt]);
-
-    const isManagerMcTestReceipt = useMemo(() => {
-        return isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
-    }, [isBetaEnabled, selectedParticipantsProp]);
+    const isTestReceipt = transaction?.receipt?.isTestReceipt ?? false;
+    const isTestDriveReceipt = transaction?.receipt?.isTestDriveReceipt ?? false;
+    const isManagerMcTestReceipt = isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
@@ -290,7 +282,7 @@ function MoneyRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
+    const isScanRequest = isScanRequestUtil(transaction);
     const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
 
     const transactionID = transaction?.transactionID;
@@ -328,7 +320,7 @@ function MoneyRequestConfirmationList({
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
@@ -387,15 +379,10 @@ function MoneyRequestConfirmationList({
         [formError, setFormError],
     );
 
-    const shouldDisplayFieldError: boolean = useMemo(() => {
-        if (!isEditingSplitBill) {
-            return false;
-        }
-
-        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction));
-    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
-
-    const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
+    const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
+    const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
+    const shouldDisplayFieldError = isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
+    const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -593,9 +580,9 @@ function MoneyRequestConfirmationList({
         adjustRemainingSplitShares(transaction);
     }, [isTypeSplit, transaction]);
 
-    const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
-    const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
-    const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
+    const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
+    const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
+    const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
 
     const splitParticipants = useMemo(() => {
         if (!isTypeSplit) {
@@ -682,12 +669,7 @@ function MoneyRequestConfirmationList({
         onSplitShareChange,
     ]);
 
-    const isSplitModified = useMemo(() => {
-        if (!transaction?.splitShares) {
-            return;
-        }
-        return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
-    }, [transaction?.splitShares]);
+    const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
 
     const getSplitSectionHeader = useCallback(
         () => (
