@@ -428,16 +428,7 @@ describe('SearchQueryUtils', () => {
                 return;
             }
 
-            const readableQuery = buildUserReadableQueryString(
-                queryJSON,
-                undefined,
-                {} as never,
-                {},
-                {} as never,
-                {} as never,
-                {} as never,
-                CONST.DEFAULT_NUMBER_ID,
-            );
+            const readableQuery = buildUserReadableQueryString(queryJSON, undefined, {} as never, {}, {} as never, {} as never, {} as never, CONST.DEFAULT_NUMBER_ID);
 
             expect(readableQuery).toBe('type:expense action:submit from:me group-by:from');
         });

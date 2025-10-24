@@ -185,10 +185,7 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
-type SearchQueryTokenKey =
-    | SearchFilterKey
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER;
+type SearchQueryTokenKey = SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER;
 
 type SearchQueryToken = {
     key: SearchQueryTokenKey;
