@@ -271,36 +271,32 @@ function IOURequestStepAmount({
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
             const firstParticipant = transaction?.participants?.at(0);
-            
+
             // Check if user manually selected a recipient different from default workspace
-            const hasManuallySelectedParticipant = transaction?.participantsAutoAssigned === false || 
-                (firstParticipant && (
-                    (firstParticipant.reportID && firstParticipant.reportID !== activePolicyExpenseChat?.reportID) ||
-                    (firstParticipant.accountID && !firstParticipant.isPolicyExpenseChat)
-                ));
+            const hasManuallySelectedParticipant =
+                transaction?.participantsAutoAssigned === false ||
+                (firstParticipant &&
+                    ((firstParticipant.reportID && firstParticipant.reportID !== activePolicyExpenseChat?.reportID) ||
+                        (firstParticipant.accountID && !firstParticipant.isPolicyExpenseChat)));
 
             if (hasManuallySelectedParticipant) {
                 const targetReportID = firstParticipant?.reportID ?? transaction?.reportID ?? generateReportID();
-                
+
                 if (!firstParticipant?.reportID && targetReportID) {
                     setTransactionReport(transactionID, {reportID: targetReportID}, true);
                 }
-                
+
                 // Self DM uses TRACK, all others use SUBMIT
                 const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-                
+
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, targetReportID),
-                    );
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, targetReportID));
                 });
             } else {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID),
-                    );
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
                 });
             }
         } else {
