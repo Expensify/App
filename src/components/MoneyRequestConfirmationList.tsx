@@ -945,6 +945,7 @@ function MoneyRequestConfirmationList({
             routeError,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
+            setDidConfirmSplit,
         ],
     );
 
