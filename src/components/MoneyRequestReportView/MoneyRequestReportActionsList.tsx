@@ -569,6 +569,7 @@ function MoneyRequestReportActionsList({
                     emojiReactions={actionEmojiReactions}
                     isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
+                    isReverted={false}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 />
             );
