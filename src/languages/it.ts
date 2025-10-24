@@ -5662,6 +5662,11 @@ ${amount} per ${merchant} - ${date}`,
                 description: 'Crea e gestisci le tue tariffe, traccia in miglia o chilometri e imposta categorie predefinite per le spese di distanza.',
                 onlyAvailableOnPlan: 'Le tariffe a distanza sono disponibili con il piano Collect, a partire da',
             },
+            auditor: {
+                title: 'Revisore',
+                description: 'I revisori hanno accesso in sola lettura a tutti i report per piena visibilità e monitoraggio della conformità.',
+                onlyAvailableOnPlan: 'I revisori sono disponibili solo con il piano Control, a partire da ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',
                 description:
