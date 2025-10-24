@@ -204,27 +204,22 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, sh
         Object.keys(data as Record<string, unknown>).forEach((fieldKey) => {
             const fieldValue = (data as Record<string, unknown>)[fieldKey];
 
-            if (shouldMask && rule.maskList.includes(fieldKey)) {
+            if (rule.maskList.includes(fieldKey)) {
                 processedData[fieldKey] = maskValuePreservingLength(fieldValue);
             } else if (rule.allowList.includes(fieldKey)) {
                 processedData[fieldKey] = fieldValue;
             } else if (typeof fieldValue === 'object' && fieldValue !== null) {
                 // If it's an object and not in allowList/maskList, recursively process it
                 processedData[fieldKey] = processOnyxKeyWithRule(key, fieldValue, rule, shouldMask);
-            } else if (shouldMask && typeof fieldValue === 'number') {
-                // Randomize numbers
+            } else if (typeof fieldValue === 'number') {
                 processedData[fieldKey] = randomizeAmount(fieldValue);
-            } else if (shouldMask && typeof fieldValue === 'string' && isDateValue(fieldValue)) {
-                // Convert dates to current date
+            } else if (typeof fieldValue === 'string' && isDateValue(fieldValue)) {
                 processedData[fieldKey] = getCurrentDate();
-            } else if (shouldMask && typeof fieldValue === 'string') {
-                // Mask strings
+            } else if (typeof fieldValue === 'string') {
                 processedData[fieldKey] = maskValuePreservingLength(fieldValue);
-            } else if (shouldMask) {
-                processedData[fieldKey] = MASKING_PATTERN;
             } else {
-                // When not masking, keep the original value
-                processedData[fieldKey] = fieldValue;
+                // Default: redact to '***' for anything else
+                processedData[fieldKey] = MASKING_PATTERN;
             }
         });
 
@@ -293,6 +288,12 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
 
         const value = (data as Record<string, unknown>)[key];
 
+        // Skip values that are already masked as MASKING_PATTERN
+        if (value === MASKING_PATTERN) {
+            maskedData[propertyName] = value;
+            return;
+        }
+
         // Handle collection nodes (reportActions, reports, transactions)
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as OnyxState, key);
@@ -356,6 +357,8 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
 
     onyxState = removePrivateOnyxKeys(onyxState);
 
+    const keysWithRules = new Set<string>();
+
     Object.keys(onyxState).forEach((key) => {
         let ruleKey = key;
         const collectionKey = Object.values(ONYXKEYS.COLLECTION).find((cKey) => key.startsWith(cKey));
@@ -367,11 +370,22 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
 
         if (rule) {
             onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule, !!isMaskingFragileDataEnabled);
+            keysWithRules.add(key);
         }
     });
 
     if (isMaskingFragileDataEnabled) {
-        onyxState = maskFragileData(onyxState) as OnyxState;
+        // Only apply maskFragileData to keys that don't have export rules
+        const maskedState: OnyxState = {};
+        Object.keys(onyxState).forEach((key) => {
+            if (keysWithRules.has(key)) {
+                maskedState[key] = onyxState[key];
+            } else {
+                const masked = maskFragileData({[key]: onyxState[key]}) as OnyxState;
+                maskedState[key] = masked[key];
+            }
+        });
+        onyxState = maskedState;
     }
 
     emailMap.clear();
