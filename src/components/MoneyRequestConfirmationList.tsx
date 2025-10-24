@@ -273,7 +273,6 @@ function MoneyRequestConfirmationList({
     // State
     // ================================================================================================
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
-    const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     // ================================================================================================
@@ -703,18 +702,6 @@ function MoneyRequestConfirmationList({
     ]);
 
     // ================================================================================================
-    // Effects - Confirmation State
-    // ================================================================================================
-    // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
-    if (isEditingSplitBill && didConfirm) {
-        setDidConfirm(false);
-    }
-
-    useEffect(() => {
-        setDidConfirm(isConfirmed);
-    }, [isConfirmed]);
-
-    // ================================================================================================
     // Effects - Split Share Validation
     // ================================================================================================
     useEffect(() => {
@@ -984,7 +971,7 @@ function MoneyRequestConfirmationList({
         <MoneyRequestConfirmationListFooter
             action={action}
             currency={currency}
-            didConfirm={!!didConfirm}
+            didConfirm={!!(isConfirmed && !isEditingSplitBill)}
             distance={distance}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
