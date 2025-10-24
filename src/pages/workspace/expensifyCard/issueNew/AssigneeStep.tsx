@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -41,9 +41,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
+    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, isSearchingForReports} = useOptions();
     const currency = useCurrencyForExpensifyCard({policyID});
-
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -146,6 +145,12 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             },
         ];
     }, [debouncedSearchValue, membersDetails, userToInvite, countryCode]);
+
+    const headerMessage = useMemo(() => {
+        const searchInputValue = debouncedSearchValue.trim().toLowerCase();
+
+        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, false, countryCode);
+    }, [debouncedSearchValue, sections, userToInvite, countryCode]);
 
     return (
         <InteractiveStepWrapper

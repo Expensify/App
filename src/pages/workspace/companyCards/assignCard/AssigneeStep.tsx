@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -46,7 +46,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
-    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
+    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, isSearchingForReports} = useOptions();
     const isEditing = assignCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -164,6 +164,12 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             },
         ];
     }, [debouncedSearchValue, membersDetails, userToInvite, countryCode]);
+
+    const headerMessage = useMemo(() => {
+        const searchInputValue = debouncedSearchValue.trim().toLowerCase();
+
+        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, false, countryCode);
+    }, [debouncedSearchValue, sections, userToInvite, countryCode]);
 
     return (
         <InteractiveStepWrapper
