@@ -25,7 +25,6 @@ import {
     getMemberInviteOptions,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareLogOptions,
     getValidOptions,
     optionsOrderBy,
     orderOptions,
@@ -1272,18 +1271,6 @@ describe('OptionsListUtils', () => {
 
             // Then all recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
-        });
-    });
-
-    describe('getShareLogOptions()', () => {
-        it('should not include read-only report', () => {
-            // Given a list of 11 report options with reportID of 10 is archived
-            // When we call getShareLogOptions
-            const results = getShareLogOptions(OPTIONS, {}, []);
-
-            // Then the report with reportID of 10 should not be included on the list
-            expect(results.recentReports.length).toBe(10);
-            expect(results.recentReports.find((report) => report.reportID === '10')).toBeUndefined();
         });
     });
 

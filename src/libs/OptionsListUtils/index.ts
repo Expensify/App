@@ -2096,35 +2096,6 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(
-    options: OptionList,
-    draftComments: OnyxCollection<string>,
-    betas: Beta[] = [],
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions(
-        options,
-        draftComments,
-        {
-            betas,
-            includeMultipleParticipantReports: true,
-            includeP2P: true,
-            forcePolicyNamePreview: true,
-            includeOwnedWorkspaceChats: true,
-            includeSelfDM: true,
-            includeThreads: true,
-            includeReadOnly: false,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-        countryCode,
-    );
-}
-
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -2776,7 +2747,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
