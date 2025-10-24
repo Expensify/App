@@ -56,12 +56,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
             const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-            fileDownload(pdfURL, downloadFileName).finally(() => setIsDownloading(false));
+            fileDownload(translate, pdfURL, downloadFileName).finally(() => setIsDownloading(false));
             return;
         }
 
         generateStatementPDF(yearMonth);
-    }, [baseURL, isWalletStatementGenerating, walletStatement, yearMonth]);
+    }, [baseURL, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
