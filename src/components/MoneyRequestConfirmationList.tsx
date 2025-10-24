@@ -332,14 +332,19 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
-    // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        if (!transactionID) {
+        // Set the default tax code when conditions change
+        if (!shouldShowTax || !transaction || !transactionID) {
             return;
         }
-        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID]);
+        const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+        const currentTaxCode = transaction.taxCode ?? '';
+
+        // Update tax code if it's different from what should be the default
+        if (defaultTaxCode !== currentTaxCode) {
+            setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+        }
+    }, [customUnitRateID, policy, shouldShowTax, transaction, transactionID]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
