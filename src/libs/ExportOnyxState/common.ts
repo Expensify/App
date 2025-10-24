@@ -189,6 +189,22 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
+const isDateValue = (value: unknown): boolean => {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    const datePatterns = [
+        /^\d{4}-\d{2}-\d{2}/, // ISO date
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, // ISO datetime
+    ];
+    return datePatterns.some((pattern) => pattern.test(value));
+};
+
+const getCurrentDate = (): string => {
+    return new Date().toISOString();
+};
+
 const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, shouldMask: boolean): unknown => {
     if (data === null || data === undefined) {
         return data;
@@ -239,22 +255,6 @@ const maskEmail = (email: string) => {
         maskedEmail = emailMap.get(email) as string;
     }
     return maskedEmail;
-};
-
-const isDateValue = (value: unknown): boolean => {
-    if (typeof value !== 'string') {
-        return false;
-    }
-
-    const datePatterns = [
-        /^\d{4}-\d{2}-\d{2}/, // ISO date
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, // ISO datetime
-    ];
-    return datePatterns.some((pattern) => pattern.test(value));
-};
-
-const getCurrentDate = (): string => {
-    return new Date().toISOString();
 };
 
 const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string): OnyxState | unknown[] | null => {
