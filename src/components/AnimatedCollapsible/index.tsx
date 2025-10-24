@@ -44,6 +44,9 @@ type AnimatedCollapsibleProps = {
 
     /** Whether to show the toggle button */
     shouldShowToggleButton?: boolean;
+
+    /** Style for the border bottom */
+    borderBottomStyle?: StyleProp<ViewStyle>;
 };
 
 function AnimatedCollapsible({
@@ -58,6 +61,7 @@ function AnimatedCollapsible({
     onPress,
     disabled = false,
     shouldShowToggleButton = true,
+    borderBottomStyle,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -138,7 +142,7 @@ function AnimatedCollapsible({
                         }}
                     >
                         <View style={[styles.pv2, styles.ph3, styles.pb1]}>
-                            <View style={[styles.borderBottom]} />
+                            <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}
                     </Animated.View>

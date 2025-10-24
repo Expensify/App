@@ -323,6 +323,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
+                            borderBottomStyle={isItemSelected && styles.borderBottomHovered}
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}

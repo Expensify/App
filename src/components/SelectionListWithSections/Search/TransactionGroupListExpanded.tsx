@@ -207,8 +207,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
                     {!isLastTransaction(index) && !isLargeScreenWidth && (
                         <View style={[styles.ph3]}>
-                            {/* <View style={[transaction.isSelected ? styles.borderBottomHovered : styles.borderBottom]} /> */}
-                            <View style={[styles.borderBottom]} />
+                            <View style={[transaction.isSelected ? styles.borderBottomHovered : styles.borderBottom]} />
                         </View>
                     )}
                 </OfflineWithFeedback>
