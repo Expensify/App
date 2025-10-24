@@ -131,19 +131,9 @@ const keysToMask = [
     'zipCode',
 ];
 
-const amountKeysToRandomize = [
-    'amount',
-    'modifiedAmount',
-    'originalAmount',
-    'total',
-    'unheldTotal',
-    'unheldNonReimbursableTotal',
-    'nonReimbursableTotal',
-];
+const amountKeysToRandomize = ['amount', 'modifiedAmount', 'originalAmount', 'total', 'unheldTotal', 'unheldNonReimbursableTotal', 'nonReimbursableTotal'];
 
-const nodesToFullyMask = [
-    'reservationList',
-];
+const nodesToFullyMask = ['reservationList'];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
@@ -169,7 +159,7 @@ function maskValuePreservingLength(value: unknown) {
 
 function randomizeAmount(amount: number): number {
     const randomizedValue = Math.floor(Math.random() * 999999) + 1;
-    
+
     return amount < 0 ? -randomizedValue : randomizedValue;
 }
 
@@ -309,13 +299,13 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as OnyxState, key);
         } else if (amountKeysToRandomize.includes(key) && typeof value === 'number') {
-            maskedData[propertyName] = randomizeAmount(value); 
-        // Handle expensify_text_title masking
+            maskedData[propertyName] = randomizeAmount(value);
+            // Handle expensify_text_title masking
         } else if (parentKey === 'expensify_text_title' && key === 'value' && typeof value === 'string') {
             maskedData[propertyName] = maskValuePreservingLength(value);
         } else if (key === 'expensify_text_title' && typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as OnyxState, 'expensify_text_title');
-        // Handle nodes that need full masking
+            // Handle nodes that need full masking
         } else if (nodesToFullyMask.includes(key) && typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as OnyxState, key);
         } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'string' && isDateValue(value)) {
