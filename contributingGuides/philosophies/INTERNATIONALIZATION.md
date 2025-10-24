@@ -38,7 +38,7 @@ nameOfTheKey: ({amount, dateTime}) => `User has sent <strong>${amount}</strong> 
 
 This is because the order of phrases might vary from one language to another, and LLMs will be able to produce better translations will the full context of the phrase. If rich formatting is needed, use HTML in the string and render it with react-native-render-html.
 
-### - String concatenation MUST NOT be used for translations
+### - String concatenation SHOULD NOT be used for translations
 Always prefer whole phrases over string concatenation, even if the result is more verbose:
 
 ```ts
