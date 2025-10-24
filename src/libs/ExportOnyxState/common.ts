@@ -289,7 +289,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
             propertyName = key;
         }
 
-        const value = data[propertyName];
+        const value = (data as Record<string, unknown>)[key];
 
         // Handle collection nodes (reportActions, reports, transactions)
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
