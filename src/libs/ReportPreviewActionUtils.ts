@@ -25,7 +25,6 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
-    requiresManualSubmission,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
