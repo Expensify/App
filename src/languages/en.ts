@@ -7272,6 +7272,10 @@ const translations = {
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },
+    parrot: {
+        hello: 'Hello',
+        intro: 'How are you?'
+    }
 };
 
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
