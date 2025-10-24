@@ -25,5 +25,9 @@ export default function getAccountTabScreenToOpen(subscriptionPlan: ValueOf<type
         return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
     }
 
+    if (focusedRoute.name === SCREENS.SETTINGS.ROOT) {
+        return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
+    }
+
     return {screen: focusedRoute.name};
 }
