@@ -947,12 +947,17 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
 type FocusModeUpdateParams = {
     priorityModePageUrl: string;
 };
 
 export type {
     SettlementAccountReconciliationParams,
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
