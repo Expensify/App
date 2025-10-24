@@ -308,7 +308,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={!!alternateNumberOfSupportedLines}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
                 wrapperStyle={listItemWrapperStyle}
