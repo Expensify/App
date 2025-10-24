@@ -9,7 +9,6 @@ import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
@@ -307,12 +306,8 @@ function MoneyRequestConfirmationList({
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
-    const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;
-    const prevUnit = usePrevious(unit);
     const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
-    const prevCurrency = usePrevious(currency);
-    const prevSubRates = usePrevious(subRates);
 
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -335,11 +330,6 @@ function MoneyRequestConfirmationList({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
     const distance = getDistanceInMeters(transaction, unit);
-    const prevDistance = usePrevious(distance);
-
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
-
-    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
@@ -348,9 +338,9 @@ function MoneyRequestConfirmationList({
 
     let amountToBeUsed = iouAmount;
 
-    if (shouldCalculateDistanceAmount) {
+    if (isDistanceRequest) {
         amountToBeUsed = distanceRequestAmount;
-    } else if (shouldCalculatePerDiemAmount) {
+    } else if (isPerDiemRequest) {
         const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
         amountToBeUsed = perDiemRequestAmount;
     }
@@ -442,7 +432,7 @@ function MoneyRequestConfirmationList({
     }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
+        if (!isDistanceRequest || !transactionID || isReadOnly) {
             return;
         }
 
@@ -454,7 +444,7 @@ function MoneyRequestConfirmationList({
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
-    }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
+    }, [isDistanceRequest, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
     const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
