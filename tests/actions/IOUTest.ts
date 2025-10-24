@@ -9199,6 +9199,7 @@ describe('actions/IOU', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 iouReportID: undefined,
             };
+            const policy: OnyxEntry<Policy> = createRandomPolicy(1);
 
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -9207,7 +9208,7 @@ describe('actions/IOU', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
