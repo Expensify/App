@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -64,6 +65,8 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
+maybeCompleteAuthSession();
+//
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
