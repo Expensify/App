@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -906,13 +906,9 @@ function MoneyRequestConfirmationList({
     // ================================================================================================
     // Render Content - Footer & List Footer
     // ================================================================================================
-    const footerContent = useMemo(() => {
-        if (isReadOnly) {
-            return;
-        }
-
+    let footerContent: JSX.Element | undefined;
+    if (!isReadOnly) {
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
-
         const button = shouldShowSettlementButton ? (
             <SettlementButton
                 pressOnEnter
@@ -972,8 +968,7 @@ function MoneyRequestConfirmationList({
                 </EducationalTooltip>
             </>
         );
-
-        return (
+        footerContent = (
             <>
                 {!!errorMessage && (
                     <FormHelpMessage
@@ -985,27 +980,7 @@ function MoneyRequestConfirmationList({
                 <View>{button}</View>
             </>
         );
-    }, [
-        isReadOnly,
-        iouType,
-        confirm,
-        iouCurrencyCode,
-        policyID,
-        isConfirmed,
-        dropdownButtonOptions,
-        errorMessage,
-        expensesNumber,
-        translate,
-        showRemoveExpenseConfirmModal,
-        styles.mb3,
-        styles.ph1,
-        styles.mb2,
-        styles.productTrainingTooltipWrapper,
-        shouldShowProductTrainingTooltip,
-        renderProductTrainingTooltip,
-        isConfirming,
-        reportID,
-    ]);
+    }
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
