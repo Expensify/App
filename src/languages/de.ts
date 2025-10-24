@@ -802,6 +802,11 @@ const translations = {
         findMember: 'Mitglied finden',
         searchForSomeone: 'Suche nach jemandem',
     },
+    customApprovalWorkflow: {
+        title: 'Benutzerdefinierter Genehmigungsworkflow',
+        description: 'Ihr Unternehmen hat einen benutzerdefinierten Genehmigungsworkflow für diesen Arbeitsbereich. Bitte führen Sie diese Aktion in Expensify Classic aus',
+        goToExpensifyClassic: 'Zu Expensify Classic wechseln',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',

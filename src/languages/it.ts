@@ -800,6 +800,11 @@ const translations = {
         findMember: 'Trova un membro',
         searchForSomeone: 'Cerca qualcuno',
     },
+    customApprovalWorkflow: {
+        title: 'Flusso di approvazione personalizzato',
+        description: 'La tua azienda ha un flusso di approvazione personalizzato su questo spazio di lavoro. Esegui questa azione in Expensify Classic',
+        goToExpensifyClassic: 'Passa a Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Invia una spesa, riferisci al tuo capo',

@@ -791,6 +791,11 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
     },
+    customApprovalWorkflow: {
+        title: 'Custom approval workflow',
+        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Submit an expense, refer your boss',
