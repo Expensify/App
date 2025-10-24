@@ -14,6 +14,7 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import {EnvironmentProvider} from './components/EnvironmentContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import FloatingReconnectButton from './components/FloatingReconnectButton';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
@@ -135,6 +136,7 @@ function App() {
                                             <Expensify />
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
+                                    <FloatingReconnectButton />
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>
