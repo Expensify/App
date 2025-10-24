@@ -2438,10 +2438,10 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceCategoriesLink}) =>
                     '*Configurez les catégories* pour que votre équipe puisse coder les dépenses facilement.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Catégories*.\n' +
-                    '5. Désactivez les catégories inutiles.\n' +
-                    '6. Ajoutez vos propres catégories en haut à droite.\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Catégories*.\n' +
+                    '4. Désactivez les catégories inutiles.\n' +
+                    '5. Ajoutez vos propres catégories en haut à droite.\n\n' +
                     `[Accéder aux paramètres de catégories](${workspaceCategoriesLink}).\n\n` +
                     `![Configurer les catégories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
             },
@@ -2511,10 +2511,10 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceMembersLink}) =>
                     '*Invitez votre équipe* sur Expensify pour qu’ils commencent à suivre leurs dépenses dès aujourd’hui.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Membres* > *Inviter un membre*.\n' +
-                    '5. Entrez des emails ou numéros de téléphone.\n' +
-                    '6. Ajoutez un message personnalisé si vous le souhaitez !\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Membres* > *Inviter un membre*.\n' +
+                    '4. Entrez des emails ou numéros de téléphone.\n' +
+                    '5. Ajoutez un message personnalisé si vous le souhaitez !\n\n' +
                     `[Accéder aux membres](${workspaceMembersLink}).\n\n` +
                     `![Inviter votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
@@ -2529,11 +2529,11 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Utilisez les tags pour ajouter des détails comme projets, clients, emplacements et départements. Pour plusieurs niveaux de tags, passez au plan Control.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Fonctionnalités supplémentaires*.\n' +
-                    '5. Activez *Tags*.\n' +
-                    '6. Allez dans *Tags* dans l’éditeur.\n' +
-                    '7. Cliquez sur *+ Ajouter un tag* pour en créer un.\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Fonctionnalités supplémentaires*.\n' +
+                    '4. Activez *Tags*.\n' +
+                    '5. Allez dans *Tags* dans l’éditeur.\n' +
+                    '6. Cliquez sur *+ Ajouter un tag* pour en créer un.\n\n' +
                     `[Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).\n\n` +
                     `![Configurer les tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
