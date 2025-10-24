@@ -3371,7 +3371,7 @@ const translations = {
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
         features: {
             saveMoney: 'Save money on your bookings',
-            alerts: 'Get real time alerts if your travel plans change',
+            alerts: 'Get realtime alerts if your travel plans change',
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
@@ -4681,10 +4681,10 @@ const translations = {
             },
             travel: {
                 title: 'Travel',
-                subtitle: 'Book, manage and reconcile travel all your business travel.',
+                subtitle: 'Book, manage, and reconcile all your business travel.',
                 getStarted: {
                     title: 'Get started with Expensify Travel',
-                    subtitle: "We just need a few more pieces of info about your business, then you'll be ready to takeoff.",
+                    subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",
                     ctaText: "Let's go",
                 },
                 reviewingRequest: {

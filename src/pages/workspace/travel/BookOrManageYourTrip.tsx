@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
