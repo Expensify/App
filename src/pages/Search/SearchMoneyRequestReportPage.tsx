@@ -23,6 +23,7 @@ import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, get
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
+import includeSafeAreaPaddingBottomInReportScreen from '@pages/home/report/includeSafeAreaPaddingBottomInReportScreen';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +32,7 @@ import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import shouldEnableKeyboardAvoidingView from './shouldEnableKeyboardAvoidingView';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
@@ -118,6 +120,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
+                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                        includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottomInReportScreen}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -152,6 +156,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
+                    shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                    includeSafeAreaPaddingBottom={includeSafeAreaBottom}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
