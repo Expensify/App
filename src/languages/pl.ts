@@ -4418,7 +4418,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
@@ -6718,17 +6717,16 @@ ${amount} dla ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
         receiptNotSmartScanned: 'Paragon i szczegóły wydatku dodane ręcznie.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Wymagany paragon';
-            if (formattedLimit ?? category) {
-                message += 'ponad';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'limit kategorii';
-                }
+            if (formattedLimit && category) {
+                return `Paragon wymagany powyżej limitu kategorii ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Wymagany paragon powyżej ${formattedLimit}`;
+            }
+            if (category) {
+                return `Paragon wymagany powyżej limitu kategorii`;
+            }
+            return 'Wymagany paragon';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';

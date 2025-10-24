@@ -6747,17 +6747,16 @@ ${amount} per ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importo oltre il limite giornaliero ${formattedLimit}/persona per categoria`,
         receiptNotSmartScanned: 'Ricevuta e dettagli della spesa aggiunti manualmente.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Ricevuta richiesta';
-            if (formattedLimit ?? category) {
-                message += 'oltre';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'limite categoria';
-                }
+            if (formattedLimit && category) {
+                return `Ricevuta richiesta oltre il limite di categoria di ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Ricevuta richiesta oltre ${formattedLimit}`;
+            }
+            if (category) {
+                return `Ricevuta richiesta oltre il limite della categoria`;
+            }
+            return 'Ricevuta obbligatoria';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
