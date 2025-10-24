@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -18,19 +18,15 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
-    isOpenExpenseReport,
     isOpenReport,
     isPayer,
     isProcessingReport,
     isReportApproved,
-    isReportManuallyReimbursed,
     isSettled,
     requiresManualSubmission,
-    shouldBlockSubmitDueToStrictPolicyRules,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
-import ViolationsUtils from './Violations/ViolationsUtils';
+import {isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
@@ -181,45 +177,9 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, currentUserEmail: string, policy?: Policy, transactions?: Transaction[]) {
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
-    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
-    const isSubmitter = isCurrentUserSubmitter(report);
-    const isOpen = isOpenExpenseReport(report);
-    const isReimbursed = isSettled(report);
-
-    if (
-        !hasVisibleViolations ||
-        isReimbursed ||
-        (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
-            !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, isReportArchived, policy, policy, false))
-    ) {
-        return false;
-    }
-
-    // We handle RTER violations independently because those are not configured via policy workflows
-    const isAdmin = isPolicyAdmin(policy);
-    const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
-    if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {
-        return true;
-    }
-
-    if (policy) {
-        return !!policy.areWorkflowsEnabled || isSubmitter;
-    }
-
-    return true;
-}
-
-// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
-    currentUserEmail: string,
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
@@ -227,7 +187,6 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    areStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -246,12 +205,6 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
-    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
-    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-    }
-
     if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
@@ -264,11 +217,10 @@ function getReportPreviewAction(
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-    }
 
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export {canReview, getReportPreviewAction};
+// we can export other functions in the further
+// eslint-disable-next-line import/prefer-default-export
+export {getReportPreviewAction};
