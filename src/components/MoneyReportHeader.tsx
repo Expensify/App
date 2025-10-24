@@ -485,7 +485,7 @@ function MoneyReportHeader({
             if (currentSearchQueryJSON) {
                 search({
                     searchKey: currentSearchKey,
-                    shouldCalculateTotals,
+                    shouldCalculateTotals: true,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
                     isOffline,
