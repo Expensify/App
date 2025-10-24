@@ -877,6 +877,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
