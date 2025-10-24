@@ -92,6 +92,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                                     shouldShowBasicTitle
                                     shouldShowRightIcon
                                     disabled={!!option.pendingAction}
+                                    label={translate(option.label)}
                                 />
                             </OfflineWithFeedback>
                         ),

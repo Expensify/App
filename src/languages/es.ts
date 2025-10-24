@@ -1560,14 +1560,14 @@ const translations = {
         placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
-        contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
-        helpTextBeforeEmail: 'Añade más formas de enviar recibos. Reenvíalos a ',
-        helpTextAfterEmail: ' o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).',
+        helpTextBeforeEmail: 'Agrega más formas de iniciar sesión y enviar recibos a Expensify.\n\nAgrega una dirección de correo electrónico para reenviar recibos a ',
+        helpTextAfterEmail: 'o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).',
+        primary: 'Principal',
+        secondary: 'Secundario',
         pleaseVerify: 'Por favor, verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:

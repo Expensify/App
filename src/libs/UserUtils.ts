@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -309,10 +310,7 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
         }
 
         let description = '';
-        if (defaultEmail === login?.partnerUserID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.getInTouch');
-        } else if (login?.errorFields?.addedLogin) {
+        if (login?.errorFields?.addedLogin) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             description = translateLocal('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
@@ -333,6 +331,7 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const partnerUserID = login?.partnerUserID || loginName;
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
+        const label: TranslationPaths = isDefaultContactMethod ? 'contacts.primary' : 'contacts.secondary';
 
         return {
             partnerUserID,
@@ -340,6 +339,7 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
             description,
             indicator,
             pendingAction,
+            label,
         };
     });
 }
