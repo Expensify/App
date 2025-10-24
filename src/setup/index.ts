@@ -53,6 +53,7 @@ export default function () {
             },
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
@@ -61,6 +62,8 @@ export default function () {
 
     setDeviceID();
 
+    // Preload all icons early in app initialization
+    // This runs outside React lifecycle for optimal performance
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);

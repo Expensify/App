@@ -15,8 +15,8 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -40,6 +40,7 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
+    isPerDiemRequest?: boolean;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
@@ -57,15 +58,17 @@ function IOURequestEditReportCommon({
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
+    isPerDiemRequest,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
@@ -130,6 +133,14 @@ function IOURequestEditReportCommon({
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
+            .filter((report) => {
+                if (isPerDiemRequest && report?.policyID) {
+                    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                    return canSubmitPerDiemExpenseFromWorkspace(policy);
+                }
+                return true;
+            })
+            .filter((report) => canAddTransaction(report))
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
@@ -143,7 +154,7 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare]);
+    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare, allPolicies, isPerDiemRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -152,7 +163,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || isUnreported === false) {
+        if (!createReport) {
             return undefined;
         }
 
@@ -161,10 +172,10 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
-                icon={Expensicons.DocumentPlus}
+                icon={Expensicons.Document}
             />
         );
-    }, [createReport, isUnreported, translate, policyForMovingExpenses?.name]);
+    }, [createReport, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -185,7 +196,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, selectedReport, reportPolicy, shouldShowNotFoundPageFromProps]);
+    }, [createReport, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
 
     return (
         <StepScreenWrapper

@@ -76,7 +76,8 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(selectedFeed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+    const hasFeedError = !!cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed]?.errors;
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
 
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
@@ -155,7 +156,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />
-                    <Text style={[styles.offlineFeedback.text, styles.pr5]}>
+                    <Text style={[styles.offlineFeedbackText, styles.pr5]}>
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}

@@ -5,6 +5,7 @@ import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, us
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
@@ -16,7 +17,7 @@ import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,15 +55,30 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
+function SearchPageNarrow({
+    queryJSON,
+    headerButtonsOptions,
+    searchResults,
+    isMobileSelectionModeEnabled,
+    metadata,
+    footerData,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    latestBankItems,
+    confirmPayment,
+}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -150,7 +166,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         );
     }
 
-    const shouldShowFooter = !!metadata?.count;
+    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
@@ -219,6 +235,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            currentSelectedPolicyID={currentSelectedPolicyID}
+                            currentSelectedReportID={currentSelectedReportID}
+                            latestBankItems={latestBankItems}
+                            confirmPayment={confirmPayment}
                         />
                     </>
                 )}

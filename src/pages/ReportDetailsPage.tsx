@@ -22,13 +22,14 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +40,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -88,6 +90,7 @@ import {
     isThread as isThreadUtil,
     isTrackExpenseReport as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
+    isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
@@ -145,7 +148,6 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -169,7 +171,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -190,8 +192,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report), [report]);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskModifiable = canModifyTask(report, session?.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, session?.accountID, parentReport, isParentReportArchived);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
     const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
@@ -255,9 +257,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const isActionOwner =
-        typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
+        typeof requestParentReportAction?.actorAccountID === 'number' &&
+        typeof currentUserPersonalDetails?.accountID === 'number' &&
+        requestParentReportAction.actorAccountID === currentUserPersonalDetails?.accountID;
     const isDeletedParentAction = isDeletedAction(requestParentReportAction);
 
     const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
@@ -308,13 +313,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isRootGroupChat, report, isPolicyAdmin]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
-    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
+    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
 
@@ -422,7 +427,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     );
                 },
             });
-            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+            if (Permissions.canUseTrackFlows()) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
@@ -454,7 +459,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, session, backTo),
+                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -469,7 +474,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(backTo);
-                        reopenTask(report);
+                        reopenTask(report, currentUserPersonalDetails?.accountID);
                     }),
                 });
             }
@@ -552,8 +557,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        isBetaEnabled,
-        session,
+        currentUserPersonalDetails.accountID,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -777,7 +781,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived);
+            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
             return;
         }
 
@@ -788,17 +792,32 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport?.reportID,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                chatReport: moneyRequestReport,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
+                iouReport,
+                chatIOUReport,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
+                isSingleTransactionView,
+                isChatReportArchived: isMoneyRequestReportArchived,
+                isChatIOUReportArchived,
+            });
+        } else {
+            deleteMoneyRequest(
                 iouTransactionID,
                 requestParentReportAction,
                 duplicateTransactions,
                 duplicateTransactionViolations,
+                iouReport,
+                chatIOUReport,
+                isChatIOUReportArchived,
                 isSingleTransactionView,
-                isMoneyRequestReportArchived,
+                undefined,
+                undefined,
             );
-        } else {
-            deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -807,12 +826,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
+        moneyRequestReport,
         removeTransaction,
         report,
         requestParentReportAction,
         isReportArchived,
         isMoneyRequestReportArchived,
+        iouReport,
+        chatIOUReport,
+        isChatIOUReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -843,9 +865,25 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
+                    moneyRequestReport,
+                    iouTransactionID,
+                    requestParentReportAction,
+                    iouReport,
+                    chatIOUReport,
+                    isChatIOUReportArchived,
+                    isSingleTransactionView,
+                );
             } else {
-                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+                    iouTransactionID,
+                    requestParentReportAction,
+                    iouReport,
+                    chatIOUReport,
+                    isChatIOUReportArchived,
+                    isSingleTransactionView,
+                );
             }
         }
 
@@ -855,7 +893,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
