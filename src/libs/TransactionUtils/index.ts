@@ -824,7 +824,7 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 }
 
 /**
- * Verify that the transaction is in Self DM and that its distance rate is invalid.
+ * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
  */
 function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
     if (transaction && isDistanceRequest(transaction)) {
@@ -832,7 +832,7 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = policyParam ?? getPolicy(report?.policyID);
         const {rate} = DistanceRequestUtils.getRate({transaction, policy});
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
 
         if (isUnreportedExpense && !rate) {
             return true;
@@ -2008,9 +2008,9 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all “child” transactions associated with a given original transaction
  */
-function getChildTransactions(originalTransactionID: string | undefined) {
-    return Object.values(allTransactions ?? {}).filter((currentTransaction) => {
-        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined) {
+    return Object.values(transactions ?? {}).filter((currentTransaction) => {
+        const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         return (
             currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
             !!currentReport &&

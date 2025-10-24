@@ -557,7 +557,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        currentUserPersonalDetails?.accountID,
+        currentUserPersonalDetails.accountID,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -815,19 +815,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 chatIOUReport,
                 isChatIOUReportArchived,
                 isSingleTransactionView,
+                undefined,
+                undefined,
             );
             removeTransaction(iouTransactionID);
         }
     }, [
-        caseID,
-        requestParentReportAction,
-        report,
-        isReportArchived,
-        currentUserPersonalDetails.accountID,
-        moneyRequestReport?.reportID,
-        iouTransactionID,
         duplicateTransactions,
         duplicateTransactionViolations,
+        caseID,
+        iouTransactionID,
         isSingleTransactionView,
         moneyRequestReport,
         removeTransaction,
