@@ -18,7 +18,7 @@ import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -342,6 +342,7 @@ type PureReportActionItemProps = {
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         isReportArchived: boolean,
+        translate: LocalizedTranslate,
         policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
@@ -887,6 +888,7 @@ function PureReportActionItem({
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
                             formatPhoneNumber,
                             isOriginalReportArchived,
+                            translate,
                         ),
                     isPrimary: true,
                 },
@@ -907,6 +909,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
@@ -924,6 +927,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
@@ -938,6 +942,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
