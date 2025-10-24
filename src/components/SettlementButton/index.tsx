@@ -469,7 +469,7 @@ function SettlementButton({
 
         const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(selectedOption, activeAdminPolicies, latestBankItem, policyIDKey);
 
-        if (!!selectedPolicy && shouldSelectPaymentMethod) {
+        if (!!selectedPolicy || shouldSelectPaymentMethod) {
             selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
             return;
         }
