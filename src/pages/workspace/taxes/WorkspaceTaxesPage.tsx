@@ -40,7 +40,7 @@ import {
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -181,10 +181,8 @@ function WorkspaceTaxesPage({
     }, [policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
-        const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
-        const taxAlternateText = StringUtils.normalize(tax.alternateText?.toLowerCase() ?? '');
-        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
-        return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
+        const results = tokenizedSearch([tax], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
     }, []);
     const sortTaxes = useCallback(
         (taxes: ListItem[]) => {
@@ -235,6 +233,7 @@ function WorkspaceTaxesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -246,7 +245,7 @@ function WorkspaceTaxesPage({
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
         setIsDeleteModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
@@ -437,6 +436,7 @@ function WorkspaceTaxesPage({
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
+                    shouldShowRightCaret
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}

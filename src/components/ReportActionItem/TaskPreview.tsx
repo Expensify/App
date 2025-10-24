@@ -144,7 +144,7 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, taskReportID);
+                                    reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
                                     completeTask(taskReport, taskReportID);
                                 }

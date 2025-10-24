@@ -24,6 +24,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +45,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
@@ -88,6 +89,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
@@ -155,12 +157,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
                 policyCategories,
                 policyTagLists,
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, policyCategories, policyTagLists, allTransactionViolations],
+        [
+            policyId,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -200,10 +212,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
-        const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
-        const alternateText = StringUtils.normalize(categoryOption.alternateText?.toLowerCase() ?? '');
-        const normalizedSearchInput = StringUtils.normalize(searchInput);
-        return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
+        const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
     }, []);
     const sortCategories = useCallback(
         (data: PolicyOption[]) => {
@@ -242,6 +252,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -277,13 +288,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyTagLists,
             policyCategories,
             allTransactionViolations,
         );
         setDeleteCategoriesConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedCategories([]);
         });
@@ -391,6 +403,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
@@ -422,6 +435,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
@@ -592,6 +606,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
