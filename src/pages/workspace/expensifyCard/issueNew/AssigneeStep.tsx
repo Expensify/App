@@ -42,7 +42,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;

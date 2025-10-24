@@ -46,7 +46,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
