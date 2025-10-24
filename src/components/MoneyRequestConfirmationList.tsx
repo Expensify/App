@@ -367,7 +367,7 @@ function MoneyRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     // Clear the form error if it's set to one among the list passed as an argument
-    const clearFormError = (errors: string[]) => {
+    const clearFormErrors = (errors: string[]) => {
         if (!errors.includes(formError)) {
             return;
         }
@@ -376,7 +376,7 @@ function MoneyRequestConfirmationList({
 
     const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
     const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
-    const shouldDisplayFieldError = isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
+    const shouldDisplayFieldError = !!isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
     const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
