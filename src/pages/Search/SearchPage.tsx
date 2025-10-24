@@ -76,8 +76,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report} from '@src/types/onyx';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 
@@ -413,7 +412,7 @@ function SearchPage({route}: SearchPageProps) {
                     return false;
                 }
                 const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] as Policy | undefined;
-                return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report as Report, policyForReport);
+                return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
             });
         const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && selectedTransactionsKeys.length > 0 && areSelectedTransactionsRejectable;
         if (shouldShowRejectOption) {
