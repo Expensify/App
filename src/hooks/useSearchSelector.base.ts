@@ -208,7 +208,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
-                    loginsToExclude: excludeLogins,
+                    excludeLogins,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, draftComments, {

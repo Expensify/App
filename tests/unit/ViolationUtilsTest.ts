@@ -1,13 +1,13 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import {translateLocal} from '../utils/TestHelper';
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -664,16 +664,13 @@ describe('getViolationTranslation', () => {
             rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
             isTransactionOlderThan7Days: false,
         });
-
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
-
         const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
             brokenBankConnection: true,
             isAdmin: false,
             rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             isTransactionOlderThan7Days: false,
         });
-
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
     });
 });
@@ -701,9 +698,7 @@ describe('getRBRMessages', () => {
 
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
-
         const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
-
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
@@ -756,12 +751,12 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
     it('should return false when violations is null', () => {
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -770,14 +765,14 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy);
         expect(result).toBe(false);
     });
 
     it('should return false when no violations exist for transactions', () => {
         const violations = {};
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -789,7 +784,7 @@ describe('hasVisibleViolationsForUser', () => {
         // Mock shouldShowViolation to return true for missing category
         jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -811,7 +806,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -836,7 +831,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -872,7 +867,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction, secondTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
     });
 });
