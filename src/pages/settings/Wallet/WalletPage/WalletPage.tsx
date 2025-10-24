@@ -625,6 +625,18 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             />
                         )}
                         <MenuItem
+                            title={translate('common.share')}
+                            icon={Expensicons.UserPlus}
+                            onPress={() => {
+                                if (isAccountLocked) {
+                                    closeModal(() => showLockedAccountModal());
+                                    return;
+                                }
+                                closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                            }}
+                            wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                        />
+                        <MenuItem
                             title={translate('common.delete')}
                             icon={Expensicons.Trashcan}
                             onPress={() => {

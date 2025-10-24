@@ -1968,6 +1968,11 @@ const translations = {
         confirmYourBankAccount: 'Confirm your bank account',
         personalBankAccounts: 'Personal bank accounts',
         businessBankAccounts: 'Business bank accounts',
+        shareBankAccount: 'Share bank account',
+        bankAccountShared: 'Bank account shared',
+        shareBankAccountTitle: 'Select the admins to share this bank account with:',
+        shareBankAccountSuccess: 'Bank account shared!',
+        shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
