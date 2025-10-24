@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmModal from '@components/ConfirmModal';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -21,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -84,6 +86,7 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
+    onDEWModalOpen?: () => void;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -209,12 +212,21 @@ const activePaidPoliciesSelector = (allPolicies: OnyxCollection<Policy>): OnyxCo
     return Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, userPolicy]) => isPaidGroupPolicyPolicyUtils(userPolicy)));
 };
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback, onDEWModalOpen}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+
+    const handleDEWModalOpen = useCallback(() => {
+        if (onDEWModalOpen) {
+            onDEWModalOpen();
+        } else {
+            setIsDEWModalVisible(true);
+        }
+    }, [onDEWModalOpen]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
@@ -907,6 +919,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     canSelectMultiple={canSelectMultiple}
                     shouldPreventLongPressRow={isChat || isTask}
                     isFocused={isFocused}
+                    onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <SearchTableHeader
@@ -947,6 +960,18 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
+                />
+                <ConfirmModal
+                    title={translate('customApprovalWorkflow.title')}
+                    isVisible={isDEWModalVisible}
+                    onConfirm={() => {
+                        setIsDEWModalVisible(false);
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    }}
+                    onCancel={() => setIsDEWModalVisible(false)}
+                    prompt={translate('customApprovalWorkflow.description')}
+                    confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                    shouldShowCancelButton={false}
                 />
             </Animated.View>
         </SearchScopeProvider>

@@ -800,6 +800,11 @@ const translations = {
         findMember: 'メンバーを見つける',
         searchForSomeone: '誰かを検索',
     },
+    customApprovalWorkflow: {
+        title: 'カスタム承認ワークフロー',
+        description: 'お客様の会社では、このワークスペースにカスタム承認ワークフローがあります。Expensify Classicでこの操作を実行してください',
+        goToExpensifyClassic: 'Expensify Classicに切り替える',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '経費を提出し、上司に紹介する',
