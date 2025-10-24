@@ -71,7 +71,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             onCancel={handleCloseModal}
             onBackdropPress={handleCloseModal}
             confirmText={translate('common.continue')}
-            cancelText={translate('common.notNow')}
+            cancelText={translate('common.noThanks')}
             prompt={translate('contact.importContactsText')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
             title={translate('contact.importContactsTitle')}

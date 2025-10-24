@@ -335,6 +335,7 @@ const translations = {
         no: 'Não',
         ok: 'OK',
         notNow: 'Agora não',
+        noThanks: 'Não, obrigado.',
         learnMore: 'Saiba mais',
         buttonConfirm: 'Entendi',
         name: 'Nome',

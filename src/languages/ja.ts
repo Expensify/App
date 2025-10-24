@@ -335,6 +335,7 @@ const translations = {
         no: 'いいえ',
         ok: 'OK',
         notNow: '今は無理',
+        noThanks: '結構です',
         learnMore: '詳しくはこちら',
         buttonConfirm: '了解しました。',
         name: '名前',
