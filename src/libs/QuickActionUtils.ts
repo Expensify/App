@@ -97,6 +97,9 @@ const isQuickActionAllowed = (
     isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ) => {
+    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
+        return false;
+    }
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
@@ -105,9 +108,6 @@ const isQuickActionAllowed = (
             return false;
         }
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
-    }
-    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
-        return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
     return true;
 };

@@ -11,8 +11,10 @@ import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {QuickAction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -35,7 +37,7 @@ function generateCustomUnitID(): string {
     return generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean, quickAction?: QuickAction) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
@@ -45,6 +47,9 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
         defaultCategory: '',
         rates: {},
     };
+    const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
+
+    const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -58,6 +63,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: null,
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -81,6 +95,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     },
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: quickAction,
+                      },
+                  ]
+                : []),
         ],
     };
 
