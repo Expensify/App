@@ -16,6 +16,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: claude-review-${{ github.event_name == 'workflow_dispatch' && inputs.PULL_REQUEST_URL || github.event.pull_request.html_url }}
+  cancel-in-progress: true
+
 jobs:
   review:
     runs-on: ubuntu-latest
