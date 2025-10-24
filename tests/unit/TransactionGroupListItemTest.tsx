@@ -34,6 +34,17 @@ const mockTransaction: TransactionListItemType = {
     created: '2025-09-19',
     currency: 'USD',
     managerID: 1,
+    policy: {
+        id: '06F34677820A4D07',
+        type: 'team',
+        role: 'admin',
+        owner: 'test@test.com',
+    },
+    reportAction: {
+        reportActionID: '2454187434077044186',
+        actionName: 'IOU',
+        created: '2025-09-19',
+    },
     merchant: '(none)',
     modifiedAmount: -1284,
     modifiedCreated: '2025-09-07',
