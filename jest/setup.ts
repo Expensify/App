@@ -259,3 +259,9 @@ if (typeof globalWithOptionalFetch.fetch !== 'function') {
         configurable: true,
     });
 }
+
+jest.mock('@components/ActionSheetAwareScrollView/index');
+jest.mock('@components/ActionSheetAwareScrollView/index.native');
+jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
+
+jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
