@@ -154,7 +154,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const option = createOptionFromReport(report, personalDetails);
-                reportForContextualSearch = option;
+                reportForContextualSearch = option
             }
 
             const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
