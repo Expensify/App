@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -799,6 +800,11 @@ const translations = {
         findMember: 'Znajdź członka',
         searchForSomeone: 'Wyszukaj kogoś',
     },
+    customApprovalWorkflow: {
+        title: 'Niestandardowy przepływ zatwierdzania',
+        description: 'Twoja firma ma niestandardowy przepływ zatwierdzania w tym obszarze roboczym. Wykonaj tę czynność w Expensify Classic',
+        goToExpensifyClassic: 'Przełącz na Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Złóż wydatek, poleć swojego szefa',
@@ -907,17 +913,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ten czat jest przeznaczony do wszystkiego, co związane z <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku <strong>+</strong>, aby wysłać fakturę.`,
+            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>, aby wysłać fakturę.`,
         beginningOfChatHistory: 'Ta rozmowa jest z',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku <strong>+</strong>.`,
+            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja przestrzeń osobista. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Czat z Twoim opiekunem konta tutaj',
         sayHello: 'Powiedz cześć!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Użyj przycisku <strong>+</strong>, aby ${additionalText} wydatek.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Użyj przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}, aby ${additionalText} wydatek.`,
         askConcierge: 'Zadawaj pytania i otrzymuj wsparcie w czasie rzeczywistym 24/7.',
         conciergeSupport: 'Całodobowe wsparcie',
         create: 'utwórz',
@@ -1688,7 +1694,6 @@ const translations = {
             testCrash: 'Test awarii',
             resetToOriginalState: 'Przywróć do stanu początkowego',
             usingImportedState: 'Używasz zaimportowanego stanu. Naciśnij tutaj, aby go wyczyścić.',
-            shouldBlockTransactionThreadReportCreation: 'Blokuj tworzenie raportów wątku transakcji',
             debugMode: 'Tryb debugowania',
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
@@ -2430,7 +2435,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
@@ -2443,7 +2448,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Bevestig de details.\n' +
@@ -2456,7 +2461,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Uitgave aanmaken*.\n' +
                     '3. Voer een bedrag in of scan een bon.\n' +
                     '4. Kies uw *persoonlijke* ruimte.\n' +
@@ -2551,7 +2556,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer een e-mailadres of telefoonnummer in.\n' +
                     '\n' +
@@ -2564,7 +2569,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Start chat*.\n' +
                     '3. Voer e-mailadressen of telefoonnummers in.\n' +
                     '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
@@ -2586,7 +2591,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description:
                     'Zo maakt u een rapport:\n' +
                     '\n' +
-                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    `1. Klik op de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-knop.\n` +
                     '2. Kies *Rapport aanmaken*.\n' +
                     '3. Klik op *Uitgave toevoegen*.\n' +
                     '4. Voeg uw eerste uitgave toe.\n' +
@@ -2938,8 +2943,8 @@ ${amount} dla ${merchant} - ${date}`,
         needSSNFull9: 'Mamy problem z weryfikacją Twojego numeru SSN. Proszę wprowadzić pełne dziewięć cyfr swojego numeru SSN.',
         weCouldNotVerify: 'Nie mogliśmy zweryfikować',
         pleaseFixIt: 'Proszę poprawić te informacje przed kontynuowaniem',
-        failedKYCTextBefore: 'Nie udało nam się zweryfikować Twojej tożsamości. Spróbuj ponownie później lub skontaktuj się z',
-        failedKYCTextAfter: 'jeśli masz jakieś pytania.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Nie udało nam się zweryfikować Twojej tożsamości. Spróbuj ponownie później lub skontaktuj się z <a href="mailto:${conciergeEmail}">${conciergeEmail}</a>, jeśli masz jakieś pytania.`,
     },
     termsStep: {
         headerTitle: 'Warunki i opłaty',
@@ -4410,8 +4415,8 @@ ${amount} dla ${merchant} - ${date}`,
             employeeDefaultDescription: 'Domyślny dział pracownika zostanie zastosowany do jego wydatków w Sage Intacct, jeśli taki istnieje.',
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
-            toggleImportTitleFirstPart: 'Wybierz, jak obsługiwać Sage Intacct',
-            toggleImportTitleSecondPart: 'w Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
+
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
@@ -5719,7 +5724,7 @@ ${amount} dla ${merchant} - ${date}`,
             chatWithYourAdmin: 'Porozmawiaj ze swoim administratorem',
             chatInAdmins: 'Czat w #admins',
             addPaymentCard: 'Dodaj kartę płatniczą',
-            goToSubscriptions: 'Przejdź do subskrypcji',
+            goToSubscription: 'Przejdź do subskrypcji',
         },
         rules: {
             individualExpenseRules: {
@@ -6137,7 +6142,7 @@ ${amount} dla ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
-                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą przycisku <strong>+</strong>.`,
+                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą zielonego przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Nie utworzyłeś jeszcze żadnych wydatków.',
@@ -6754,7 +6759,8 @@ ${amount} dla ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem',
-        adminBrokenConnectionError: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem. Proszę rozwiązać w',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Paragon oczekuje z powodu zerwanego połączenia bankowego. Rozwiąż problem w <a href="${workspaceCompanyCardRoute}">Kartach firmowych</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Proszę poprosić administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i zażądać płatności.',
         smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wprowadź dane ręcznie.' : ''}`,
@@ -7303,6 +7309,11 @@ ${amount} dla ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
     avatarPage: {title: 'Edytuj zdjęcie profilowe', upload: 'Prześlij', uploadPhoto: 'Prześlij zdjęcie', selectAvatar: 'Wybierz awatar', chooseCustomAvatar: 'Lub wybierz własny awatar'},
+    openAppFailureModal: {
+        title: 'Coś poszło nie tak...',
+        subtitle: `Nie udało nam się wczytać wszystkich Twoich danych. Zostaliśmy o tym powiadomieni i badamy problem. Jeśli problem będzie się utrzymywał, skontaktuj się z`,
+        refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

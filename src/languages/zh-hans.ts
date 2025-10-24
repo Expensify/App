@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -799,6 +800,11 @@ const translations = {
         findMember: '查找成员',
         searchForSomeone: '搜索某人',
     },
+    customApprovalWorkflow: {
+        title: '自定义审批工作流',
+        description: '您的公司在此工作区有自定义审批工作流，请在Expensify Classic中执行此操作',
+        goToExpensifyClassic: '切换到Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '提交报销，推荐给您的老板',
@@ -906,17 +912,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <strong>+</strong> 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <strong>+</strong> 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` 使用 <strong>+</strong> 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` 使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -1671,7 +1677,6 @@ const translations = {
             testCrash: '测试崩溃',
             resetToOriginalState: '重置为原始状态',
             usingImportedState: '您正在使用导入的状态。点击这里清除它。',
-            shouldBlockTransactionThreadReportCreation: '阻止创建交易线程报告',
             debugMode: '调试模式',
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
@@ -2904,8 +2909,8 @@ ${merchant}的${amount} - ${date}`,
         needSSNFull9: '我们无法验证您的SSN。请输入您SSN的完整九位数字。',
         weCouldNotVerify: '我们无法验证',
         pleaseFixIt: '请在继续之前修正此信息',
-        failedKYCTextBefore: '我们无法验证您的身份。请稍后再试或联系',
-        failedKYCTextAfter: '如果您有任何问题。',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `我们无法验证您的身份。请稍后再试或联系 <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> 如果您有任何问题。`,
     },
     termsStep: {
         headerTitle: '条款和费用',
@@ -4334,8 +4339,7 @@ ${merchant}的${amount} - ${date}`,
             employeeDefaultDescription: '如果存在，员工的默认部门将应用于他们在 Sage Intacct 中的费用。',
             displayedAsTagDescription: '部门将可在员工报告的每一笔费用中选择。',
             displayedAsReportFieldDescription: '部门选择将适用于员工报告中的所有费用。',
-            toggleImportTitleFirstPart: '选择如何处理 Sage Intacct',
-            toggleImportTitleSecondPart: '在Expensify中。',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `选择如何处理 Sage Intacct <strong>${mappingTitle}</strong> 在Expensify中。`,
             expenseTypes: '费用类型',
             expenseTypesDescription: '您的 Sage Intacct 费用类型将作为类别导入到 Expensify。',
             accountTypesDescription: '您的 Sage Intacct 科目表将作为类别导入到 Expensify 中。',
@@ -5622,7 +5626,7 @@ ${merchant}的${amount} - ${date}`,
             chatWithYourAdmin: '与您的管理员聊天',
             chatInAdmins: '在#admins中聊天',
             addPaymentCard: '添加支付卡',
-            goToSubscriptions: '前往订阅',
+            goToSubscription: '前往订阅',
         },
         rules: {
             individualExpenseRules: {
@@ -6024,7 +6028,7 @@ ${merchant}的${amount} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: `尝试调整您的搜索条件或使用 <strong>+</strong> 按钮创建内容。`,
+                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -6630,7 +6634,8 @@ ${merchant}的${amount} - ${date}`,
             return '';
         },
         brokenConnection530Error: '由于银行连接中断，收据待处理',
-        adminBrokenConnectionError: '由于银行连接中断，收据待处理。请在',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>由于银行连接中断，收据正在等待处理中。请前往 <a href="${workspaceCompanyCardRoute}">公司卡</a> 解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据待处理。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true}) => `扫描收据失败。${canEdit ? '手动输入详细信息。' : ''}`,
@@ -7165,6 +7170,7 @@ ${merchant}的${amount} - ${date}`,
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
     avatarPage: {title: '编辑个人资料图片', upload: '上传', uploadPhoto: '上传照片', selectAvatar: '选择头像', chooseCustomAvatar: '或选择自定义头像'},
+    openAppFailureModal: {title: '出了点问题...', subtitle: `我们未能加载您的所有数据。我们已收到通知，正在调查此问题。如果问题仍然存在，请联系`, refreshAndTryAgain: '刷新并重试'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
