@@ -216,6 +216,7 @@ const WRITE_COMMANDS = {
     SPLIT_BILL_AND_OPEN_REPORT: 'SplitBillAndOpenReport',
     UPDATE_SPLIT_TRANSACTION: 'UpdateSplitTransaction',
     SPLIT_TRANSACTION: 'Transaction_Split',
+    REVERT_SPLIT_TRANSACTION: 'RevertSplitTransaction',
     DELETE_MONEY_REQUEST: 'DeleteMoneyRequest',
     REJECT_MONEY_REQUEST: 'RejectMoneyRequest',
     MARK_TRANSACTION_VIOLATION_AS_RESOLVED: 'MarkTransactionViolationAsResolved',
@@ -717,6 +718,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SPLIT_BILL]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_TRANSACTION]: Parameters.SplitTransactionParams;
+    [WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION]: Parameters.RevertSplitTransactionParams;
     [WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION]: Parameters.SplitTransactionParams;
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST]: Parameters.DeleteMoneyRequestParams;
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST]: Parameters.RejectMoneyRequestParams;

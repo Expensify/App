@@ -5455,6 +5455,11 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         },
+        domainIcon: {
+            backgroundColor: theme.border,
+            padding: 10,
+            borderRadius: 8,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
