@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -236,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -636,6 +638,7 @@ const translations = {
         downloadAsPDF: 'Pobierz jako PDF',
         downloadAsCSV: 'Pobierz jako CSV',
         help: 'Pomoc',
+        expenseReport: 'Raport wydatków',
         expenseReports: 'Raporty wydatków',
         rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
@@ -671,6 +674,7 @@ const translations = {
         pinned: 'Przypięte',
         read: 'Przeczytane',
         copyToClipboard: 'Skopiuj do schowka',
+        domains: 'Domeny',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -796,6 +800,11 @@ const translations = {
         nameEmailOrPhoneNumber: 'Imię, email lub numer telefonu',
         findMember: 'Znajdź członka',
         searchForSomeone: 'Wyszukaj kogoś',
+    },
+    customApprovalWorkflow: {
+        title: 'Niestandardowy przepływ zatwierdzania',
+        description: 'Twoja firma ma niestandardowy przepływ zatwierdzania w tym obszarze roboczym. Wykonaj tę czynność w Expensify Classic',
+        goToExpensifyClassic: 'Przełącz na Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1686,7 +1695,6 @@ const translations = {
             testCrash: 'Test awarii',
             resetToOriginalState: 'Przywróć do stanu początkowego',
             usingImportedState: 'Używasz zaimportowanego stanu. Naciśnij tutaj, aby go wyczyścić.',
-            shouldBlockTransactionThreadReportCreation: 'Blokuj tworzenie raportów wątku transakcji',
             debugMode: 'Tryb debugowania',
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
@@ -2737,8 +2745,8 @@ ${amount} dla ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Witamy w trybie #focus!',
-        prompt: 'Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty, które wymagają Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w',
-        settings: 'ustawienia',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty, które wymagają Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawienia</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Nie można znaleźć czatu, którego szukasz.',
@@ -2936,8 +2944,8 @@ ${amount} dla ${merchant} - ${date}`,
         needSSNFull9: 'Mamy problem z weryfikacją Twojego numeru SSN. Proszę wprowadzić pełne dziewięć cyfr swojego numeru SSN.',
         weCouldNotVerify: 'Nie mogliśmy zweryfikować',
         pleaseFixIt: 'Proszę poprawić te informacje przed kontynuowaniem',
-        failedKYCTextBefore: 'Nie udało nam się zweryfikować Twojej tożsamości. Spróbuj ponownie później lub skontaktuj się z',
-        failedKYCTextAfter: 'jeśli masz jakieś pytania.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Nie udało nam się zweryfikować Twojej tożsamości. Spróbuj ponownie później lub skontaktuj się z <a href="mailto:${conciergeEmail}">${conciergeEmail}</a>, jeśli masz jakieś pytania.`,
     },
     termsStep: {
         headerTitle: 'Warunki i opłaty',
@@ -4408,8 +4416,8 @@ ${amount} dla ${merchant} - ${date}`,
             employeeDefaultDescription: 'Domyślny dział pracownika zostanie zastosowany do jego wydatków w Sage Intacct, jeśli taki istnieje.',
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
-            toggleImportTitleFirstPart: 'Wybierz, jak obsługiwać Sage Intacct',
-            toggleImportTitleSecondPart: 'w Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
+
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
@@ -5377,7 +5385,6 @@ ${amount} dla ${merchant} - ${date}`,
                 `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Upewnij się, że to konto pasuje do Twojego <a href="${settlementAccountUrl}">Konto rozliczeniowe karty Expensify</a> (kończący się na ${lastFourPAN}), aby Ciągła Rekonsyliacja działała poprawnie.`,
             },
@@ -5718,6 +5725,7 @@ ${amount} dla ${merchant} - ${date}`,
             chatWithYourAdmin: 'Porozmawiaj ze swoim administratorem',
             chatInAdmins: 'Czat w #admins',
             addPaymentCard: 'Dodaj kartę płatniczą',
+            goToSubscription: 'Przejdź do subskrypcji',
         },
         rules: {
             individualExpenseRules: {
@@ -6246,7 +6254,6 @@ ${amount} dla ${merchant} - ${date}`,
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Raport',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
@@ -6390,6 +6397,7 @@ ${amount} dla ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizacji pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Proszę spróbować ponownie później.',
         noActivityYet: 'Brak aktywności',
+        connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmienił ${fieldName} na "${newValue}" (wcześniej "${oldValue}")`,
@@ -6462,6 +6470,9 @@ ${amount} dla ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `usunięto połączenie z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'opuścił czat',
+            },
+            error: {
+                invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację połączenia.',
             },
         },
     },
@@ -6663,14 +6674,9 @@ ${amount} dla ${merchant} - ${date}`,
         copyReferralLink: 'Skopiuj link zaproszenia',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Porozmawiaj ze swoim specjalistą ds. konfiguracji w',
-            phrase2: 'po pomoc',
-        },
-        default: {
-            phrase1: 'Wiadomość',
-            phrase2: 'w celu uzyskania pomocy przy konfiguracji',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Porozmawiaj ze swoim specjalistą ds. konfiguracji w <a href="${href}">${adminReportName}</a> po pomoc`,
+        default: `Wiadomość <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> w celu uzyskania pomocy przy konfiguracji`,
     },
     violations: {
         allTagLevelsRequired: 'Wszystkie wymagane tagi',
@@ -6757,7 +6763,8 @@ ${amount} dla ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem',
-        adminBrokenConnectionError: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem. Proszę rozwiązać w',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Paragon oczekuje z powodu zerwanego połączenia bankowego. Rozwiąż problem w <a href="${workspaceCompanyCardRoute}">Kartach firmowych</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Proszę poprosić administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i zażądać płatności.',
         smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wprowadź dane ręcznie.' : ''}`,
@@ -7306,6 +7313,11 @@ ${amount} dla ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
     avatarPage: {title: 'Edytuj zdjęcie profilowe', upload: 'Prześlij', uploadPhoto: 'Prześlij zdjęcie', selectAvatar: 'Wybierz awatar', chooseCustomAvatar: 'Lub wybierz własny awatar'},
+    openAppFailureModal: {
+        title: 'Coś poszło nie tak...',
+        subtitle: `Nie udało nam się wczytać wszystkich Twoich danych. Zostaliśmy o tym powiadomieni i badamy problem. Jeśli problem będzie się utrzymywał, skontaktuj się z`,
+        refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
