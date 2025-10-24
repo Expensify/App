@@ -7,8 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
@@ -100,8 +98,7 @@ const getOptionRows = () => {
 };
 
 const getDisplayNames = () => {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+    const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
     return screen.queryAllByLabelText(hintText);
 };
 
