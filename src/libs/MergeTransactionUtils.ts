@@ -372,7 +372,11 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
