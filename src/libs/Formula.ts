@@ -644,7 +644,7 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     return {startDate, endDate};
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse};
+/**
  * Get the date of the newest transaction for a given report
  */
 function getNewestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
@@ -680,6 +680,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse};
 
 export type {FormulaContext, FormulaPart};
