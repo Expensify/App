@@ -25,13 +25,14 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchMemberGroup,
     SearchPersonalDetails,
+    SearchPolicy,
     SearchReport,
     SearchReportAction,
     SearchTask,
@@ -241,6 +242,12 @@ type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
+
+        /** Policy to which the transaction belongs */
+        policy: SearchPolicy | undefined;
+
+        /** Report IOU action to which the transaction belongs */
+        reportAction: ReportAction | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
