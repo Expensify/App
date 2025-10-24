@@ -12644,9 +12644,11 @@ function dismissRejectUseExplanation() {
  * @param transactionID - The ID of the transaction to reject
  * @param reportID - The ID of the expense report to reject
  * @param comment - The comment to add to the reject action
- * @returns The route to navigate back to
- */
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
+ * @param options
+ *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
+* @returns The route to navigate back to* 
+*/
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, options?: {sharedRejectedToReportID?: string}): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -12855,7 +12857,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
             });
         } else {
-            rejectedToReportID = generateReportID();
+            // When no existing open report is found, use the sharedRejectedToReportID
+            // so multiple sequential rejections land in the same destination report 
+            // Fallback to generating a fresh ID if not provided
+            rejectedToReportID = options?.sharedRejectedToReportID ?? generateReportID();
         }
         optimisticData.push(
             {
