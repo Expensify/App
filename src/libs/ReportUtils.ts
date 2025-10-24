@@ -22,6 +22,7 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
@@ -1190,10 +1191,10 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[]): OnyxEntry<Report> | SearchReport {
+function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[], fallbackReport?: Report): OnyxEntry<Report> | SearchReport {
     const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return searchReport ?? onyxReport ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+    return searchReport ?? onyxReport ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
 
 function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
@@ -4259,7 +4260,7 @@ function getMoneyRequestReportName({
  */
 
 function getTransactionDetails(
-    transaction: OnyxInputOrEntry<Transaction>,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
@@ -4268,20 +4269,16 @@ function getTransactionDetails(
     if (!transaction) {
         return;
     }
-    const report = getReportOrDraftReport(transaction?.reportID);
+
+    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
+    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(
-            transaction,
-            !isEmptyObject(report) && isExpenseReport(report),
-            transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
-            allowNegativeAmount,
-            disableOppositeConversion,
-        ),
+        amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction),
-        taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
         currency: getCurrency(transaction),
         comment: getDescription(transaction),
@@ -6203,7 +6200,7 @@ function buildOptimisticAddCommentReportAction(
  * @param type - The type of action in the child report
  */
 
-function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<ReportAction>, lastVisibleActionCreated: string, type: string): UpdateOptimisticParentReportAction {
+function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<ReportAction>, lastVisibleActionCreated: string, type: string, deleteBy = 1): UpdateOptimisticParentReportAction {
     let childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     let childCommenterCount = parentReportAction?.childCommenterCount ?? 0;
     let childOldestFourAccountIDs = parentReportAction?.childOldestFourAccountIDs;
@@ -6221,7 +6218,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
     } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         if (childVisibleActionCount > 0) {
-            childVisibleActionCount -= 1;
+            childVisibleActionCount -= deleteBy;
         }
 
         if (childVisibleActionCount === 0) {
@@ -10222,6 +10219,7 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
     const ancestors = getAllAncestorReportActionIDs(report, true);
     const totalAncestor = ancestors.reportIDs.length;
 
+    let previousActionDeleted = false;
     return Array.from(Array(totalAncestor), (_, index) => {
         const ancestorReport = getReportOrDraftReport(ancestors.reportIDs.at(index));
 
@@ -10234,12 +10232,15 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
         if (!ancestorReportAction?.reportActionID || isEmptyObject(ancestorReportAction)) {
             return null;
         }
+        const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
+
+        previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
             value: {
-                [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type),
+                [ancestorReportAction.reportActionID]: updatedReportAction,
             },
         };
     });
