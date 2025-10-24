@@ -172,7 +172,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -275,7 +275,7 @@ function BasePopoverMenu({
     headerStyles,
     innerContainerStyle,
     scrollContainerStyle,
-    shouldUseScrollView = false,
+    shouldUseScrollView = true,
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
@@ -490,13 +490,23 @@ function BasePopoverMenu({
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {
+        const DEFAULT_MAX_HEIGHT_OFFSET = 250;
+
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+            return shouldEnableMaxHeight ? [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}] : [];
         }
-        return styles.createMenuContainer;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
+
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+
+        if (shouldUseScrollView && shouldEnableMaxHeight) {
+            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+        }
+
+        return stylesArray;
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingVertical: menuContainerPaddingVertical, ...restMenuContainerStyle} = StyleSheet.flatten(menuContainerStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -529,11 +539,13 @@ function BasePopoverMenu({
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
+                    style={[containerStyles, restMenuContainerStyle, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
                 >
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [{paddingTop, paddingBottom, paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0}, restScrollContainerStyle],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
