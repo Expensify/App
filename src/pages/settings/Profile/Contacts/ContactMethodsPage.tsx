@@ -37,7 +37,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const options = useMemo(() => getContactMethodsOptions(loginList, session?.email), [loginList, session?.email]);
+    const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);
 
     const onNewContactMethodButtonPress = useCallback(() => {
         if (isActingAsDelegate) {
