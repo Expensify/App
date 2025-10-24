@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
@@ -15,7 +16,7 @@ import tokenizedSearch from './tokenizedSearch';
  */
 function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
@@ -154,6 +155,7 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('common.recent'),
             shouldShow: true,
             data,
@@ -164,6 +166,7 @@ function getDestinationListSections({
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('common.all'),
         shouldShow: true,
         data,
