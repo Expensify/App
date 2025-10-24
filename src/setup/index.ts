@@ -31,8 +31,9 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
 
-        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 50000,
+        // Disable caching - set to 0 to prevent any in-memory caching
+        maxCachedKeysCount: 0,
+        // Keep evictableKeys even with no cache - Onyx needs this for internal eviction logic
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
