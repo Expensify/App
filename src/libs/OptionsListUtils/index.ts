@@ -164,7 +164,6 @@ import type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     IsValidReportsConfig,
     MemberForList,
     Option,
@@ -1303,6 +1302,76 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
 }
 
 /**
+ * Sort options by the same manner as optionsOrderBy -> using heaps.
+ * However, this function allows grouping by multiple separators.
+ * Result of this function is an array of length of `separators.length + 1`
+ * Incoming array of options will be at first tested by separators each separator will test if the option fits - first win, so if an option would fit to more than one separator the order of them decides.
+ * All options that does not pass any of separator will be pushed into last returned array.
+ */
+function optionsOrderAndGroupBy<T = SearchOptionData>(separators: Array<(option: T) => boolean | undefined>, options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[][] {
+    // Create a heap for each separator + one default heap (N+1 total)
+    const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
+    for (let i = 0; i < separators.length; i++) {
+        heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
+    }
+    const defaultHeap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+
+    // If limit is 0 or negative, return N+1 empty arrays
+    if (limit !== undefined && limit <= 0) {
+        return Array(separators.length + 1).map(() => []);
+    }
+
+    // Process each option
+    for (const option of options) {
+        // Apply filter first
+        if (filter && !filter(option)) {
+            continue;
+        }
+
+        // Find which group this option belongs to (first-match-wins)
+        let targetHeap: MinHeap<T> | MaxHeap<T> | null = null;
+
+
+        for (let i = 0; i < separators.length; i++) {
+            if (separators[i](option)) {
+                // eslint-disable-next-line rulesdir/prefer-at
+                targetHeap = heaps[i];
+                break; // Early exit on first match
+            }
+        }
+
+        // If no separator matched, use default heap
+        if (!targetHeap) {
+            targetHeap = defaultHeap;
+        }
+
+        // Add to heap with limit logic (each heap has its own limit)
+        if (limit !== undefined && targetHeap.size() >= limit) {
+            const peekedValue = targetHeap.peek();
+            if (!peekedValue) {
+                throw new Error('Heap is empty, cannot peek value');
+            }
+            if (comparator(option) > comparator(peekedValue)) {
+                targetHeap.pop();
+                targetHeap.push(option);
+            }
+        } else {
+            targetHeap.push(option);
+        }
+    }
+
+    // Extract results from each heap and reverse (to get correct order)
+    // Always return N+1 arrays (some may be empty)
+    const results: T[][] = [];
+    for (const heap of heaps) {
+        results.push([...heap].reverse());
+    }
+    results.push([...defaultHeap].reverse());
+
+    return results;
+}
+
+/**
  * Ordering for report options when you have a search value, will order them by kind additionally.
  * @param options - list of options to be sorted
  * @param searchValue - search string
@@ -1713,28 +1782,28 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     return true;
 }
 
-function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+function enrichOptions(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
         action,
         selectedOptions = [],
         shouldBoldTitleByDefault = true,
-        shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
         showRBR = true,
         shouldShowGBR = false,
     } = config;
 
-    const validReportOptions: SearchOptionData[] = [];
-    const workspaceChats: SearchOptionData[] = [];
-    let selfDMChat: SearchOptionData | undefined;
+    const validOptions: Array<SearchOption<Report>> = [];
+
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
-    for (let i = 0; i < reports.length; i++) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        const option = reports[i];
+    for (let i = 0; i < options.length; i++) {
+        const option = options.at(i);
+        if (!option) {
+            continue;
+        }
         const report = option.item;
 
         /**
@@ -1744,8 +1813,8 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
-        let lastIOUCreationDate;
 
+        let lastIOUCreationDate;
         // Add a field to sort the recent reports by the time of last IOU request for create actions
         if (preferRecentExpenseReports) {
             const reportPreviewAction = allSortedReportActions[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
@@ -1777,6 +1846,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             newReportOption.text = getPolicyName({report});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
+
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -1792,19 +1862,13 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
                     continue;
                 }
             }
-            workspaceChats.push(newReportOption);
-        } else if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
-            selfDMChat = newReportOption;
-        } else {
-            validReportOptions.push(newReportOption);
+
         }
+
+        validOptions.push(newReportOption);
     }
 
-    return {
-        recentReports: validReportOptions,
-        workspaceOptions: workspaceChats,
-        selfDMOption: selfDMChat,
-    };
+    return validOptions;
 }
 
 /**
@@ -1882,20 +1946,20 @@ function getValidOptions(
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
-    let filteredReports = options.reports;
-
     // Get valid recent reports:
-    let recentReportOptions: SearchOptionData[] = [];
-    let workspaceChats: SearchOptionData[] = [];
+    let recentReportOptions: Array<SearchOption<Report>> = [];
+    let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         const searchTerms = processSearchString(searchString);
 
-        const filteringFunction = (report: SearchOption<Report>) => {
+        const isWorkspaceChat = ( report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
+        const isSelfDMChat = ( report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
+
+        const isSearchTermsFound = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
             } else if (report.isChatRoom) {
@@ -1904,11 +1968,15 @@ function getValidOptions(
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
+            return searchTerms.every((term) => searchText.includes(term));
+        }
 
-            if (!searchTermsFound) {
+        const filteringFunction = (report: SearchOption<Report>) => {
+            if (!isSearchTermsFound(report)) {
                 return false;
             }
+
+            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
 
             return isValidReport(
                 report,
@@ -1922,20 +1990,38 @@ function getValidOptions(
             );
         };
 
-        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
+        let selfDMChats: Array<SearchOption<Report>>;
+        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy(
+            [isSelfDMChat, isWorkspaceChat],
+            options.reports, recentReportComparator, maxElements, filteringFunction,
+        );
 
-        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
-            ...getValidReportsConfig,
-            selectedOptions,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-            shouldShowGBR,
-        });
+        if (selfDMChats.length > 0) {
+            selfDMChat = selfDMChats.at(0);
+        }
 
-        recentReportOptions = recentReports;
-        workspaceChats = workspaceOptions;
-        selfDMChat = selfDMOption;
+        if (maxRecentReportElements) {
+            recentReportOptions = enrichOptions(recentReportOptions.splice(0, maxRecentReportElements),
+                {
+                    ...getValidReportsConfig,
+                    selectedOptions,
+                    shouldBoldTitleByDefault,
+                    shouldSeparateSelfDMChat,
+                    shouldSeparateWorkspaceChat,
+                    shouldShowGBR,
+                }
+            )
+        }
+        workspaceChats = enrichOptions(workspaceChats,
+            {
+                ...getValidReportsConfig,
+                selectedOptions,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+                shouldShowGBR,
+            })
+
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
@@ -1946,7 +2032,7 @@ function getValidOptions(
 
             return false;
         });
-        recentReportOptions = recentAttendees as SearchOptionData[];
+        recentReportOptions = recentAttendees as Array<SearchOption<Report>>;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -1985,7 +2071,7 @@ function getValidOptions(
         };
 
         // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
-        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length, 0) : undefined;
+        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), 0) : undefined;
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
@@ -2809,7 +2895,6 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
     OptionList,
