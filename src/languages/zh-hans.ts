@@ -6281,6 +6281,7 @@ ${merchant}的${amount} - ${date}`,
         genericUpdateReportFieldFailureMessage: '更新字段时出现意外错误。请稍后再试。',
         genericUpdateReportNameEditFailureMessage: '重命名报告时出现意外错误。请稍后再试。',
         noActivityYet: '暂无活动',
+        connectionSettings: '连接设置',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
@@ -6349,6 +6350,9 @@ ${merchant}的${amount} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}的连接`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '离开了聊天',
+            },
+            error: {
+                invalidCredentials: '凭证无效，请检查您的连接配置。',
             },
         },
     },
