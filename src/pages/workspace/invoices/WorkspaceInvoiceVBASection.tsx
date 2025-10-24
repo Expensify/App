@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,18 +19,27 @@ import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUt
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount} from '@userActions/BankAccounts';
+import {clearCorpayBankAccountFields, deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { hasInProgressVBBA } from '@libs/ReimbursementAccountUtils';
+import { isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings } from '@libs/actions/Policy/Policy';
+import { clearDraftValues } from '@libs/actions/FormActions';
+import Navigation from '@libs/Navigation/Navigation';
+import { getEligibleExistingBusinessBankAccounts } from '@libs/WorkflowUtils';
+import usePermissions from '@hooks/usePermissions';
+import { TupleToUnion } from 'type-fest';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
     policyID: string;
 };
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
     const styles = useThemeStyles();
@@ -55,6 +64,43 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const {isBetaEnabled} = usePermissions();
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
+
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+
+    const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
+    const achData = reimbursementAccount?.achData;
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+
+    const shouldShowContinueModal = useMemo(() => {
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+
+        setIsUpdateWorkspaceCurrencyModalOpen(false);
+
+        if (isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)) {
+            setIsForcedToChangeCurrency(true);
+            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        } else {
+            updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+            clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            if (hasValidExistingUSDAccounts) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policyID));
+            } else {
+                navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
+            }
+        }
+    }, [bankAccountList, isBetaEnabled, policy, policyID]);
 
     /**
      * Set position of the payment menu
@@ -138,6 +184,17 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const onAddBankAccountPress = () => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
+            return;
+        }
+        // Check if the workspace currency is supported for global reimbursement
+        if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
+            setIsUpdateWorkspaceCurrencyModalOpen(true);
+            return;
+        }
+
+        // If there are existing eligible bank accounts and no in-progress setup, navigate to connect existing account
+        if (hasValidExistingAccounts && !shouldShowContinueModal) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policyID));
             return;
         }
         navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
@@ -229,6 +286,16 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 shouldShowCancelButton
                 danger
                 onModalHide={resetSelectedPaymentMethodData}
+            />
+            <ConfirmModal
+                title={translate('workspace.bankAccount.workspaceCurrency')}
+                isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                onConfirm={confirmCurrencyChangeAndHideModal}
+                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                confirmText={translate('workspace.bankAccount.updateToUSD')}
+                cancelText={translate('common.cancel')}
+                danger
             />
         </Section>
     );
