@@ -186,6 +186,43 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+/** Return admins from active policies */
+function getActiveAllAdminsFromWorkspaces(
+    policies: OnyxCollection<Policy> | null,
+    currentUserLogin: string | undefined,
+): {
+    text?: string;
+    alternateText?: string;
+    keyForList?: string;
+    accountID?: number;
+    login?: string;
+    pendingAction?: PendingAction;
+}[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const adminMap = new Map<string, PolicyEmployee>();
+    Object.values(activePolicies ?? {}).forEach((policy) => {
+        getAdminEmployees(policy).forEach((admin) => {
+            if (!admin?.email || adminMap.has(admin.email)) {
+                return;
+            }
+            const personalDetails = getPersonalDetailByEmail(admin.email);
+            if (!personalDetails) {
+                return;
+            }
+
+            adminMap.set(admin.email, {
+                text: personalDetails?.displayName,
+                alternateText: personalDetails?.login,
+                keyForList: personalDetails?.accountID,
+                accountID: personalDetails?.accountID,
+                login: personalDetails?.login,
+                pendingAction: personalDetails?.pendingAction,
+            });
+        });
+    });
+    return Array.from(adminMap.values());
+}
+
 function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
     if ((!isCustomUnitsOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
@@ -1644,6 +1681,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getActiveAllAdminsFromWorkspaces,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,
