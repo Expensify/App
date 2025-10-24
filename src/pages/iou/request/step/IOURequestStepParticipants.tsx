@@ -297,7 +297,8 @@ function IOURequestStepParticipants({
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
+            const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
+            setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
