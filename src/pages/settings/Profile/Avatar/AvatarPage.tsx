@@ -77,7 +77,8 @@ function ProfileAvatar() {
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
+
+    const isUsingDefaultAvatar = (!imageData.uri && isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '', currentUserPersonalDetails?.originalFileName)) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -144,12 +145,13 @@ function ProfileAvatar() {
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
-        isAvatarSelected: isDirty,
         isUsingDefaultAvatar,
         accountID,
         onImageRemoved,
         showAvatarCropModal,
         clearError,
+        source: imageData.uri,
+        originalFileName: imageData.name
     });
 
     const onPress = useCallback(() => {
