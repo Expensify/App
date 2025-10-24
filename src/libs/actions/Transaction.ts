@@ -883,7 +883,7 @@ function changeTransactionsReport(
             }
         }
 
-        const allowNegative = shouldEnableNegative(newReport);
+        const allowNegative = shouldEnableNegative(newReport ?? oldReport);
 
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
