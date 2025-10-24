@@ -31,6 +31,7 @@ import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
+import {createOptionFromReport} from '@libs/OptionsListUtils';
 import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
@@ -144,10 +145,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (!isSearchRouterDisplayed) {
                 return undefined;
             }
+            let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
 
-            const reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
             if (!reportForContextualSearch) {
-                return undefined;
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`];
+                if (!report) {
+                    return undefined;
+                }
+
+                const option = createOptionFromReport(report, personalDetails);
+                reportForContextualSearch = option;
             }
 
             const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
