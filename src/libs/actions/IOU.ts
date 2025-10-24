@@ -12048,7 +12048,8 @@ function checkIfScanFileCanBeRead(
     onFailure: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
-        return;
+        onFailure();
+        return Promise.resolve();
     }
 
     return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
