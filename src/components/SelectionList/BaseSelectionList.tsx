@@ -73,7 +73,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldShowTextInput = !!textInputOptions,
+    shouldShowTextInput = !!textInputOptions?.label,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
