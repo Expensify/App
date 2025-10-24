@@ -13201,7 +13201,12 @@ function initSplitExpenseItemData(
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, reports: OnyxCollection<OnyxTypes.Report>, transaction: OnyxEntry<OnyxTypes.Transaction>, originalTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+function initSplitExpense(
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>,
+) {
     if (!transaction) {
         return;
     }

@@ -880,19 +880,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [
-        moneyRequestReport,
-        currentUserLogin,
-        chatReport,
-        transactions,
-        originalIOUTransaction,
-        violations,
-        policy,
-        reportNameValuePairs,
-        reportActions,
-        policies,
-        isChatReportArchived,
-    ]);
+    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
