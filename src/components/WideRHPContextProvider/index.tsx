@@ -5,12 +5,15 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
+import {isInvoiceReport, isTaskReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
@@ -80,6 +83,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     // Return undefined if RHP is not the last route
     const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
@@ -205,13 +209,22 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * This enables optimistic wide RHP display for expense reports.
      * It helps us open expense as wide, before it fully loads.
      */
-    const markReportIDAsExpense = useCallback((reportID: string) => {
-        setExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(reportID);
-            return newSet;
-        });
-    }, []);
+    const markReportIDAsExpense = useCallback(
+        (reportID: string) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const isInvoice = isInvoiceReport(report);
+            const isTask = isTaskReport(report);
+            if (isInvoice || isTask) {
+                return;
+            }
+            setExpenseReportIDs((prev) => {
+                const newSet = new Set(prev);
+                newSet.add(reportID);
+                return newSet;
+            });
+        },
+        [allReports],
+    );
 
     /**
      * Checks if a report ID is marked as an expense report.
