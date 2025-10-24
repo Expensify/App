@@ -35,8 +35,8 @@ type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNav
 
 function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPageProps) {
     const policyID = route.params.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
@@ -177,3 +177,4 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 
 export default PolicyDistanceRatesSettingsPage;
+
