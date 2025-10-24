@@ -239,6 +239,9 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
+    // ================================================================================================
+    // Data Fetching (Onyx)
+    // ================================================================================================
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -254,27 +257,34 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const {isBetaEnabled} = usePermissions();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const isTestReceipt = transaction?.receipt?.isTestReceipt ?? false;
-    const isTestDriveReceipt = transaction?.receipt?.isTestDriveReceipt ?? false;
-    const isManagerMcTestReceipt = isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        isTestDriveReceipt || isManagerMcTestReceipt,
-    );
-
-    const policy = policyReal ?? policyDraft;
-    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
-    const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
-
+    // ================================================================================================
+    // Hooks & Context
+    // ================================================================================================
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const isFocused = useIsFocused();
 
+    // ================================================================================================
+    // State
+    // ================================================================================================
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
+    const [didConfirm, setDidConfirm] = useState(isConfirmed);
+    const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+
+    // ================================================================================================
+    // Refs
+    // ================================================================================================
+    const isFirstUpdatedDistanceAmount = useRef(false);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ================================================================================================
+    // Derived Values - Request Type & Flags
+    // ================================================================================================
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -282,12 +292,103 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = isScanRequestUtil(transaction);
     const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
+
+    const isTestReceipt = transaction?.receipt?.isTestReceipt ?? false;
+    const isTestDriveReceipt = transaction?.receipt?.isTestDriveReceipt ?? false;
+    const isManagerMcTestReceipt = isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+
+    // ================================================================================================
+    // Derived Values - Policy & Transaction Data
+    // ================================================================================================
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
+    const policyTagLists = getTagLists(policyTags);
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
-
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
 
+    // ================================================================================================
+    // Derived Values - Distance & Mileage
+    // ================================================================================================
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const rate = mileageRate.rate;
+    const unit = mileageRate.unit;
+    const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
+    const distance = getDistanceInMeters(transaction, unit);
+    const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
+    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+
+    // ================================================================================================
+    // Derived Values - Amount Calculations
+    // ================================================================================================
+    let amountToBeUsed = iouAmount;
+    if (isDistanceRequest) {
+        amountToBeUsed = distanceRequestAmount;
+    } else if (isPerDiemRequest) {
+        const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
+        amountToBeUsed = perDiemRequestAmount;
+    }
+
+    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
+    const formattedAmountPerAttendee =
+        isDistanceRequestWithPendingRoute || isScanRequest
+            ? ''
+            : convertToDisplayString(amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
+
+    // ================================================================================================
+    // Derived Values - Tax
+    // ================================================================================================
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
+    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+
+    // ================================================================================================
+    // Derived Values - UI Visibility Flags
+    // ================================================================================================
+    // A flag for showing the categories field
+    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
+
+    // ================================================================================================
+    // Derived Values - Validation & Errors
+    // ================================================================================================
+    const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
+    const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
+    const shouldDisplayFieldError = !!isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
+    const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
+    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
+    const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
+
+    // ================================================================================================
+    // Product Training Tooltip
+    // ================================================================================================
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
+        isTestDriveReceipt || isManagerMcTestReceipt,
+    );
+
+    // ================================================================================================
+    // Helper Functions
+    // ================================================================================================
+    // Clear the form error if it's set to one among the list passed as an argument
+    const clearFormErrors = (errors: string[]) => {
+        if (!errors.includes(formError)) {
+            return;
+        }
+        setFormError('');
+    };
+
+    // ================================================================================================
+    // Effects - Distance Rate Initialization
+    // ================================================================================================
     useEffect(() => {
         if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
@@ -304,22 +405,10 @@ function MoneyRequestConfirmationList({
         setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
-    const rate = mileageRate.rate;
-    const unit = mileageRate.unit;
-    const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
-
-    // A flag for showing the categories field
-    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
-
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
-
-    const policyTagLists = getTagLists(policyTags);
-
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
-
+    // ================================================================================================
+    // Effects - Tax Updates
+    // ================================================================================================
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
         if (!transactionID) {
             return;
@@ -327,51 +416,17 @@ function MoneyRequestConfirmationList({
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
     }, [defaultTaxCode, transactionID]);
 
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
-
-    const distance = getDistanceInMeters(transaction, unit);
-
-    const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
-    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
-
-    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-
-    let amountToBeUsed = iouAmount;
-
-    if (isDistanceRequest) {
-        amountToBeUsed = distanceRequestAmount;
-    } else if (isPerDiemRequest) {
-        const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
-        amountToBeUsed = perDiemRequestAmount;
-    }
-
-    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
-    const formattedAmountPerAttendee =
-        isDistanceRequestWithPendingRoute || isScanRequest
-            ? ''
-            : convertToDisplayString(amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
-    const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
-
-    const [didConfirm, setDidConfirm] = useState(isConfirmed);
-    const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-
-    // Clear the form error if it's set to one among the list passed as an argument
-    const clearFormErrors = (errors: string[]) => {
-        if (!errors.includes(formError)) {
+    // Calculate and set tax amount in transaction draft
+    useEffect(() => {
+        if (!transactionID) {
             return;
         }
-        setFormError('');
-    };
+        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
 
-    const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
-    const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
-    const shouldDisplayFieldError = !!isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
-    const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
-    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
-
-    const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
-
+    // ================================================================================================
+    // Effects - Form Error Management
+    // ================================================================================================
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -381,14 +436,15 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
+
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
+    // We want this effect to run only when the transaction is moving from Self DM to a expense chat
     useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a expense chat
         if (!transactionID || !isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
             return;
         }
@@ -413,9 +469,9 @@ function MoneyRequestConfirmationList({
         setFormError(errorKey);
     }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
-    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
-    const isFirstUpdatedDistanceAmount = useRef(false);
-
+    // ================================================================================================
+    // Effects - Distance Amount Updates
+    // ================================================================================================
     useEffect(() => {
         if (isFirstUpdatedDistanceAmount.current) {
             return;
@@ -446,18 +502,43 @@ function MoneyRequestConfirmationList({
         }
     }, [isDistanceRequest, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
-    // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
-    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
-    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID) {
+        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
+            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
+            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
             return;
         }
-        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
 
+        /*
+         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
+         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
+         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
+        */
+        setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
+        setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+    }, [
+        isDistanceRequestWithPendingRoute,
+        hasRoute,
+        distance,
+        unit,
+        rate,
+        currency,
+        translate,
+        toLocaleDigit,
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        transaction,
+        transactionID,
+        action,
+        isReadOnly,
+        isMovingTransactionFromTrackExpense,
+    ]);
+
+    // ================================================================================================
+    // Effects - Confirmation State
+    // ================================================================================================
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
@@ -467,62 +548,9 @@ function MoneyRequestConfirmationList({
         setDidConfirm(isConfirmed);
     }, [isConfirmed]);
 
-    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
-        let text;
-        if (expensesNumber > 1) {
-            text = translate('iou.createExpenses', {expensesNumber});
-        } else if (isTypeInvoice) {
-            if (hasInvoicingDetails(policy)) {
-                text = translate('iou.sendInvoice', {amount: formattedAmount});
-            } else {
-                text = translate('common.next');
-            }
-        } else if (isTypeTrackExpense) {
-            text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
-                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
-            }
-        } else if (isTypeSplit && iouAmount === 0) {
-            text = translate('iou.splitExpense');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
-            text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
-                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
-            }
-        } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
-            text = translate(translationKey, {amount: formattedAmount});
-        }
-        return [
-            {
-                text: text[0].toUpperCase() + text.slice(1),
-                value: iouType,
-            },
-        ];
-    }, [
-        isTypeInvoice,
-        isTypeTrackExpense,
-        isTypeSplit,
-        expensesNumber,
-        iouAmount,
-        receiptPath,
-        isTypeRequest,
-        isDistanceRequestWithPendingRoute,
-        isPerDiemRequest,
-        iouType,
-        policy,
-        translate,
-        formattedAmount,
-    ]);
-
-    const onSplitShareChange = (accountID: number, value: number) => {
-        if (!transaction?.transactionID) {
-            return;
-        }
-        const amountInCents = convertToBackendAmount(value);
-        setIndividualShare(transaction?.transactionID, accountID, amountInCents);
-    };
-
+    // ================================================================================================
+    // Effects - Split Share Validation
+    // ================================================================================================
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
             return;
@@ -562,6 +590,156 @@ function MoneyRequestConfirmationList({
         adjustRemainingSplitShares(transaction);
     }, [isTypeSplit, transaction]);
 
+    // ================================================================================================
+    // Effects - Auto-select Category & Tags
+    // ================================================================================================
+    // Auto select the category if there is only one enabled category and it is required
+    useEffect(() => {
+        const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
+        if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+            return;
+        }
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
+        // Keep 'transaction' out to ensure that we auto select the option only once
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
+
+    // Auto select the tag if there is only one enabled tag and it is required
+    useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+
+        let updatedTagsString = getTag(transaction);
+        policyTagLists.forEach((tagList, index) => {
+            const isTagListRequired = tagList.required ?? false;
+            if (!isTagListRequired) {
+                return;
+            }
+            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
+            if (enabledTags.length !== 1 || getTag(transaction, index)) {
+                return;
+            }
+            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
+        });
+        if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
+            setMoneyRequestTag(transactionID, updatedTagsString);
+        }
+        // Keep 'transaction' out to ensure that we auto select the option only once
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionID, policyTagLists, policyTags]);
+
+    // ================================================================================================
+    // Effects - Focus Management
+    // ================================================================================================
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
+
+    // ================================================================================================
+    // Event Handlers
+    // ================================================================================================
+    const onSplitShareChange = (accountID: number, value: number) => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        const amountInCents = convertToBackendAmount(value);
+        setIndividualShare(transaction?.transactionID, accountID, amountInCents);
+    };
+
+    /**
+     * Navigate to the participant step
+     */
+    const navigateToParticipantPage = () => {
+        if (!isCreateExpenseFlow) {
+            return;
+        }
+
+        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction.reportID, Navigation.getActiveRoute()));
+    };
+
+    /**
+     * @param {String} paymentMethod
+     */
+    const confirm = (paymentMethod: PaymentMethodType | undefined) => {
+        if (!!routeError || !transactionID) {
+            return;
+        }
+        if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (selectedParticipants.length === 0) {
+            setFormError('iou.error.noParticipantSelected');
+            return;
+        }
+        if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+            setFormError('iou.error.invalidMerchant');
+            return;
+        }
+        if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+            setFormError('iou.error.invalidCategoryLength');
+            return;
+        }
+
+        if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            setFormError('iou.error.invalidTagLength');
+            return;
+        }
+
+        if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
+            setFormError('iou.error.invalidSubrateLength');
+            return;
+        }
+
+        if (iouType !== CONST.IOU.TYPE.PAY) {
+            // validate the amount for distance expenses
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+            if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
+                setFormError('common.error.invalidAmount');
+                return;
+            }
+
+            if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
+                setDidConfirmSplit(true);
+                setFormError('iou.error.genericSmartscanFailureMessage');
+                return;
+            }
+
+            if (formError) {
+                return;
+            }
+
+            onConfirm?.(selectedParticipants);
+        } else {
+            if (!paymentMethod) {
+                return;
+            }
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
+            }
+            if (formError) {
+                return;
+            }
+            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+            onSendMoney?.(paymentMethod);
+        }
+    };
+
+    // ================================================================================================
+    // Memoized Values - Participants & Split Shares
+    // ================================================================================================
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
     const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
@@ -653,6 +831,9 @@ function MoneyRequestConfirmationList({
 
     const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
 
+    // ================================================================================================
+    // Memoized Values - Section Headers & List Structure
+    // ================================================================================================
     const getSplitSectionHeader = useCallback(
         () => (
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
@@ -733,170 +914,56 @@ function MoneyRequestConfirmationList({
         isTypeInvoice,
     ]);
 
-    useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
-            return;
-        }
-
-        /*
-         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
-         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
-         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
-        */
-        setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
-
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
-        setMoneyRequestMerchant(transactionID, distanceMerchant, true);
-    }, [
-        isDistanceRequestWithPendingRoute,
-        hasRoute,
-        distance,
-        unit,
-        rate,
-        currency,
-        translate,
-        toLocaleDigit,
-        isDistanceRequest,
-        isPolicyExpenseChat,
-        transaction,
-        transactionID,
-        action,
-        isReadOnly,
-        isMovingTransactionFromTrackExpense,
-    ]);
-
-    // Auto select the category if there is only one enabled category and it is required
-    useEffect(() => {
-        const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
-        if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
-            return;
-        }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
-        // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
-
-    // Auto select the tag if there is only one enabled tag and it is required
-    useEffect(() => {
-        if (!transactionID) {
-            return;
-        }
-
-        let updatedTagsString = getTag(transaction);
-        policyTagLists.forEach((tagList, index) => {
-            const isTagListRequired = tagList.required ?? false;
-            if (!isTagListRequired) {
-                return;
+    // ================================================================================================
+    // Memoized Values - Button Options & Errors
+    // ================================================================================================
+    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
+        let text;
+        if (expensesNumber > 1) {
+            text = translate('iou.createExpenses', {expensesNumber});
+        } else if (isTypeInvoice) {
+            if (hasInvoicingDetails(policy)) {
+                text = translate('iou.sendInvoice', {amount: formattedAmount});
+            } else {
+                text = translate('common.next');
             }
-            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
-            if (enabledTags.length !== 1 || getTag(transaction, index)) {
-                return;
+        } else if (isTypeTrackExpense) {
+            text = translate('iou.createExpense');
+            if (iouAmount !== 0) {
+                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
-            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
-        });
-        if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
-            setMoneyRequestTag(transactionID, updatedTagsString);
-        }
-        // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionID, policyTagLists, policyTags]);
-
-    /**
-     * Navigate to the participant step
-     */
-    const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
-            return;
-        }
-
-        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction.reportID, Navigation.getActiveRoute()));
-    };
-
-    /**
-     * @param {String} paymentMethod
-     */
-    const confirm = (paymentMethod: PaymentMethodType | undefined) => {
-        if (!!routeError || !transactionID) {
-            return;
-        }
-        if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
-            return;
-        }
-
-        if (selectedParticipants.length === 0) {
-            setFormError('iou.error.noParticipantSelected');
-            return;
-        }
-        if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
-            setFormError('iou.error.invalidMerchant');
-            return;
-        }
-        if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-            setFormError('iou.error.invalidCategoryLength');
-            return;
-        }
-
-        if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-            setFormError('iou.error.invalidTagLength');
-            return;
-        }
-
-        if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
-            setFormError('iou.error.invalidSubrateLength');
-            return;
-        }
-
-        if (iouType !== CONST.IOU.TYPE.PAY) {
-            // validate the amount for distance expenses
-            const decimals = getCurrencyDecimals(iouCurrencyCode);
-            if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
-                setFormError('common.error.invalidAmount');
-                return;
+        } else if (isTypeSplit && iouAmount === 0) {
+            text = translate('iou.splitExpense');
+        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
+            text = translate('iou.createExpense');
+            if (iouAmount !== 0) {
+                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
-
-            if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
-                setDidConfirmSplit(true);
-                setFormError('iou.error.genericSmartscanFailureMessage');
-                return;
-            }
-
-            if (formError) {
-                return;
-            }
-
-            onConfirm?.(selectedParticipants);
         } else {
-            if (!paymentMethod) {
-                return;
-            }
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-                return;
-            }
-            if (formError) {
-                return;
-            }
-            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-            onSendMoney?.(paymentMethod);
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
+            text = translate(translationKey, {amount: formattedAmount});
         }
-    };
-
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
+        return [
+            {
+                text: text[0].toUpperCase() + text.slice(1),
+                value: iouType,
+            },
+        ];
+    }, [
+        isTypeInvoice,
+        isTypeTrackExpense,
+        isTypeSplit,
+        expensesNumber,
+        iouAmount,
+        receiptPath,
+        isTypeRequest,
+        isDistanceRequestWithPendingRoute,
+        isPerDiemRequest,
+        iouType,
+        policy,
+        translate,
+        formattedAmount,
+    ]);
 
     const errorMessage = useMemo(() => {
         if (routeError) {
@@ -908,6 +975,9 @@ function MoneyRequestConfirmationList({
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
+    // ================================================================================================
+    // Render Content - Footer & List Footer
+    // ================================================================================================
     const footerContent = useMemo(() => {
         if (isReadOnly) {
             return;
@@ -1064,6 +1134,9 @@ function MoneyRequestConfirmationList({
         />
     );
 
+    // ================================================================================================
+    // Main Render
+    // ================================================================================================
     return (
         <MouseProvider>
             <SelectionList<MoneyRequestConfirmationListItem>
