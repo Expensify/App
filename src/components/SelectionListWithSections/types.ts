@@ -21,7 +21,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
-import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -506,6 +505,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -527,6 +528,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -581,8 +584,7 @@ type ValidListItem =
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
     | typeof TravelDomainListItem
-    | typeof UnreportedExpenseListItem
-    | typeof SpendCategorySelectorListItem;
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */

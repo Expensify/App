@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -73,6 +73,7 @@ function handleActionButtonPress(
     snapshotPolicy: SearchPolicy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
+    onDEWModalOpen?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -90,10 +91,14 @@ function handleActionButtonPress(
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+                onDEWModalOpen?.();
+                return;
+            }
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey, onDEWModalOpen);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -435,7 +440,20 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(
+    hash: number,
+    reportList: SearchReport[],
+    policy: SearchPolicy[],
+    transactionIDList?: string[],
+    currentSearchKey?: SearchKey,
+    onDEWModalOpen?: () => void,
+) {
+    const policyData = policy.at(0);
+    if (policyData && hasDynamicExternalWorkflow(policyData)) {
+        onDEWModalOpen?.();
+        return;
+    }
+
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
