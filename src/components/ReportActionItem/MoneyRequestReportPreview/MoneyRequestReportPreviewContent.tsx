@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
@@ -91,8 +91,10 @@ import type {MoneyRequestReportPreviewContentProps} from './types';
 
 const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
 
+const onScrollToIndexFailed = () => {};
 function MoneyRequestReportPreviewContent({
     iouReportID,
+    itemsToHighlight,
     chatReportID,
     action,
     containerStyles,
@@ -407,6 +409,14 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((trans) => itemsToHighlight?.has(trans.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        carouselRef.current?.scrollToIndex({index});
+    }, [itemsToHighlight]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -771,6 +781,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
+                                                onScrollToIndexFailed={onScrollToIndexFailed}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}
