@@ -21,6 +21,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -58,12 +59,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
     areAllOptionalColumnsHidden,
     newTransactionID,
     violations,
+    onDEWModalOpen,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
@@ -96,12 +99,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, accountID, formatPhoneNumber) as TransactionListItemType[];
+        const sectionData = getSections(
+            CONST.SEARCH.DATA_TYPES.EXPENSE,
+            transactionsSnapshot?.data,
+            accountID,
+            currentUserDetails.email ?? '',
+            formatPhoneNumber,
+        ) as TransactionListItemType[];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
+    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -211,6 +220,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
+                        onDEWModalOpen={onDEWModalOpen}
                     />
                 ),
                 [CONST.SEARCH.GROUP_BY.FROM]: (
