@@ -4,9 +4,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -150,6 +150,7 @@ function IOURequestEditReportCommon({
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
+                    keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
@@ -208,14 +209,16 @@ function IOURequestEditReportCommon({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <SelectionList
-                sections={[{data: reportOptions}]}
+                data={reportOptions}
                 onSelectRow={selectReport}
-                textInputValue={searchValue}
-                onChangeText={setSearchValue}
-                textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
+                textInputOptions={{
+                    value: searchValue,
+                    label: expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+                    headerMessage,
+                    onChangeText: setSearchValue,
+                }}
                 shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={selectedReportID}
+                initiallyFocusedItemKey={selectedReportID}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
                     <>
