@@ -139,6 +139,8 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens() {
+    console.count('AuthScreens re-renders');
+
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
