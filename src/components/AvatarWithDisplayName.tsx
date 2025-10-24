@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
@@ -17,6 +18,7 @@ import {
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
     getReportName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
@@ -37,7 +39,7 @@ import type DisplayNamesProps from './DisplayNames/types';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -171,7 +173,7 @@ function AvatarWithDisplayName({
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
     );
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
@@ -183,6 +185,7 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -279,6 +282,8 @@ function AvatarWithDisplayName({
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
+                                statusTextColor={reportStatusColorStyle?.textColor}
+                                statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
                             />
                         )}
                         {!!subtitle && (

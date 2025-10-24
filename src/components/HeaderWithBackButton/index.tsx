@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
-import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
+import {Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -274,11 +275,7 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    size="small"
-                                    color={theme.spinner}
-                                />
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>

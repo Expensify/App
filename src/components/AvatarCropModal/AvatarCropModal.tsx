@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
 import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -48,10 +49,13 @@ type AvatarCropModalProps = {
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
+
+    /** Custom primary action label text */
+    buttonLabel?: string;
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
+function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,6 +69,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const isPressableEnabled = useSharedValue(true);
 
     const {translate} = useLocalize();
+    const buttonText = buttonLabel ?? translate('common.save');
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
@@ -316,6 +321,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     onClose?.();
                 });
@@ -375,9 +381,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
-                            color={theme.spinner}
                             style={[styles.flex1]}
-                            size="large"
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         />
                     ) : (
                         <>
@@ -433,7 +438,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     onPress={cropAndSaveImage}
                     pressOnEnter
                     large
-                    text={translate('common.save')}
+                    text={buttonText}
                 />
             </ScreenWrapper>
         </Modal>

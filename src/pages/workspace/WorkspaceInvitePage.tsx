@@ -4,9 +4,9 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -20,10 +20,10 @@ import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -55,7 +55,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const firstRenderRef = useRef(true);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
@@ -125,11 +125,23 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         if (firstRenderRef.current) {
             // We only want to add the saved selected user on first render
             firstRenderRef.current = false;
-            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-                if (!(login in detailsMap)) {
-                    return;
+            Object.entries(invitedEmailsToAccountIDsDraft ?? {}).forEach(([login, accountID]) => {
+                if (login in detailsMap) {
+                    newSelectedOptions.push({...detailsMap[login], isSelected: true});
+                } else {
+                    const optimisticOption = getUserToInviteOption({
+                        searchValue: login,
+                    });
+                    if (optimisticOption) {
+                        optimisticOption.accountID = Number(accountID);
+                        const memberOption = formatMemberForList({
+                            ...optimisticOption,
+                            accountID: Number(accountID),
+                            isSelected: true,
+                        });
+                        newSelectedOptions.push(memberOption);
+                    }
                 }
-                newSelectedOptions.push({...detailsMap[login], isSelected: true});
             });
         }
         selectedOptions.forEach((option) => {
@@ -271,12 +283,16 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[
+                parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode)).possible
+                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode))
+                    : searchValue
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue, false, countryCode);
+    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length, countryCode]);
 
     const footerContent = useMemo(
         () => (
@@ -315,7 +331,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         clearErrors(route.params.policyID);
-                        Navigation.goBack();
+                        Navigation.goBack(route.params.backTo);
                     }}
                 />
                 <SelectionList

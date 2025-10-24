@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -547,9 +547,7 @@ type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
-type PrefixedRecord<Prefix extends string, ValueType> = {
-    [Key in `${Prefix}${string}`]: ValueType;
-};
+type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of search results */
 type SearchResults = {

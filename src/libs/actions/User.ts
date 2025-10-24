@@ -1364,7 +1364,7 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value']) {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value,
@@ -1378,13 +1378,15 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: name,
-            value: revertedValue,
-        },
-    ];
+    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: name,
+                  value: revertedValue,
+              },
+          ]
+        : undefined;
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
@@ -1406,10 +1408,6 @@ function requestRefund() {
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
-}
-
-function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldBlockTransactionThreadReportCreation});
 }
 
 function lockAccount() {
@@ -1459,6 +1457,14 @@ function lockAccount() {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
+function requestUnlockAccount() {
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1495,7 +1501,7 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
-    setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
+    requestUnlockAccount,
 };

@@ -4,9 +4,9 @@ import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {Section} from '@components/SelectionListWithSections/types';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
@@ -165,6 +165,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
             !!availableOptions.userToInvite,
             processedLogin,
+            false,
+            countryCode,
         );
     }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
 

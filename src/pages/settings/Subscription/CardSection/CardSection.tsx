@@ -52,6 +52,7 @@ function CardSection() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
     const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING, {canBeMissing: true});
@@ -77,7 +78,13 @@ function CardSection() {
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
-        CardSectionUtils.getBillingStatus({translate, stripeCustomerId: privateStripeCustomerID, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+        CardSectionUtils.getBillingStatus({
+            translate,
+            stripeCustomerId: privateStripeCustomerID,
+            accountData: defaultCard?.accountData ?? {},
+            purchase: purchaseList?.[0],
+            retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+        }),
     );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -95,6 +102,7 @@ function CardSection() {
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
+                retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             }),
         );
     }, [
@@ -129,7 +137,7 @@ function CardSection() {
     let BillingBanner: React.ReactNode | undefined;
     if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
-    } else if (shouldShowPreTrialBillingBanner()) {
+    } else if (shouldShowPreTrialBillingBanner(introSelected)) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;

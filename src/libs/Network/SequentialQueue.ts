@@ -1,9 +1,11 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -190,6 +192,9 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
+                    if (requestToProcess.command === WRITE_COMMANDS.OPEN_APP) {
+                        setIsOpenAppFailureModalOpen(true);
+                    }
                     return process();
                 });
         });
@@ -305,8 +310,15 @@ function isPaused(): boolean {
     return isQueuePaused;
 }
 
+function getShouldFailAllRequests(): boolean {
+    return shouldFailAllRequests;
+}
+
 // Flush the queue when the connection resumes
 onReconnection(flush);
+
+// Flush the queue when the persisted requests are initialized
+onPersistedRequestsInitialization(flush);
 
 function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
     if (conflictAction.type === 'push') {
@@ -388,6 +400,7 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
+    getShouldFailAllRequests,
     isPaused,
     isRunning,
     pause,

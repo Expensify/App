@@ -127,7 +127,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, accountID);
+        const isApprover = isApproverUserAction(policy, memberLogin);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
@@ -135,7 +135,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [memberLogin, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -177,22 +177,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers([accountID], policyID);
+        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(route.params.policyID, false);
+            setPolicyPreventSelfApproval(policyID, false);
         }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
+    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
 
     const removeUser = useCallback(() => {
         const ownerEmail = ownerDetails?.login;
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -208,15 +208,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
-                removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                removeApprovalWorkflowAction(updatedWorkflow, policy);
             } else {
-                updateApprovalWorkflow(policyID, workflow, [], []);
+                updateApprovalWorkflow(workflow, [], [], policy);
             }
         });
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -264,9 +264,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [accountID], value);
+            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
         },
-        [accountID, policyID],
+        [accountID, memberLogin, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
@@ -435,7 +435,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     shouldRemoveHoverBackground={isCardDeleted}
                                                     disabled={isCardDeleted}
                                                     shouldShowRightIcon={!isCardDeleted}
-                                                    style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                    style={[isCardDeleted ? styles.offlineFeedbackDeleted : {}]}
                                                 />
                                             </OfflineWithFeedback>
                                         );
