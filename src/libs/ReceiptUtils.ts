@@ -10,7 +10,7 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
-    image?: string;
+    image?: ReceiptSource;
     thumbnail?: string;
     transaction?: OnyxEntry<Transaction>;
     isLocalFile?: boolean;
