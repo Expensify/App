@@ -239,8 +239,8 @@ describe('actions/Task', () => {
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
         it('Completes test drive task', () => {
-            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false);
-            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false)).length).toBe(0);
+            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0)).length).toBe(0);
         });
     });
 
@@ -253,10 +253,10 @@ describe('actions/Task', () => {
             await waitForBatchedUpdates();
         });
         it('Return not empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false)).length).toBeGreaterThan(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2)).length).toBeGreaterThan(0);
         });
         it('Return empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true)).length).toBe(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true, 2)).length).toBe(0);
         });
     });
 
@@ -357,17 +357,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
             // Then: Verify API.write called with expected arguments
             const calls = (API.write as jest.Mock).mock.calls;
             expect(calls.length).toBe(1);
@@ -401,17 +403,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate without assignee chat report
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                undefined, // assigneeChatReport
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                mockQuickAction,
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: undefined,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: mockQuickAction,
+            });
 
             await waitForBatchedUpdatesWithAct();
 
@@ -459,17 +463,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with markdown flag
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                true, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: true,
+                quickAction: {},
+            });
 
             await waitForBatchedUpdatesWithAct();
 
@@ -495,17 +501,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with default policy ID
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                CONST.POLICY.OWNER_EMAIL_FAKE, // default policy ID
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
 
             await waitForBatchedUpdatesWithAct();
 
@@ -538,17 +546,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with assignee as current user
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockCurrentUserEmail,
-                mockCurrentUserAccountID, // assignee is current user
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockCurrentUserAccountID, // assignee is current user
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
 
             await waitForBatchedUpdatesWithAct();
 
@@ -591,17 +601,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with undefined parent report ID
-            createTaskAndNavigate(
-                undefined, // parentReportID is undefined
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReportID: undefined, // parentReportID is undefined
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
 
             await waitForBatchedUpdatesWithAct();
 
@@ -624,17 +636,19 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with empty quick action
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction is empty
-            );
+            createTaskAndNavigate({
+                parentReportID: mockParentReportID,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {}, // quickAction is empty
+            });
 
             await waitForBatchedUpdatesWithAct();
 
