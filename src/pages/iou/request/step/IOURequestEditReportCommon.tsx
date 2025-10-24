@@ -140,7 +140,7 @@ function IOURequestEditReportCommon({
                 }
                 return true;
             })
-            .filter((report) => canAddTransaction(report))
+            .filter((report) => canAddTransaction(report, undefined, true))
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
