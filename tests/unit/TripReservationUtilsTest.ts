@@ -2268,7 +2268,7 @@ const tripWithAllReservations: TripData = {
 
 describe('TripReservationUtils', () => {
     describe('getAirReservations', () => {
-        it('should return air reservations when there are air reservations', () => {
+        it('should return air reservations in the correct order', () => {
             const result = getAirReservations(airReservationPnrData, airReservationTravelers);
             expect(result).toHaveLength(2);
             // We sort the values based on legIdx, so we expect the first value to have legId 0
