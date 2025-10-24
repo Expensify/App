@@ -137,6 +137,7 @@ function IOURequestStepSubrate({
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
+        const transactionReportID = transaction?.participants?.at(0)?.reportID ?? transaction?.reportID ?? reportID;
 
         if (parsedIndex === filledSubrateCount) {
             addSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
@@ -147,7 +148,7 @@ function IOURequestStepSubrate({
         if (backTo) {
             goBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, transactionReportID));
         }
     };
 

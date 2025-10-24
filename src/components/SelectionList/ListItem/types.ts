@@ -7,7 +7,11 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type BaseListItem from './BaseListItem';
+import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
+import type SingleSelectListItem from './SingleSelectListItem';
+import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -230,7 +234,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
-type ValidListItem = typeof RadioListItem;
+type ValidListItem = typeof RadioListItem | typeof BaseListItem | typeof MultiSelectListItem | typeof SingleSelectListItem | typeof SpendCategorySelectorListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
@@ -259,6 +263,8 @@ type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
 export type {
@@ -271,5 +277,6 @@ export type {
     ValidListItem,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
+    SpendCategorySelectorListItemProps,
     UserListItemProps,
 };
