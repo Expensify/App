@@ -196,6 +196,20 @@ describe('canEditFieldOfMoneyRequest', () => {
                 return waitForBatchedUpdates();
             });
 
+            it('should return true for submitter of a distance request for amount and currency fields', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${moneyRequestTransaction.transactionID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE});
+                await waitForBatchedUpdates();
+
+                // If it is the submitter of a distance request
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, undefined);
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY, undefined, undefined);
+
+                // Then we should allow editing amount and currency fields.
+                expect(canEditReportFieldAmount).toBe(true);
+                expect(canEditReportFieldCurrency).toBe(true);
+            });
+
             it('should return true for submitter when there are multiple outstanding reports', async () => {
                 // Given that there are multiple outstanding expense reports in the same policy
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
