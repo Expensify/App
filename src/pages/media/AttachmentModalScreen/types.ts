@@ -33,7 +33,8 @@ type AttachmentModalScreenType =
     | typeof SCREENS.PROFILE_AVATAR
     | typeof SCREENS.WORKSPACE_AVATAR
     | typeof SCREENS.TRANSACTION_RECEIPT
-    | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW;
+    | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW
+    | typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT;
 
 type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;
 
