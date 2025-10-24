@@ -38,6 +38,43 @@ nameOfTheKey: ({amount, dateTime}) => `User has sent <strong>${amount}</strong> 
 
 This is because the order of phrases might vary from one language to another, and LLMs will be able to produce better translations will the full context of the phrase. If rich formatting is needed, use HTML in the string and render it with react-native-render-html.
 
+### - String concatenation MUST NOT be used for translations
+Always prefer whole phrases over string concatenation, even if the result is more verbose:
+
+```ts
+// BAD
+receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+    let message = 'Receipt required';
+    if (formattedLimit ?? category) {
+        message += ' over';
+        if (formattedLimit) {
+            message += ` ${formattedLimit}`;
+        }
+        if (category) {
+            message += ' category limit';
+        }
+    }
+    return message;
+},
+
+// GOOD
+receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+    if (formattedLimit && category) {
+        return `Receipt required over ${formattedLimit} category limit`;
+    }
+
+    if (formattedLimit) {
+        return `Receipt required over ${formattedLimit}`;
+    }
+
+    if (category) {
+        return `Receipt required over category limit`;
+    }
+
+    return 'Receipt required';
+},
+```
+
 ### - Plural forms MUST be handled correctly using plural translation objects
 When working with translations that involve plural forms, it's important to handle different cases correctly:
 
