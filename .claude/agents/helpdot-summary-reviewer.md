@@ -68,5 +68,25 @@ Provide your assessment as a **top-level PR comment** using this format:
 2. **Look for patterns and overall quality trends**
 3. **Provide balanced feedback** (both positive and areas for improvement)
 4. **Focus on the big picture** rather than individual line issues
-5. **Use Bash(gh pr comment:*) tool** to post the summary comment
+5. **Use `gh pr comment <PR_NUMBER> --body "..."` to post the summary comment**
 6. **Reference that inline comments provide specific details**
+
+## Tool Usage Best Practices
+
+**Getting PR Information:**
+- Use `gh pr view <PR_NUMBER> --json files,comments,reviews` instead of `gh api`
+- Use `gh pr diff <PR_NUMBER>` to get file changes
+- DO NOT use `gh api repos/...` commands
+
+**Searching Files:**
+- Use the built-in `Grep` tool with `pattern`, `path`, and `output_mode` parameters
+- Use the `Glob` tool for finding files by pattern
+- DO NOT use shell `grep -c` or `find -exec grep` commands
+
+**Posting Comments:**
+- Use `gh pr comment <PR_NUMBER> --body "..."` for top-level PR comments
+- DO NOT use `gh api ... --method POST` commands
+
+**Other:**
+- DO NOT use `git fetch` or other git commands (repository is already checked out)
+- DO NOT use help commands like `gh --help`

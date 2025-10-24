@@ -241,10 +241,24 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
     Only inline comments regarding rules violations or general comment with LGTM message are allowed.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
+## Tool Usage Best Practices
+
+**Getting PR Information:**
+- Use `gh pr view <PR_NUMBER> --json files,comments,reviews` instead of `gh api`
+- Use `gh pr diff <PR_NUMBER>` to get file changes
+- DO NOT use `gh api repos/...` commands
+
+**Searching Files:**
+- Use the built-in `Grep` tool with `pattern`, `path`, and `output_mode` parameters
+- Use the `Glob` tool for finding files by pattern
+- DO NOT use shell `grep -c` or `find -exec grep` commands
+
+**Other:**
+- DO NOT use `git fetch` or other git commands (repository is already checked out)
+
 ## Tool Usage Example
 
-For each violation, call the mcp__github_inline_comment__create_inline_comment tool like this.
-CRITICAL: **DO NOT** use the Bash tool for inline comments:
+To create inline comment for each violation, call `mcp__github_inline_comment__create_inline_comment` like this:
 
 ```
 mcp__github_inline_comment__create_inline_comment:
@@ -252,6 +266,8 @@ mcp__github_inline_comment__create_inline_comment:
   line: 128
   body: "<Body of the comment according to the Comment Format>"
 ```
+
+**CRITICAL:** DO NOT use `Bash` or `gh api ... --method POST` to create inline comments.
 
 If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
 
