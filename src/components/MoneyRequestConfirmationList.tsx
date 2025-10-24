@@ -426,6 +426,56 @@ function MoneyRequestConfirmationList({
     const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
 
     // ================================================================================================
+    // Derived Values - Section Headers & List Structure
+    // ================================================================================================
+    let sections: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
+    if (isTypeSplit) {
+        const getSplitSectionHeader = () => (
+            <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
+                {!shouldShowReadOnlySplits && !!isSplitModified && (
+                    <PressableWithFeedback
+                        onPress={() => {
+                            resetSplitShares(transaction);
+                        }}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
+                        shouldUseAutoHitSlop
+                    >
+                        <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
+                    </PressableWithFeedback>
+                )}
+            </View>
+        );
+        sections = [
+            {
+                title: translate('moneyRequestConfirmationList.paidBy'),
+                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                shouldShow: true,
+            },
+            {
+                CustomSectionHeader: getSplitSectionHeader,
+                data: splitParticipants,
+                shouldShow: true,
+            },
+        ];
+    } else {
+        const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
+            ...participant,
+            isSelected: false,
+            isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+            shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+        }));
+        sections = [
+            {
+                title: translate('common.to'),
+                data: formattedSelectedParticipants,
+                shouldShow: true,
+            },
+        ];
+    }
+
+    // ================================================================================================
     // Derived Values - Validation & Errors
     // ================================================================================================
     const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
@@ -816,89 +866,6 @@ function MoneyRequestConfirmationList({
             onSendMoney?.(paymentMethod);
         }
     };
-
-    // ================================================================================================
-    // Memoized Values - Section Headers & List Structure
-    // ================================================================================================
-    const getSplitSectionHeader = useCallback(
-        () => (
-            <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
-                {!shouldShowReadOnlySplits && !!isSplitModified && (
-                    <PressableWithFeedback
-                        onPress={() => {
-                            resetSplitShares(transaction);
-                        }}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        role={CONST.ROLE.BUTTON}
-                        shouldUseAutoHitSlop
-                    >
-                        <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
-                    </PressableWithFeedback>
-                )}
-            </View>
-        ),
-        [
-            isSplitModified,
-            shouldShowReadOnlySplits,
-            styles.flexRow,
-            styles.justifyContentBetween,
-            styles.link,
-            styles.mb1,
-            styles.mt2,
-            styles.ph5,
-            styles.pr5,
-            styles.textLabelSupporting,
-            transaction,
-            translate,
-        ],
-    );
-
-    const sections = useMemo(() => {
-        const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
-        if (isTypeSplit) {
-            options.push(
-                ...[
-                    {
-                        title: translate('moneyRequestConfirmationList.paidBy'),
-                        data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
-                        shouldShow: true,
-                    },
-                    {
-                        CustomSectionHeader: getSplitSectionHeader,
-                        data: splitParticipants,
-                        shouldShow: true,
-                    },
-                ],
-            );
-            options.push();
-        } else {
-            const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                ...participant,
-                isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-            }));
-            options.push({
-                title: translate('common.to'),
-                data: formattedSelectedParticipants,
-                shouldShow: true,
-            });
-        }
-
-        return options;
-    }, [
-        isTypeSplit,
-        translate,
-        payeePersonalDetails,
-        getSplitSectionHeader,
-        splitParticipants,
-        selectedParticipants,
-        isCreateExpenseFlow,
-        isTestReceipt,
-        isRestrictedToPreferredPolicy,
-        isTypeInvoice,
-    ]);
 
     // ================================================================================================
     // Memoized Values - Button Options & Errors
