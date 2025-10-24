@@ -82,6 +82,7 @@ function IOURequestStepWaypoint({
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
+    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -124,7 +125,12 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const save = (waypoint: FormOnyxValues<'waypointForm'>) => saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+    const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
+        if (!allRecentWaypoints) {
+            return;
+        }
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
+    };
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
@@ -158,6 +164,10 @@ function IOURequestStepWaypoint({
     };
 
     const selectWaypoint = (values: Waypoint) => {
+        if (!allRecentWaypoints) {
+            return;
+        }
+
         const waypoint = {
             lat: values.lat ?? 0,
             lng: values.lng ?? 0,
@@ -166,7 +176,7 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
         goBack();
     };
 
