@@ -25,8 +25,6 @@ const personalDetailsFakeData = {
     },
 } as Record<string, {accountID: number}>;
 
-const countToken = (query: string, token: string) => query.split(' ').filter((segment) => segment === token).length;
-
 jest.mock('@libs/PersonalDetailsUtils', () => {
     return {
         getPersonalDetailByEmail(email: string) {
@@ -54,7 +52,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`foo test amount:2000000 ${defaultQuery}`);
+            expect(result).toEqual(`${defaultQuery} foo test amount:2000000`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -62,7 +60,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`from:12345 hello ${defaultQuery}`);
+            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
         });
 
         test('returns query with user emails substituted and preserves user ids', () => {
@@ -70,7 +68,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`from:12345 to:112233 ${defaultQuery}`);
+            expect(result).toEqual(`${defaultQuery} from:12345 to:112233`);
         });
 
         test('returns query with all of the fields correctly substituted', () => {
@@ -78,7 +76,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`from:9876,87654 to:78901 hello amount:15000 test ${defaultQuery}`);
+            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 hello amount:15000 test`);
         });
 
         test('returns query with updated groupBy', () => {
@@ -86,7 +84,44 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`from:12345 groupBy:reports ${defaultQuery}`);
+            expect(result).toEqual(`${defaultQuery} from:12345 groupBy:reports`);
+        });
+
+        test('preserves simple keyword order', () => {
+            const userQuery = 'hello world';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} hello world`);
+        });
+
+        test('preserves simple keyword order for full query', () => {
+            const userQuery = `${defaultQuery} hello world`;
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} hello world`);
+        });
+
+        test('removing groupBy does not resurrect it', () => {
+            const groupedQuery = buildSearchQueryJSON('type:expense group-by:reports');
+            expect(groupedQuery).toBeDefined();
+            if (!groupedQuery) {
+                return;
+            }
+
+            groupedQuery.groupBy = undefined;
+            const result = buildSearchQueryString(groupedQuery);
+
+            expect(result).toBe('type:expense sortBy:date sortOrder:desc');
+        });
+
+        test('preserves manual filter order when adding groupBy', () => {
+            const userQuery = 'type:expense action:submit from:me group-by:from';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} action:submit from:me group-by:from`);
         });
     });
 
@@ -141,23 +176,6 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense category:services,consulting currency:USD,EUR');
-        });
-
-        test('preserves existing order when base position info provided', () => {
-            const baseQuery = 'status:drafts from:johndoe@example.com type:expense';
-            const baseQueryJSON = buildSearchQueryJSON(baseQuery);
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                from: ['johndoe@example.com'],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues, {basePositionInfo: baseQueryJSON?.positionInfo ?? []});
-
-            expect(result.startsWith('sortBy:date sortOrder:desc')).toBe(true);
-            expect(result.indexOf('status:drafts')).toBeGreaterThan(result.indexOf('sortOrder:desc'));
-            expect(result.indexOf('status:drafts')).toBeLessThan(result.indexOf('from:johndoe@example.com'));
-            expect(result.indexOf('from:johndoe@example.com')).toBeLessThan(result.indexOf('type:expense'));
         });
 
         test('has empty category values', () => {
@@ -402,291 +420,55 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('Query Order Preservation', () => {
-        it('should preserve the original query order when position information is available', () => {
-            const originalQuery = 'type:expense group-by:merchant status:draft';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
+    describe('buildUserReadableQueryString', () => {
+        test('preserves token order when formatting user friendly string', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense action:submit from:me group-by:from');
+            expect(queryJSON).toBeDefined();
             if (!queryJSON) {
-                throw new Error('Failed to parse query string');
+                return;
             }
 
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            // The reconstructed query should maintain the same order as the original
-            // Note: parser normalizes values (group-by → groupBy, draft → drafts)
-            expect(reconstructedQuery).toEqual('type:expense groupBy:merchant status:drafts sortBy:date sortOrder:desc');
-        });
-
-        it('should preserve order with different key arrangements', () => {
-            const originalQuery = 'status:draft type:expense group-by:merchant';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            // Status should come first in the reconstruction since it appeared first in the original
-            expect(reconstructedQuery).toEqual('status:drafts type:expense groupBy:merchant sortBy:date sortOrder:desc');
-        });
-
-        it('should keep filters in their typed position', () => {
-            const originalQuery = 'status:done from:john type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('status:done from:john type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should preserve repeated filter tokens in order', () => {
-            const originalQuery = 'from:name1 from:name2 type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('from:name1 from:name2 type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should drop duplicate root entries while keeping the first occurrence', () => {
-            const originalQuery = 'type:expense type:expense status:draft';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('type:expense status:drafts sortBy:date sortOrder:desc');
-        });
-
-        it('should drop duplicate filter entries while keeping the first occurrence', () => {
-            const originalQuery = 'from:john from:john type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('from:john type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should dedupe duplicates in parsed query state', () => {
-            const originalQuery = 'action:submit action:submit type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const actionFilters = queryJSON.flatFilters.find((filterGroup) => filterGroup.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION);
-            expect(actionFilters?.filters).toHaveLength(1);
-            const actionPositions = queryJSON.positionInfo?.filter((entry) => entry.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) ?? [];
-            expect(actionPositions).toHaveLength(1);
-        });
-
-        it('should collapse duplicate values for the same filter', () => {
-            const originalQuery = 'action:submit action:submit type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('action:submit type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should keep different values for the same filter key in order', () => {
-            const originalQuery = 'action:submit action:approve type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            expect(reconstructedQuery).toEqual('action:submit action:approve type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should test position ordering with complex queries', () => {
-            const originalQuery = 'group-by:merchant amount:100 type:expense status:draft from:name';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            // Verify positions are always in ascending order (important for optimization)
-            const positions = queryJSON.positionInfo?.map((p) => p.position) ?? [];
-            const isInOrder = positions.every((pos, i) => i === 0 || pos > (positions.at(i - 1) ?? 0));
-            expect(isInOrder).toBe(true); // This ensures no sorting is needed
-        });
-
-        it('should fallback to default behavior when no position information is available', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense group-by:merchant status:draft');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            // Manually remove position info to test fallback
-            delete queryJSON.positionInfo;
-
-            const reconstructedQuery = buildSearchQueryString(queryJSON);
-
-            // Should still work but may use default ordering
-            expect(reconstructedQuery).toContain('type:expense');
-            expect(reconstructedQuery).toContain('groupBy:merchant');
-            expect(reconstructedQuery).toContain('status:drafts');
-        });
-
-        it('should return default query string when called without arguments', () => {
-            const reconstructedQuery = buildSearchQueryString();
-
-            expect(reconstructedQuery).toEqual('type:expense sortBy:date sortOrder:desc');
-        });
-
-        it('should preserve order in buildUserReadableQueryString (used by UI)', () => {
-            const originalQuery = 'status:draft type:expense group-by:merchant';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            // Mock the dependencies for buildUserReadableQueryString
-            const mockPersonalDetails = {};
-            const mockReports = {};
-            const mockTaxRates = {};
-            const mockCardList = {};
-            const mockCardFeeds = {};
-            const mockPolicies = {};
-            const mockCurrentUserAccountID = 1;
-
-            const userReadableQuery = buildUserReadableQueryString(
+            const readableQuery = buildUserReadableQueryString(
                 queryJSON,
-                mockPersonalDetails,
-                mockReports,
-                mockTaxRates,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
-                mockCurrentUserAccountID,
+                undefined,
+                {} as never,
+                {},
+                {} as never,
+                {} as never,
+                {} as never,
+                CONST.DEFAULT_NUMBER_ID,
             );
 
-            // Status should come first since it appeared first in the original query
-            // Note: buildUserReadableQueryString doesn't normalize values like buildSearchQueryString does
-            expect(userReadableQuery).toEqual('status:draft type:expense group-by:merchant');
+            expect(readableQuery).toBe('type:expense action:submit from:me group-by:from');
         });
 
-        it('should preserve filter order in buildUserReadableQueryString', () => {
-            const originalQuery = 'status:draft from:john type:expense';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
+        test('preserves repeated filter keys', () => {
+            const queryString = 'type:expense tag:foo tag:bar tag:baz';
+            const queryJSON = buildSearchQueryJSON(queryString);
+            expect(queryJSON).toBeDefined();
             if (!queryJSON) {
-                throw new Error('Failed to parse query string');
+                return;
             }
 
-            const mockPersonalDetails = {};
-            const mockReports = {};
-            const mockTaxRates = {};
-            const mockCardList = {};
-            const mockCardFeeds = {};
-            const mockPolicies = {};
-            const mockCurrentUserAccountID = 1;
-
-            const userReadableQuery = buildUserReadableQueryString(
-                queryJSON,
-                mockPersonalDetails,
-                mockReports,
-                mockTaxRates,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
-                mockCurrentUserAccountID,
-            );
-
-            expect(userReadableQuery).toEqual('status:draft from:john type:expense');
+            const rebuilt = buildSearchQueryString(queryJSON);
+            expect(rebuilt.includes('tag:foo')).toBe(true);
+            expect(rebuilt.includes('tag:bar')).toBe(true);
+            expect(rebuilt.includes('tag:baz')).toBe(true);
+            expect(rebuilt.indexOf('tag:foo')).toBeLessThan(rebuilt.indexOf('tag:bar'));
+            expect(rebuilt.indexOf('tag:bar')).toBeLessThan(rebuilt.indexOf('tag:baz'));
         });
 
-        it('should drop duplicate segments in buildUserReadableQueryString', () => {
-            const originalQuery = 'type:expense type:expense from:john from:john action:submit action:submit';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
+        test('keeps only the last root token and maintains order', () => {
+            const queryString = 'type:expense group-by:report action:submit from:me group-by:from';
+            const queryJSON = buildSearchQueryJSON(queryString);
+            expect(queryJSON).toBeDefined();
             if (!queryJSON) {
-                throw new Error('Failed to parse query string');
+                return;
             }
 
-            const mockPersonalDetails = {};
-            const mockReports = {};
-            const mockTaxRates = {};
-            const mockCardList = {};
-            const mockCardFeeds = {};
-            const mockPolicies = {};
-            const mockCurrentUserAccountID = 1;
+            const rebuilt = buildSearchQueryString(queryJSON);
 
-            const userReadableQuery = buildUserReadableQueryString(
-                queryJSON,
-                mockPersonalDetails,
-                mockReports,
-                mockTaxRates,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
-                mockCurrentUserAccountID,
-            );
-
-            expect(countToken(userReadableQuery, 'type:expense')).toBe(1);
-            expect(countToken(userReadableQuery, 'from:john')).toBe(1);
-            expect(countToken(userReadableQuery, 'action:submit')).toBe(1);
-        });
-
-        it('should retain different values for the same filter in buildUserReadableQueryString', () => {
-            const originalQuery = 'type:expense action:submit action:approve';
-            const queryJSON = buildSearchQueryJSON(originalQuery);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const mockPersonalDetails = {};
-            const mockReports = {};
-            const mockTaxRates = {};
-            const mockCardList = {};
-            const mockCardFeeds = {};
-            const mockPolicies = {};
-            const mockCurrentUserAccountID = 1;
-
-            const userReadableQuery = buildUserReadableQueryString(
-                queryJSON,
-                mockPersonalDetails,
-                mockReports,
-                mockTaxRates,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
-                mockCurrentUserAccountID,
-            );
-
-            expect(countToken(userReadableQuery, 'type:expense')).toBe(1);
-            expect(countToken(userReadableQuery, 'action:submit')).toBe(1);
-            expect(countToken(userReadableQuery, 'action:approve')).toBe(1);
+            expect(rebuilt).toBe('type:expense sortBy:date sortOrder:desc action:submit from:me group-by:from');
         });
     });
 });

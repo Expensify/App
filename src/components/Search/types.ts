@@ -73,9 +73,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;
@@ -86,11 +86,10 @@ type PaymentData = {
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -141,17 +140,6 @@ type ASTNode = {
     right: string | ASTNode | string[];
 };
 
-/**
- * Metadata describing where each filter originated in the raw input so the
- * consumer can restore the author's ordering (e.g., for rebuilding the query).
- */
-type SearchQueryPositionEntry = {
-    key: string;
-    position: number;
-    type: 'root' | 'filter';
-    node?: ASTNode;
-};
-
 type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | number;
@@ -197,6 +185,20 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type SearchQueryTokenKey =
+    | SearchFilterKey
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER;
+
+type SearchQueryToken = {
+    key: SearchQueryTokenKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    raw: string;
+    isDefault?: boolean;
+    isImplicitKeyword?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -205,11 +207,12 @@ type SearchQueryAST = {
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
-    filters: ASTNode;
+    filters: ASTNode | null;
     policyID?: string[];
+    tokens?: SearchQueryToken[];
 };
 
-type SearchQueryJSON = {
+type SearchQueryJSON = SearchQueryAST & {
     inputQuery: SearchQueryString;
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
@@ -217,9 +220,8 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
-    /** Position information for preserving original query order */
-    positionInfo?: SearchQueryPositionEntry[];
-} & SearchQueryAST;
+    tokens?: SearchQueryToken[];
+};
 
 type SearchAutocompleteResult = {
     autocomplete: SearchAutocompleteQueryRange | null;
@@ -286,5 +288,5 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
-    SearchQueryPositionEntry,
+    SearchQueryToken,
 };
