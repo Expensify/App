@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -236,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -671,6 +673,7 @@ const translations = {
         pinned: 'Épinglé',
         read: 'Lu',
         copyToClipboard: 'Copier dans le presse-papiers',
+        domains: 'Domaines',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -799,6 +802,11 @@ const translations = {
         nameEmailOrPhoneNumber: 'Nom, e-mail ou numéro de téléphone',
         findMember: 'Trouver un membre',
         searchForSomeone: "Rechercher quelqu'un",
+    },
+    customApprovalWorkflow: {
+        title: "Flux d'approbation personnalisé",
+        description: "Votre entreprise dispose d'un flux d'approbation personnalisé sur cet espace de travail. Veuillez effectuer cette action dans Expensify Classic",
+        goToExpensifyClassic: 'Passer à Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1694,7 +1702,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: "Réinitialiser à l'état d'origine",
             usingImportedState: 'Vous utilisez un état importé. Appuyez ici pour le réinitialiser.',
-            shouldBlockTransactionThreadReportCreation: 'Bloquer la création de rapports de fil de transaction',
             debugMode: 'Mode débogage',
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
@@ -2729,8 +2736,8 @@ ${amount} pour ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Bienvenue en mode #focus !',
-        prompt: 'Restez au courant des choses en ne voyant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez changer cela à tout moment dans',
-        settings: 'paramètres',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Restez au courant des choses en ne voyant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez changer cela à tout moment dans <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Le chat que vous recherchez est introuvable.',
@@ -2932,8 +2939,8 @@ ${amount} pour ${merchant} - ${date}`,
         needSSNFull9: 'Nous rencontrons des difficultés pour vérifier votre SSN. Veuillez entrer les neuf chiffres complets de votre SSN.',
         weCouldNotVerify: "Nous n'avons pas pu vérifier",
         pleaseFixIt: 'Veuillez corriger ces informations avant de continuer.',
-        failedKYCTextBefore: "Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter",
-        failedKYCTextAfter: 'si vous avez des questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Nous n'avons pas pu vérifier votre identité. Veuillez réessayer plus tard ou contacter <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> si vous avez des questions.`,
     },
     termsStep: {
         headerTitle: 'Conditions et frais',
@@ -3666,6 +3673,8 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
                 },
+                centralBillingAccount: 'Compte de facturation central',
+                centralBillingDescription: 'Choisir où importer tous les reçus Uber.',
                 invitationFailure: "Impossible d'inviter un membre sur Uber for Business.",
                 autoInvite: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoRemove: "Désactiver les membres supprimés de l'espace de travail sur Uber",
@@ -4412,8 +4421,7 @@ ${amount} pour ${merchant} - ${date}`,
             employeeDefaultDescription: "Le département par défaut de l'employé sera appliqué à ses dépenses dans Sage Intacct si un existe.",
             displayedAsTagDescription: "Le département sera sélectionnable pour chaque dépense individuelle sur le rapport d'un employé.",
             displayedAsReportFieldDescription: "La sélection du département s'appliquera à toutes les dépenses sur le rapport d'un employé.",
-            toggleImportTitleFirstPart: 'Choisissez comment gérer Sage Intacct',
-            toggleImportTitleSecondPart: 'dans Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Choisissez comment gérer Sage Intacct <strong>${mappingTitle}</strong> dans Expensify.`,
             expenseTypes: 'Types de dépenses',
             expenseTypesDescription: 'Vos types de dépenses Sage Intacct seront importés dans Expensify en tant que catégories.',
             accountTypesDescription: 'Votre plan comptable Sage Intacct sera importé dans Expensify en tant que catégories.',
@@ -5391,7 +5399,6 @@ ${amount} pour ${merchant} - ${date}`,
                 `<muted-text-label>Pour activer la réconciliation continue, veuillez activer la <a href="${accountingAdvancedSettingsLink}">synchronisation automatique</a> pour ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">Compte de règlement de la carte Expensify</a> (terminant par ${lastFourPAN}) afin que la Réconciliation Continue fonctionne correctement.`,
             },
@@ -5736,6 +5743,7 @@ ${amount} pour ${merchant} - ${date}`,
             chatWithYourAdmin: 'Discutez avec votre administrateur',
             chatInAdmins: 'Discuter dans #admins',
             addPaymentCard: 'Ajouter une carte de paiement',
+            goToSubscription: "Accéder à l'abonnement",
         },
         rules: {
             individualExpenseRules: {
@@ -6685,14 +6693,9 @@ ${amount} pour ${merchant} - ${date}`,
         copyReferralLink: "Copier le lien d'invitation",
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Discutez avec votre spécialiste de configuration en',
-            phrase2: "pour obtenir de l'aide",
-        },
-        default: {
-            phrase1: 'Message',
-            phrase2: "pour obtenir de l'aide avec la configuration",
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Discutez avec votre spécialiste de configuration en <a href="${href}">${adminReportName}</a> pour obtenir de l'aide`,
+        default: `Message <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> pour obtenir de l'aide avec la configuration`,
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
@@ -6779,7 +6782,8 @@ ${amount} pour ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: "Reçu en attente en raison d'une connexion bancaire interrompue",
-        adminBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défaillante. Veuillez résoudre dans",
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Reçu en attente en raison d'une connexion bancaire rompue. Veuillez résoudre ce problème dans <a href="${workspaceCompanyCardRoute}">Cartes d'entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défectueuse. Veuillez demander à un administrateur de l'espace de travail de résoudre le problème.",
         markAsCashToIgnore: 'Marquer comme espèce pour ignorer et demander un paiement.',
         smartscanFailed: ({canEdit = true}) => `Échec de la numérisation du reçu.${canEdit ? 'Saisir les détails manuellement.' : ''}`,
@@ -7336,6 +7340,11 @@ ${amount} pour ${merchant} - ${date}`,
         uploadPhoto: 'Télécharger une photo',
         selectAvatar: 'Sélectionner un avatar',
         chooseCustomAvatar: 'Ou choisissez un avatar personnalisé',
+    },
+    openAppFailureModal: {
+        title: "Quelque chose s'est mal passé...",
+        subtitle: `Nous n'avons pas pu charger toutes vos données. Nous avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
+        refreshAndTryAgain: 'Actualisez puis réessayez',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
