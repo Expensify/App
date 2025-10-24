@@ -203,7 +203,6 @@ function buildNextStep(
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -507,15 +506,16 @@ function buildNextStep(
                         : {
                               text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
+                              clickToCopyText: reimburserAccountID === currentUserAccountID ? currentUserEmail : '',
                           },
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
@@ -564,7 +564,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -868,15 +867,16 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
                         : {
                               text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
+                              clickToCopyText: reimburserAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
                           },
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };

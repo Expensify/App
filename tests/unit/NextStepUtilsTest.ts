@@ -478,7 +478,7 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -490,10 +490,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
@@ -732,7 +732,7 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -744,10 +744,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // mock the report as approved
