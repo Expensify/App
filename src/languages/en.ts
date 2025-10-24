@@ -6693,17 +6693,19 @@ const translations = {
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt and expense details added manually.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Receipt required';
-            if (formattedLimit ?? category) {
-                message += ' over';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += ' category limit';
-                }
+            if (formattedLimit && category) {
+                return `Receipt required over ${formattedLimit} category limit`;
             }
-            return message;
+
+            if (formattedLimit) {
+                return `Receipt required over ${formattedLimit}`;
+            }
+
+            if (category) {
+                return `Receipt required over category limit`;
+            }
+
+            return 'Receipt required';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
