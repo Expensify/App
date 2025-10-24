@@ -73,9 +73,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const {selectedTransactions} = useSearchContext();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const isSelectionModeEnabled = useMobileSelectionMode();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
@@ -296,7 +293,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, (!isSmallScreenWidth || isSelectionModeEnabled) && {paddingLeft: 2}]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
@@ -307,19 +304,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
             </View>
         );
-    }, [
-        hasViolations,
-        isSelectionModeEnabled,
-        isSmallScreenWidth,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.ml3,
-        styles.mr1,
-        styles.textDanger,
-        styles.textMicro,
-        theme.danger,
-        translate,
-    ]);
+    }, [hasViolations, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.textDanger, styles.textMicro, theme.danger, translate]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
