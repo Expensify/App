@@ -97,16 +97,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         initialSelected: initialSelectedOptions,
         shouldInitialize: didScreenTransitionEnd,
         onSelectionChange: (newSelectedOptions) => {
-            const newAttendees: Attendee[] = newSelectedOptions.map((option) => ({
-                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                login: option.login,
-                email: option.login ?? '',
-                displayName: option.displayName ?? option.text ?? option.login ?? '',
-                selected: true,
-                searchText: option.searchText,
-                avatarUrl: option.avatarUrl ?? '',
-                iouType,
-            }));
+            const newAttendees: Attendee[] = newSelectedOptions.map((option) => {
+                const iconSource = option.icons?.[0]?.source;
+                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
+                return {
+                    accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    login: option.login,
+                    email: option.login ?? '',
+                    displayName: option.displayName ?? option.text ?? option.login ?? '',
+                    selected: true,
+                    searchText: option.searchText,
+                    avatarUrl: option.avatarUrl ?? icon,
+                    iouType,
+                };
+            });
             onAttendeesAdded(newAttendees);
         },
         maxRecentReportsToShow: 5,
