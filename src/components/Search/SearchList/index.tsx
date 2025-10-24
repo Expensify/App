@@ -115,6 +115,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -165,6 +168,7 @@ function SearchList({
     areAllOptionalColumnsHidden,
     newTransactions = [],
     violations,
+    onDEWModalOpen,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -340,6 +344,7 @@ function SearchList({
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        onDEWModalOpen={onDEWModalOpen}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -379,6 +384,7 @@ function SearchList({
             isOffline,
             areAllOptionalColumnsHidden,
             violations,
+            onDEWModalOpen,
         ],
     );
 
