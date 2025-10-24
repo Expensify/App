@@ -514,8 +514,8 @@ function MoneyRequestConfirmationList({
     // Derived Values - Validation & Errors
     // ================================================================================================
     const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
-    const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
-    const shouldDisplayFieldError = !!isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissinRequiredFields);
+    const didConfirmSplitWithMissingRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
+    const shouldDisplayFieldError = !!isEditingSplitBill && (didSmartScanFailWithMissingFields || didConfirmSplitWithMissingRequiredFields);
     const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
