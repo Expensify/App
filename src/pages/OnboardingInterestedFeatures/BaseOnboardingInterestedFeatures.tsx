@@ -116,13 +116,18 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         ];
     }, [illustrations, translate, userReportedIntegration]);
 
-    const [userDeselectedFeatures, setUserDeselectedFeatures] = useState<Set<string>>(new Set());
+    const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
 
     const selectedFeatures = useMemo(() => {
-        const enabledFeatureIds = features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id);
-        const selected = enabledFeatureIds.filter((id) => !userDeselectedFeatures.has(id));
-        return selected;
-    }, [features, userDeselectedFeatures]);
+        return features
+            .filter((feature) => {
+                if (userToggledFeatures.has(feature.id)) {
+                    return !feature.enabledByDefault;
+                }
+                return feature.enabledByDefault;
+            })
+            .map((feature) => feature.id);
+    }, [features, userToggledFeatures]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -243,7 +248,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     ];
 
     const handleFeatureSelect = useCallback((featureId: string) => {
-        setUserDeselectedFeatures((prev) => {
+        setUserToggledFeatures((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(featureId)) {
                 newSet.delete(featureId);
