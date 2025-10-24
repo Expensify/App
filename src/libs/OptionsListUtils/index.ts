@@ -1999,19 +1999,28 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = selfDMChats.at(0);
-        }
-
-        if (maxRecentReportElements) {
-            recentReportOptions = enrichOptions(recentReportOptions.splice(0, maxRecentReportElements), {
+            selfDMChat = enrichOptions(selfDMChats, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
-            });
+            }).at(0);
         }
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
+        }
+        recentReportOptions = enrichOptions(recentReportOptions, {
+            ...getValidReportsConfig,
+            selectedOptions,
+            shouldBoldTitleByDefault,
+            shouldSeparateSelfDMChat,
+            shouldSeparateWorkspaceChat,
+            shouldShowGBR,
+        });
+
         workspaceChats = enrichOptions(workspaceChats, {
             ...getValidReportsConfig,
             selectedOptions,
