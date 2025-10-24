@@ -7,6 +7,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -190,6 +191,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('common.recent'),
             shouldShow: true,
             data,
@@ -200,6 +202,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('common.all'),
         shouldShow: true,
         data,

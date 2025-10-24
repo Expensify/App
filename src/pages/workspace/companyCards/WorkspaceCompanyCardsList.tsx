@@ -78,11 +78,14 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, item.bank));
                         }}
                     >
-                        <WorkspaceCompanyCardsListRow
-                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                            cardNumber={item.lastFourPAN ?? ''}
-                            name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
-                        />
+                        {({hovered}) => (
+                            <WorkspaceCompanyCardsListRow
+                                cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                cardNumber={item.lastFourPAN ?? ''}
+                                name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
+                                isHovered={hovered}
+                            />
+                        )}
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );

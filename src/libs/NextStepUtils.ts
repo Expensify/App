@@ -137,6 +137,20 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
+function buildOptimisticNextStepForStrictPolicyRuleViolations() {
+    const optimisticNextStep: ReportNextStep = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 /**
  * Please don't use this function anymore, let's use buildNextStepNew instead
  *
@@ -882,5 +896,6 @@ export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildNextStepNew,
 };

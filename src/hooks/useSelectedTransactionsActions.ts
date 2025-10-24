@@ -2,12 +2,12 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -56,7 +57,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -66,6 +67,7 @@ function useSelectedTransactionsActions({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const selectedTransactions = useMemo(
         () =>
             selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -93,32 +95,11 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = useCallback(() => {
-        const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
-
-        const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
-            transactionID,
-            action: iouActions.find((action) => {
-                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
-                return transactionID === IOUTransactionID;
-            }),
-        }));
-        const deletedTransactionIDs: string[] = [];
-        const deletedTransactionThreadReportIDs = new Set<string>();
-        transactionsWithActions.forEach(({transactionID, action}) => {
-            if (!action) {
-                return;
-            }
-
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
-            deletedTransactionIDs.push(transactionID);
-            if (action.childReportID) {
-                deletedTransactionThreadReportIDs.add(action.childReportID);
-            }
-        });
+        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+        Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+    }, [deleteTransactions, selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

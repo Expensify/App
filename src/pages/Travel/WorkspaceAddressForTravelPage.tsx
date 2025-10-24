@@ -4,6 +4,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -26,6 +27,16 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         if (!policy) {
             return;
         }
+
+        // Always validate OTP first before allowing address submission
+        if (!isUserValidated) {
+            // After OTP validation, redirect back to this address page
+            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, route.params.backTo);
+            setTravelProvisioningNextStep(currentRoute);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
+            return;
+        }
+
         updateAddress(policy?.id, {
             addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
             city: values.city.trim(),
@@ -33,10 +44,6 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
-            return;
-        }
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
     };
 

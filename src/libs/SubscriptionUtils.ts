@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -74,14 +75,6 @@ Onyx.connect({
     callback: (value) => (billingStatus = value),
 });
 
-let firstPolicyDate: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE,
-    callback: (value) => {
-        firstPolicyDate = value;
-    },
-});
-
 let hasManualTeam2025Pricing: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
@@ -105,19 +98,6 @@ Onyx.connect({
         }
 
         fundList = value;
-    },
-});
-
-let retryBillingSuccessful: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingSuccessful = value;
     },
 });
 
@@ -164,15 +144,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (value) => (allPolicies = value),
     waitForCollectionCallback: true,
-});
-
-// Indicates if downgrading the current subscription plan is allowed for the user.
-let canDowngrade = false;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        canDowngrade = val?.canDowngrade ?? false;
-    },
 });
 
 /**
@@ -342,7 +313,7 @@ function hasRetryBillingError(): boolean {
 /**
  * @returns Whether the retry billing was successful.
  */
-function isRetryBillingSuccessful(): boolean {
+function isRetryBillingSuccessful(retryBillingSuccessful: boolean | undefined): boolean {
     return !!retryBillingSuccessful;
 }
 
@@ -354,7 +325,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -430,7 +401,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 10. Retry billing success
-    if (isRetryBillingSuccessful()) {
+    if (isRetryBillingSuccessful(retryBillingSuccessful)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
             isError: false,
@@ -451,15 +422,15 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError === false;
 }
 
 /**
@@ -489,9 +460,11 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected
     }
 
     if (shouldShowPreTrialBillingBanner(introSelected)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial()) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
 
@@ -575,11 +548,11 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function shouldCalculateBillNewDot(): boolean {
+function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
-function checkIfHasTeam2025Pricing() {
+function checkIfHasTeam2025Pricing(firstPolicyDate: string | undefined) {
     if (hasManualTeam2025Pricing) {
         return true;
     }
@@ -591,12 +564,17 @@ function checkIfHasTeam2025Pricing() {
     return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
 }
 
-function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+function getSubscriptionPrice(
+    plan: PersonalPolicyTypeExcludedProps | null,
+    preferredCurrency: PreferredCurrency,
+    privateSubscriptionType: SubscriptionType | undefined,
+    firstPolicyDate: string | undefined,
+): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
 
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
@@ -610,59 +588,86 @@ function getSubscriptionPlanInfo(
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
+    firstPolicyDate: string | undefined,
 ): SubscriptionPlanInfo {
-    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, firstPolicyDate);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let subtitle = translateLocal('subscription.yourPlan.customPricing');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 note = translateLocal('subscription.yourPlan.perMemberMonth');
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
                 note = undefined;
             }
         }
 
         return {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('subscription.yourPlan.collect.title'),
             subtitle,
             note,
             benefits: [
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit1'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit2'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit3'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit4'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit5'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit6'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit7'),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal('subscription.yourPlan.collect.benefit8'),
             ],
             src: Illustrations.Mailbox,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             description: translateLocal('subscription.yourPlan.collect.description'),
         };
     }
 
     return {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('subscription.yourPlan.control.title'),
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         subtitle: translateLocal('subscription.yourPlan.customPricing'),
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         note: translateLocal('subscription.yourPlan.asLowAs', {price}),
         benefits: [
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit1'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit2'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit3'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit4'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit5'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit6'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit7'),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('subscription.yourPlan.control.benefit8'),
         ],
         src: Illustrations.ShieldYellow,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         description: translateLocal('subscription.yourPlan.control.description'),
     };
 }
@@ -689,4 +694,5 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    checkIfHasTeam2025Pricing,
 };
