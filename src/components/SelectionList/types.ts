@@ -76,6 +76,9 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Function that determines if an item is selected */
     isSelected?: (item: TItem) => boolean;
 
+    /** Whether the whole list is disabled */
+    isDisabled?: boolean;
+
     /** Whether the layout is narrow */
     isSmallScreenWidth?: boolean;
 
