@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -798,17 +798,15 @@ function MoneyRequestConfirmationList({
     // ================================================================================================
     // Effects - Focus Management
     // ================================================================================================
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                blurActiveElement();
+            });
+        }, CONST.ANIMATED_TRANSITION);
+        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+    });
 
     // ================================================================================================
     // Event Handlers
