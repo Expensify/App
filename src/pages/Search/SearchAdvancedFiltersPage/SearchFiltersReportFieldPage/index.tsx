@@ -37,7 +37,7 @@ function SearchFiltersReportFieldPage() {
 
             const nonFormulaReportFields = Object.entries(allPolicyReportFields)
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .filter(([_, value]) => value.type !== 'formula')
+                .filter(([_, value]) => value.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE)
                 .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));
 
             return Object.fromEntries(nonFormulaReportFields);

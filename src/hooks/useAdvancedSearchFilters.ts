@@ -238,7 +238,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
     const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
-        return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== 'formula');
+        return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
     });
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
