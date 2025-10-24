@@ -5,9 +5,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -129,10 +129,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={selectFeed}
-                    sections={[{data: feeds}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={selectedFeed}
+                    data={feeds}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={selectedFeed}
                     addBottomSafeAreaPadding
                     listFooterContent={
                         <MenuItem
