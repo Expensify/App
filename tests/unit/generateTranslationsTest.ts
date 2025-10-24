@@ -2028,5 +2028,40 @@ describe('generateTranslations', () => {
             // Should NOT retranslate since it's just a regular comment change
             expect(translateSpy).not.toHaveBeenCalled();
         });
+
+        it('works with multiline dedent template strings', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    codesLoseAccess: dedent(\`
+                        If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+                        Note: Setting up two-factor authentication will log you out of all other active sessions.
+                    \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // The translated output should preserve the dedent structure with proper indentation on empty lines
+            // The empty line between the two paragraphs should have the same indentation as the content lines
+            expect(itContent).toContain('codesLoseAccess: dedent(`');
+            const expectedFormat = dedent(`
+                codesLoseAccess: dedent(\`
+                    [it] If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+                    Note: Setting up two-factor authentication will log you out of all other active sessions.
+                \`),
+            `);
+            expect(itContent).toContain(expectedFormat);
+        });
     });
 });
