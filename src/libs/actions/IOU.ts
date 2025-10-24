@@ -514,6 +514,7 @@ type MoneyRequestInformationParams = {
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
     action?: IOUAction;
+    currentReportActionID?: string;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -3406,6 +3407,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
         action,
+        currentReportActionID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3555,7 +3557,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    if (isDistanceRequest) {
+    if ((!!isSplitExpense || isDistanceRequest) && existingTransaction) {
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
@@ -3581,6 +3583,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
+            reportActionID: currentReportActionID,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -12522,7 +12525,11 @@ function shouldOptimisticallyUpdateSearch(
     isInvoice: boolean | undefined,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
 ) {
-    if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+    if (
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+    ) {
         return false;
     }
     let shouldOptimisticallyUpdateByStatus;
@@ -12548,7 +12555,10 @@ function shouldOptimisticallyUpdateSearch(
     const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
-        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
+        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
+        (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
     return (
         shouldOptimisticallyUpdateByStatus &&
@@ -12764,11 +12774,20 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             }
         } else {
             // For reports with single expense: Delete the report
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: null,
-            });
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    },
+                },
+            );
 
             // And delete the corresponding REPORTPREVIEW action
             const parentReportID = report?.parentReportID;
@@ -12807,11 +12826,20 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             });
 
             // Add failure data to restore the report
-            failureData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: report,
-            });
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: report,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        reportID,
+                    },
+                },
+            );
 
             if (isUserOnSearchPage) {
                 // Navigate to the existing Reports > Expense view.
@@ -13558,6 +13586,7 @@ function updateSplitTransactions({
             existingTransactionID,
             newReportTotal: reportTotal - changesInReportTotal,
             isSplitExpense: true,
+            currentReportActionID: currentReportAction?.reportActionID,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};

@@ -45,6 +45,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -640,7 +641,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
-            formData.append(key, String(value));
+            formData.append(key, SafeString(value));
         }
     });
 
