@@ -1,9 +1,8 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
-import {Str} from 'expensify-common';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import getChatFSClass from './common';
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 import type {FSPageLike, Fullstory} from './types';
 
 // Placeholder Browser API does not support Manual Page definition
@@ -33,14 +32,7 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => {
-        const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-        if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME || Session.isSupportAuthToken()) {
-            return false;
-        }
-
-        return true;
-    },
+    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !Session.isSupportAuthToken(),
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 

@@ -1,8 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
-import {Str} from 'expensify-common';
-import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import getChatFSClass from './common';
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 import type {Fullstory} from './types';
 
 const FS: Fullstory = {
@@ -14,14 +12,7 @@ const FS: Fullstory = {
 
     onReady: () => Promise.resolve(),
 
-    shouldInitialize: (userMetadata, envName) => {
-        const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-        if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
-            return false;
-        }
-
-        return true;
-    },
+    shouldInitialize: shouldInitializeFullstory,
 
     consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
