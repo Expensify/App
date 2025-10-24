@@ -16,8 +16,13 @@ import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
-function SageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {
+type SageIntacctAutoSyncPageRouteParams = {
+    backTo?: Route;
+};
+
+function SageIntacctAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
@@ -25,9 +30,10 @@ function SageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const {autoSync, pendingFields} = config ?? {};
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], pendingFields);
+    const {backTo} = route.params as SageIntacctAutoSyncPageRouteParams;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
     }, [policyID]);
 
     return (
