@@ -31,6 +31,7 @@ import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
+import {createOptionFromReport} from '@libs/OptionsListUtils';
 import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
@@ -152,7 +153,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                const option = createOptionFromReport(report, personalDetails);
                 reportForContextualSearch = option;
             }
 
