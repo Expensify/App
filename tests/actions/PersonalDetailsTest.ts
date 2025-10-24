@@ -705,10 +705,11 @@ describe('actions/PersonalDetails', () => {
 
     describe('deleteAvatar', () => {
         it('should call API.write with correct parameters and optimistic data', async () => {
-            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
                 accountID: 123,
+                email: 'test@test.te',
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
@@ -717,7 +718,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(123);
+            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(currentUserPersonalDetail.accountID, currentUserPersonalDetail.email);
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
                 optimisticData: [
                     {
@@ -812,7 +813,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(456);
+            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(456, undefined);
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_USER_AVATAR,
                 null,

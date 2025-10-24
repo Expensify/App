@@ -673,6 +673,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        domains: '域名',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1670,7 +1671,6 @@ const translations = {
             testCrash: '测试崩溃',
             resetToOriginalState: '重置为原始状态',
             usingImportedState: '您正在使用导入的状态。点击这里清除它。',
-            shouldBlockTransactionThreadReportCreation: '阻止创建交易线程报告',
             debugMode: '调试模式',
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
