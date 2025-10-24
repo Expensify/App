@@ -1308,7 +1308,14 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
  * Incoming array of options will be at first tested by separators each separator will test if the option fits - first win, so if an option would fit to more than one separator the order of them decides.
  * All options that does not pass any of separator will be pushed into last returned array.
  */
-function optionsOrderAndGroupBy<T = SearchOptionData>(separators: Array<(option: T) => boolean | undefined>, options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[][] {
+function optionsOrderAndGroupBy<T = SearchOptionData>(
+    separators: Array<(option: T) => boolean | undefined>,
+    options: T[],
+    comparator: (option: T) => number | string,
+    limit?: number,
+    filter?: (option: T) => boolean | undefined,
+    reversed = false,
+): T[][] {
     // Create a heap for each separator + one default heap (N+1 total)
     const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
     for (let i = 0; i < separators.length; i++) {
@@ -1330,7 +1337,6 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(separators: Array<(option:
 
         // Find which group this option belongs to (first-match-wins)
         let targetHeap: MinHeap<T> | MaxHeap<T> | null = null;
-
 
         for (let i = 0; i < separators.length; i++) {
             if (separators[i](option)) {
@@ -1862,7 +1868,6 @@ function enrichOptions(options: Array<SearchOption<Report>>, config: GetValidRep
                     continue;
                 }
             }
-
         }
 
         validOptions.push(newReportOption);
@@ -1955,8 +1960,8 @@ function getValidOptions(
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         const searchTerms = processSearchString(searchString);
 
-        const isWorkspaceChat = ( report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
-        const isSelfDMChat = ( report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
+        const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
+        const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
         const isSearchTermsFound = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -1969,7 +1974,7 @@ function getValidOptions(
             }
             searchText = deburr(searchText.toLocaleLowerCase());
             return searchTerms.every((term) => searchText.includes(term));
-        }
+        };
 
         const filteringFunction = (report: SearchOption<Report>) => {
             if (!isSearchTermsFound(report)) {
@@ -1991,37 +1996,30 @@ function getValidOptions(
         };
 
         let selfDMChats: Array<SearchOption<Report>>;
-        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy(
-            [isSelfDMChat, isWorkspaceChat],
-            options.reports, recentReportComparator, maxElements, filteringFunction,
-        );
+        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
             selfDMChat = selfDMChats.at(0);
         }
 
         if (maxRecentReportElements) {
-            recentReportOptions = enrichOptions(recentReportOptions.splice(0, maxRecentReportElements),
-                {
-                    ...getValidReportsConfig,
-                    selectedOptions,
-                    shouldBoldTitleByDefault,
-                    shouldSeparateSelfDMChat,
-                    shouldSeparateWorkspaceChat,
-                    shouldShowGBR,
-                }
-            )
-        }
-        workspaceChats = enrichOptions(workspaceChats,
-            {
+            recentReportOptions = enrichOptions(recentReportOptions.splice(0, maxRecentReportElements), {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
-            })
-
+            });
+        }
+        workspaceChats = enrichOptions(workspaceChats, {
+            ...getValidReportsConfig,
+            selectedOptions,
+            shouldBoldTitleByDefault,
+            shouldSeparateSelfDMChat,
+            shouldSeparateWorkspaceChat,
+            shouldShowGBR,
+        });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
