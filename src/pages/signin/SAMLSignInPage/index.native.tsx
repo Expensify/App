@@ -19,7 +19,9 @@ import ROUTES from '@src/ROUTES';
 // TODO
 // 1. See if Linking.addEventListener is needed (according to the Expo docs it might be if we don't use expo-router) to dismiss the browser
 // 2. In handleNavigationStateChange parse incoming JSON instead of URLSearchParams
-// 3. Explore better solutions for handling the incoming SAMLUrl
+// 3. Explore better solutions for handling the incoming SAMLUrl (does the effect run too many times?)
+// 4. Test the signout flow
+// 5. Add error handling for openAuthSessionAsync
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -27,6 +29,10 @@ function SAMLSignInPage() {
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
+
+    /**
+     * Handles in-app navigation once we get a response back from Expensify
+     */
 
     const handleNavigationStateChange = useCallback(
         (url: string) => {
@@ -105,10 +111,6 @@ function SAMLSignInPage() {
                 handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
             });
     }, [credentials?.login, SAMLUrl, translate]);
-
-    /**
-     * Handles in-app navigation once we get a response back from Expensify
-     */
 
     return (
         <ScreenWrapper
