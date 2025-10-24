@@ -97,8 +97,10 @@ const keysToMask = [
     'bank',
     'cardName',
     'cardNumber',
+    'childReportName',
     'city',
     'comment',
+    'currency',
     'description',
     'displayName',
     'edits',
@@ -125,9 +127,24 @@ const keysToMask = [
     'source',
     'state',
     'street',
+    'title',
     'validateCode',
     'zip',
     'zipCode',
+];
+
+const amountKeysToRandomize = [
+    'amount',
+    'modifiedAmount',
+    'originalAmount',
+    'total',
+    'unheldTotal',
+    'unheldNonReimbursableTotal',
+    'nonReimbursableTotal',
+];
+
+const nodesToFullyMask = [
+    'reservationList',
 ];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
@@ -150,6 +167,12 @@ function maskValuePreservingLength(value: unknown) {
     }
 
     return getRandomString(value.length);
+}
+
+function randomizeAmount(amount: number): number {
+    const randomizedValue = Math.floor(Math.random() * 999999) + 1;
+    
+    return amount < 0 ? -randomizedValue : randomizedValue;
 }
 
 function stringContainsEmail(text: string) {
@@ -218,6 +241,22 @@ const maskEmail = (email: string) => {
     return maskedEmail;
 };
 
+const isDateValue = (value: unknown): boolean => {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    const datePatterns = [
+        /^\d{4}-\d{2}-\d{2}/, // ISO date
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, // ISO datetime
+    ];
+    return datePatterns.some((pattern) => pattern.test(value));
+};
+
+const getCurrentDate = (): string => {
+    return new Date().toISOString();
+};
+
 const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string): OnyxState | unknown[] | null => {
     if (data === null) {
         return data;
@@ -249,7 +288,30 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
 
         const value = data[propertyName];
 
-        if (keysToMask.includes(key)) {
+        // Handle collection nodes (reportActions, reports, transactions)
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
+        } else if (key.startsWith(ONYXKEYS.COLLECTION.REPORT) && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
+        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
+        } else if (amountKeysToRandomize.includes(key) && typeof value === 'number') {
+            maskedData[propertyName] = randomizeAmount(value); 
+        // Handle expensify_text_title masking
+        } else if (parentKey === 'expensify_text_title' && key === 'value' && typeof value === 'string') {
+            maskedData[propertyName] = maskValuePreservingLength(value);
+        } else if (key === 'expensify_text_title' && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, 'expensify_text_title');
+        // Handle nodes that need full masking
+        } else if (nodesToFullyMask.includes(key) && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
+        } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'string' && isDateValue(value)) {
+            maskedData[propertyName] = getCurrentDate();
+        } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'string') {
+            maskedData[propertyName] = maskValuePreservingLength(value);
+        } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'object') {
+            maskedData[propertyName] = maskFragileData(value as OnyxState, parentKey);
+        } else if (keysToMask.includes(key)) {
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
             } else {
