@@ -58,7 +58,10 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
         Navigation.goBack();
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate), [rate]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate, translate),
+        [rate, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
