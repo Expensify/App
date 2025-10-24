@@ -354,7 +354,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTr
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
+        const prompt = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
         if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
@@ -368,7 +368,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTr
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts).title}
+            title={getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts).title}
             onConfirm={onConfirm}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}

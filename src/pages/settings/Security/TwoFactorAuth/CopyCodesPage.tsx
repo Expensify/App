@@ -116,7 +116,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             text={translate('common.download')}
                                             icon={Expensicons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
+                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
                                             }}

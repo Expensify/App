@@ -82,7 +82,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
+                                fileDownload(translate, message.source, message.filename).finally(() => dismissError());
                             }}
                         >
                             {translate('iou.error.saveFileMessage')}
