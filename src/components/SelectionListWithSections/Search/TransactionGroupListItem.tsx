@@ -26,9 +26,7 @@ import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -272,7 +270,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
             return headers[groupBy];
         },
-        [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, searchType],
+        [
+            groupItem,
+            onCheckboxPress,
+            isDisabledOrEmpty,
+            canSelectMultiple,
+            isSelectAllChecked,
+            isIndeterminate,
+            isFocused,
+            searchType,
+            groupBy,
+            onDEWModalOpen,
+            onSelectRow,
+            transactionPreviewData,
+        ],
     );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);

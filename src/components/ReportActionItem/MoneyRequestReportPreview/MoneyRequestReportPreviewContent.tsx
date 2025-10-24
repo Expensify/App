@@ -31,7 +31,6 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -138,7 +137,6 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -482,7 +480,6 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             violations,
             isIouReportArchived || isChatReportArchived,
-            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
@@ -490,7 +487,6 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            areStrictPolicyRulesEnabled,
         );
     }, [
         isPaidAnimationRunning,
@@ -503,8 +499,6 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
-        areStrictPolicyRulesEnabled,
-        currentUserDetails.email,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

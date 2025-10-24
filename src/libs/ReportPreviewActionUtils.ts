@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -18,19 +18,15 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
-    isOpenExpenseReport,
     isOpenReport,
     isPayer,
     isProcessingReport,
     isReportApproved,
-    isReportManuallyReimbursed,
     isSettled,
     requiresManualSubmission,
-    shouldBlockSubmitDueToStrictPolicyRules,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
-import ViolationsUtils from './Violations/ViolationsUtils';
+import {isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
@@ -181,11 +177,9 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
-    currentUserEmail: string,
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
@@ -193,7 +187,6 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    areStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
