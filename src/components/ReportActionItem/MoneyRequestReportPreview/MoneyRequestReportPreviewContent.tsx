@@ -8,6 +8,7 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -21,6 +22,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,20 +31,22 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import Permissions from '@libs/Permissions';
+import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
     getInvoicePayerName,
     getMoneyReportPreviewName,
@@ -59,6 +63,7 @@ import {
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -69,11 +74,11 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startDistanceRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {openOldDotLink} from '@userActions/Link';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -133,7 +138,9 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -151,9 +158,14 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -190,7 +202,7 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -244,6 +256,10 @@ function MoneyRequestReportPreviewContent({
     );
 
     const confirmApproval = () => {
+        if (hasDynamicExternalWorkflow(policy)) {
+            setIsDEWModalVisible(true);
+            return;
+        }
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -466,6 +482,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             violations,
             isIouReportArchived || isChatReportArchived,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
@@ -473,6 +490,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            areStrictPolicyRulesEnabled,
         );
     }, [
         isPaidAnimationRunning,
@@ -485,54 +503,13 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
+        areStrictPolicyRulesEnabled,
+        currentUserDetails.email,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                text: translate('iou.createExpense'),
-                icon: Expensicons.Plus,
-                onSelected: () => {
-                    if (!iouReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-                text: translate('iou.trackDistance'),
-                icon: Expensicons.Location,
-                onSelected: () => {
-                    if (!iouReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReport.reportID, lastDistanceExpenseType, false, chatReportID);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-                text: translate('iou.addUnreportedExpense'),
-                icon: Expensicons.ReceiptPlus,
-                onSelected: () => {
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    openUnreportedExpense(iouReport?.reportID, iouReport?.parentReportID);
-                },
-            },
-        ],
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, translate],
+        () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -544,8 +521,12 @@ function MoneyRequestReportPreviewContent({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => {
+                    if (hasDynamicExternalWorkflow(policy)) {
+                        setIsDEWModalVisible(true);
+                        return;
+                    }
                     startSubmittingAnimation();
-                    submitReport(iouReport);
+                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -855,6 +836,18 @@ function MoneyRequestReportPreviewContent({
                     />
                 )}
             </OfflineWithFeedback>
+            <ConfirmModal
+                title={translate('customApprovalWorkflow.title')}
+                isVisible={isDEWModalVisible}
+                onConfirm={() => {
+                    setIsDEWModalVisible(false);
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                }}
+                onCancel={() => setIsDEWModalVisible(false)}
+                prompt={translate('customApprovalWorkflow.description')}
+                confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                shouldShowCancelButton={false}
+            />
         </View>
     );
 }
