@@ -2510,6 +2510,24 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     return getReportActionText(action);
 }
 
+function getWorkspaceTaxUpdateMessage(action: ReportAction): string {
+    const {taxName, oldValue, newValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX && taxName) {
+        return translateLocal('workspaceActions.addTax', {taxName});
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX && taxName) {
+        return translateLocal('workspaceActions.deleteTax', {taxName});
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
+        return translateLocal('workspaceActions.updateTax', {taxName, oldValue, newValue});
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceTagUpdateMessage(action: ReportAction | undefined): string {
     const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
@@ -3425,6 +3443,7 @@ export {
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
