@@ -6420,6 +6420,7 @@ ${amount} pour ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage du rapport. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en "${newValue}" (auparavant "${oldValue}")`,
@@ -6492,6 +6493,9 @@ ${amount} pour ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `connexion supprimée vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté le chat',
+            },
+            error: {
+                invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
             },
         },
     },
