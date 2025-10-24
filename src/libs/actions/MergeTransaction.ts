@@ -4,7 +4,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
+import {DERIVED_MERGE_FIELDS, getMergeFieldValue, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -34,7 +34,7 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
 /**
  * Sets merge transaction data for a specific transaction
  */
-function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
+function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction> | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
 }
 
@@ -164,7 +164,7 @@ function getOnyxTargetTransactionData(
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
-            if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
+            if (!(DERIVED_MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
@@ -224,6 +224,10 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
             attendees: mergeTransaction.attendees,
+            udfs: {
+                modifiedTaxAmount: mergeTransaction.taxAmount,
+                value: mergeTransaction.taxValue,
+            },
         }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
