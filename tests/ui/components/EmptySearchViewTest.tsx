@@ -1,14 +1,14 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import {translateLocal} from '../../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -33,8 +33,12 @@ const createPaidGroupPolicy = (isPolicyExpenseChatEnabled = true) => ({
 });
 
 describe('EmptySearchView', () => {
-    afterEach(() => {
+    afterEach(async () => {
         jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     beforeAll(() => {
@@ -46,7 +50,9 @@ describe('EmptySearchView', () => {
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
             // Given user hasn't clicked on "Take a test drive" yet
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+            });
 
             // Render component
             render(
@@ -58,7 +64,7 @@ describe('EmptySearchView', () => {
                     />
                 </Wrapper>,
             );
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Then it should display create expenses and take a test drive buttons
             expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
@@ -70,7 +76,9 @@ describe('EmptySearchView', () => {
 
         it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
             // Given user clicked on "Take a test drive"
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+            });
 
             // Render component
             render(
@@ -93,17 +101,23 @@ describe('EmptySearchView', () => {
 
         describe('Submit suggestion', () => {
             beforeEach(async () => {
-                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                });
             });
 
-            afterEach(() => {
-                Onyx.clear();
+            afterEach(async () => {
+                await act(async () => {
+                    await Onyx.clear();
+                });
             });
 
             it('should display "Create Report" button when user has a paid group policy with expense chat enabled', async () => {
                 // Given a paid group policy with expense chat enabled
                 const paidGroupPolicy = createPaidGroupPolicy();
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidGroupPolicy.id}`, paidGroupPolicy);
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidGroupPolicy.id}`, paidGroupPolicy);
+                });
 
                 // Given a query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
@@ -125,7 +139,7 @@ describe('EmptySearchView', () => {
                         />
                     </Wrapper>,
                 );
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
@@ -137,7 +151,9 @@ describe('EmptySearchView', () => {
             it('should hide "Create Report" button when user has a paid group policy with expense chat disabled', async () => {
                 // Given a paid group policy with expense chat disabled
                 const policy = createPaidGroupPolicy(false);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                });
 
                 // Given: A query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
@@ -159,7 +175,7 @@ describe('EmptySearchView', () => {
                         />
                     </Wrapper>,
                 );
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
@@ -175,7 +191,9 @@ describe('EmptySearchView', () => {
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
             // Given user hasn't clicked on "Take a test drive" yet
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+            });
 
             // Render component
             render(
@@ -198,7 +216,9 @@ describe('EmptySearchView', () => {
 
         it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
             // Given user clicked on "Take a test drive"
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+            });
 
             // Render component
             render(

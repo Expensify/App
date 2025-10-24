@@ -9,6 +9,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -54,6 +55,7 @@ function IOURequestStepDate({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
@@ -73,7 +75,7 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, {created: newCreated});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
             navigateBack();
             return;
         }
