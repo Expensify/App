@@ -6,6 +6,7 @@ import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/ty
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
@@ -82,7 +83,7 @@ function parseDurationToSeconds(duration: string): number {
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
     const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
     if (seats && seats.length > 0) {
-        return seats.join(', ');
+        return seats.map(SafeString).join(', ');
     }
     return '';
 }
