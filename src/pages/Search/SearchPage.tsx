@@ -57,7 +57,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    isExpenseReport as isExpenseReportUtil,
+    isIOUReport as isIOUReportUtil,
+    getReportOrDraftReport,
+    canRejectReportAction,
+} from '@libs/ReportUtils';
+import type {Report, Policy} from '@src/types/onyx';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -381,8 +389,17 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        // Reject visibility matches Approve checks
-        if (shouldShowApproveOption) {
+        const areSelectedTransactionsRejectable = selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const report = getReportOrDraftReport(id);
+                if (!report) {
+                    return false;
+                }
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] as Policy | undefined;
+                return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report as Report, policyForReport);
+        });
+        const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && selectedTransactionsKeys.length > 0 && areSelectedTransactionsRejectable;
+        if (shouldShowRejectOption) {
             options.push({
                 icon: Expensicons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
