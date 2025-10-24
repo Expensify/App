@@ -115,7 +115,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
 
-    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled);
+    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled, maxLength);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
