@@ -197,9 +197,15 @@ function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
  * * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
  * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
+function isDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string): avatarSource is string | undefined {
     if (typeof avatarSource === 'string') {
-        if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
+        if (
+            avatarSource.includes('images/avatars/avatar_') ||
+            avatarSource.includes('images/avatars/default-avatar_') ||
+            avatarSource.includes('images/avatars/user/default') ||
+            avatarSource.includes('images/avatars/custom-avatars') || // F1 season avatars
+            (originalFileName && /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/.test(originalFileName)) // generated letter avatar name
+        ) {
             return true;
         }
 
