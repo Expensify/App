@@ -1,7 +1,7 @@
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
-import type { ForwardedRef } from 'react';
-import type { View } from 'react-native';
 
 type AmountSelectorModalProps = {
     /** Whether the modal is visible */

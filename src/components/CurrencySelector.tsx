@@ -37,21 +37,19 @@ type CurrencySelectorProps = {
     shouldShowCurrencySymbol?: boolean;
 
     /** Reference to the outer element */
-    ref: ForwardedRef<View>,
+    ref: ForwardedRef<View>;
 };
 
-function CurrencySelector(
-    {
-        errorText = '',
-        value: currency,
-        onInputChange = () => {},
-        onBlur,
-        currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
-        label,
-        shouldShowCurrencySymbol = false,
-        ref,
-    }: CurrencySelectorProps,
-) {
+function CurrencySelector({
+    errorText = '',
+    value: currency,
+    onInputChange = () => {},
+    onBlur,
+    currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
+    label,
+    shouldShowCurrencySymbol = false,
+    ref,
+}: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

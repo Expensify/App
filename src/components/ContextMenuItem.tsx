@@ -70,28 +70,26 @@ type ContextMenuItemHandle = {
     triggerPressAndUpdateSuccess?: () => void;
 };
 
-function ContextMenuItem(
-    {
-        onPress,
-        successIcon,
-        successText = '',
-        icon,
-        text,
-        isMini = false,
-        description = '',
-        isAnonymousAction = false,
-        isFocused = false,
-        shouldLimitWidth = true,
-        wrapperStyle,
-        shouldPreventDefaultFocusOnPress = true,
-        buttonRef = {current: null},
-        onFocus = () => {},
-        onBlur = () => {},
-        disabled = false,
-        shouldShowLoadingSpinnerIcon = false,
-        ref,
-    }: ContextMenuItemProps,
-) {
+function ContextMenuItem({
+    onPress,
+    successIcon,
+    successText = '',
+    icon,
+    text,
+    isMini = false,
+    description = '',
+    isAnonymousAction = false,
+    isFocused = false,
+    shouldLimitWidth = true,
+    wrapperStyle,
+    shouldPreventDefaultFocusOnPress = true,
+    buttonRef = {current: null},
+    onFocus = () => {},
+    onBlur = () => {},
+    disabled = false,
+    shouldShowLoadingSpinnerIcon = false,
+    ref,
+}: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
