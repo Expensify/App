@@ -221,7 +221,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        if (typeof node.left !== 'string' && node.left) {
+        if (typeof node.left === 'object' && node.left) {
             traverse(node.left);
         }
 
