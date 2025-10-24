@@ -30,6 +30,7 @@ import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperSty
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getReceiptContainerStyles from './getReceiptContainerStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
@@ -1323,6 +1324,7 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getReceiptContainerStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

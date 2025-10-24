@@ -149,6 +149,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
+    ListFooterComponentStyle,
     shouldShowRightCaret,
     ref,
 }: SelectionListProps<TItem>) {
@@ -1054,6 +1055,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
