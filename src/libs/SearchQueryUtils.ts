@@ -28,6 +28,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import SafeString from '@src/utils/SafeString';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -55,6 +56,14 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+
+const PRIMARY_ROOT_KEYS = new Set<string>([
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+]);
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -362,15 +371,10 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 }
 
 function toStringArray(value: unknown): string[] {
-    if (value === undefined || value === null) {
-        return [];
-    }
+    if (value == null) return [];
 
-    if (Array.isArray(value)) {
-        return value.map((item) => (item === undefined || item === null ? '' : item.toString()));
-    }
-
-    return [value.toString()];
+    const convert = (v: unknown): string => SafeString(v, true);
+    return Array.isArray(value) ? value.map(convert) : [convert(value)];
 }
 
 function syncTokensWithQuery(queryJSON: SearchQueryJSON) {
@@ -380,13 +384,14 @@ function syncTokensWithQuery(queryJSON: SearchQueryJSON) {
 
     const filterQueues = createFilterQueues(queryJSON);
     const toCanonicalRootKey = (rawKey: string) => (rawKey === 'group-by' ? CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY : rawKey);
+
     const updatedTokens: SearchQueryToken[] = [];
 
     queryJSON.tokens.forEach((token) => {
         const rawKey = token.key as string;
         const canonicalKey = toCanonicalRootKey(rawKey);
 
-        if (ROOT_TOKEN_KEYS.has(canonicalKey)) {
+        if (PRIMARY_ROOT_KEYS.has(canonicalKey)) {
             const values = toStringArray(queryJSON[canonicalKey as keyof SearchQueryJSON]).filter((value) => value !== '');
             if (values.length === 0) {
                 return;
@@ -428,16 +433,8 @@ function syncTokensWithQuery(queryJSON: SearchQueryJSON) {
 }
 
 function tokensMatchQuery(tokens: SearchQueryToken[] | undefined, queryJSON?: SearchQueryJSON): boolean {
-    return Boolean(tokens && tokens.length > 0 && queryJSON);
+    return !!(tokens && tokens.length > 0 && queryJSON);
 }
-const PRIMARY_ROOT_KEYS = new Set<string>([
-    CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
-    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY,
-    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER,
-    CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
-]);
-
-const ROOT_TOKEN_KEYS = new Set<string>([...PRIMARY_ROOT_KEYS, CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]);
 
 function createFilterQueues(queryJSON: SearchQueryJSON) {
     const queues = new Map<string, QueryFilter[]>();
@@ -647,7 +644,7 @@ function buildQueryStringFromTokens(queryJSON: SearchQueryJSON, tokens: SearchQu
         const trimmedRaw = token.raw.trim();
         const outputKey = trimmedRaw.includes(':') ? trimmedRaw.split(':')[0] : rawKey;
 
-        if (ROOT_TOKEN_KEYS.has(canonicalKey)) {
+        if (PRIMARY_ROOT_KEYS.has(canonicalKey)) {
             const formatted = emitRoot(canonicalKey, token.value, trimmedRaw, outputKey);
             if (formatted.length > 0) {
                 removeRootPart(orderedParts, rootKeyToIndex, canonicalKey);
