@@ -565,7 +565,7 @@ const config = defineConfig([
     {
         files: ['src/libs/**/*.ts'],
         rules: {
-            "max-lines": ["error", 4000]
+            'max-lines': ['error', 4000],
         },
     },
 
