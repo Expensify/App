@@ -325,9 +325,9 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.Document,
-            searchQuery: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
@@ -357,11 +357,10 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.Pencil,
             searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                 from: [`${accountID}`],
             }),
@@ -378,11 +377,10 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.ThumbsUp,
             searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                 to: [`${accountID}`],
             }),
@@ -399,11 +397,10 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         [CONST.SEARCH.SEARCH_KEYS.PAY]: {
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.MoneyBag,
             searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
                 payer: accountID?.toString(),
@@ -421,10 +418,10 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.CheckCircle,
             searchQuery: buildQueryStringFromFilterFormValues({
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
                 exporter: [`${accountID}`],
                 exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
@@ -746,7 +743,7 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  * Type guard that checks if something is a TransactionReportGroupListItemType
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 }
 
 /**
@@ -1485,8 +1482,8 @@ function getReportSections(
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
-                    groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     keyForList: String(reportItem.reportID),
+                    groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
@@ -1660,7 +1657,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return TaskListItem;
     }
-    if (groupBy) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || groupBy) {
         return TransactionGroupListItem;
     }
     return TransactionListItem;
@@ -1688,12 +1685,14 @@ function getSections(
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
     }
 
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportActions);
+    }
+
     if (groupBy) {
         // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
         // eslint-disable-next-line default-case
         switch (groupBy) {
-            case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CARD:
@@ -1724,13 +1723,14 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
+    }
 
     if (groupBy) {
         // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
         // eslint-disable-next-line default-case
         switch (groupBy) {
-            case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.CARD:
@@ -1872,7 +1872,7 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
 function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGroupBy) {
-    if (groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (groupBy) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
     return !Object.keys(searchResults?.data).some(
@@ -2177,7 +2177,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     return isDataLoaded;
 }
 
-function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+function getStatusOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getInvoiceStatusOptions();
@@ -2185,9 +2185,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return getTripStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions();
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return getExpenseReportedStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
+            return getExpenseStatusOptions();
     }
 }
 
@@ -2220,6 +2222,8 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        {text: translateLocal('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
         // eslint-disable-next-line @typescript-eslint/no-deprecated

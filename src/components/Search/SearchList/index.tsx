@@ -173,16 +173,16 @@ function SearchList({
 }: SearchListProps) {
     const styles = useThemeStyles();
 
-    const {hash, groupBy} = queryJSON;
+    const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
-        if (groupBy) {
+        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
                 return data;
             }
             return data.flatMap((item) => item.transactions);
         }
         return data;
-    }, [data, groupBy]);
+    }, [data, groupBy, type]);
 
     const emptyReports = useMemo(() => {
         if (groupBy && isTransactionGroupListItemArray(data)) {
@@ -259,7 +259,6 @@ function SearchList({
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
-
             if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item, itemTransactions);
                 return;
@@ -344,6 +343,7 @@ function SearchList({
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
@@ -359,6 +359,7 @@ function SearchList({
             );
         },
         [
+            type,
             groupBy,
             newTransactions,
             shouldAnimate,
@@ -388,7 +389,7 @@ function SearchList({
         ],
     );
 
-    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
+    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems;
 

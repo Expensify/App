@@ -22,9 +22,6 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
 }));
 
-const mockOnSelectRow = jest.fn();
-const mockOnCheckboxPress = jest.fn();
-
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
     chatReportID: '4735435600700077',
@@ -61,7 +58,7 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
         displayName: 'Main Applause QA',
     },
     transactions: [],
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     keyForList: '515146912679679',
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
@@ -172,7 +169,7 @@ const mockNonEmptyReport: TransactionReportGroupListItemType = {
             keyForList: '2',
         },
     ],
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     keyForList: '515146912679680',
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
@@ -213,7 +210,7 @@ const mockReport: TransactionReportGroupListItemType = {
         displayName: 'Main Applause QA',
     },
     transactions: [],
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     keyForList: '515146912679679',
 };
 
@@ -256,7 +253,7 @@ describe('TransactionGroupListItem', () => {
         item: report,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+        searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
     };
 
@@ -359,6 +356,9 @@ describe('TransactionGroupListItem', () => {
 });
 
 describe('Empty Report Selection', () => {
+    const mockOnSelectRow = jest.fn();
+    const mockOnCheckboxPress = jest.fn();
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -382,7 +382,7 @@ describe('Empty Report Selection', () => {
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
         onCheckboxPress: mockOnCheckboxPress,
-        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+        searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
     };
 
