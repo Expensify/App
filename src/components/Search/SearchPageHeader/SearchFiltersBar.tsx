@@ -612,6 +612,7 @@ function SearchFiltersBar({
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
+
         const exposedFiltersKeys = filters.flatMap((filter) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
             if (dateFilterKey) {
@@ -619,11 +620,17 @@ function SearchFiltersBar({
             }
             return filter.filterKey;
         });
+
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
+        const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
+
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
                 return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
+            }
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+                return hasReportFields;
             }
             return filterFormValues[key as SearchAdvancedFiltersKey];
         });
