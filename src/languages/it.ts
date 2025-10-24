@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -799,6 +800,11 @@ const translations = {
         findMember: 'Trova un membro',
         searchForSomeone: 'Cerca qualcuno',
     },
+    customApprovalWorkflow: {
+        title: 'Flusso di approvazione personalizzato',
+        description: 'La tua azienda ha un flusso di approvazione personalizzato su questo spazio di lavoro. Esegui questa azione in Expensify Classic',
+        goToExpensifyClassic: 'Passa a Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Invia una spesa, riferisci al tuo capo',
@@ -906,17 +912,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <strong>+</strong> per inviare una fattura.`,
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <strong>+</strong>.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante <strong>+</strong> per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
@@ -1689,7 +1695,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Ripristina allo stato originale',
             usingImportedState: 'Stai utilizzando uno stato importato. Premi qui per cancellarlo.',
-            shouldBlockTransactionThreadReportCreation: 'Blocca la creazione di report del thread di transazione',
             debugMode: 'Modalità debug',
             invalidFile: 'File non valido',
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
@@ -2435,7 +2440,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2448,7 +2453,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2461,7 +2466,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2556,7 +2561,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2569,7 +2574,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2591,7 +2596,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    `1. Clicca sul pulsante <strong>+</strong>.\n` +
+                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
@@ -2945,8 +2950,8 @@ ${amount} per ${merchant} - ${date}`,
         needSSNFull9: 'Stiamo riscontrando problemi nel verificare il tuo SSN. Inserisci tutti i nove numeri del tuo SSN.',
         weCouldNotVerify: 'Non siamo riusciti a verificare',
         pleaseFixIt: 'Si prega di correggere queste informazioni prima di continuare.',
-        failedKYCTextBefore: 'Non siamo riusciti a verificare la tua identità. Per favore riprova più tardi o contatta',
-        failedKYCTextAfter: 'se hai domande.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Non siamo riusciti a verificare la tua identità. Per favore riprova più tardi o contatta <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> se hai domande.`,
     },
     termsStep: {
         headerTitle: 'Termini e tariffe',
@@ -4424,8 +4429,7 @@ ${amount} per ${merchant} - ${date}`,
             employeeDefaultDescription: 'Il dipartimento predefinito del dipendente verrà applicato alle sue spese in Sage Intacct, se esiste.',
             displayedAsTagDescription: 'Il dipartimento sarà selezionabile per ogni singola spesa nel rapporto di un dipendente.',
             displayedAsReportFieldDescription: 'La selezione del dipartimento verrà applicata a tutte le spese nel rapporto di un dipendente.',
-            toggleImportTitleFirstPart: 'Scegli come gestire Sage Intacct',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Scegli come gestire Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
             expenseTypes: 'Tipi di spesa',
             expenseTypesDescription: 'I tuoi tipi di spesa Sage Intacct verranno importati in Expensify come categorie.',
             accountTypesDescription: 'Il tuo piano dei conti di Sage Intacct verrà importato in Expensify come categorie.',
@@ -5742,7 +5746,7 @@ ${amount} per ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chatta con il tuo amministratore',
             chatInAdmins: 'Chatta in #admins',
             addPaymentCard: 'Aggiungi carta di pagamento',
-            goToSubscriptions: 'Vai agli abbonamenti',
+            goToSubscription: "Vai all'abbonamento",
         },
         rules: {
             individualExpenseRules: {
@@ -6167,7 +6171,7 @@ ${amount} per ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante <strong>+</strong>.`,
+                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',
@@ -6784,7 +6788,8 @@ ${amount} per ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta',
-        adminBrokenConnectionError: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta. Si prega di risolvere in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Ricevuta in sospeso a causa di una connessione bancaria interrotta. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta. Si prega di chiedere a un amministratore dello spazio di lavoro di risolvere.',
         markAsCashToIgnore: 'Segna come contante per ignorare e richiedere il pagamento.',
         smartscanFailed: ({canEdit = true}) => `Scansione della ricevuta fallita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`,
@@ -7340,6 +7345,11 @@ ${amount} per ${merchant} - ${date}`,
         uploadPhoto: 'Carica foto',
         selectAvatar: 'Seleziona un avatar',
         chooseCustomAvatar: 'Oppure scegli un avatar personalizzato',
+    },
+    openAppFailureModal: {
+        title: 'Qualcosa è andato storto...',
+        subtitle: `Non siamo riusciti a caricare tutti i tuoi dati. Siamo stati avvisati e stiamo esaminando il problema. Se il problema persiste, contatta`,
+        refreshAndTryAgain: 'Aggiorna e riprova',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

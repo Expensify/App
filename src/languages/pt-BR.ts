@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -801,6 +802,11 @@ const translations = {
         findMember: 'Encontrar um membro',
         searchForSomeone: 'Procurar por alguém',
     },
+    customApprovalWorkflow: {
+        title: 'Fluxo de aprovação personalizado',
+        description: 'Sua empresa possui um fluxo de aprovação personalizado neste espaço de trabalho. Execute esta ação no Expensify Classic',
+        goToExpensifyClassic: 'Mudar para Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Envie uma despesa, indique seu chefe',
@@ -908,17 +914,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de bate-papo é para qualquer coisa relacionada ao <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <strong>+</strong> para enviar uma fatura.`,
+            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar uma fatura.`,
         beginningOfChatHistory: 'Este chat é com',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <strong>+</strong>.`,
+            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo! Vamos configurá-lo.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) ao ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use o botão <strong>+</strong> para ${additionalText} uma despesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use o botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} uma despesa.`,
         askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
         conciergeSupport: 'Suporte 24/7',
         create: 'criar',
@@ -1685,7 +1691,6 @@ const translations = {
             testCrash: 'Teste de falha',
             resetToOriginalState: 'Redefinir para o estado original',
             usingImportedState: 'Você está usando um estado importado. Clique aqui para limpá-lo.',
-            shouldBlockTransactionThreadReportCreation: 'Bloquear a criação de relatórios de thread de transação',
             debugMode: 'Modo de depuração',
             invalidFile: 'Arquivo inválido',
             invalidFileDescription: 'O arquivo que você está tentando importar não é válido. Por favor, tente novamente.',
@@ -2428,7 +2433,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2441,7 +2446,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2454,7 +2459,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2549,7 +2554,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2562,7 +2567,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2584,7 +2589,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    `1. Clique no botão <strong>+</strong>.\n` +
+                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -2938,8 +2943,8 @@ ${amount} para ${merchant} - ${date}`,
         needSSNFull9: 'Estamos tendo problemas para verificar seu SSN. Por favor, insira os nove dígitos completos do seu SSN.',
         weCouldNotVerify: 'Não conseguimos verificar',
         pleaseFixIt: 'Por favor, corrija esta informação antes de continuar.',
-        failedKYCTextBefore: 'Não conseguimos verificar sua identidade. Por favor, tente novamente mais tarde ou entre em contato com',
-        failedKYCTextAfter: 'se você tiver alguma dúvida.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Não conseguimos verificar sua identidade. Por favor, tente novamente mais tarde ou entre em contato com <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> se você tiver alguma dúvida.`,
     },
     termsStep: {
         headerTitle: 'Termos e taxas',
@@ -4410,8 +4415,8 @@ ${amount} para ${merchant} - ${date}`,
             employeeDefaultDescription: 'O departamento padrão do funcionário será aplicado às suas despesas no Sage Intacct, se existir.',
             displayedAsTagDescription: 'O departamento será selecionável para cada despesa individual no relatório de um funcionário.',
             displayedAsReportFieldDescription: 'A seleção de departamento será aplicada a todas as despesas no relatório de um funcionário.',
-            toggleImportTitleFirstPart: 'Escolha como lidar com o Sage Intacct',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Escolha como lidar com o Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
+
             expenseTypes: 'Tipos de despesas',
             expenseTypesDescription: 'Seus tipos de despesas do Sage Intacct serão importados para o Expensify como categorias.',
             accountTypesDescription: 'Seu plano de contas do Sage Intacct será importado para o Expensify como categorias.',
@@ -5725,7 +5730,7 @@ ${amount} para ${merchant} - ${date}`,
             chatWithYourAdmin: 'Converse com seu administrador',
             chatInAdmins: 'Converse em #admins',
             addPaymentCard: 'Adicionar cartão de pagamento',
-            goToSubscriptions: 'Ir para Assinaturas',
+            goToSubscription: 'Ir para a assinatura',
         },
         rules: {
             individualExpenseRules: {
@@ -6146,7 +6151,7 @@ ${amount} para ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão <strong>+</strong>.`,
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',
@@ -6763,7 +6768,8 @@ ${amount} para ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido a conexão bancária interrompida',
-        adminBrokenConnectionError: 'Recibo pendente devido a uma conexão bancária interrompida. Por favor, resolva em',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões da empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido a uma conexão bancária interrompida. Por favor, peça a um administrador do espaço de trabalho para resolver.',
         markAsCashToIgnore: 'Marcar como dinheiro para ignorar e solicitar pagamento.',
         smartscanFailed: ({canEdit = true}) => `Falha na digitalização do recibo.${canEdit ? 'Insira os detalhes manualmente.' : ''}`,
@@ -7310,12 +7316,18 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
+
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',
         uploadPhoto: 'Carregar foto',
         selectAvatar: 'Selecionar avatar',
         chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+    },
+    openAppFailureModal: {
+        title: 'Algo deu errado...',
+        subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
+        refreshAndTryAgain: 'Atualize e tente novamente',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
