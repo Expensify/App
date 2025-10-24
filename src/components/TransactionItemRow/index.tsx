@@ -3,7 +3,10 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
@@ -11,7 +14,9 @@ import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {isSettled} from '@libs/ReportUtils';
@@ -150,7 +155,8 @@ function TransactionItemRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-
+    const theme = useTheme();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
@@ -535,6 +541,25 @@ function TransactionItemRow({
                             shouldUseNewStyle
                         />
                     </View>
+                )}
+                {!!isLargeScreenWidth && (
+                    <PressableWithFeedback
+                        onPress={() => onButtonPress()}
+                        style={[styles.p3Half, styles.pl0half, styles.mt1Half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
+                    >
+                        {({hovered}) => {
+                            return (
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                    small
+                                />
+                            );
+                        }}
+                    </PressableWithFeedback>
                 )}
             </View>
             {shouldShowErrors && (

@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import type {ColorValue, StyleProp, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
@@ -42,11 +42,17 @@ type ParentNavigationSubtitleProps = {
     /** The status text of the expense report */
     statusText?: string;
 
+    /** The style of the text */
+    textStyles?: StyleProp<TextStyle>;
+
     /** The background color for the status text */
     statusTextBackgroundColor?: ColorValue;
 
     /** The text color for the status text */
     statusTextColor?: ColorValue;
+
+    /** The style of the status text container */
+    statusTextContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function ParentNavigationSubtitle({
@@ -56,8 +62,10 @@ function ParentNavigationSubtitle({
     pressableStyles,
     openParentReportInCurrentTab = false,
     statusText,
+    textStyles,
     statusTextBackgroundColor,
     statusTextColor,
+    statusTextContainerStyles,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -126,31 +134,32 @@ function ParentNavigationSubtitle({
                         {
                             backgroundColor: statusTextBackgroundColor,
                         },
+                        statusTextContainerStyles,
                     ]}
                 >
                     <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1, textStyles]}
                 numberOfLines={1}
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
+                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         <TextLink
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
                             onPress={onPress}
                             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
+                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link, textStyles]}
                         >
                             {reportName}
                         </TextLink>
                     </>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
                 )}
             </Text>
         </View>

@@ -123,6 +123,10 @@ export default {
         marginVertical: -48,
     },
 
+    mrAuto: {
+        marginRight: 'auto',
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -181,6 +185,10 @@ export default {
 
     ml0: {
         marginLeft: 0,
+    },
+
+    mlHalf: {
+        marginLeft: 2,
     },
 
     ml1: {
@@ -435,6 +443,10 @@ export default {
         padding: 12,
     },
 
+    p3Half: {
+        padding: 14,
+    },
+
     p4: {
         padding: 16,
     },
@@ -595,12 +607,20 @@ export default {
         paddingRight: 40,
     },
 
+    pr11: {
+        paddingRight: 44,
+    },
+
     pr15: {
         paddingRight: 60,
     },
 
     pl0: {
         paddingLeft: 0,
+    },
+
+    pl0half: {
+        paddingLeft: 2,
     },
 
     pl1: {
@@ -793,6 +813,10 @@ export default {
 
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight6: {
+        minHeight: 24,
     },
 
     minHeight7: {

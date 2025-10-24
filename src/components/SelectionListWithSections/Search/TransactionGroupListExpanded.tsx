@@ -60,6 +60,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         return transactions;
     }, [transactions, transactionsVisibleLimit, isGroupByReports]);
 
+    const isLastTransaction = useCallback(
+        (index: number) => {
+            return index === visibleTransactions.length - 1;
+        },
+        [visibleTransactions],
+    );
+
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {
             return columns ?? [];
@@ -87,7 +94,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -154,9 +161,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     return (
         <>
             {isLargeScreenWidth && (
-                <View
-                    style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
-                >
+                <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
                     <SearchTableHeader
                         canSelectMultiple
                         type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -173,7 +178,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     />
                 </View>
             )}
-            {visibleTransactions.map((transaction) => (
+            {visibleTransactions.map((transaction, index) => (
                 <OfflineWithFeedback
                     pendingAction={transaction.pendingAction}
                     key={transaction.transactionID}
@@ -194,11 +199,17 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                        style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     />
+
+                    {!isLastTransaction(index) && !isLargeScreenWidth && (
+                        <View style={[styles.ph3]}>
+                            <View style={[transaction.isSelected ? styles.borderBottomHovered : styles.borderBottom]} />
+                        </View>
+                    )}
                 </OfflineWithFeedback>
             ))}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
