@@ -461,6 +461,23 @@ describe('Transaction', () => {
                 lng: 8,
             };
             const recentWaypointsList: RecentWaypoint[] = [];
+            // Ensure there is an existing transaction with errorFields and routes
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            // Add errorFields and routes so saveWaypoint can clear them
+            // Populate with realistic non-null values
+            existingTransaction.errorFields = {route: {some: 'value'}};
+            existingTransaction.routes = {
+                route0: {
+                    distance: 123,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
             saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
             await waitForBatchedUpdates();
 
