@@ -56,13 +56,14 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,6 +103,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -365,6 +367,20 @@ function SearchPage({route}: SearchPageProps) {
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    // Check if any of the selected items have DEW enabled
+                    const selectedPolicyIDList = selectedReports.length
+                        ? selectedReports.map((report) => report.policyID)
+                        : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
+                    const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                        return hasDynamicExternalWorkflow(policy);
+                    });
+
+                    if (hasDEWPolicy) {
+                        setIsDEWModalVisible(true);
                         return;
                     }
 
@@ -781,6 +797,18 @@ function SearchPage({route}: SearchPageProps) {
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
                         />
+                        <ConfirmModal
+                            title={translate('customApprovalWorkflow.title')}
+                            isVisible={isDEWModalVisible}
+                            onConfirm={() => {
+                                setIsDEWModalVisible(false);
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            }}
+                            onCancel={() => setIsDEWModalVisible(false)}
+                            prompt={translate('customApprovalWorkflow.description')}
+                            confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                            shouldShowCancelButton={false}
+                        />
                     </View>
                 )}
             </>
@@ -917,6 +945,18 @@ function SearchPage({route}: SearchPageProps) {
                     secondOptionText={translate('common.buttonConfirm')}
                     isVisible={isDownloadErrorModalVisible}
                     onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
+                <ConfirmModal
+                    title={translate('customApprovalWorkflow.title')}
+                    isVisible={isDEWModalVisible}
+                    onConfirm={() => {
+                        setIsDEWModalVisible(false);
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    }}
+                    onCancel={() => setIsDEWModalVisible(false)}
+                    prompt={translate('customApprovalWorkflow.description')}
+                    confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                    shouldShowCancelButton={false}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

@@ -60,6 +60,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     areAllOptionalColumnsHidden,
     newTransactionID,
     violations,
+    onDEWModalOpen,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -254,6 +255,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
+                        onDEWModalOpen={onDEWModalOpen}
                     />
                 );
             }
