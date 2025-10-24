@@ -4,7 +4,7 @@
  * the app.
  */
 
-/* eslint-disable  no-console, testing-library/no-node-access, testing-library/no-debugging-utils, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable  no-console, testing-library/no-node-access, testing-library/no-debugging-utils, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing */
 import type {NewPlugin} from 'pretty-format';
 import prettyFormat, {plugins} from 'pretty-format';
 import type {ElementType} from 'react';

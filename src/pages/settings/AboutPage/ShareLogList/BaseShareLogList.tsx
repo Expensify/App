@@ -63,6 +63,8 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
+            false,
+            countryCode,
         );
 
         return {...filteredOptions, headerMessage};
