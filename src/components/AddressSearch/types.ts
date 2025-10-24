@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {Country} from '@src/CONST';
@@ -90,6 +90,9 @@ type AddressSearchProps = {
 
     /** If true, caret is hidden. The default value is false. */
     caretHidden?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<HTMLElement>;
 };
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement | null>) => boolean;
