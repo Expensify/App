@@ -357,6 +357,75 @@ function MoneyRequestConfirmationList({
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
     // ================================================================================================
+    // Derived Values - Participants & Split Shares
+    // ================================================================================================
+    const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
+    const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
+    const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+
+    let splitParticipants: Participant[] = [];
+    if (isTypeSplit) {
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        if (shouldShowReadOnlySplits) {
+            splitParticipants = [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
+                const isPayer = participantOption.accountID === payeeOption.accountID;
+                let amount: number | undefined = 0;
+                if (iouAmount > 0) {
+                    amount =
+                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                }
+                return {
+                    ...participantOption,
+                    isSelected: false,
+                    isInteractive: false,
+                    rightElement: (
+                        <View style={[styles.flexWrap, styles.pl2]}>
+                            <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
+                        </View>
+                    ),
+                };
+            });
+        } else {
+            const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+            const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
+            splitParticipants = [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
+                ...participantOption,
+                tabIndex: -1,
+                isSelected: false,
+                isInteractive: false,
+                rightElement: (
+                    <MoneyRequestAmountInput
+                        autoGrow={false}
+                        amount={transaction?.splitShares?.[participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount}
+                        currency={iouCurrencyCode}
+                        prefixCharacter={currencySymbol}
+                        disableKeyboard={false}
+                        isCurrencyPressable={false}
+                        hideFocusedState={false}
+                        hideCurrencySymbol
+                        formatAmountOnBlur
+                        prefixContainerStyle={[styles.pv0, styles.h100]}
+                        prefixStyle={styles.lineHeightUndefined}
+                        inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                        containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                        touchableInputWrapperStyle={[styles.ml3]}
+                        onFormatAmount={convertToDisplayStringWithoutCurrency}
+                        onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
+                        maxLength={formattedTotalAmount.length + 1}
+                        contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
+                        shouldApplyPaddingToContainer
+                        shouldUseDefaultLineHeightForPrefix={false}
+                        shouldWrapInputInContainer={false}
+                    />
+                ),
+            }));
+        }
+    }
+
+    const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
+
+    // ================================================================================================
     // Derived Values - Validation & Errors
     // ================================================================================================
     const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
@@ -366,6 +435,16 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
+
+    // Compute error message to display in footer
+    let errorMessage = '';
+    if (routeError) {
+        errorMessage = routeError;
+    } else if (isTypeSplit && !shouldShowReadOnlySplits) {
+        errorMessage = debouncedFormError && translate(debouncedFormError);
+    } else {
+        errorMessage = formError && translate(formError);
+    }
 
     // ================================================================================================
     // Product Training Tooltip
@@ -378,6 +457,7 @@ function MoneyRequestConfirmationList({
     // ================================================================================================
     // Helper Functions
     // ================================================================================================
+
     // Clear the form error if it's set to one among the list passed as an argument
     const clearFormErrors = (errors: string[]) => {
         if (!errors.includes(formError)) {
@@ -738,100 +818,6 @@ function MoneyRequestConfirmationList({
     };
 
     // ================================================================================================
-    // Memoized Values - Participants & Split Shares
-    // ================================================================================================
-    const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
-    const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
-    const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
-
-    const splitParticipants = useMemo(() => {
-        if (!isTypeSplit) {
-            return [];
-        }
-
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
-        if (shouldShowReadOnlySplits) {
-            return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
-                const isPayer = participantOption.accountID === payeeOption.accountID;
-                let amount: number | undefined = 0;
-                if (iouAmount > 0) {
-                    amount =
-                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
-                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
-                }
-                return {
-                    ...participantOption,
-                    isSelected: false,
-                    isInteractive: false,
-                    rightElement: (
-                        <View style={[styles.flexWrap, styles.pl2]}>
-                            <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
-                        </View>
-                    ),
-                };
-            });
-        }
-
-        const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-        const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
-
-        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
-            ...participantOption,
-            tabIndex: -1,
-            isSelected: false,
-            isInteractive: false,
-            rightElement: (
-                <MoneyRequestAmountInput
-                    autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount}
-                    currency={iouCurrencyCode}
-                    prefixCharacter={currencySymbol}
-                    disableKeyboard={false}
-                    isCurrencyPressable={false}
-                    hideFocusedState={false}
-                    hideCurrencySymbol
-                    formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0, styles.h100]}
-                    prefixStyle={styles.lineHeightUndefined}
-                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-                    touchableInputWrapperStyle={[styles.ml3]}
-                    onFormatAmount={convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
-                    maxLength={formattedTotalAmount.length + 1}
-                    contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
-                    shouldApplyPaddingToContainer
-                    shouldUseDefaultLineHeightForPrefix={false}
-                    shouldWrapInputInContainer={false}
-                />
-            ),
-        }));
-    }, [
-        isTypeSplit,
-        payeePersonalDetails,
-        shouldShowReadOnlySplits,
-        currencyList,
-        iouCurrencyCode,
-        iouAmount,
-        selectedParticipants,
-        styles.flexWrap,
-        styles.pl2,
-        styles.pr1,
-        styles.h100,
-        styles.textLabel,
-        styles.pv0,
-        styles.lineHeightUndefined,
-        styles.optionRowAmountInput,
-        styles.textInputContainer,
-        styles.ml3,
-        transaction?.comment?.splits,
-        transaction?.splitShares,
-        onSplitShareChange,
-    ]);
-
-    const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
-
-    // ================================================================================================
     // Memoized Values - Section Headers & List Structure
     // ================================================================================================
     const getSplitSectionHeader = useCallback(
@@ -964,16 +950,6 @@ function MoneyRequestConfirmationList({
         translate,
         formattedAmount,
     ]);
-
-    const errorMessage = useMemo(() => {
-        if (routeError) {
-            return routeError;
-        }
-        if (isTypeSplit && !shouldShowReadOnlySplits) {
-            return debouncedFormError && translate(debouncedFormError);
-        }
-        return formError && translate(formError);
-    }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
     // ================================================================================================
     // Render Content - Footer & List Footer
