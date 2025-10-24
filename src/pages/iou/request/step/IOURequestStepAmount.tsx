@@ -20,7 +20,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, getTransactionDetails, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -258,8 +258,8 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If there was no reportID, then that means the user started this flow from the global + menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
+        // User started from global + menu with CREATE flow
+        // If they manually selected a recipient, keep it; otherwise auto-assign default workspace
         if (
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
@@ -270,34 +270,36 @@ function IOURequestStepAmount({
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
-            // Check if manually selected participants differ from default workspace
-            const hasExistingParticipants = transaction?.participants && transaction.participants.length > 0;
-            const existingParticipantReportID = transaction?.participants?.at(0)?.reportID;
-            const shouldKeepExistingParticipants = hasExistingParticipants && existingParticipantReportID !== activePolicyExpenseChat?.reportID;
+            const firstParticipant = transaction?.participants?.at(0);
+            
+            // Check if user manually selected a recipient different from default workspace
+            const hasManuallySelectedParticipant = transaction?.participantsAutoAssigned === false || 
+                (firstParticipant && (
+                    (firstParticipant.reportID && firstParticipant.reportID !== activePolicyExpenseChat?.reportID) ||
+                    (firstParticipant.accountID && !firstParticipant.isPolicyExpenseChat)
+                ));
 
-            if (shouldKeepExistingParticipants) {
-                // Navigate with manually selected participants
+            if (hasManuallySelectedParticipant) {
+                const targetReportID = firstParticipant?.reportID ?? transaction?.reportID ?? generateReportID();
+                
+                if (!firstParticipant?.reportID && targetReportID) {
+                    setTransactionReport(transactionID, {reportID: targetReportID}, true);
+                }
+                
+                // Self DM uses TRACK, all others use SUBMIT
+                const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
+                const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+                
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            transactionID,
-                            existingParticipantReportID,
-                        ),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, targetReportID),
                     );
                 });
             } else {
-                // Use default workspace participants
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            transactionID,
-                            activePolicyExpenseChat?.reportID,
-                        ),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID),
                     );
                 });
             }
