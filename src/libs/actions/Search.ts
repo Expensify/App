@@ -25,6 +25,7 @@ import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
+    generateReportID,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -582,8 +583,10 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
     });
 
     Object.entries(transactionsByReport).forEach(([reportID, reportTransactionIDs]) => {
+        // Share a single destination ID across all rejections from the same source report
+        const sharedRejectedToReportID = generateReportID();
         reportTransactionIDs.forEach((transactionID) => {
-            rejectMoneyRequest(transactionID, reportID, comment);
+            rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
         });
     });
 
