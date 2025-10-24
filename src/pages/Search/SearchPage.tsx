@@ -401,7 +401,6 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowSubmitOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
