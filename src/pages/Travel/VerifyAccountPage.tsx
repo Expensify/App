@@ -25,7 +25,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     return (
         <VerifyAccountPageBase
-            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
+            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS.getRoute(route.params.policyID)}
             navigateForwardTo={navigateForwardTo}
         />
     );

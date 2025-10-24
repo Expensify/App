@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, TravelSettings} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -1562,6 +1562,35 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
     return admins.some((admin) => admin.email === memberEmail);
 }
 
+/**
+ * Determines which travel display component should be shown based on policy state
+ */
+function getTravelDisplayComponent(
+    policy: OnyxEntry<Policy>,
+    travelSettings: TravelSettings | undefined,
+    isTravelVerifiedBetaEnabled: boolean,
+    policies: OnyxCollection<Policy>,
+    currentUserLogin: string | undefined,
+): 'GetStartedTravel' | 'BookOrManageYourTrip' | 'ReviewingRequest' {
+    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
+    const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+
+    const adminDomains = getAdminsPrivateEmailDomains(policy);
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPaidPolicies = activePolicies.filter(isPaidGroupPolicy);
+
+    if (adminDomains.length === 0 || groupPaidPolicies.length < 1 || !isPaidGroupPolicy(policy)) {
+        return 'GetStartedTravel';
+    }
+    if (hasAcceptedTerms) {
+        return 'BookOrManageYourTrip';
+    }
+    if (!isPolicyProvisioned && !isTravelVerifiedBetaEnabled) {
+        return 'ReviewingRequest';
+    }
+    return 'GetStartedTravel';
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1719,6 +1748,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getTravelDisplayComponent,
 };
 
 export type {MemberEmailsToAccountIDs};
