@@ -6595,17 +6595,16 @@ ${merchant}的${amount} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
         receiptNotSmartScanned: '收据和费用详情手动添加。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = '需要收据';
-            if (formattedLimit ?? category) {
-                message += '结束';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += '类别限制';
-                }
+            if (formattedLimit && category) {
+                return `超过${formattedLimit}的类别限额需提供收据`;
             }
-            return message;
+            if (formattedLimit) {
+                return `超过${formattedLimit}需要收据`;
+            }
+            if (category) {
+                return `超过类别限额需要收据`;
+            }
+            return '需要收据';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止的费用：';

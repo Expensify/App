@@ -6731,17 +6731,16 @@ ${amount} voor ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned: 'Bon en uitgavendetails handmatig toegevoegd.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Bon vereist';
-            if (formattedLimit ?? category) {
-                message += 'over';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'categorie limiet';
-                }
+            if (formattedLimit && category) {
+                return `Bon vereist boven de categorialimiet van ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Bon vereist boven ${formattedLimit}`;
+            }
+            if (category) {
+                return `Bon vereist bij overschrijding van categorielimiet`;
+            }
+            return 'Bon vereist';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';

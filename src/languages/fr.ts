@@ -6741,17 +6741,16 @@ ${amount} pour ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned: 'Reçu et détails de la dépense ajoutés manuellement.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Reçu requis';
-            if (formattedLimit ?? category) {
-                message += 'terminé';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'limite de catégorie';
-                }
+            if (formattedLimit && category) {
+                return `Reçu requis au-delà de la limite de catégorie de ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Reçu requis au-delà de ${formattedLimit}`;
+            }
+            if (category) {
+                return `Reçu requis au-delà de la limite de catégorie`;
+            }
+            return 'Reçu requis';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';

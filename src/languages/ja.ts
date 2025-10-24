@@ -6681,17 +6681,16 @@ ${date} - ${merchant}に${amount}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
         receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = '領収書が必要です';
-            if (formattedLimit ?? category) {
-                message += '終了';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'カテゴリ制限';
-                }
+            if (formattedLimit && category) {
+                return `カテゴリ上限 ${formattedLimit} を超える場合は領収書が必要`;
             }
-            return message;
+            if (formattedLimit) {
+                return `${formattedLimit}を超える場合は領収書が必要`;
+            }
+            if (category) {
+                return `カテゴリ上限超過で領収書が必要`;
+            }
+            return '領収書が必要';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
