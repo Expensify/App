@@ -426,6 +426,42 @@ function MoneyRequestConfirmationList({
     const isSplitModified = transaction?.splitShares && Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
 
     // ================================================================================================
+    // Derived Values - Button Contents
+    // ================================================================================================
+    let buttonText: string;
+    if (expensesNumber > 1) {
+        buttonText = translate('iou.createExpenses', {expensesNumber});
+    } else if (isTypeInvoice) {
+        if (hasInvoicingDetails(policy)) {
+            buttonText = translate('iou.sendInvoice', {amount: formattedAmount});
+        } else {
+            buttonText = translate('common.next');
+        }
+    } else if (isTypeTrackExpense) {
+        buttonText = translate('iou.createExpense');
+        if (iouAmount !== 0) {
+            buttonText = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+        }
+    } else if (isTypeSplit && iouAmount === 0) {
+        buttonText = translate('iou.splitExpense');
+    } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
+        buttonText = translate('iou.createExpense');
+        if (iouAmount !== 0) {
+            buttonText = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+        }
+    } else {
+        const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
+        buttonText = translate(translationKey, {amount: formattedAmount});
+    }
+
+    const dropdownButtonOptions: Array<DropdownOption<string>> = [
+        {
+            text: buttonText[0].toUpperCase() + buttonText.slice(1),
+            value: iouType,
+        },
+    ];
+
+    // ================================================================================================
     // Derived Values - Section Headers & List Structure
     // ================================================================================================
     let sections: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
@@ -868,57 +904,6 @@ function MoneyRequestConfirmationList({
     };
 
     // ================================================================================================
-    // Memoized Values - Button Options & Errors
-    // ================================================================================================
-    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
-        let text;
-        if (expensesNumber > 1) {
-            text = translate('iou.createExpenses', {expensesNumber});
-        } else if (isTypeInvoice) {
-            if (hasInvoicingDetails(policy)) {
-                text = translate('iou.sendInvoice', {amount: formattedAmount});
-            } else {
-                text = translate('common.next');
-            }
-        } else if (isTypeTrackExpense) {
-            text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
-                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
-            }
-        } else if (isTypeSplit && iouAmount === 0) {
-            text = translate('iou.splitExpense');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
-            text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
-                text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
-            }
-        } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
-            text = translate(translationKey, {amount: formattedAmount});
-        }
-        return [
-            {
-                text: text[0].toUpperCase() + text.slice(1),
-                value: iouType,
-            },
-        ];
-    }, [
-        isTypeInvoice,
-        isTypeTrackExpense,
-        isTypeSplit,
-        expensesNumber,
-        iouAmount,
-        receiptPath,
-        isTypeRequest,
-        isDistanceRequestWithPendingRoute,
-        isPerDiemRequest,
-        iouType,
-        policy,
-        translate,
-        formattedAmount,
-    ]);
-
-    // ================================================================================================
     // Render Content - Footer & List Footer
     // ================================================================================================
     const footerContent = useMemo(() => {
@@ -976,7 +961,7 @@ function MoneyRequestConfirmationList({
                         <ButtonWithDropdownMenu
                             pressOnEnter
                             onPress={(event, value) => confirm(value as PaymentMethodType)}
-                            options={splitOrRequestOptions}
+                            options={dropdownButtonOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}
                             useKeyboardShortcuts
@@ -1007,7 +992,7 @@ function MoneyRequestConfirmationList({
         iouCurrencyCode,
         policyID,
         isConfirmed,
-        splitOrRequestOptions,
+        dropdownButtonOptions,
         errorMessage,
         expensesNumber,
         translate,
