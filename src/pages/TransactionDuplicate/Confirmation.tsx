@@ -42,7 +42,8 @@ function Confirmation() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
-    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
+    const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`, {canBeMissing: true});
+    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});

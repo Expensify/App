@@ -77,10 +77,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
     const policy = usePolicy(report?.policyID);
-    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
+    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;

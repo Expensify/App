@@ -7035,7 +7035,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            initSplitExpense(allTransactions, allReports, transaction);
+            initSplitExpense(allTransactions, allReports, transaction, {} as Transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7078,7 +7078,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            initSplitExpense(allTransactions, allReports, transaction);
+            initSplitExpense(allTransactions, allReports, transaction, {} as Transaction);
             await waitForBatchedUpdates();
 
             expect(transaction).toBeFalsy();
@@ -7119,7 +7119,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            initSplitExpense(allTransactions, allReports, transaction);
+            initSplitExpense(allTransactions, allReports, transaction, {} as Transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
