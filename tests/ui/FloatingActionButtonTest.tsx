@@ -1,5 +1,5 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import FloatingActionButton from '@components/FloatingActionButton';
 import colors from '@styles/theme/colors';
@@ -45,6 +45,11 @@ describe('FloatingActionButton hover', () => {
                 />
             </NavigationContainer>,
         );
+
+    afterEach(() => {
+        cleanup();
+        jest.clearAllMocks();
+    });
 
     it('changes background color on hover', () => {
         renderFAB();
