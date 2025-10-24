@@ -99,9 +99,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         onSelectionChange: (newSelectedOptions) => {
             const newAttendees: Attendee[] = newSelectedOptions.map((option) => ({
                 accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                login: option.login ?? option.text,
-                email: option.login ?? option.text ?? '',
-                displayName: option.text ?? '',
+                login: option.login,
+                email: option.login ?? '',
+                displayName: option.displayName ?? option.text ?? option.login ?? '',
                 selected: true,
                 searchText: option.searchText,
                 avatarUrl: option.avatarUrl ?? '',
