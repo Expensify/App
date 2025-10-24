@@ -179,8 +179,8 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the input from gaining focus before the animation finishes,
-        // which would cause the wide RHP to flicker in the background while the modal with validation slides out over it.
+        // Delay prevents the input from gaining focus before the RHP slide out animation finishes,
+        // which would cause the wide RHP to flicker in the background.
         if (wideRHPRouteKeys.length > 0 && !isMobileSafari()) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
