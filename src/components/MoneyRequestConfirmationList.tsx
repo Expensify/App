@@ -35,7 +35,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -475,16 +475,35 @@ function MoneyRequestConfirmationList({
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
-    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
-    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID) {
+        if (!shouldShowTax || !transaction) {
             return;
         }
-        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
+
+        let taxableAmount: number | undefined;
+        let taxCode: string | undefined;
+        if (isDistanceRequest) {
+            if (customUnitRateID) {
+                const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+                taxCode = customUnitRate?.attributes?.taxRateExternalID;
+                taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
+            }
+        } else {
+            taxableAmount = transaction.amount ?? 0;
+            taxCode = transaction.taxCode ?? getDefaultTaxCode(policy, transaction) ?? '';
+        }
+
+        if (taxCode && taxableAmount) {
+            const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+            const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
+            const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+
+            // Only update if the calculated tax amount is different from the current one
+            if (transaction.taxAmount !== taxAmountInSmallestCurrencyUnits) {
+                setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
+            }
+        }
+    }, [policy, shouldShowTax, transaction, isDistanceRequest, customUnitRateID, distance]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -945,7 +964,6 @@ function MoneyRequestConfirmationList({
             routeError,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
-            setDidConfirmSplit,
         ],
     );
 
