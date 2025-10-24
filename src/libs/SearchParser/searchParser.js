@@ -382,7 +382,8 @@ function peg$parse(input, options) {
         if (entry.filter && entry.filter.right) {
           if (entry.filter.left === "keyword") {
             const values = Array.isArray(entry.filter.right) ? entry.filter.right : [entry.filter.right];
-            keywordValues.push(...values);
+            const sanitizedValues = values.map((value) => (typeof value === "string" ? value.replace(/^(['"])(.*)\1$/, "$2") : value));
+            keywordValues.push(...sanitizedValues);
           } else {
             filters.push(entry.filter);
           }
