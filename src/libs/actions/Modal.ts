@@ -97,12 +97,4 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-/**
- * Updates whether the user has denied the contact import prompt.
- * This is used to prevent showing the prompt again after the user has explicitly denied it.
- */
-function setHasDeniedContactImportPrompt(value: boolean) {
-    Onyx.set(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT, value);
-}
-
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden, setHasDeniedContactImportPrompt};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};

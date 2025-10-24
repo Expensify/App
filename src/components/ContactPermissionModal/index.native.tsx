@@ -6,7 +6,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setHasDeniedContactImportPrompt} from '@libs/actions/Modal';
+import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ContactPermissionModalProps} from './types';
