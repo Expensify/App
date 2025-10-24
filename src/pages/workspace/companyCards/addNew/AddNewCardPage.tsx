@@ -1,13 +1,16 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -34,6 +37,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const {translate} = useLocalize();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
@@ -98,7 +103,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <AmexCustomFeed />;
             break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = <PlaidConnectionStep />;
+            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <StatementCloseDateStep policyID={policyID} />;
@@ -112,12 +117,27 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <View
-            style={styles.flex1}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
-        >
-            {CurrentStep}
-        </View>
+        <>
+            <View
+                style={styles.flex1}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
+                {CurrentStep}
+            </View>
+            <ConfirmModal
+                isVisible={isModalVisible}
+                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
+                success
+                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
+                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
+                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
+                onCancel={() => setIsModalVisible(false)}
+                onConfirm={() => {
+                    setIsModalVisible(false);
+                    navigateToConciergeChat();
+                }}
+            />
+        </>
     );
 }
 
