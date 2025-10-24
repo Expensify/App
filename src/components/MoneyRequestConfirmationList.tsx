@@ -332,19 +332,27 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
+    const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
+    const previousTransactionModifiedCurrency = usePrevious(transaction?.modifiedCurrency);
+    const previousCustomUnitRateID = usePrevious(customUnitRateID);
     useEffect(() => {
-        // Set the default tax code when conditions change
-        if (!shouldShowTax || !transaction || !transactionID) {
+        // previousTransaction is in the condition because if it is falsy, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
+        // tax even if the other parameters are the same against their previous values.
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            !transactionID ||
+            (transaction.taxCode &&
+                previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID)
+        ) {
             return;
         }
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        const currentTaxCode = transaction.taxCode ?? '';
-
-        // Update tax code if it's different from what should be the default
-        if (defaultTaxCode !== currentTaxCode) {
-            setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
-        }
-    }, [customUnitRateID, policy, shouldShowTax, transaction, transactionID]);
+        setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+    }, [customUnitRateID, policy, previousCustomUnitRateID, previousTransactionCurrency, previousTransactionModifiedCurrency, shouldShowTax, transaction, transactionID]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
@@ -479,9 +487,19 @@ function MoneyRequestConfirmationList({
         }
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
+    const previousTaxCode = usePrevious(transaction?.taxCode);
+
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        if (!shouldShowTax || !transaction) {
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxAmount !== undefined &&
+                previousTransactionAmount === transaction.amount &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID &&
+                previousTaxCode === transaction.taxCode)
+        ) {
             return;
         }
 
@@ -502,13 +520,20 @@ function MoneyRequestConfirmationList({
             const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
             const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
             const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-
-            // Only update if the calculated tax amount is different from the current one
-            if (transaction.taxAmount !== taxAmountInSmallestCurrencyUnits) {
-                setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
-            }
+            setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
-    }, [policy, shouldShowTax, transaction, isDistanceRequest, customUnitRateID, distance]);
+    }, [
+        policy,
+        shouldShowTax,
+        previousTransactionAmount,
+        previousTransactionCurrency,
+        transaction,
+        isDistanceRequest,
+        customUnitRateID,
+        previousCustomUnitRateID,
+        previousTaxCode,
+        distance,
+    ]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
