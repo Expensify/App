@@ -52,9 +52,9 @@ function TestDriveDemo() {
                 viewTourTaskParentReport,
                 isViewTourTaskParentReportArchived,
                 currentUserPersonalDetails.accountID,
-                false,
                 hasOutstandingChildTask,
                 parentReportAction,
+                false,
             );
         });
 

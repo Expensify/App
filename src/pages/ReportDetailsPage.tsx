@@ -837,6 +837,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
+        currentUserPersonalDetails.accountID, 
+        hasOutstandingChildTask,
+        parentReportAction,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not

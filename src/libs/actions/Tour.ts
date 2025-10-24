@@ -35,9 +35,9 @@ function startTestDrive(
                 viewTourTaskParentReport,
                 isViewTourTaskParentReportArchived,
                 currentUserAccountID,
-                shouldUpdateSelfTourViewedOnlyLocally,
                 hasOutstandingChildTask,
                 parentReportAction,
+                shouldUpdateSelfTourViewedOnlyLocally,
             );
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
         } else {

@@ -1289,9 +1289,9 @@ function completeTestDriveTask(
     viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
     isViewTourTaskParentReportArchived: boolean,
     currentUserAccountID: number,
-    shouldUpdateSelfTourViewedOnlyLocally = false,
     hasOutstandingChildTask: boolean,
     parentReportAction?: OnyxEntry<ReportAction>,
+    shouldUpdateSelfTourViewedOnlyLocally = false,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
     getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, hasOutstandingChildTask, parentReportAction);

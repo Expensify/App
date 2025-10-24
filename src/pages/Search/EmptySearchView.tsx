@@ -482,6 +482,8 @@ function EmptySearchViewContent({
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
+        hasOutstandingChildTask,
+        parentReportAction,
     ]);
 
     return (

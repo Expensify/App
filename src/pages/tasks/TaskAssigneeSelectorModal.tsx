@@ -186,7 +186,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

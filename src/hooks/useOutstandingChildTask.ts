@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -33,7 +33,7 @@ function useOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
                 reportAction.childType === CONST.REPORT.TYPE.TASK &&
                 reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
                 reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-                !ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
+                !getReportActionMessage(reportAction)?.isDeletedParentAction
             ) {
                 return true;
             }
