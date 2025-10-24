@@ -27,6 +27,7 @@ import {
     getTaxByID,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -1156,6 +1157,10 @@ function shouldShowViolation(
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
+
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY) {
+        return isPaidGroupPolicy(policy);
+    }
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
