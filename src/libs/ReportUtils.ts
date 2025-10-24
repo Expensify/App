@@ -1191,7 +1191,12 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[], fallbackReport?: Report, reportDrafts?: OnyxCollection<Report>): OnyxEntry<Report> | SearchReport {
+function getReportOrDraftReport(
+    reportID: string | undefined,
+    searchReports?: SearchReport[],
+    fallbackReport?: Report,
+    reportDrafts?: OnyxCollection<Report>,
+): OnyxEntry<Report> | SearchReport {
     const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
