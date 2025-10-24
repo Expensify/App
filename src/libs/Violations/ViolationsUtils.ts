@@ -619,7 +619,13 @@ const ViolationsUtils = {
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
      */
-    hasVisibleViolationsForUser(report: OnyxEntry<Report>, violations: OnyxCollection<TransactionViolation[]>, policy?: OnyxEntry<Policy>, transactions?: Transaction[]): boolean {
+    hasVisibleViolationsForUser(
+        report: OnyxEntry<Report>,
+        violations: OnyxCollection<TransactionViolation[]>,
+        currentUserEmail: string,
+        policy?: OnyxEntry<Policy>,
+        transactions?: Transaction[],
+    ): boolean {
         if (!report || !violations || !transactions) {
             return false;
         }
@@ -633,7 +639,7 @@ const ViolationsUtils = {
 
             // Check if any violation should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return shouldShowViolation(report, policy, violation.name);
+                return shouldShowViolation(report, policy, violation.name, currentUserEmail);
             });
         });
     },
