@@ -10,6 +10,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -127,7 +128,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
     });
 
@@ -216,6 +217,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -227,9 +229,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
@@ -242,6 +245,7 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -249,6 +253,7 @@ function getDatePassedError(inputDate: string): string {
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 

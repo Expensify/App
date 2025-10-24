@@ -3,11 +3,11 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Wrapper component with OnyxListItemProvider
@@ -121,7 +121,8 @@ describe('EmptySearchView', () => {
 
                 // Given a query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -134,6 +135,7 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );
@@ -155,7 +157,8 @@ describe('EmptySearchView', () => {
 
                 // Given: A query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -168,6 +171,7 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );

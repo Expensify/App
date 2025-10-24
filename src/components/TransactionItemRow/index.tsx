@@ -78,6 +78,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** Report to which the transaction belongs */
+    report?: Report;
 };
 
 type TransactionItemRowProps = {

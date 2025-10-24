@@ -270,7 +270,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, session, navigateBackTo)}
+                                onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

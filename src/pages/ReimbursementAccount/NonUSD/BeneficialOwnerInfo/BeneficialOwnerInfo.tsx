@@ -286,6 +286,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
+            shouldShowOfflineIndicatorInWideScreen={currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST}
             startStepIndex={3}
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (

@@ -39,6 +39,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -124,6 +125,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         action,
         isPaidGroupPolicy,
         searchTerm,
+        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -251,7 +253,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
+                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
                 newSelectedOptions = [
                     ...attendees,
                     {
