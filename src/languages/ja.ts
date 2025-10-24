@@ -801,6 +801,11 @@ const translations = {
         findMember: 'メンバーを見つける',
         searchForSomeone: '誰かを検索',
     },
+    customApprovalWorkflow: {
+        title: 'カスタム承認ワークフロー',
+        description: 'お客様の会社では、このワークスペースにカスタム承認ワークフローがあります。Expensify Classicでこの操作を実行してください',
+        goToExpensifyClassic: 'Expensify Classicに切り替える',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '経費を提出し、上司に紹介する',
@@ -5687,7 +5692,7 @@ ${date} - ${merchant}に${amount}`,
             chatWithYourAdmin: '管理者とチャットする',
             chatInAdmins: '#adminsでチャットする',
             addPaymentCard: '支払いカードを追加',
-            goToSubscriptions: 'サブスクリプションに移動',
+            goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
             individualExpenseRules: {
@@ -6356,6 +6361,7 @@ ${date} - ${merchant}に${amount}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポートの名前変更中に予期しないエラーが発生しました。後でもう一度お試しください。',
         noActivityYet: 'まだ活動がありません',
+        connectionSettings: '接続設定',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に変更しました（以前は"${oldValue}"でした）`,
@@ -6428,6 +6434,9 @@ ${date} - ${merchant}に${amount}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} への接続を削除しました。`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}に接続しました`,
                 leftTheChat: 'チャットを退出しました',
+            },
+            error: {
+                invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
             },
         },
     },
@@ -6715,7 +6724,8 @@ ${date} - ${merchant}に${amount}`,
             return '';
         },
         brokenConnection530Error: '銀行接続の不具合により領収書が保留中です。',
-        adminBrokenConnectionError: '銀行接続の不具合により領収書が保留されています。で解決してください。',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>銀行接続の問題により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社のカード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行接続が壊れているため、領収書が保留中です。ワークスペース管理者に解決を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true}) => `領収書のスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,

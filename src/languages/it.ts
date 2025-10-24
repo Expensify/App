@@ -800,6 +800,11 @@ const translations = {
         findMember: 'Trova un membro',
         searchForSomeone: 'Cerca qualcuno',
     },
+    customApprovalWorkflow: {
+        title: 'Flusso di approvazione personalizzato',
+        description: 'La tua azienda ha un flusso di approvazione personalizzato su questo spazio di lavoro. Esegui questa azione in Expensify Classic',
+        goToExpensifyClassic: 'Passa a Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Invia una spesa, riferisci al tuo capo',
@@ -5741,7 +5746,7 @@ ${amount} per ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chatta con il tuo amministratore',
             chatInAdmins: 'Chatta in #admins',
             addPaymentCard: 'Aggiungi carta di pagamento',
-            goToSubscriptions: 'Vai agli abbonamenti',
+            goToSubscription: "Vai all'abbonamento",
         },
         rules: {
             individualExpenseRules: {
@@ -6421,6 +6426,7 @@ ${amount} per ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Si prega di riprovare più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del rapporto. Per favore riprova più tardi.',
         noActivityYet: 'Nessuna attività ancora',
+        connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (precedentemente "${oldValue}")`,
@@ -6493,6 +6499,9 @@ ${amount} per ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `rimosso il collegamento a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
+            },
+            error: {
+                invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',
             },
         },
     },
@@ -6783,7 +6792,8 @@ ${amount} per ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta',
-        adminBrokenConnectionError: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta. Si prega di risolvere in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Ricevuta in sospeso a causa di una connessione bancaria interrotta. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ricevuta in sospeso a causa di una connessione bancaria interrotta. Si prega di chiedere a un amministratore dello spazio di lavoro di risolvere.',
         markAsCashToIgnore: 'Segna come contante per ignorare e richiedere il pagamento.',
         smartscanFailed: ({canEdit = true}) => `Scansione della ricevuta fallita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`,

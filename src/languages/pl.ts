@@ -800,6 +800,11 @@ const translations = {
         findMember: 'Znajdź członka',
         searchForSomeone: 'Wyszukaj kogoś',
     },
+    customApprovalWorkflow: {
+        title: 'Niestandardowy przepływ zatwierdzania',
+        description: 'Twoja firma ma niestandardowy przepływ zatwierdzania w tym obszarze roboczym. Wykonaj tę czynność w Expensify Classic',
+        goToExpensifyClassic: 'Przełącz na Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Złóż wydatek, poleć swojego szefa',
@@ -5719,7 +5724,7 @@ ${amount} dla ${merchant} - ${date}`,
             chatWithYourAdmin: 'Porozmawiaj ze swoim administratorem',
             chatInAdmins: 'Czat w #admins',
             addPaymentCard: 'Dodaj kartę płatniczą',
-            goToSubscriptions: 'Przejdź do subskrypcji',
+            goToSubscription: 'Przejdź do subskrypcji',
         },
         rules: {
             individualExpenseRules: {
@@ -6392,6 +6397,7 @@ ${amount} dla ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizacji pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Proszę spróbować ponownie później.',
         noActivityYet: 'Brak aktywności',
+        connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmienił ${fieldName} na "${newValue}" (wcześniej "${oldValue}")`,
@@ -6464,6 +6470,9 @@ ${amount} dla ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `usunięto połączenie z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'opuścił czat',
+            },
+            error: {
+                invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację połączenia.',
             },
         },
     },
@@ -6754,7 +6763,8 @@ ${amount} dla ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem',
-        adminBrokenConnectionError: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem. Proszę rozwiązać w',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Paragon oczekuje z powodu zerwanego połączenia bankowego. Rozwiąż problem w <a href="${workspaceCompanyCardRoute}">Kartach firmowych</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Proszę poprosić administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i zażądać płatności.',
         smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wprowadź dane ręcznie.' : ''}`,

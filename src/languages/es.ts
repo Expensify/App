@@ -778,6 +778,11 @@ const translations = {
         findMember: 'Encuentra un miembro',
         searchForSomeone: 'Busca a alguien',
     },
+    customApprovalWorkflow: {
+        title: 'Flujo de aprobación personalizado',
+        description: 'Tu empresa tiene un flujo de aprobación personalizado en este espacio de trabajo. Por favor, realiza esta acción en Expensify Classic',
+        goToExpensifyClassic: 'Cambiar a Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Presenta un gasto, recomienda a tu jefe',
@@ -5732,7 +5737,7 @@ ${amount} para ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chatea con tu administrador',
             chatInAdmins: 'Chatea en #admins',
             addPaymentCard: 'Agregar tarjeta de pago',
-            goToSubscriptions: 'Ir a Suscripciones',
+            goToSubscription: 'Ir a Suscripción',
         },
         rules: {
             individualExpenseRules: {
@@ -6394,6 +6399,7 @@ ${amount} para ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
@@ -6468,6 +6474,9 @@ ${amount} para ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'salió del chat',
+            },
+            error: {
+                invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',
             },
         },
     },
@@ -7220,7 +7229,8 @@ ${amount} para ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
-        adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,

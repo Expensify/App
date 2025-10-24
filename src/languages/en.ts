@@ -791,6 +791,11 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
     },
+    customApprovalWorkflow: {
+        title: 'Custom approval workflow',
+        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Submit an expense, refer your boss',
@@ -5695,7 +5700,7 @@ const translations = {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
-            goToSubscriptions: 'Go to Subscriptions',
+            goToSubscription: 'Go to Subscription',
         },
         rules: {
             individualExpenseRules: {
@@ -6370,6 +6375,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        connectionSettings: 'Connection Settings',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
@@ -6439,6 +6445,9 @@ const translations = {
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'left the chat',
+            },
+            error: {
+                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
             },
         },
     },
@@ -6728,7 +6737,8 @@ const translations = {
             return '';
         },
         brokenConnection530Error: 'Receipt pending due to broken bank connection',
-        adminBrokenConnectionError: 'Receipt pending due to broken bank connection. Please resolve in ',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,

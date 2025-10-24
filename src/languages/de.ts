@@ -802,6 +802,11 @@ const translations = {
         findMember: 'Mitglied finden',
         searchForSomeone: 'Suche nach jemandem',
     },
+    customApprovalWorkflow: {
+        title: 'Benutzerdefinierter Genehmigungsworkflow',
+        description: 'Ihr Unternehmen hat einen benutzerdefinierten Genehmigungsworkflow für diesen Arbeitsbereich. Bitte führen Sie diese Aktion in Expensify Classic aus',
+        goToExpensifyClassic: 'Zu Expensify Classic wechseln',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
@@ -5732,7 +5737,7 @@ ${amount} für ${merchant} - ${date}`,
             chatWithYourAdmin: 'Mit Ihrem Administrator chatten',
             chatInAdmins: 'Im #admins chatten',
             addPaymentCard: 'Zahlungskarte hinzufügen',
-            goToSubscriptions: 'Zu den Abonnements',
+            goToSubscription: 'Zum Abonnement',
         },
         rules: {
             individualExpenseRules: {
@@ -6409,6 +6414,7 @@ ${amount} für ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Unerwarteter Fehler beim Aktualisieren des Feldes. Bitte versuchen Sie es später erneut.',
         genericUpdateReportNameEditFailureMessage: 'Unerwarteter Fehler beim Umbenennen des Berichts. Bitte versuchen Sie es später erneut.',
         noActivityYet: 'Noch keine Aktivität',
+        connectionSettings: 'Verbindungseinstellungen',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} in "${newValue}" geändert (zuvor "${oldValue}")`,
@@ -6481,6 +6487,9 @@ ${amount} für ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `Verbindung zu ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} entfernt`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbunden mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'hat den Chat verlassen',
+            },
+            error: {
+                invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
             },
         },
     },
@@ -6773,7 +6782,8 @@ ${amount} für ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung',
-        adminBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte beheben in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte beheben Sie dies unter <a href="${workspaceCompanyCardRoute}">Firmenkarten</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte bitten Sie einen Workspace-Administrator, das Problem zu lösen.',
         markAsCashToIgnore: 'Als Barzahlung markieren, um zu ignorieren und Zahlung anzufordern.',
         smartscanFailed: ({canEdit = true}) => `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`,

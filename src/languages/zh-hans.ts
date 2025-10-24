@@ -800,6 +800,11 @@ const translations = {
         findMember: '查找成员',
         searchForSomeone: '搜索某人',
     },
+    customApprovalWorkflow: {
+        title: '自定义审批工作流',
+        description: '您的公司在此工作区有自定义审批工作流，请在Expensify Classic中执行此操作',
+        goToExpensifyClassic: '切换到Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '提交报销，推荐给您的老板',
@@ -5621,7 +5626,7 @@ ${merchant}的${amount} - ${date}`,
             chatWithYourAdmin: '与您的管理员聊天',
             chatInAdmins: '在#admins中聊天',
             addPaymentCard: '添加支付卡',
-            goToSubscriptions: '前往订阅',
+            goToSubscription: '前往订阅',
         },
         rules: {
             individualExpenseRules: {
@@ -6276,6 +6281,7 @@ ${merchant}的${amount} - ${date}`,
         genericUpdateReportFieldFailureMessage: '更新字段时出现意外错误。请稍后再试。',
         genericUpdateReportNameEditFailureMessage: '重命名报告时出现意外错误。请稍后再试。',
         noActivityYet: '暂无活动',
+        connectionSettings: '连接设置',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
@@ -6344,6 +6350,9 @@ ${merchant}的${amount} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}的连接`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '离开了聊天',
+            },
+            error: {
+                invalidCredentials: '凭证无效，请检查您的连接配置。',
             },
         },
     },
@@ -6629,7 +6638,8 @@ ${merchant}的${amount} - ${date}`,
             return '';
         },
         brokenConnection530Error: '由于银行连接中断，收据待处理',
-        adminBrokenConnectionError: '由于银行连接中断，收据待处理。请在',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>由于银行连接中断，收据正在等待处理中。请前往 <a href="${workspaceCompanyCardRoute}">公司卡</a> 解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据待处理。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true}) => `扫描收据失败。${canEdit ? '手动输入详细信息。' : ''}`,

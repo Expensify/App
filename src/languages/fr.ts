@@ -803,6 +803,11 @@ const translations = {
         findMember: 'Trouver un membre',
         searchForSomeone: "Rechercher quelqu'un",
     },
+    customApprovalWorkflow: {
+        title: "Flux d'approbation personnalisé",
+        description: "Votre entreprise dispose d'un flux d'approbation personnalisé sur cet espace de travail. Veuillez effectuer cette action dans Expensify Classic",
+        goToExpensifyClassic: 'Passer à Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Soumettre une dépense, référer votre patron',
@@ -5738,7 +5743,7 @@ ${amount} pour ${merchant} - ${date}`,
             chatWithYourAdmin: 'Discutez avec votre administrateur',
             chatInAdmins: 'Discuter dans #admins',
             addPaymentCard: 'Ajouter une carte de paiement',
-            goToSubscriptions: 'Aller aux abonnements',
+            goToSubscription: "Accéder à l'abonnement",
         },
         rules: {
             individualExpenseRules: {
@@ -6415,6 +6420,7 @@ ${amount} pour ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage du rapport. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en "${newValue}" (auparavant "${oldValue}")`,
@@ -6487,6 +6493,9 @@ ${amount} pour ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `connexion supprimée vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté le chat',
+            },
+            error: {
+                invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
             },
         },
     },
@@ -6777,7 +6786,8 @@ ${amount} pour ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: "Reçu en attente en raison d'une connexion bancaire interrompue",
-        adminBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défaillante. Veuillez résoudre dans",
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Reçu en attente en raison d'une connexion bancaire rompue. Veuillez résoudre ce problème dans <a href="${workspaceCompanyCardRoute}">Cartes d'entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: "Reçu en attente en raison d'une connexion bancaire défectueuse. Veuillez demander à un administrateur de l'espace de travail de résoudre le problème.",
         markAsCashToIgnore: 'Marquer comme espèce pour ignorer et demander un paiement.',
         smartscanFailed: ({canEdit = true}) => `Échec de la numérisation du reçu.${canEdit ? 'Saisir les détails manuellement.' : ''}`,

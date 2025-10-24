@@ -799,6 +799,11 @@ const translations = {
         findMember: 'Zoek een lid',
         searchForSomeone: 'Zoek iemand',
     },
+    customApprovalWorkflow: {
+        title: 'Aangepaste goedkeuringsworkflow',
+        description: 'Uw bedrijf heeft een aangepaste goedkeuringsworkflow voor deze werkruimte. Voer deze actie uit in Expensify Classic',
+        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Dien een uitgave in, verwijs uw baas',
@@ -5729,7 +5734,7 @@ ${amount} voor ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chat met je beheerder',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Betaalpas toevoegen',
-            goToSubscriptions: 'Ga naar abonnementen',
+            goToSubscription: 'Ga naar het abonnement',
         },
         rules: {
             individualExpenseRules: {
@@ -6405,6 +6410,7 @@ ${amount} voor ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `heeft ${fieldName} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
@@ -6477,6 +6483,9 @@ ${amount} voor ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `verwijderde verbinding met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
+            },
+            error: {
+                invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van uw verbinding.',
             },
         },
     },
@@ -6767,7 +6776,8 @@ ${amount} voor ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Ontvangst in behandeling vanwege verbroken bankverbinding',
-        adminBrokenConnectionError: 'Ontvangst in afwachting vanwege verbroken bankverbinding. Los dit alstublieft op in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Bon in afwachting vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ontvangst in afwachting vanwege een verbroken bankverbinding. Vraag een werkruimtebeheerder om het op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
         smartscanFailed: ({canEdit = true}) => `Bonnetjes scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
