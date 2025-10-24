@@ -249,13 +249,13 @@ function SearchFiltersBar({
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {basePositionInfo: queryJSON.positionInfo});
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
                 Navigation.setParams({q: queryString});
             });
         },
-        [filterFormValues, queryJSON.positionInfo],
+        [filterFormValues],
     );
 
     const openAdvancedFilters = useCallback(() => {
