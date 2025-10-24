@@ -36,7 +36,6 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
-    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
@@ -109,7 +108,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return true;
     }
 
-    return requiresManualSubmission(report, policy) && baseIsSubmit;
+    return baseIsSubmit;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
