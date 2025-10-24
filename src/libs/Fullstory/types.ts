@@ -48,6 +48,11 @@ type Fullstory = {
     onReady: () => Promise<unknown>;
 
     /**
+     * Whether Fullstory should be initialized.
+     */
+    shouldInitialize: (userMetadata: UserMetadata, envName: string) => boolean;
+
+    /**
      * Sets the identity consent status using the Fullstory library.
      */
     consent: (shouldConsent: boolean) => void;

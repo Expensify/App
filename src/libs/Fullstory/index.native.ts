@@ -14,6 +14,15 @@ const FS: Fullstory = {
 
     onReady: () => Promise.resolve(),
 
+    shouldInitialize: (userMetadata, envName) => {
+        const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+        if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
+            return false;
+        }
+
+        return true;
+    },
+
     consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
     identify: (userMetadata, envName) => {
@@ -34,10 +43,10 @@ const FS: Fullstory = {
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
-                const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
+                if (!FS.shouldInitialize(userMetadata, envName)) {
                     return;
                 }
+
                 FullStory.restart();
                 FullStory.consent(true);
                 FS.identify(userMetadata, envName);

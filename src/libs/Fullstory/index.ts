@@ -33,6 +33,15 @@ const FS: Fullstory = {
             }
         }),
 
+    shouldInitialize: (userMetadata, envName) => {
+        const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+        if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME || Session.isSupportAuthToken()) {
+            return false;
+        }
+
+        return true;
+    },
+
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 
     identify: (userMetadata) => {
@@ -53,14 +62,13 @@ const FS: Fullstory = {
         if (!userMetadata?.accountID) {
             return;
         }
+
         try {
+            // We only use FullStory in production environment. We need to check this here
+            // after the init function since this function is also called on updates for
+            // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
-                const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if (
-                    (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) ||
-                    Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME ||
-                    Session.isSupportAuthToken()
-                ) {
+                if (!FS.shouldInitialize(userMetadata, envName)) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     if (isInitialized()) {
                         FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
