@@ -126,7 +126,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID, playVideo} = usePlaybackContext();
+    const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
@@ -145,11 +145,12 @@ function AttachmentView({
         if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentURLAndReportID(isVideo && typeof source === 'string' ? source : undefined, reportID);
-        if (isVideo && typeof source === 'string') {
+        const videoSource = isVideo && typeof source === 'string' ? source : undefined;
+        updateCurrentURLAndReportID(videoSource, reportID);
+        if (videoSource && currentlyPlayingURL === videoSource) {
             playVideo();
         }
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo]);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
 

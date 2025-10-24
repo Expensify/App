@@ -237,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -674,6 +675,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        domains: 'Domänen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -799,6 +801,11 @@ const translations = {
         nameEmailOrPhoneNumber: 'Name, E-Mail oder Telefonnummer',
         findMember: 'Mitglied finden',
         searchForSomeone: 'Suche nach jemandem',
+    },
+    customApprovalWorkflow: {
+        title: 'Benutzerdefinierter Genehmigungsworkflow',
+        description: 'Ihr Unternehmen hat einen benutzerdefinierten Genehmigungsworkflow für diesen Arbeitsbereich. Bitte führen Sie diese Aktion in Expensify Classic aus',
+        goToExpensifyClassic: 'Zu Expensify Classic wechseln',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1699,7 +1706,6 @@ const translations = {
             testCrash: 'Testabsturz',
             resetToOriginalState: 'Auf den ursprünglichen Zustand zurücksetzen',
             usingImportedState: 'Sie verwenden importierten Status. Drücken Sie hier, um ihn zu löschen.',
-            shouldBlockTransactionThreadReportCreation: 'Erstellung von Transaktions-Thread-Berichten blockieren',
             debugMode: 'Debug-Modus',
             invalidFile: 'Ungültige Datei',
             invalidFileDescription: 'Die Datei, die Sie importieren möchten, ist ungültig. Bitte versuchen Sie es erneut.',
@@ -2935,8 +2941,8 @@ ${amount} für ${merchant} - ${date}`,
         needSSNFull9: 'Wir haben Schwierigkeiten, Ihre SSN zu verifizieren. Bitte geben Sie die vollständigen neun Ziffern Ihrer SSN ein.',
         weCouldNotVerify: 'Wir konnten nicht verifizieren',
         pleaseFixIt: 'Bitte korrigieren Sie diese Informationen, bevor Sie fortfahren.',
-        failedKYCTextBefore: 'Wir konnten Ihre Identität nicht verifizieren. Bitte versuchen Sie es später erneut oder wenden Sie sich an',
-        failedKYCTextAfter: 'wenn Sie Fragen haben.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `Wir konnten Ihre Identität nicht verifizieren. Bitte versuchen Sie es später erneut oder wenden Sie sich an <a href="mailto:${conciergeEmail}">${conciergeEmail}</a>, wenn Sie Fragen haben.`,
     },
     termsStep: {
         headerTitle: 'Bedingungen und Gebühren',
@@ -4411,8 +4417,7 @@ ${amount} für ${merchant} - ${date}`,
             employeeDefaultDescription: 'Die Standardabteilung des Mitarbeiters wird auf seine Ausgaben in Sage Intacct angewendet, falls eine vorhanden ist.',
             displayedAsTagDescription: 'Die Abteilung wird für jede einzelne Ausgabe in einem Bericht eines Mitarbeiters auswählbar sein.',
             displayedAsReportFieldDescription: 'Die Abteilungsauswahl gilt für alle Ausgaben im Bericht eines Mitarbeiters.',
-            toggleImportTitleFirstPart: 'Wählen Sie, wie Sage Intacct behandelt werden soll',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wählen Sie, wie Sage Intacct behandelt werden soll <strong>${mappingTitle}</strong> in Expensify.`,
             expenseTypes: 'Ausgabenarten',
             expenseTypesDescription: 'Ihre Sage Intacct-Ausgabenarten werden in Expensify als Kategorien importiert.',
             accountTypesDescription: 'Ihr Sage Intacct-Kontenplan wird in Expensify als Kategorien importiert.',
@@ -5732,6 +5737,7 @@ ${amount} für ${merchant} - ${date}`,
             chatWithYourAdmin: 'Mit Ihrem Administrator chatten',
             chatInAdmins: 'Im #admins chatten',
             addPaymentCard: 'Zahlungskarte hinzufügen',
+            goToSubscription: 'Zum Abonnement',
         },
         rules: {
             individualExpenseRules: {
@@ -6681,14 +6687,9 @@ ${amount} für ${merchant} - ${date}`,
         copyReferralLink: 'Einladungslink kopieren',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatte mit deinem Setup-Spezialisten in',
-            phrase2: 'für Hilfe',
-        },
-        default: {
-            phrase1: 'Nachricht',
-            phrase2: 'für Hilfe bei der Einrichtung',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatte mit deinem Setup-Spezialisten in <a href="${href}">${adminReportName}</a> für Hilfe`,
+        default: `Nachricht <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
@@ -6777,7 +6778,8 @@ ${amount} für ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung',
-        adminBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte beheben in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte beheben Sie dies unter <a href="${workspaceCompanyCardRoute}">Firmenkarten</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte bitten Sie einen Workspace-Administrator, das Problem zu lösen.',
         markAsCashToIgnore: 'Als Barzahlung markieren, um zu ignorieren und Zahlung anzufordern.',
         smartscanFailed: ({canEdit = true}) => `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`,
@@ -7336,6 +7338,11 @@ ${amount} für ${merchant} - ${date}`,
         uploadPhoto: 'Foto hochladen',
         selectAvatar: 'Avatar auswählen',
         chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
+    },
+    openAppFailureModal: {
+        title: 'Etwas ist schiefgelaufen...',
+        subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und untersuchen das Problem. Wenn das weiterhin besteht, wenden Sie sich bitte an`,
+        refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
