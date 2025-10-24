@@ -14,6 +14,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,6 +90,8 @@ function TaskAssigneeSelectorModal() {
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route]);
 
+    const hasOutstandingChildTask = useOutstandingChildTask(report);
+
     const sections = useMemo(() => {
         const sectionsList = [];
 
@@ -158,6 +161,7 @@ function TaskAssigneeSelectorModal() {
                         currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
                         option?.accountID,
                         assigneeChatReport,
                     );

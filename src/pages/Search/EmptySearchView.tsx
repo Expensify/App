@@ -23,6 +23,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -183,6 +185,8 @@ function EmptySearchViewContent({
         taskParentReport: viewTourTaskParentReport,
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const hasOutstandingChildTask = useOutstandingChildTask(viewTourTaskReport);
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -289,6 +293,8 @@ function EmptySearchViewContent({
                 viewTourTaskParentReport,
                 isViewTourTaskParentReportArchived,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
         };
 

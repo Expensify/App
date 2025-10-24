@@ -4,6 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import type {IntroSelected} from './Report';
 import {completeTestDriveTask} from './Task';
 
@@ -16,6 +17,8 @@ function startTestDrive(
     viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
     isViewTourTaskParentReportArchived: boolean,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction?: OnyxEntry<ReportAction>,
 ) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
@@ -27,7 +30,15 @@ function startTestDrive(
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
             (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
         ) {
-            completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, shouldUpdateSelfTourViewedOnlyLocally);
+            completeTestDriveTask(
+                viewTourTaskReport,
+                viewTourTaskParentReport,
+                isViewTourTaskParentReportArchived,
+                currentUserAccountID,
+                shouldUpdateSelfTourViewedOnlyLocally,
+                hasOutstandingChildTask,
+                parentReportAction,
+            );
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
         } else {
             Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);

@@ -63,19 +63,6 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-
-        allReportActions = actions;
-    },
-});
-
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -348,30 +335,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     notifyNewAction(parentReportID, currentUserAccountID, optimisticAddCommentReport.reportAction);
 }
 
-/**
- * @returns the object to update `report.hasOutstandingChildTask`
- */
-function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`] ?? {};
-    return Object.values(parentReportActions).some((reportAction) => {
-        if (String(reportAction.childReportID) === String(taskReport?.reportID)) {
-            return false;
-        }
-
-        if (
-            reportAction.childType === CONST.REPORT.TYPE.TASK &&
-            reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
-            reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-            !ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
-        ) {
-            return true;
-        }
-
-        return false;
-    });
-}
-
-function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: string) {
+function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: string, hasOutstandingChildTask: boolean) {
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -426,7 +390,6 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
     ];
 
     if (parentReport?.hasOutstandingChildTask) {
-        const hasOutstandingChildTask = getOutstandingChildTask(taskReport);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`,
@@ -454,14 +417,14 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, hasOutstandingChildTask: boolean, reportIDFromAction?: string): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
         return {};
     }
 
-    const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID);
+    const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID, hasOutstandingChildTask);
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
@@ -639,6 +602,7 @@ function editTaskAssignee(
     sessionAccountID: number,
     assigneeEmail: string,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
     assigneeAccountID: number | null = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
 ) {
@@ -723,7 +687,6 @@ function editTaskAssignee(
     }
 
     if (report.managerID === currentUserAccountID) {
-        const hasOutstandingChildTask = getOutstandingChildTask(report);
         if (!isEmptyObject(parentReport)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1009,18 +972,6 @@ function getShareDestination(
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread/task.
- */
-function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
-    // If the report is not a thread report, then it won't have a parent and an empty object can be returned.
-    if (!report?.parentReportID || !report.parentReportActionID) {
-        return undefined;
-    }
-
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-}
-
-/**
  * Returns the parentReport if the given report is a thread
  */
 function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> {
@@ -1063,14 +1014,19 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): stri
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
-function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean, currentUserAccountID: number) {
+function deleteTask(
+    report: OnyxEntry<OnyxTypes.Report>,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction?: OnyxEntry<ReportAction>,
+) {
     if (!report) {
         return;
     }
     const message = `deleted task: ${report.reportName}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
-    const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report, isReportArchived);
 
@@ -1093,7 +1049,6 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
         linkMetadata: [],
     };
     const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
-    const hasOutstandingChildTask = getOutstandingChildTask(report);
 
     const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions as ReportActions, canUserPerformWriteAction);
     const optimisticData: OnyxUpdate[] = [
@@ -1222,7 +1177,7 @@ function dismissModalAndClearOutTaskInfo(backTo?: Route) {
 /**
  * Returns Task assignee accountID
  */
-function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
+function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>, parentReportAction?: OnyxEntry<ReportAction>): number | undefined {
     if (!taskReport) {
         return;
     }
@@ -1231,8 +1186,7 @@ function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): numb
         return taskReport.managerID;
     }
 
-    const reportAction = getParentReportAction(taskReport);
-    return reportAction?.childManagerAccountID;
+    return parentReportAction?.childManagerAccountID;
 }
 
 /**
@@ -1257,7 +1211,13 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 /**
  * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
  */
-function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID?: number, parentReport?: OnyxEntry<OnyxTypes.Report>, isParentReportArchived = false): boolean {
+function canActionTask(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    sessionAccountID?: number,
+    parentReport?: OnyxEntry<OnyxTypes.Report>,
+    isParentReportArchived = false,
+    parentReportAction?: OnyxEntry<ReportAction>,
+): boolean {
     // Return early if there was no sessionAccountID (this can happen because when connecting to the session key in onyx, the session will be undefined initially)
     if (!sessionAccountID) {
         return false;
@@ -1282,7 +1242,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     // The task can only be actioned by the task report owner or the task assignee
-    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
 }
 
 function clearTaskErrors(reportID: string | undefined) {
@@ -1311,11 +1271,13 @@ function getFinishOnboardingTaskOnyxData(
     taskParentReport: OnyxEntry<OnyxTypes.Report>,
     isParentReportArchived: boolean,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction?: OnyxEntry<ReportAction>,
 ): OnyxData {
-    if (taskReport && canActionTask(taskReport, currentUserAccountID, taskParentReport, isParentReportArchived)) {
+    if (taskReport && canActionTask(taskReport, currentUserAccountID, taskParentReport, isParentReportArchived, parentReportAction)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                return completeTask(taskReport);
+                return completeTask(taskReport, hasOutstandingChildTask);
             }
         }
     }
@@ -1328,9 +1290,11 @@ function completeTestDriveTask(
     isViewTourTaskParentReportArchived: boolean,
     currentUserAccountID: number,
     shouldUpdateSelfTourViewedOnlyLocally = false,
+    hasOutstandingChildTask: boolean,
+    parentReportAction?: OnyxEntry<ReportAction>,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID);
+    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, hasOutstandingChildTask, parentReportAction);
 }
 
 export {

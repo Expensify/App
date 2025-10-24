@@ -8,6 +8,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -34,6 +36,8 @@ function TestDriveDemo() {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const hasOutstandingChildTask = useOutstandingChildTask(viewTourTaskReport);
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login)),
@@ -43,7 +47,15 @@ function TestDriveDemo() {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
-            completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
+            completeTestDriveTask(
+                viewTourTaskReport,
+                viewTourTaskParentReport,
+                isViewTourTaskParentReportArchived,
+                currentUserPersonalDetails.accountID,
+                false,
+                hasOutstandingChildTask,
+                parentReportAction,
+            );
         });
 
         // This should fire only during mount.

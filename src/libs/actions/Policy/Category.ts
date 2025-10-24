@@ -33,7 +33,7 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, Report, ReportAction, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -44,8 +44,17 @@ function appendSetupCategoriesOnboardingData(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     isSetupCategoriesTaskParentReportArchived: boolean,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction?: OnyxEntry<ReportAction>,
 ) {
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(
+        setupCategoryTaskReport,
+        setupCategoryTaskParentReport,
+        isSetupCategoriesTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+    );
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
