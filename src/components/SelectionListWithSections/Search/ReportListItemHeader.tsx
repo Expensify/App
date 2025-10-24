@@ -93,6 +93,14 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
 
+        // Calculate total from transactions for orphaned reports (use convertedAmount for conversion)
+        if (reportTotal === 0 && reportItem.transactions) {
+            reportTotal = reportItem.transactions.reduce((acc, transaction) => {
+                const transactionAmount = transaction?.convertedAmount || transaction?.modifiedAmount || transaction?.amount || 0;
+                return acc + transactionAmount;
+            }, 0);
+        }
+
         if (reportTotal) {
             if (reportItem.type === CONST.REPORT.TYPE.IOU) {
                 reportTotal = Math.abs(reportTotal ?? 0);
