@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
@@ -7,7 +7,7 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
