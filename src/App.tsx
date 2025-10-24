@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -148,4 +149,4 @@ function App() {
 
 App.displayName = 'App';
 
-export default App;
+export default Sentry.wrap(App);
