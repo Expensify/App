@@ -96,7 +96,7 @@ function TaskShareDestinationSelectorModal() {
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, false, countryCode);
+        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false);
     }, [filteredOptions.recentReports, searchTerm, countryCode]);
 
     const sections = useMemo(

@@ -163,8 +163,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
             !!availableOptions.userToInvite,
             processedLogin,
-            false,
             countryCode,
+            false,
         );
     }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
 
