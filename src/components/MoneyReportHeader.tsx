@@ -254,7 +254,6 @@ function MoneyReportHeader({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -471,9 +470,22 @@ function MoneyReportHeader({
         ],
     );
 
+    const showDWEModal = async () => {
+        const result = await showConfirmModal({
+            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+            title: translate('customApprovalWorkflow.title'),
+            prompt: translate('customApprovalWorkflow.description'),
+            shouldShowCancelButton: false,
+        });
+
+        if (result.action === ModalActions.CONFIRM) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        }
+    };
+
     const confirmApproval = () => {
         if (hasDynamicExternalWorkflow(policy)) {
-            setIsDEWModalVisible(true);
+            showDWEModal();
             return;
         }
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -731,7 +743,7 @@ function MoneyReportHeader({
                         return;
                     }
                     if (hasDynamicExternalWorkflow(policy)) {
-                        setIsDEWModalVisible(true);
+                        showDWEModal();
                         return;
                     }
                     startSubmittingAnimation();
@@ -946,7 +958,7 @@ function MoneyReportHeader({
                     return;
                 }
                 if (hasDynamicExternalWorkflow(policy)) {
-                    setIsDEWModalVisible(true);
+                    showDWEModal();
                     return;
                 }
                 submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
@@ -1507,18 +1519,6 @@ function MoneyReportHeader({
                     )}
                 </View>
             </Modal>
-            <ConfirmModal
-                title={translate('customApprovalWorkflow.title')}
-                isVisible={isDEWModalVisible}
-                onConfirm={() => {
-                    setIsDEWModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setIsDEWModalVisible(false)}
-                prompt={translate('customApprovalWorkflow.description')}
-                confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
-                shouldShowCancelButton={false}
-            />
         </View>
     );
 }
