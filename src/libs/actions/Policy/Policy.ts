@@ -181,6 +181,7 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
+    parentReportAction?: OnyxEntry<ReportAction>;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2045,6 +2046,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         lastUsedPaymentMethod,
         adminParticipant,
         hasOutstandingChildRequest = true,
+        parentReportAction,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2446,7 +2448,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace);
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, hasOutstandingChildRequest);
 
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);

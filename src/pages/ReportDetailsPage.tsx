@@ -837,7 +837,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
-        currentUserPersonalDetails.accountID, 
+        currentUserPersonalDetails.accountID,
         hasOutstandingChildTask,
         parentReportAction,
     ]);

@@ -1,11 +1,10 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import useOnyx from './useOnyx';
 
 /**
  * Hook to determine if a report has outstanding child tasks
@@ -22,9 +21,7 @@ function useOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
             return false;
         }
 
-        const parentReportActions = reportActions as ReportActions;
-
-        return Object.values(parentReportActions).some((reportAction) => {
+        return Object.values(reportActions).some((reportAction) => {
             if (String(reportAction.childReportID) === String(taskReport?.reportID)) {
                 return false;
             }
