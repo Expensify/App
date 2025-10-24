@@ -151,7 +151,7 @@ function ProfileAvatar() {
         showAvatarCropModal,
         clearError,
         source: imageData.uri,
-        originalFileName: imageData.name
+        originalFileName: imageData.name,
     });
 
     const onPress = useCallback(() => {
