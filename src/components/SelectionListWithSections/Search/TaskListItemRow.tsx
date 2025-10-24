@@ -10,6 +10,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -72,6 +73,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useOutstandingChildTask(taskItem.report);
     const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
@@ -106,7 +108,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem, taskItem.reportID);
+                completeTask(taskItem, hasOutstandingChildTask, taskItem.reportID);
             })}
         />
     );

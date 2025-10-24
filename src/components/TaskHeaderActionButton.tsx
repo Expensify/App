@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useOutstandingChildTask(report);
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
@@ -43,7 +45,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     if (isCompletedTaskReport(report)) {
                         reopenTask(report, currentUserPersonalDetails.accountID);
                     } else {
-                        completeTask(report);
+                        completeTask(report, hasOutstandingChildTask);
                     }
                 })}
                 style={styles.flex1}

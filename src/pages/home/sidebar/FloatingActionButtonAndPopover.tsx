@@ -18,6 +18,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -166,6 +168,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         taskParentReport: viewTourTaskParentReport,
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const hasOutstandingChildTask = useOutstandingChildTask(viewTourTaskReport);
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
@@ -573,6 +577,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   viewTourTaskParentReport,
                                   isViewTourTaskParentReportArchived,
                                   currentUserPersonalDetails.accountID,
+                                  hasOutstandingChildTask,
+                                  parentReportAction,
                               ),
                           ),
                   },

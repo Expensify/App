@@ -26,6 +26,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -87,7 +88,7 @@ type HeaderViewProps = {
     report: OnyxEntry<Report>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<ReportAction> | null;
+    parentReportAction: OnyxEntry<ReportAction>;
 
     /** The reportID of the current report */
     reportID: string | undefined;
@@ -114,6 +115,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const hasOutstandingChildTask = useOutstandingChildTask(report);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
@@ -364,7 +366,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

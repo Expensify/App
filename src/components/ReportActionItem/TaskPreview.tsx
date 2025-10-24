@@ -14,6 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -96,6 +97,7 @@ function TaskPreview({
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useOutstandingChildTask(taskReport);
     const isTaskActionable = canActionTask(taskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
@@ -146,7 +148,7 @@ function TaskPreview({
                                 if (isTaskCompleted) {
                                     reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, taskReportID);
+                                    completeTask(taskReport, hasOutstandingChildTask, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
