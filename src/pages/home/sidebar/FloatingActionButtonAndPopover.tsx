@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
+import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -53,6 +54,7 @@ import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMone
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
+import Tab from '@userActions/Tab';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -157,6 +159,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
+    const reportID = useMemo(() => generateReportID(), []);
 
     const {
         taskReport: viewTourTaskReport,
@@ -165,7 +168,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
-
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
@@ -242,9 +244,22 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
+
+    const startQuickScan = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                return;
+            }
+
+            const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
+        });
+    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -325,20 +340,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                             setModalVisible(true);
                             return;
                         }
-                        startMoneyRequest(
-                            CONST.IOU.TYPE.CREATE,
-                            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                            // for all of the routes in the creation flow.
-                            generateReportID(),
-                            undefined,
-                            undefined,
-                            undefined,
-                            allTransactionDrafts,
-                        );
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -364,7 +370,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID: currentUserPersonalDetails.accountID});
                 });
             };
             return [
@@ -388,7 +394,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
 
-                    const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
+                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
                 });
             };
@@ -411,22 +417,24 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         translate,
         styles.pt3,
         styles.pb2,
-        quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionTitle,
-        quickActionSubtitle,
-        quickActionPolicy,
         quickActionReport,
-        isValidReport,
-        selectOption,
+        quickActionPolicy,
+        isReportArchived,
+        isRestrictedToPreferredPolicy,
+        quickActionTitle,
+        quickActionAvatars,
+        quickActionSubtitle,
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isReportArchived,
+        isValidReport,
+        selectOption,
         lastDistanceExpenseType,
+        currentUserPersonalDetails.accountID,
+        showDelegateNoAccessModal,
+        reportID,
         allTransactionDrafts,
-        isRestrictedToPreferredPolicy,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -460,13 +468,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
                     // Start the flow to start tracking a distance request
-                    startDistanceRequest(
-                        CONST.IOU.TYPE.CREATE,
-                        // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                        // for all of the routes in the creation flow.
-                        generateReportID(),
-                        lastDistanceExpenseType,
-                    );
+                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType);
                 });
             },
         },
@@ -540,16 +542,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              startMoneyRequest(
-                                  CONST.IOU.TYPE.INVOICE,
-                                  // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                  // for all of the routes in the creation flow.
-                                  generateReportID(),
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  allTransactionDrafts,
-                              );
+                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                           }),
                   },
               ]
@@ -579,6 +572,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   viewTourTaskReport,
                                   viewTourTaskParentReport,
                                   isViewTourTaskParentReportArchived,
+                                  currentUserPersonalDetails.accountID,
                               ),
                           ),
                   },
@@ -603,7 +597,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     ];
 
     return (
-        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
@@ -642,6 +636,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
+            {!shouldUseNarrowLayout && (
+                <FloatingReceiptButton
+                    accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
+                    role={CONST.ROLE.BUTTON}
+                    onPress={startQuickScan}
+                />
+            )}
             <FloatingActionButton
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}

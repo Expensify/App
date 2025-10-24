@@ -1,5 +1,5 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import FloatingActionButton from '@components/FloatingActionButton';
 import colors from '@styles/theme/colors';
@@ -46,6 +46,11 @@ describe('FloatingActionButton hover', () => {
             </NavigationContainer>,
         );
 
+    afterEach(() => {
+        cleanup();
+        jest.clearAllMocks();
+    });
+
     it('changes background color on hover', () => {
         renderFAB();
         const fab = screen.getByTestId('floating-action-button');
@@ -54,14 +59,14 @@ describe('FloatingActionButton hover', () => {
         const animatedContainer = screen.getByTestId('fab-animated-container');
 
         // Before hover, should not have successHover background
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
 
         // Test hover in
         fireEvent(fab, 'hoverIn');
-        expect(animatedContainer).toHaveStyle({backgroundColor: colors.greenHover});
+        expect(animatedContainer).toHaveStyle({backgroundColor: colors.productDark500});
 
         // Test hover out
         fireEvent(fab, 'hoverOut');
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
     });
 });

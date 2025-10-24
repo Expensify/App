@@ -35,7 +35,6 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
@@ -45,6 +44,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -58,8 +58,8 @@ type AttachmentPickerWithMenuItemsProps = {
     /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
-    /** Callback to open the file in the modal */
-    displayFilesInModal: (files: FileObject[]) => void;
+    /** Callback when the attachment is picked */
+    onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -114,7 +114,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFilesInModal,
+    onAttachmentPicked,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -276,10 +276,10 @@ function AttachmentPickerWithMenuItems({
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => clearOutTaskInfoAndNavigate(reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, reportID, report),
             },
         ];
-    }, [report, reportID, translate, shouldUseNarrowLayout]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -338,7 +338,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFilesInModal(data),
+                        onPicked: onAttachmentPicked,
                         onCanceled: () => {
                             onCanceledAttachmentPicker?.();
                             setIsLoaderVisible(false);

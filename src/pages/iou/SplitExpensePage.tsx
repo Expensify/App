@@ -13,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,10 +23,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    getIOUActionForTransactions,
+    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    saveSplitTransactions,
     updateSplitExpenseAmountField,
+    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -39,7 +42,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -71,8 +74,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
     const policy = usePolicy(report?.policyID);
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
@@ -85,9 +91,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
-    const isCard = isCardTransaction(transaction);
+    const isCard = isManagedCardTransaction(transaction);
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
+    const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
 
@@ -153,7 +162,26 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                splitExpenses,
+                splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
+            },
+            hash: currentSearchHash,
+            policyCategories,
+            policy: expenseReportPolicy,
+            policyRecentlyUsedCategories,
+            iouReport,
+            chatReport,
+            firstIOU: iouActions.at(0),
+            isChatReportArchived: isChatIOUReportArchived,
+            isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
+        });
     }, [
         splitExpenses,
         childTransactions.length,
@@ -164,13 +192,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isPerDiem,
         isCard,
         splitFieldDataFromChildTransactions,
+        allTransactions,
+        allReports,
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
+        policyRecentlyUsedCategories,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
+        isChatIOUReportArchived,
+        iouReport,
+        iouActions,
+        chatReport,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -185,7 +220,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [sections] = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-        const isTransactionMadeWithCard = isCardTransaction(transaction);
+        const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
 
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
@@ -304,9 +339,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView
-                shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable || (!!childTransactions.length && !isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS))}
-            >
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View
                     ref={viewRef}
                     style={styles.flex1}
@@ -337,7 +370,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 return;
                             }
                             Keyboard.dismiss();
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
                             });

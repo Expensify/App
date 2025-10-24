@@ -44,6 +44,9 @@ type SelectedTransactionInfo = {
     /** The currency that the converted amount is in */
     convertedCurrency: string;
 
+    /** The transaction currency */
+    currency: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 };
@@ -58,6 +61,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -69,9 +73,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;

@@ -14,7 +14,6 @@
 * [Platform-Specific Setup](#platform-specific-setup)
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
-* [Debugging](#debugging)
 
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
@@ -99,5 +98,9 @@ to help run our Unit tests.
 
 ## Performance tests
 We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):
+
+## CodeCov
+
+[CodeCov] is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
 ----
