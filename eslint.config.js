@@ -571,6 +571,7 @@ const config = defineConfig([
         'docs/assets/**/*',
         'web/gtm.js',
         '**/.expo/**/*',
+        '**/.rock/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
