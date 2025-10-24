@@ -54,6 +54,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
             recentlyUsedDestinations: policyRecentlyUsedDestinations,
+            translate,
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
