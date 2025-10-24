@@ -1847,7 +1847,7 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ目的のため、Xeroは統合を接続するために二要素認証を必要とします。',
         twoFactorAuthIsRequiredForAdminsHeader: '二要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Xeroの会計接続には二要素認証の使用が必要です。Expensifyを引き続き使用するには、有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xeroの会計接続には二要素認証の使用が必要です。Expensifyを引き続き使用するには、有効にしてください。',
         twoFactorAuthCannotDisable: '2FAを無効にできません',
         twoFactorAuthRequired: 'Xeroの接続には二要素認証（2FA）が必要であり、無効にすることはできません。',
         explainProcessToRemoveWithRecovery: '二要素認証 (2FA) を無効にするには、有効なリカバリーコードを入力してください。',

@@ -1846,8 +1846,7 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Para fins de segurança, a Xero exige autenticação de dois fatores para conectar a integração.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticação de dois fatores necessária',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilite a autenticação de dois fatores.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Sua conexão de contabilidade com a Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, por favor, ative-a.',
+        twoFactorAuthIsRequiredXero: 'Sua conexão de contabilidade com a Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, por favor, ative-a.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação de dois fatores (2FA) é necessária para sua conexão com o Xero e não pode ser desativada.',
         explainProcessToRemoveWithRecovery: 'Para desativar a autenticação de dois fatores (2FA), insira um código de recuperação válido.',

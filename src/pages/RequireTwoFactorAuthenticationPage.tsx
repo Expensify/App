@@ -1,6 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {Encryption} from '@components/Icon/Illustrations';
@@ -11,13 +12,32 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy, Session} from '@src/types/onyx';
+
+/**
+ * Checks if the 2FA is required because of Xero.
+ * - User is an admin of a workspace
+ * - Xero connection is enabled in the workspace
+ */
+const is2FARequiredBecauseOfXeroSelector = (session: OnyxEntry<Session>) => {
+    return (workspaces: OnyxCollection<Policy>) => {
+        return Object.values(workspaces ?? {})?.some((workspace) => {
+            const isXeroConnectionEnabled = workspace?.connections?.xero;
+            const isAdmin = session?.email && workspace?.employeeList?.[session.email]?.role === CONST.POLICY.ROLE.ADMIN;
+            return !!isXeroConnectionEnabled && !!isAdmin;
+        });
+    };
+};
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: is2FARequiredBecauseOfXeroSelector(session), canBeMissing: true});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
@@ -40,7 +60,9 @@ function RequireTwoFactorAuthenticationPage() {
                 <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
                     <View style={styles.mb5}>
                         <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
-                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}</Text>
+                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                            {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
+                        </Text>
                     </View>
                     <Button
                         large
