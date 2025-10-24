@@ -242,6 +242,45 @@ describe('CustomFormula', () => {
             expect(result).toBe('3');
         });
 
+        test('should compute expenses count using allTransactions from context', () => {
+            const allTransactions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans1: {
+                    transactionID: 'trans1',
+                    reportID: '123',
+                    created: '2025-01-08T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans2: {
+                    transactionID: 'trans2',
+                    reportID: '123',
+                    created: '2025-01-14T16:45:00Z',
+                    amount: 3000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans3: {
+                    transactionID: 'trans3',
+                    reportID: '123',
+                    created: '2025-01-11T09:15:00Z',
+                    amount: 2000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+            };
+
+            const contextWithAllTransactions: FormulaContext = {
+                ...mockContext,
+                allTransactions,
+            };
+
+            const result = compute('{report:expensescount}', contextWithAllTransactions);
+            expect(result).toBe('3');
+            // Verify that getReportTransactions was NOT called when allTransactions is provided
+            expect(mockReportUtils.getReportTransactions).not.toHaveBeenCalled();
+        });
+
         test('should handle empty formula', () => {
             expect(compute('', mockContext)).toBe('');
         });

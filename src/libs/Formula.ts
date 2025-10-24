@@ -27,6 +27,7 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    allTransactions?: Record<string, Transaction>;
 };
 
 const FORMULA_PART_TYPES = {
@@ -238,7 +239,7 @@ function compute(formula?: string, context?: FormulaContext): string {
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
-    const {report, policy} = context;
+    const {report, policy, allTransactions} = context;
     const [field, ...additionalPath] = part.fieldPath;
     // Reconstruct format string by joining additional path elements with ':'
     // This handles format strings with colons like 'HH:mm:ss'
@@ -254,7 +255,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'status':
             return formatStatus(report.statusNum);
         case 'expensescount':
-            return String(getExpensesCount(report.reportID));
+            return String(getExpensesCount(report.reportID, allTransactions));
         case 'type':
             return formatType(report.type);
         case 'startdate':
@@ -279,13 +280,21 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
 
 /**
  * Get the number of expenses in a report
+ * @param reportID - The report ID to get expenses for
+ * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
  */
-function getExpensesCount(reportID: string): number {
+function getExpensesCount(reportID: string, allTransactions?: Record<string, Transaction>): number {
     if (!reportID) {
         return 0;
     }
 
-    const transactions = getReportTransactions(reportID);
+    let transactions: Transaction[];
+    if (allTransactions) {
+        transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+    } else {
+        transactions = getReportTransactions(reportID);
+    }
+
     return transactions?.filter((transaction) => !isPartialTransaction(transaction))?.length ?? 0;
 }
 
