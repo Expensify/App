@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -236,6 +237,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -671,6 +673,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        domains: 'ドメイン',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -797,6 +800,11 @@ const translations = {
         nameEmailOrPhoneNumber: '名前、メールアドレス、または電話番号',
         findMember: 'メンバーを見つける',
         searchForSomeone: '誰かを検索',
+    },
+    customApprovalWorkflow: {
+        title: 'カスタム承認ワークフロー',
+        description: 'お客様の会社では、このワークスペースにカスタム承認ワークフローがあります。Expensify Classicでこの操作を実行してください',
+        goToExpensifyClassic: 'Expensify Classicに切り替える',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1688,7 +1696,6 @@ const translations = {
             testCrash: 'クラッシュのテスト',
             resetToOriginalState: '元の状態にリセット',
             usingImportedState: 'インポートされた状態を使用しています。ここを押してクリアしてください。',
-            shouldBlockTransactionThreadReportCreation: 'トランザクションスレッドレポートの作成をブロック',
             debugMode: 'デバッグモード',
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
@@ -2731,8 +2738,8 @@ ${date} - ${merchant}に${amount}`,
     },
     focusModeUpdateModal: {
         title: '#focusモードへようこそ！',
-        prompt: '未読のチャットや注意が必要なチャットのみを表示することで、物事を把握しましょう。心配しないでください、これはいつでも変更できます。',
-        settings: '設定',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `未読のチャットや注意が必要なチャットのみを表示することで、物事を把握しましょう。心配しないでください、これはいつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'お探しのチャットが見つかりません。',
@@ -2928,8 +2935,8 @@ ${date} - ${merchant}に${amount}`,
         needSSNFull9: 'SSNの確認に問題が発生しています。SSNの9桁すべてを入力してください。',
         weCouldNotVerify: '確認できませんでした',
         pleaseFixIt: '続行する前にこの情報を修正してください。',
-        failedKYCTextBefore: '本人確認ができませんでした。後でもう一度お試しいただくか、にお問い合わせください。',
-        failedKYCTextAfter: 'ご質問がある場合。',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `本人確認ができませんでした。後でもう一度お試しいただくか、<a href="mailto:${conciergeEmail}">${conciergeEmail}</a> にお問い合わせください。ご質問がある場合。`,
     },
     termsStep: {
         headerTitle: '利用規約と手数料',
@@ -3653,6 +3660,8 @@ ${date} - ${merchant}に${amount}`,
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '保留中',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
+                centralBillingAccount: '中央請求アカウント',
+                centralBillingDescription: 'Uberの領収書をすべてインポートする場所を選択してください。',
                 invitationFailure: 'メンバーを Uber for Business に招待できません。',
                 autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
                 autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
@@ -4383,8 +4392,7 @@ ${date} - ${merchant}に${amount}`,
             employeeDefaultDescription: '従業員のデフォルト部門は、Sage Intacct に存在する場合、その経費に適用されます。',
             displayedAsTagDescription: '部門は、従業員のレポートの各経費ごとに選択可能になります。',
             displayedAsReportFieldDescription: '部門の選択は、従業員のレポート上のすべての経費に適用されます。',
-            toggleImportTitleFirstPart: 'Sage Intacctの処理方法を選択',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Sage Intacct <strong>${mappingTitle}</strong>をExpensifyでどのように処理するかを選択します。`,
             expenseTypes: '経費タイプ',
             expenseTypesDescription: 'あなたのSage Intacctの経費タイプは、Expensifyにカテゴリーとしてインポートされます。',
             accountTypesDescription: 'あなたのSage Intacct勘定科目表は、Expensifyにカテゴリとしてインポートされます。',
@@ -5347,7 +5355,6 @@ ${date} - ${merchant}に${amount}`,
                 `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `このアカウントがあなたの<a href="${settlementAccountUrl}">Expensifyカード決済口座</a>（${lastFourPAN}で終わる）と一致していることを確認してください。`,
             },
@@ -5685,6 +5692,7 @@ ${date} - ${merchant}に${amount}`,
             chatWithYourAdmin: '管理者とチャットする',
             chatInAdmins: '#adminsでチャットする',
             addPaymentCard: '支払いカードを追加',
+            goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
             individualExpenseRules: {
@@ -6625,14 +6633,9 @@ ${date} - ${merchant}に${amount}`,
         copyReferralLink: '招待リンクをコピー',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'セットアップスペシャリストとチャットする',
-            phrase2: 'ヘルプが必要な場合',
-        },
-        default: {
-            phrase1: 'メッセージ',
-            phrase2: 'セットアップのヘルプについて',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `セットアップスペシャリストとチャットする <a href="${href}">${adminReportName}</a> ヘルプが必要な場合`,
+        default: `メッセージ <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> セットアップのヘルプについて`,
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必要です。',
@@ -6717,7 +6720,8 @@ ${date} - ${merchant}に${amount}`,
             return '';
         },
         brokenConnection530Error: '銀行接続の不具合により領収書が保留中です。',
-        adminBrokenConnectionError: '銀行接続の不具合により領収書が保留されています。で解決してください。',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>銀行接続の問題により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社のカード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行接続が壊れているため、領収書が保留中です。ワークスペース管理者に解決を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true}) => `領収書のスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,
@@ -7267,6 +7271,11 @@ ${date} - ${merchant}に${amount}`,
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
         chooseCustomAvatar: 'またはカスタムアバターを選択',
+    },
+    openAppFailureModal: {
+        title: '問題が発生しました...',
+        subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
+        refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
