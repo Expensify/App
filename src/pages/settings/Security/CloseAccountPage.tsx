@@ -27,6 +27,7 @@ function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {
         canBeMissing: false,
     });
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -74,8 +75,8 @@ function CloseAccountPage() {
                 isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
             } else {
                 // Phone number comparison - normalize to E.164
-                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone));
-                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
+                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone), countryCode);
+                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail), countryCode);
 
                 // Only compare if both numbers could be formatted to E.164
                 if (storedE164Phone && inputE164Phone) {
