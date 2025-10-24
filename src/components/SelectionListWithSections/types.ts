@@ -505,6 +505,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -526,6 +528,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
