@@ -58,14 +58,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
+    canRejectReportAction,
     generateReportID,
     getPolicyExpenseChat,
+    getReportOrDraftReport,
     isExpenseReport as isExpenseReportUtil,
     isIOUReport as isIOUReportUtil,
-    getReportOrDraftReport,
-    canRejectReportAction,
 } from '@libs/ReportUtils';
-import type {Report, Policy} from '@src/types/onyx';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -76,6 +75,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy, Report} from '@src/types/onyx';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -389,7 +389,8 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const areSelectedTransactionsRejectable = selectedTransactionReportIDs.length > 0 &&
+        const areSelectedTransactionsRejectable =
+            selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
                 const report = getReportOrDraftReport(id);
                 if (!report) {
@@ -397,7 +398,7 @@ function SearchPage({route}: SearchPageProps) {
                 }
                 const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] as Policy | undefined;
                 return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report as Report, policyForReport);
-        });
+            });
         const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && selectedTransactionsKeys.length > 0 && areSelectedTransactionsRejectable;
         if (shouldShowRejectOption) {
             options.push({
