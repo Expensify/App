@@ -46,7 +46,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
-    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
+    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
     const isEditing = assignCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -162,17 +162,8 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 data: userToInvite ? [userToInvite] : [],
                 shouldShow: !!userToInvite,
             },
-            ...(personalDetails
-                ? [
-                      {
-                          title: undefined,
-                          data: personalDetails,
-                          shouldShow: !!personalDetails,
-                      },
-                  ]
-                : []),
         ];
-    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails, countryCode]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, countryCode]);
 
     return (
         <InteractiveStepWrapper
