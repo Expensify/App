@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -30,6 +32,14 @@ const PERSONAL_DETAILS = {
 const REPORT_ID = 1;
 const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPreferredExporter: jest.fn().mockReturnValue(true),
+    hasAccountingConnections: jest.fn().mockReturnValue(true),
+    isPolicyAdmin: jest.fn().mockReturnValue(true),
+    getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+}));
 
 describe('getSecondaryAction', () => {
     beforeAll(() => {
@@ -1303,6 +1313,7 @@ describe('getSecondaryExportReportActions', () => {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         } as unknown as Report;
         const policy = {
+            id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
@@ -1706,5 +1717,111 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
+    describe('isMergeAction', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return false for transactions with negative amounts', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as unknown as Report;
+
+            const transaction = {
+                transactionID: 'TRANSACTION_ID',
+                amount: -100,
+                currency: 'USD',
+            } as unknown as Transaction;
+
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as unknown as Policy;
+
+            jest.spyOn(ReportUtils, 'getTransactionDetails').mockReturnValue({
+                amount: -100,
+                created: '2025-01-01',
+                attendees: [],
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: '',
+                category: '',
+                reimbursable: true,
+                billable: false,
+                tag: '',
+                transactionID: 'TRANSACTION_ID',
+                originalAmount: 100,
+                originalCurrency: 'USD',
+                postedDate: '2025-01-01',
+                cardID: 1,
+            });
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                report,
+                chatReport: undefined,
+                reportTransactions: [transaction],
+                violations: {},
+                policy,
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(false);
+        });
+
+        it('should return true for transactions with positive amounts when eligible', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as unknown as Report;
+
+            const transaction = {
+                transactionID: 'TRANSACTION_ID',
+                amount: 100,
+                currency: 'USD',
+            } as unknown as Transaction;
+
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as unknown as Policy;
+
+            jest.spyOn(ReportUtils, 'getTransactionDetails').mockReturnValue({
+                amount: 100,
+                created: '2025-01-01',
+                attendees: [],
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: '',
+                category: '',
+                reimbursable: true,
+                billable: false,
+                tag: '',
+                transactionID: 'TRANSACTION_ID',
+                originalAmount: 100,
+                originalCurrency: 'USD',
+                postedDate: '2025-01-01',
+                cardID: 1,
+            });
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                report,
+                chatReport: undefined,
+                reportTransactions: [transaction],
+                violations: {},
+                policy,
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
+        });
     });
 });

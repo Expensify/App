@@ -50,7 +50,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
@@ -196,11 +196,11 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         }
         if (
             !availableOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
         }
-        return getHeaderMessage(availableOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, false, countryCode);
+        return getHeaderMessage(availableOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
     }, [excludedUsers, translate, searchTerm, policy?.name, availableOptions.personalDetails.length, availableOptions.userToInvite, countryCode]);
 
     const footerContent = useMemo(

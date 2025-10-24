@@ -49,7 +49,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const {translate} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -168,7 +168,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             !availableOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
@@ -176,8 +176,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             availableOptions.personalDetails.length !== 0 || !!availableOptions.userToInvite || availableOptions.recentReports.length !== 0,
             !!availableOptions.userToInvite,
             searchValue,
-            false,
             countryCode,
+            false,
         );
     }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite, availableOptions.recentReports.length, countryCode]);
 
