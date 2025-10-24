@@ -132,7 +132,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isRestrictedToPreferredPolicy, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
@@ -591,8 +591,11 @@ function WorkspacesListPage() {
         </>
     );
 
-    const getHeaderButton = () =>
-        workspaces.length ? (
+    const getHeaderButton = () => {
+        if (isRestrictedPolicyCreation || workspaces.length === 0) {
+            return null;
+        }
+        return (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
@@ -600,7 +603,8 @@ function WorkspacesListPage() {
                 icon={Expensicons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
-        ) : null;
+        );
+    };
 
     const getWorkspacesEmptyStateComponent = useCallback(
         () => (
@@ -614,13 +618,17 @@ function WorkspacesListPage() {
                 headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
                 lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
                 headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-                buttons={[
-                    {
-                        success: true,
-                        buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                        buttonText: translate('workspace.new.newWorkspace'),
-                    },
-                ]}
+                buttons={
+                    isRestrictedPolicyCreation
+                        ? []
+                        : [
+                              {
+                                  success: true,
+                                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                                  buttonText: translate('workspace.new.newWorkspace'),
+                              },
+                          ]
+                }
             />
         ),
         [StyleUtils, styles, translate],
