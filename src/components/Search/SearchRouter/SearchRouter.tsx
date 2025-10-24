@@ -144,10 +144,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (!isSearchRouterDisplayed) {
                 return undefined;
             }
+            let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
 
-            const reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
             if (!reportForContextualSearch) {
-                return undefined;
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`];
+                if (!report) {
+                    return undefined;
+                }
+
+                const option = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                reportForContextualSearch = option;
             }
 
             const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
