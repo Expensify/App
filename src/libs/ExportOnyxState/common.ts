@@ -49,14 +49,12 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
             'statusNum',
             'isOwnPolicyExpenseChat',
             'participantAccountIDs',
-            'total',
-            'currency',
             'created',
         ],
         maskList: ['reportName', 'description', 'ownerAccountID', 'managerID'],
     },
     [ONYXKEYS.COLLECTION.TRANSACTION]: {
-        allowList: ['transactionID', 'reportID', 'amount', 'currency', 'created', 'category', 'tag', 'billable'],
+        allowList: ['transactionID', 'reportID', 'created', 'category', 'tag', 'billable'],
         maskList: ['merchant', 'description', 'comment'],
     },
     [ONYXKEYS.COLLECTION.POLICY]: {
@@ -199,13 +197,13 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): unknown => {
+const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, shouldMask: boolean): unknown => {
     if (data === null || data === undefined) {
         return data;
     }
 
     if (Array.isArray(data)) {
-        return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
+        return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule, shouldMask) : item));
     }
 
     if (typeof data === 'object') {
@@ -214,12 +212,27 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): u
         Object.keys(data as Record<string, unknown>).forEach((fieldKey) => {
             const fieldValue = (data as Record<string, unknown>)[fieldKey];
 
-            if (rule.maskList.includes(fieldKey)) {
+            if (shouldMask && rule.maskList.includes(fieldKey)) {
                 processedData[fieldKey] = maskValuePreservingLength(fieldValue);
             } else if (rule.allowList.includes(fieldKey)) {
                 processedData[fieldKey] = fieldValue;
-            } else {
+            } else if (typeof fieldValue === 'object' && fieldValue !== null) {
+                // If it's an object and not in allowList/maskList, recursively process it
+                processedData[fieldKey] = processOnyxKeyWithRule(key, fieldValue, rule, shouldMask);
+            } else if (shouldMask && typeof fieldValue === 'number') {
+                // Randomize numbers
+                processedData[fieldKey] = randomizeAmount(fieldValue);
+            } else if (shouldMask && typeof fieldValue === 'string' && isDateValue(fieldValue)) {
+                // Convert dates to current date
+                processedData[fieldKey] = getCurrentDate();
+            } else if (shouldMask && typeof fieldValue === 'string') {
+                // Mask strings
+                processedData[fieldKey] = maskValuePreservingLength(fieldValue);
+            } else if (shouldMask) {
                 processedData[fieldKey] = MASKING_PATTERN;
+            } else {
+                // When not masking, keep the original value
+                processedData[fieldKey] = fieldValue;
             }
         });
 
@@ -314,9 +327,6 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
         } else if (keysToMask.includes(key)) {
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
-            } else if (typeof value === 'object') {
-                // If the value is an object, don't mask it as a string - recursively process it
-                maskedData[propertyName] = maskFragileData(value as OnyxState, key);
             } else {
                 maskedData[key] = maskValuePreservingLength(value);
             }
@@ -364,7 +374,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
         const rule = ONYX_KEY_EXPORT_RULES[ruleKey];
 
         if (rule) {
-            onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule);
+            onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule, !!isMaskingFragileDataEnabled);
         }
     });
 
