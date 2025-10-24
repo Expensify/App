@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
-import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -105,11 +104,10 @@ describe('Sidebar', () => {
                         });
                     })
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
-                        const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                        const hintMessagePreviewText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat room has been archived.');
                     })
@@ -169,11 +167,10 @@ describe('Sidebar', () => {
                         });
                     })
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
-
-                        const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                        const hintMessagePreviewText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat is no longer active because Vikings Policy is no longer an active workspace.');
                     })

@@ -9,6 +9,7 @@ import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddPaymentCardParams,
+    ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
@@ -69,7 +70,6 @@ import type {
 } from '@libs/API/parameters';
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
-import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -78,6 +78,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -98,7 +99,6 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import type {EnablePolicyFeatureCommand} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -177,10 +177,10 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
-    featuresMap?: Feature[];
+    featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
-    areDistanceRatesEnabled?: boolean;
     adminParticipant?: Participant;
+    hasOutstandingChildRequest?: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -1868,10 +1868,12 @@ function generateDefaultWorkspaceName(email = ''): string {
 
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
     if (isEmptyObject(allPolicies)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
@@ -1890,8 +1892,10 @@ function generateDefaultWorkspaceName(email = ''): string {
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
     if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 
@@ -2039,8 +2043,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration,
         featuresMap,
         lastUsedPaymentMethod,
-        areDistanceRatesEnabled,
         adminParticipant,
+        hasOutstandingChildRequest = true,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2073,6 +2077,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
     const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+
+    const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2387,6 +2393,11 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
+    const features = featuresMap?.reduce<Record<string, boolean>>((acc, feature) => {
+        acc[feature.id] = !!feature.enabled;
+        return acc;
+    }, {});
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -2404,7 +2415,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
-        areDistanceRatesEnabled,
+        features: features ? JSON.stringify(features) : undefined,
     };
 
     if (
@@ -2443,7 +2454,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (adminParticipant?.login) {
-        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, true);
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, hasOutstandingChildRequest);
         params.memberData = JSON.stringify({
             accountID: Number(adminParticipant.accountID),
             email: adminParticipant.login,
@@ -2992,7 +3003,7 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoInvite: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -3006,6 +3017,41 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
     const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+}
+
+function changePolicyUberBillingAccount(policyID: string | undefined, email: string, oldEmail: string) {
+    if (!policyID) {
+        Log.warn('changePolicyUberBillingAccount invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {centralBillingAccountEmail: email, pendingFields: {centralBillingAccountEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: {centralBillingAccountEmail: null}}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {centralBillingAccountEmail: oldEmail, pendingFields: null}}},
+        },
+    ];
+
+    const params: ChangePolicyUberBillingAccountPageParams = {policyID, email};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_UBER_CENTRAL_BILL, params, {optimisticData, successData, failureData});
 }
 
 function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
@@ -3027,7 +3073,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoRemove: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -6326,69 +6372,6 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
-function updateFeature(
-    request: {
-        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
-        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
-    },
-    policyID: string,
-) {
-    if (request.endpoint === WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM) {
-        API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, {
-            policyID,
-            enabled: request.parameters.enabled,
-            customUnitID: generateCustomUnitID(),
-        });
-        return;
-    }
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.writeWithNoDuplicatesEnableFeatureConflicts(request.endpoint, request.parameters);
-}
-
-function updateInterestedFeatures(features: Feature[], policyID: string, type: string | undefined) {
-    let shouldUpgradeToCorporate = false;
-
-    const requests: Array<{
-        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
-        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
-    }> = [];
-
-    features.forEach((feature) => {
-        // If the feature is not enabled by default but it's enabled now, we need to enable it
-        if (!feature.enabledByDefault && feature.enabled) {
-            if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
-                shouldUpgradeToCorporate = true;
-            }
-            requests.push({
-                endpoint: feature.apiEndpoint,
-                parameters: {
-                    policyID,
-                    enabled: true,
-                },
-            });
-        }
-        // If the feature is enabled by default but it's not enabled now, we need to disable it
-        if (feature.enabledByDefault && !feature.enabled) {
-            requests.push({
-                endpoint: feature.apiEndpoint,
-                parameters: {
-                    policyID,
-                    enabled: false,
-                },
-            });
-        }
-    });
-
-    const isCorporate = type === CONST.POLICY.TYPE.CORPORATE;
-    if (shouldUpgradeToCorporate && !isCorporate) {
-        API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, {policyID});
-    }
-
-    requests.forEach((request) => {
-        updateFeature(request, policyID);
-    });
-}
-
 function clearPolicyTitleFieldError(policyID: string) {
     if (!policyID) {
         return;
@@ -6453,6 +6436,7 @@ export {
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    changePolicyUberBillingAccount,
     enableDistanceRequestTax,
     enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,
@@ -6529,7 +6513,6 @@ export {
     setPolicyAttendeeTrackingEnabled,
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
-    updateInterestedFeatures,
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,

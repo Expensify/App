@@ -113,6 +113,7 @@ function Expensify() {
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -285,8 +286,8 @@ function Expensify() {
         if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
             return;
         }
-        disconnect({stashedCredentials});
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials]);
+        disconnect({stashedCredentials, stashedSession});
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
