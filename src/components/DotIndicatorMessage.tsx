@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
+import React, {useEffect, useState} from 'react';
 import type {ReactElement} from 'react';
-import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -9,14 +9,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {removeHTMLClickableAction, setHTMLClickableAction} from '@libs/HTMLClickableActionsUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
@@ -49,10 +50,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
-
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -62,34 +59,35 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const receiptError = uniqueMessages.find(isReceiptError);
+
+    useEffect(() => {
+        if (!receiptError) {
+            return;
+        }
+
+        // Register clickable actions
+        setHTMLClickableAction('receiptFailureMessage.retry', () => handleRetryPress(receiptError, dismissError, setShouldShowErrorModal));
+        setHTMLClickableAction('receiptFailureMessage.download', () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError()));
+
+        // Cleanup when component unmounts or dependencies change
+        return () => {
+            removeHTMLClickableAction('receiptFailureMessage.retry');
+            removeHTMLClickableAction('receiptFailureMessage.download');
+        };
+    }, [receiptError, dismissError]);
+
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
                 <>
-                    <Text
-                        key={index}
-                        style={styles.offlineFeedbackText}
-                    >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
-                        >
-                            {translate('iou.error.tryAgainMessage')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('common.or')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
-                            }}
-                        >
-                            {translate('iou.error.saveFileMessage')}
-                        </TextLink>
-
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.uploadLaterMessage')}</Text>
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
+                    </View>
 
                     <ConfirmModal
                         isVisible={shouldShowErrorModal}
