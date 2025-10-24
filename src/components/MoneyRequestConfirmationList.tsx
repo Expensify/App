@@ -367,16 +367,12 @@ function MoneyRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     // Clear the form error if it's set to one among the list passed as an argument
-    const clearFormErrors = useCallback(
-        (errors: string[]) => {
-            if (!errors.includes(formError)) {
-                return;
-            }
-
-            setFormError('');
-        },
-        [formError, setFormError],
-    );
+    const clearFormError = (errors: string[]) => {
+        if (!errors.includes(formError)) {
+            return;
+        }
+        setFormError('');
+    };
 
     const didSmartScanFailWithMissingFields = !!hasSmartScanFailed && hasMissingSmartscanFields(transaction);
     const didConfirmSplitWithMissinRequiredFields = didConfirmSplit && areRequiredFieldsEmpty(transaction);
@@ -529,16 +525,13 @@ function MoneyRequestConfirmationList({
         formattedAmount,
     ]);
 
-    const onSplitShareChange = useCallback(
-        (accountID: number, value: number) => {
-            if (!transaction?.transactionID) {
-                return;
-            }
-            const amountInCents = convertToBackendAmount(value);
-            setIndividualShare(transaction?.transactionID, accountID, amountInCents);
-        },
-        [transaction],
-    );
+    const onSplitShareChange = (accountID: number, value: number) => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        const amountInCents = convertToBackendAmount(value);
+        setIndividualShare(transaction?.transactionID, accountID, amountInCents);
+    };
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
@@ -835,100 +828,72 @@ function MoneyRequestConfirmationList({
     /**
      * @param {String} paymentMethod
      */
-    const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
-            if (!!routeError || !transactionID) {
-                return;
-            }
-            if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
+    const confirm = (paymentMethod: PaymentMethodType | undefined) => {
+        if (!!routeError || !transactionID) {
+            return;
+        }
+        if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (selectedParticipants.length === 0) {
+            setFormError('iou.error.noParticipantSelected');
+            return;
+        }
+        if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+            setFormError('iou.error.invalidMerchant');
+            return;
+        }
+        if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+            setFormError('iou.error.invalidCategoryLength');
+            return;
+        }
+
+        if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            setFormError('iou.error.invalidTagLength');
+            return;
+        }
+
+        if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
+            setFormError('iou.error.invalidSubrateLength');
+            return;
+        }
+
+        if (iouType !== CONST.IOU.TYPE.PAY) {
+            // validate the amount for distance expenses
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+            if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
+                setFormError('common.error.invalidAmount');
                 return;
             }
 
-            if (selectedParticipants.length === 0) {
-                setFormError('iou.error.noParticipantSelected');
-                return;
-            }
-            if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
-                setFormError('iou.error.invalidMerchant');
-                return;
-            }
-            if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                setFormError('iou.error.invalidCategoryLength');
+            if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
+                setDidConfirmSplit(true);
+                setFormError('iou.error.genericSmartscanFailureMessage');
                 return;
             }
 
-            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-                setFormError('iou.error.invalidTagLength');
+            if (formError) {
                 return;
             }
 
-            if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
-                setFormError('iou.error.invalidSubrateLength');
+            onConfirm?.(selectedParticipants);
+        } else {
+            if (!paymentMethod) {
                 return;
             }
-
-            if (iouType !== CONST.IOU.TYPE.PAY) {
-                // validate the amount for distance expenses
-                const decimals = getCurrencyDecimals(iouCurrencyCode);
-                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
-                    setFormError('common.error.invalidAmount');
-                    return;
-                }
-
-                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
-                    setDidConfirmSplit(true);
-                    setFormError('iou.error.genericSmartscanFailureMessage');
-                    return;
-                }
-
-                if (formError) {
-                    return;
-                }
-
-                onConfirm?.(selectedParticipants);
-            } else {
-                if (!paymentMethod) {
-                    return;
-                }
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                if (formError) {
-                    return;
-                }
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
             }
-        },
-        [
-            selectedParticipants,
-            isEditingSplitBill,
-            isMerchantRequired,
-            isMerchantEmpty,
-            shouldDisplayFieldError,
-            transaction,
-            iouCategory.length,
-            formError,
-            iouType,
-            setFormError,
-            onSendMoney,
-            iouCurrencyCode,
-            isDistanceRequest,
-            isPerDiemRequest,
-            isDistanceRequestWithPendingRoute,
-            iouAmount,
-            onConfirm,
-            transactionID,
-            reportID,
-            policy,
-            routeError,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-            setDidConfirmSplit,
-        ],
-    );
+            if (formError) {
+                return;
+            }
+            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+            onSendMoney?.(paymentMethod);
+        }
+    };
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
