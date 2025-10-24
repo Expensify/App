@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EnterSignerInfoForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+import SafeString from '@src/utils/SafeString';
 
 const signerDetailsFields = [
     INPUT_IDS.SIGNER_FULL_NAME,
@@ -32,7 +33,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
 
         if (fieldName === INPUT_IDS.SIGNER_STREET || fieldName === INPUT_IDS.SIGNER_CITY || fieldName === INPUT_IDS.SIGNER_STATE || fieldName === INPUT_IDS.SIGNER_ZIP_CODE) {
             signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS] = signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]
-                ? `${String(signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS])}, ${String(enterSignerInfoFormDraft?.[fieldName])}`
+                ? `${SafeString(signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS])}, ${String(enterSignerInfoFormDraft?.[fieldName])}`
                 : enterSignerInfoFormDraft?.[fieldName];
             return;
         }
