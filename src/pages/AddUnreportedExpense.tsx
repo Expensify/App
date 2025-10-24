@@ -61,6 +61,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -161,20 +164,36 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             if (report && isIOUReport(report)) {
                 convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
             } else {
-                changeTransactionsReport(
-                    [...selectedIds],
-                    report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                changeTransactionsReport({
+                    transactionIDs: [...selectedIds],
+                    reportID: report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
                     policy,
                     reportNextStep,
                     policyCategories,
-                );
+                    allReportsCollection: allReports,
+                    allTransactionsCollection: allTransactions,
+                    allTransactionViolationsCollection: allTransactionViolations,
+                });
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, policy, reportNextStep, policyCategories]);
+    }, [
+        selectedIds,
+        translate,
+        report,
+        isASAPSubmitBetaEnabled,
+        session?.accountID,
+        session?.email,
+        policy,
+        reportNextStep,
+        policyCategories,
+        allReports,
+        allTransactions,
+        allTransactionViolations,
+    ]);
 
     const footerContent = useMemo(() => {
         return (
