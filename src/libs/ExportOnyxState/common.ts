@@ -314,6 +314,9 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
         } else if (keysToMask.includes(key)) {
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
+            } else if (typeof value === 'object') {
+                // If the value is an object, don't mask it as a string - recursively process it
+                maskedData[propertyName] = maskFragileData(value as OnyxState, key);
             } else {
                 maskedData[key] = maskValuePreservingLength(value);
             }
