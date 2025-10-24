@@ -21,7 +21,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
-import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -31,7 +30,6 @@ import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
-    SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
     SearchReport,
@@ -109,7 +107,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
@@ -356,7 +354,7 @@ type TransactionGroupListItemType = ListItem & {
     transactionsQueryJSON?: SearchQueryJSON;
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -487,6 +485,8 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
 };
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
@@ -505,6 +505,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -520,13 +522,14 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    searchType?: SearchDataTypes;
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -537,7 +540,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
     isEmpty: boolean;
-    isExpenseReportType: boolean;
+    isGroupByReports: boolean;
     transactionsSnapshot?: SearchResults;
     shouldDisplayEmptyView: boolean;
     transactionsQueryJSON?: SearchQueryJSON;
@@ -581,8 +584,7 @@ type ValidListItem =
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
     | typeof TravelDomainListItem
-    | typeof UnreportedExpenseListItem
-    | typeof SpendCategorySelectorListItem;
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
