@@ -670,6 +670,7 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
     },
     supportalNoAccess: {

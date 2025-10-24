@@ -674,6 +674,7 @@ const translations = {
         pinned: 'Vastgezet',
         read: 'Gelezen',
         copyToClipboard: 'Kopiëren naar klembord',
+        thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
     },
     supportalNoAccess: {

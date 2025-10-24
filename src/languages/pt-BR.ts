@@ -677,6 +677,7 @@ const translations = {
         pinned: 'Fixado',
         read: 'Lido',
         copyToClipboard: 'Copiar para a área de transferência',
+        thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
     },
     supportalNoAccess: {
