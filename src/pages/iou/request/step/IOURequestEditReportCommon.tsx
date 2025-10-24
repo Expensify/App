@@ -211,9 +211,10 @@ function IOURequestEditReportCommon({
             <SelectionList
                 data={reportOptions}
                 onSelectRow={selectReport}
+                shouldShowTextInput={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
-                    label: expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+                    label: translate('common.search'),
                     headerMessage,
                     onChangeText: setSearchValue,
                 }}
