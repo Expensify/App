@@ -25,7 +25,7 @@ Anyone with an Expensify account can use the free features — no workspace requ
 
 ---
 
-## What features are free in Expensify
+## What free features are available in Expensify
 
 Anyone with an Expensify account can:
 
@@ -60,8 +60,8 @@ Use SmartScan to capture and auto-code receipts.
 Use distance tracking to log travel for tax or business deductions.
 
 ### Web
-1. Click the **+** icon in the navigation tabs on the left > **Track distance**
-2. Enter the trip start and end point or enter the distance manually, then click **Next**
+1. Click the **+** icon in the navigation tabs on the left > **Track distance**.
+2. Enter the trip start and end point or enter the distance manually, then click **Next**.
 3. Choose yourself as the recipient and click **Create expense**.
 
 ### Mobile
@@ -77,13 +77,13 @@ For purchases without receipts, enter expenses by hand.
 
 ### Web
 1. Click the **+** icon in the navigation tabs on the left > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**
+2. Enter the expense amount and click **Next**.
 3. Choose yourself as the recipient.
 4. Fill out the expense details and click **Create expense**.
 
 ### Mobile
 1. Tap the **+** icon at the bottom > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**
+2. Enter the expense amount and click **Next**.
 3. Choose yourself as the recipient
 4. Fill out the expense details and click **Create expense**.
 
@@ -94,8 +94,8 @@ For purchases without receipts, enter expenses by hand.
 Export your data for taxes, budgeting, or sharing with an accountant.
 
 ### Web
-1. Click **Reports** > **Expenses**
-2. Tick the boxes of the expenses you want to export then 
+1. Click **Reports** > **Expenses**.
+2. Tick the boxes of the expenses you want to export. 
 3. Click **Selected** at the top.
 4. Choose **Export** from the dropdown menu.
 
