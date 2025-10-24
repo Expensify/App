@@ -78,7 +78,13 @@ function CardSection() {
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
-        CardSectionUtils.getBillingStatus({translate, stripeCustomerId: privateStripeCustomerID, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+        CardSectionUtils.getBillingStatus({
+            translate,
+            stripeCustomerId: privateStripeCustomerID,
+            accountData: defaultCard?.accountData ?? {},
+            purchase: purchaseList?.[0],
+            retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+        }),
     );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -96,6 +102,7 @@ function CardSection() {
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
+                retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             }),
         );
     }, [

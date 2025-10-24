@@ -1,6 +1,5 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
 import {TextEncoder} from 'util';
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
@@ -21,6 +20,7 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+import {translateLocal} from '../utils/TestHelper';
 
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 

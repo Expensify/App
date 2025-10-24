@@ -42,6 +42,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Whether the item is hovered */
+    isHovered?: boolean;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -160,6 +166,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
+    isHovered,
+    onDEWModalOpen,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -177,7 +185,8 @@ function ReportListItemHeader<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
     }, [snapshot, reportItem.policyID]);
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(
@@ -189,6 +198,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
+            onDEWModalOpen,
         );
     };
     return !isLargeScreenWidth ? (

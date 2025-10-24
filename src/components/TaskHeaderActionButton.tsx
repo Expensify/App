@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -10,7 +11,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
-import {useSession} from './OnyxListItemProvider';
 
 type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
@@ -20,10 +20,10 @@ type TaskHeaderActionButtonProps = {
 function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskActionable = canActionTask(report, session?.accountID, parentReport, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
         return null;
@@ -41,7 +41,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
-                        reopenTask(report);
+                        reopenTask(report, currentUserPersonalDetails.accountID);
                     } else {
                         completeTask(report);
                     }

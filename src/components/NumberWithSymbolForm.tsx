@@ -450,7 +450,10 @@ function NumberWithSymbolForm({
     );
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <ScrollView
+            contentContainerStyle={styles.flexGrow1}
+            style={!shouldWrapInputInContainer && styles.flexGrow0}
+        >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View

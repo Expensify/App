@@ -3,6 +3,7 @@
  * You provide a CLIConfig defining your arguments, then the class will handle parsing argv, type validation, error handling, and help messages.
  */
 import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
+import SafeString from '@src/utils/SafeString';
 
 /**
  * A base CLI arg has only a description, which we will use in the help/usage message (built-in to any CLI).
@@ -292,7 +293,7 @@ class CLI<TConfig extends CLIConfig> {
         if (Object.keys(namedArgs).length > 0) {
             console.log('Named Arguments:');
             for (const [name, spec] of Object.entries(namedArgs)) {
-                const defaultLabel = spec.default !== undefined ? ` (default: ${String(spec.default)})` : '';
+                const defaultLabel = spec.default !== undefined ? ` (default: ${SafeString(spec.default)})` : '';
                 const supersededLabel = spec.supersedes && spec.supersedes.length > 0 ? ` (supersedes: ${spec.supersedes.join(', ')})` : '';
                 console.log(`  --${name.padEnd(20)} ${spec.description}${defaultLabel}${supersededLabel}`);
             }
@@ -302,7 +303,7 @@ class CLI<TConfig extends CLIConfig> {
         if (positionalArgs.length > 0) {
             console.log('Positional Arguments:');
             for (const arg of positionalArgs) {
-                const defaultLabel = arg.default !== undefined ? ` (default: ${String(arg.default)})` : '';
+                const defaultLabel = arg.default !== undefined ? ` (default: ${SafeString(arg.default)})` : '';
                 console.log(`  ${arg.name.padEnd(22)} ${arg.description}${defaultLabel}`);
             }
             console.log('');

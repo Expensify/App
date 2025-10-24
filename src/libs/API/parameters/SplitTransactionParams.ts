@@ -1,7 +1,6 @@
 import type {Comment} from '@src/types/onyx/Transaction';
 
-type SplitTransactionSplitsParam = Array<{
-    amount: number;
+type SplitTransactionSplitParam = {
     transactionID: string;
     category?: string;
     tag?: string;
@@ -15,11 +14,15 @@ type SplitTransactionSplitsParam = Array<{
     reimbursable?: boolean;
     billable?: boolean;
     reportID?: string;
-}>;
+};
+
+type SplitTransactionSplitsParam = SplitTransactionSplitParam[];
 
 type SplitTransactionParams = {
     transactionID: string;
     [key: string]: string | boolean;
 };
 
-export type {SplitTransactionParams, SplitTransactionSplitsParam};
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment'> & {comment?: string};
+
+export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams};
