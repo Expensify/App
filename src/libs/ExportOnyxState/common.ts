@@ -98,7 +98,6 @@ const keysToMask = [
     'childReportName',
     'city',
     'comment',
-    'currency',
     'description',
     'displayName',
     'edits',
@@ -136,8 +135,6 @@ const amountKeysToRandomize = ['amount', 'modifiedAmount', 'originalAmount', 'to
 const nodesToFullyMask = ['reservationList'];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-
-const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
 
@@ -205,13 +202,13 @@ const getCurrentDate = (): string => {
     return new Date().toISOString();
 };
 
-const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, shouldMask: boolean): unknown => {
+const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): unknown => {
     if (data === null || data === undefined) {
         return data;
     }
 
     if (Array.isArray(data)) {
-        return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule, shouldMask) : item));
+        return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
     }
 
     if (typeof data === 'object') {
@@ -226,7 +223,7 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, sh
                 processedData[fieldKey] = fieldValue;
             } else if (typeof fieldValue === 'object' && fieldValue !== null) {
                 // If it's an object and not in allowList/maskList, recursively process it
-                processedData[fieldKey] = processOnyxKeyWithRule(key, fieldValue, rule, shouldMask);
+                processedData[fieldKey] = processOnyxKeyWithRule(key, fieldValue, rule);
             } else if (typeof fieldValue === 'number') {
                 processedData[fieldKey] = randomizeAmount(fieldValue);
             } else if (typeof fieldValue === 'string' && isDateValue(fieldValue)) {
@@ -245,7 +242,7 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule, sh
     return data;
 };
 
-const maskEmail = (email: string) => {
+const maskEmail = (email: string, emailMap: Map<string, string>) => {
     let maskedEmail = '';
     if (!emailMap.has(email)) {
         maskedEmail = randomizeEmail(email);
@@ -257,7 +254,7 @@ const maskEmail = (email: string) => {
     return maskedEmail;
 };
 
-const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string): OnyxState | unknown[] | null => {
+const maskFragileData = (data: OnyxState | unknown[] | null, emailMap: Map<string, string>, parentKey?: string): OnyxState | unknown[] | null => {
     if (data === null) {
         return data;
     }
@@ -265,74 +262,74 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
     if (Array.isArray(data)) {
         return data.map((item): unknown => {
             if (typeof item === 'string' && Str.isValidEmail(item)) {
-                return maskEmail(item);
+                return maskEmail(item, emailMap);
             }
-            return typeof item === 'object' ? maskFragileData(item as OnyxState, parentKey) : item;
+            return typeof item === 'object' ? maskFragileData(item as OnyxState, emailMap, parentKey) : item;
         });
     }
 
     const maskedData: OnyxState = {};
 
-    Object.keys(data).forEach((key) => {
-        if (!Object.prototype.hasOwnProperty.call(data, key)) {
+    Object.keys(data).forEach((sourceKey) => {
+        if (!Object.prototype.hasOwnProperty.call(data, sourceKey)) {
             return;
         }
 
-        // loginList is an object that contains emails as keys, the keys should be masked as well
-        let propertyName = '';
-        if (Str.isValidEmail(key)) {
-            propertyName = maskEmail(key);
-        } else {
-            propertyName = key;
-        }
+        // Read value from source using the original key
+        const value = (data as Record<string, unknown>)[sourceKey];
 
-        const value = (data as Record<string, unknown>)[key];
+        // Determine the destination key - mask it if it's an email
+        // (e.g., in loginList where email addresses are used as object keys)
+        const destinationKey = Str.isValidEmail(sourceKey) ? maskEmail(sourceKey, emailMap) : sourceKey;
 
         // Skip values that are already masked as MASKING_PATTERN
         if (value === MASKING_PATTERN) {
-            maskedData[propertyName] = value;
+            maskedData[destinationKey] = value;
             return;
         }
 
         // Handle collection nodes (reportActions, reports, transactions)
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
-        } else if (key.startsWith(ONYXKEYS.COLLECTION.REPORT) && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
-        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
-        } else if (amountKeysToRandomize.includes(key) && typeof value === 'number') {
-            maskedData[propertyName] = randomizeAmount(value);
+        if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && typeof value === 'object') {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object') {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+        } else if (amountKeysToRandomize.includes(sourceKey) && typeof value === 'number') {
+            maskedData[destinationKey] = randomizeAmount(value);
             // Handle expensify_text_title masking
-        } else if (parentKey === 'expensify_text_title' && key === 'value' && typeof value === 'string') {
-            maskedData[propertyName] = maskValuePreservingLength(value);
-        } else if (key === 'expensify_text_title' && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, 'expensify_text_title');
+        } else if (parentKey === 'expensify_text_title' && sourceKey === 'value' && typeof value === 'string') {
+            maskedData[destinationKey] = maskValuePreservingLength(value);
+        } else if (sourceKey === 'expensify_text_title' && typeof value === 'object') {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, 'expensify_text_title');
             // Handle nodes that need full masking
-        } else if (nodesToFullyMask.includes(key) && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, key);
+        } else if (nodesToFullyMask.includes(sourceKey) && typeof value === 'object') {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
         } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'string' && isDateValue(value)) {
-            maskedData[propertyName] = getCurrentDate();
+            maskedData[destinationKey] = getCurrentDate();
         } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'string') {
-            maskedData[propertyName] = maskValuePreservingLength(value);
+            maskedData[destinationKey] = maskValuePreservingLength(value);
         } else if (parentKey && nodesToFullyMask.includes(parentKey) && typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, parentKey);
-        } else if (keysToMask.includes(key)) {
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, parentKey);
+        } else if (keysToMask.includes(sourceKey)) {
             if (Array.isArray(value)) {
-                maskedData[key] = value.map(() => MASKING_PATTERN);
+                maskedData[destinationKey] = value.map(() => MASKING_PATTERN);
+            } else if (typeof value === 'object') {
+                // If the value is an object, don't mask it as a string - recursively process it
+                maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
             } else {
-                maskedData[key] = maskValuePreservingLength(value);
+                maskedData[destinationKey] = maskValuePreservingLength(value);
             }
         } else if (typeof value === 'string' && Str.isValidEmail(value)) {
-            maskedData[propertyName] = maskEmail(value);
+            maskedData[destinationKey] = maskEmail(value, emailMap);
         } else if (typeof value === 'string' && stringContainsEmail(value)) {
-            maskedData[propertyName] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? ''));
-        } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
-            maskedData[key] = MASKING_PATTERN;
+            maskedData[destinationKey] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? '', emailMap));
+        } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (destinationKey === 'text' || destinationKey === 'html')) {
+            maskedData[destinationKey] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
-            maskedData[propertyName] = maskFragileData(value as OnyxState, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
+            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, destinationKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? destinationKey : parentKey);
         } else {
-            maskedData[propertyName] = value;
+            maskedData[destinationKey] = value;
         }
     });
 
@@ -353,43 +350,49 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
 };
 
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
-    let onyxState = {...data};
+    const emailMap = new Map<string, string>();
 
-    onyxState = removePrivateOnyxKeys(onyxState);
+    try {
+        let onyxState = {...data};
 
-    const keysWithRules = new Set<string>();
+        onyxState = removePrivateOnyxKeys(onyxState);
 
-    Object.keys(onyxState).forEach((key) => {
-        let ruleKey = key;
-        const collectionKey = Object.values(ONYXKEYS.COLLECTION).find((cKey) => key.startsWith(cKey));
-        if (collectionKey) {
-            ruleKey = collectionKey;
-        }
+        const keysWithRules = new Set<string>();
 
-        const rule = ONYX_KEY_EXPORT_RULES[ruleKey];
-
-        if (rule) {
-            onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule, !!isMaskingFragileDataEnabled);
-            keysWithRules.add(key);
-        }
-    });
-
-    if (isMaskingFragileDataEnabled) {
-        // Only apply maskFragileData to keys that don't have export rules
-        const maskedState: OnyxState = {};
         Object.keys(onyxState).forEach((key) => {
-            if (keysWithRules.has(key)) {
-                maskedState[key] = onyxState[key];
-            } else {
-                const masked = maskFragileData({[key]: onyxState[key]}) as OnyxState;
-                maskedState[key] = masked[key];
+            let ruleKey = key;
+            const collectionKey = Object.values(ONYXKEYS.COLLECTION).find((cKey) => key.startsWith(cKey));
+            if (collectionKey) {
+                ruleKey = collectionKey;
+            }
+
+            const rule = ONYX_KEY_EXPORT_RULES[ruleKey];
+
+            if (rule) {
+                onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule);
+                keysWithRules.add(key);
             }
         });
-        onyxState = maskedState;
-    }
 
-    emailMap.clear();
-    return onyxState;
+        if (isMaskingFragileDataEnabled) {
+            // Only apply maskFragileData to keys that don't have export rules
+            const maskedState: OnyxState = {};
+            Object.keys(onyxState).forEach((key) => {
+                if (keysWithRules.has(key)) {
+                    maskedState[key] = onyxState[key];
+                } else {
+                    const masked = maskFragileData({[key]: onyxState[key]}, emailMap) as OnyxState;
+                    maskedState[key] = masked[key];
+                }
+            });
+            onyxState = maskedState;
+        }
+
+        return onyxState;
+    } finally {
+        // Always clear the email map, even if an error occurred
+        emailMap.clear();
+    }
 };
 
 export {maskOnyxState, emailRegex};
