@@ -66,6 +66,7 @@ describe('OptimisticReportNames', () => {
             } as unknown as ReportNameValuePairs,
         },
         allTransactions: {},
+        isOffline: false,
     };
 
     beforeEach(() => {
