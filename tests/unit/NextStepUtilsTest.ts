@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStep, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -814,6 +814,22 @@ describe('libs/NextStepUtils', () => {
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
+            });
+        });
+    });
+
+    describe('buildOptimisticNextStepForStrictPolicyRuleViolations', () => {
+        test('returns correct next step message for strict policy rule violations', () => {
+            const result = buildOptimisticNextStepForStrictPolicyRuleViolations();
+
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [
+                    {
+                        text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+                    },
+                ],
             });
         });
     });
