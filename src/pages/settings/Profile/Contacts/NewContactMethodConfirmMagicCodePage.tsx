@@ -60,7 +60,6 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
                     return;
                 }
                 clearContactMethod(newContactMethod);
-                clearUnvalidatedNewContactMethodAction();
             }}
             onClose={() => {
                 if (!pendingContactAction?.contactMethod) {
