@@ -67,11 +67,12 @@ function TroubleshootPage() {
     }, [shouldMaskOnyxState]);
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
-        if (!tryNewDot?.classicRedirect?.timestamp) {
+        const surveyThresholdInDays = 30;
+        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
             return false;
         }
         const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
-        return daysSinceLastSurvey < 30;
+        return daysSinceLastSurvey < surveyThresholdInDays;
     }, [tryNewDot?.classicRedirect?.timestamp]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
