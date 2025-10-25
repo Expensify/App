@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
