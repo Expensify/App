@@ -204,6 +204,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                        isDisabled={isTransactionPendingDelete(transaction)}
                     />
                 </OfflineWithFeedback>
             ))}

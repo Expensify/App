@@ -44,6 +44,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
+    disabled?: boolean;
 };
 
 function ActionCell({
@@ -58,6 +59,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
+    disabled = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -121,6 +123,7 @@ function ActionCell({
                 icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
+                isDisabled={disabled}
                 isNested
             />
         ) : null;
@@ -142,7 +145,7 @@ function ActionCell({
                 style={[styles.w100]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
-                isDisabled={isOffline}
+                isDisabled={isOffline || disabled}
                 isLoading={isLoading}
             />
         );
@@ -156,7 +159,7 @@ function ActionCell({
             style={[styles.w100]}
             isLoading={isLoading}
             success
-            isDisabled={isOffline}
+            isDisabled={isOffline || disabled}
             isNested
         />
     );

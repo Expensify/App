@@ -275,6 +275,7 @@ function TransactionItemRow({
                             policyID={report?.policyID}
                             hash={transactionItem?.hash}
                             amount={report?.total}
+                            disabled={isDisabled}
                         />
                     )}
                 </View>
