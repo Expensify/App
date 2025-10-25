@@ -240,6 +240,7 @@ import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -828,6 +829,20 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
+});
+
+let allSnapshotKeys: OnyxKey[] = [];
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        allSnapshotKeys = Object.keys(val) as OnyxKey[];
+    },
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
@@ -8784,6 +8799,34 @@ function deleteMoneyRequest(
                   },
               },
     ];
+
+    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+        allSnapshotKeys.forEach((key) => {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            });
+        });
+    }
 
     if (reportPreviewAction?.reportActionID) {
         successData.push({
