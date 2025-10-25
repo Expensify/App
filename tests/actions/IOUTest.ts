@@ -7316,7 +7316,7 @@ describe('actions/IOU', () => {
             const originalTransactionID = 'orig-2-rem';
             const draftTransaction: Transaction = {
                 transactionID: 'draft-6',
-                amount: 101, // in cents
+                amount: 101, // in cents = $1.01
                 currency: 'USD',
                 merchant: 'Test Merchant',
                 comment: {

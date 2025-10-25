@@ -1125,7 +1125,7 @@ const translations = {
         split: 'Teilen',
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
-        addSplit: 'Teilung hinzufügen',
+        addSplit: 'Split hinzufügen',
         splitEvenly: 'Gleichmäßig aufteilen',
         editSplits: 'Splits bearbeiten',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} höher als die ursprüngliche Ausgabe.`,
