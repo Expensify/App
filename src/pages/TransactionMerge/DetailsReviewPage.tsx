@@ -98,49 +98,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
     }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
 
-    useEffect(() => {
-        if (!isCheckingDataBeforeGoNext) {
-            return;
-        }
-
-        // When user selects a card transaction to merge, that card transaction becomes the target transaction.
-        // The App may not have the transaction thread report loaded for card transactions, so we need to trigger
-        // OpenReport to ensure the transaction thread report is available for confirmation page
-        if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
-            // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
-            // So we should create it.
-            if (hasOnceLoadedTransactionThreadReportActions) {
-                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
-                setIsCheckingDataBeforeGoNext(false);
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-                return;
-            }
-            return openReport(targetTransaction.reportID);
-        }
-        if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
-            return openReport(targetTransactionThreadReportID);
-        }
-        // We need to wait for report to be loaded completely, avoid still optimistic loading
-        if (!targetTransactionThreadReport?.reportID) {
-            console.log('returning');
-            return;
-        }
-
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-        setIsCheckingDataBeforeGoNext(false);
-    }, [
-        isCheckingDataBeforeGoNext,
-        targetTransactionThreadReportID,
-        targetTransaction?.reportID,
-        targetTransactionThreadReport,
-        transactionID,
-        hasOnceLoadedTransactionThreadReportActions,
-        iouActionForTargetTransaction,
-        iouReportForTargetTransaction,
-        currentUserEmail,
-        targetTransaction?.transactionID,
-    ]);
-
     // Handle selection
     const handleSelect = useCallback(
         (transaction: Transaction, field: MergeFieldKey) => {
@@ -184,7 +141,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            setIsCheckingDataBeforeGoNext(true);
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
     }, [mergeTransaction, conflictFields]);
 
@@ -240,7 +197,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
-                        isLoading={isCheckingDataBeforeGoNext}
                         pressOnEnter
                     />
                 </FixedFooter>

@@ -115,13 +115,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        // It's a temporary solution to ensure the source report is loaded, so we can display reportName in the merge transaction details page
-        // We plan to remove this in next phase of merge expenses project
-        const sourceReport = getReportOrDraftReport(sourceTransaction.reportID);
-        if (!sourceReport) {
-            openReport(sourceTransaction.reportID);
-        }
-
         const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
