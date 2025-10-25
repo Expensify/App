@@ -172,12 +172,6 @@ type IsValidReportsConfig = Pick<
     | 'excludeNonAdminWorkspaces'
 >;
 
-type GetValidReportsReturnTypeCombined = {
-    selfDMOption: SearchOptionData | undefined;
-    workspaceOptions: SearchOptionData[];
-    recentReports: SearchOptionData[];
-};
-
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -272,7 +266,6 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
     OptionList,
