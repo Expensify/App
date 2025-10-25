@@ -1043,6 +1043,17 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT]: {
+            text: translate('reportLayout.reportLayout'),
+            icon: Expensicons.Feed,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.getRoute(moneyRequestReport.reportID));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,

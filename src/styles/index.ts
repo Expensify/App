@@ -4210,6 +4210,37 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        reportLayoutGroupHeaderDesktop: {
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        reportLayoutGroupHeaderMobile: {
+            paddingHorizontal: 12,
+            minHeight: 44,
+            paddingVertical: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        reportLayoutGroupHeaderText: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeMedium,
+            lineHeight: 28,
+            color: theme.text,
+        },
+
+        reportLayoutGroupHeaderTextMobile: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            color: theme.text,
+        },
+
         reportActionItemImageBorder: {
             borderRightWidth: 4,
             borderColor: theme.cardBG,
