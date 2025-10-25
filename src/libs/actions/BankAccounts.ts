@@ -206,36 +206,9 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 }
 
 /**
- * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
- */
-function getOnyxDataForConnectingBankAccount(policyID: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData {
-    const onyxData = getVBBADataForOnyx();
-    const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
-
-    if (!lastUsedPaymentMethod) {
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {
-                [policyID]: {
-                    expense: {
-                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
-                    },
-                    lastUsed: {
-                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
-                    },
-                },
-            },
-        });
-    }
-
-    return onyxData;
-}
-
-/**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -248,9 +221,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         policyID,
     };
 
-    const onyxData = getOnyxDataForConnectingBankAccount(policyID, lastPaymentMethod);
-
-    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters);
 }
 
 /**
@@ -1084,7 +1055,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
 /**
  * Create the bank account with manually entered data.
  */
-function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: bankAccount.routingNumber,
@@ -1097,9 +1068,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
         policyID,
     };
 
-    const onyxData = getOnyxDataForConnectingBankAccount(policyID, lastPaymentMethod);
-
-    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters);
 }
 
 /**

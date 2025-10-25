@@ -12,8 +12,11 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +50,7 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
     ref,
+    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -56,6 +60,8 @@ function KYCWall({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+
     const {formatPhoneNumber} = useLocalize();
 
     const anchorRef = useRef<HTMLDivElement | View>(null);
@@ -107,6 +113,8 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
+    const canLinkExistingBusinessBankAccount = useCallback(() => getEligibleExistingBusinessBankAccounts(bankAccountList, currency).length > 0, [bankAccountList, currency]);
+
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
             if (paymentMethod) {
@@ -152,11 +160,37 @@ function KYCWall({
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
                     return;
                 }
+
+                // If user has a setup in progress we do not show them the option to connect existing account
+                const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
+                if (policy !== undefined && hasInProgressVBBA(reimbursementAccount?.achData, isNonUSDWorkspace, reimbursementAccountDraft?.country ?? '')) {
+                    navigateToBankAccountRoute(policy.id);
+                    return;
+                }
+
+                if (policy !== undefined && canLinkExistingBusinessBankAccount()) {
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
+                    return;
+                }
+
                 const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [onSelectPaymentMethod, iouReport, addDebitCardRoute, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
+        [
+            onSelectPaymentMethod,
+            iouReport,
+            addDebitCardRoute,
+            reimbursementAccount?.achData,
+            reimbursementAccountDraft?.country,
+            canLinkExistingBusinessBankAccount,
+            addBankAccountRoute,
+            chatReport,
+            policies,
+            introSelected,
+            formatPhoneNumber,
+            lastPaymentMethod,
+        ],
     );
 
     /**

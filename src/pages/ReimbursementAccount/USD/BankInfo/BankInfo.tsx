@@ -39,7 +39,6 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true});
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const {translate} = useLocalize();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
@@ -69,7 +68,6 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                         [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                     },
                     policyID,
-                    lastPaymentMethod?.[policyID],
                 );
             } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
                 connectBankAccountWithPlaid(
@@ -84,11 +82,10 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                         [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                     },
                     policyID,
-                    lastPaymentMethod?.[policyID],
                 );
             }
         },
-        [setupType, bankAccountID, lastPaymentMethod, values?.bankName, values?.plaidAccountID, values?.plaidAccessToken, values?.mask, policyID],
+        [setupType, bankAccountID, values?.bankName, values?.plaidAccountID, values?.plaidAccessToken, values?.mask, policyID],
     );
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;

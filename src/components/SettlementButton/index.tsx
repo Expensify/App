@@ -116,7 +116,6 @@ function SettlementButton({
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
 
@@ -418,7 +417,9 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
-        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
+        const bankAccountToDisplay = hasIntentToPay
+            ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
+            : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
             if (!personalBankAccountList.length) {
                 return;
@@ -434,6 +435,12 @@ function SettlementButton({
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
+            }
+
+            if (bankAccountToDisplay?.accountData?.accountNumber) {
+                return translate('paymentMethodList.bankAccountLastFour', {
+                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
+                });
             }
 
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
@@ -466,7 +473,7 @@ function SettlementButton({
             return;
         }
 
-        const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(selectedOption, activeAdminPolicies, latestBankItem);
+        const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(selectedOption, activeAdminPolicies, latestBankItem, policyIDKey);
 
         if (!!selectedPolicy || shouldSelectPaymentMethod) {
             selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
@@ -512,6 +519,7 @@ function SettlementButton({
             policy={lastPaymentPolicy}
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
+            currency={currency}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentMethodType | PaymentMethod>

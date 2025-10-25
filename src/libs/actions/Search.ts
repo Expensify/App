@@ -131,7 +131,10 @@ function getLastPolicyBankAccountID(
         return undefined;
     }
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
-    return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
+
+    return typeof lastPolicyPaymentMethod === 'string' || (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name === ''
+        ? undefined
+        : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
 }
 
 function getLastPolicyPaymentMethod(
