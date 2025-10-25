@@ -109,7 +109,7 @@ describe('actions/PolicyMember', () => {
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             // When a user's role is set as admin on a policy
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -152,7 +152,7 @@ describe('actions/PolicyMember', () => {
             });
             await waitForBatchedUpdates();
             // When an admin is demoted from their admin role to a user role
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -458,7 +458,12 @@ describe('actions/PolicyMember', () => {
 
             // When removing am admin, auditor, and user members
             mockFetch?.pause?.();
-            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
+            const memberEmailsToAccountIDs = {
+                [adminEmail]: adminAccountID,
+                [auditorEmail]: auditorAccountID,
+                [userEmail]: userAccountID,
+            };
+            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
 
             await waitForBatchedUpdates();
 
@@ -499,6 +504,7 @@ describe('actions/PolicyMember', () => {
             const workspaceReportID = '1';
             const expenseReportID = '2';
             const userAccountID = 1236;
+            const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID)),
@@ -517,7 +523,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers([userAccountID], policyID);
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
