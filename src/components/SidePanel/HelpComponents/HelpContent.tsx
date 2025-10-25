@@ -60,8 +60,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
             return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
-                .filter(isMoneyRequestAction)
-                .at(0);
+                .find(isMoneyRequestAction);
         },
         [report?.parentReportActionID],
     );

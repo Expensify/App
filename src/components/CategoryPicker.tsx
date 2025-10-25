@@ -71,7 +71,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         return [categoryOptions, header, showInput];
     }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft, localeCompare]);
 
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((category) => category.searchText === selectedCategory)?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList

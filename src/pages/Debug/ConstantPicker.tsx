@@ -51,7 +51,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                 }),
         [fieldName, fieldValue, formType, searchValue],
     );
-    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => sections.find((option) => option.searchText === fieldValue)?.keyForList, [sections, fieldValue]);
 
     return (
         <SelectionList
