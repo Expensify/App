@@ -509,8 +509,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return options;
         }
 
-        const selectedEmployeesRoles = selectedEmployees.map((accountID) => {
-            const email = personalDetails?.[accountID]?.login ?? '';
+        const selectedEmployeesRoles = selectedEmployees.map((email) => {
             return policy?.employeeList?.[email]?.role;
         });
 
