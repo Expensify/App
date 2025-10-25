@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -10,12 +11,18 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
@@ -26,13 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { hasInProgressVBBA } from '@libs/ReimbursementAccountUtils';
-import { isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings } from '@libs/actions/Policy/Policy';
-import { clearDraftValues } from '@libs/actions/FormActions';
-import Navigation from '@libs/Navigation/Navigation';
-import { getEligibleExistingBusinessBankAccounts } from '@libs/WorkflowUtils';
-import usePermissions from '@hooks/usePermissions';
-import { TupleToUnion } from 'type-fest';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
