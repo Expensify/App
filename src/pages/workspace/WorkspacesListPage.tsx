@@ -17,6 +17,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,8 +42,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {openOldDotLink} from '@libs/actions/Link';
-import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {
+    calculateBillNewDot,
+    clearDeleteWorkspaceError,
+    clearDuplicateWorkspace,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removePendingApproverMemberErrorMessage,
+    removeWorkspace,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -58,6 +68,7 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyAuditor,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -111,6 +122,17 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     }
 
     clearErrors(policyID);
+}
+
+function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefined> | undefined, policyID: string | undefined, userEmail: string | undefined): boolean {
+    if (!policies || !policyID || !userEmail) {
+        return false;
+    }
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    if (!policy) {
+        return false;
+    }
+    return policy.achAccount?.reimburser === userEmail;
 }
 
 function WorkspacesListPage() {
@@ -186,7 +208,17 @@ function WorkspacesListPage() {
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
+        ((policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled ||
+            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
+            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
+
+    const personalDetails = usePersonalDetails();
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+    const [isCannotLeaveWorkspaceWithPendingReportsModalOpen, setIsCannotLeaveWorkspaceWithPendingReportsModalOpen] = useState(false);
+    const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
+    const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
+
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
@@ -215,6 +247,67 @@ function WorkspacesListPage() {
             return;
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
+    };
+
+    const confirmLeaveAndHideModal = () => {
+        if (!policyIDToLeave) {
+            return;
+        }
+
+        leaveWorkspace(policyIDToLeave);
+        setIsLeaveModalOpen(false);
+    };
+
+    const confirmModalPrompt = () => {
+        // Helper to get the policy object for the current policy ID to leave
+        const exporters = [
+            policyToLeave?.connections?.intacct?.config?.export?.exporter,
+            policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policyToLeave?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policyToLeave?.connections?.xero?.config?.export?.exporter,
+            policyToLeave?.connections?.netsuite?.options.config.exporter,
+        ];
+        const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const technicalContact = policyToLeave?.technicalContact;
+        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
+        const userEmail = session?.email ?? '';
+        const isApprover = isApproverUserAction(policyToLeave, userEmail);
+
+        if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+            return translate('common.cannotLeaveWorkspaceOutstandingReport');
+        }
+
+        if (isCurrentUserReimburser) {
+            return translate('common.leaveWorkspaceReimburser');
+        }
+
+        if (technicalContact === userEmail) {
+            return translate('common.leaveWorkspaceConfirmationTechContact', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (exporters.some((exporter) => exporter === userEmail)) {
+            return translate('common.leaveWorkspaceConfirmationExporter', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isApprover) {
+            return translate('common.leaveWorkspaceConfirmationApprover', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isPolicyAdmin(policyToLeave)) {
+            return translate('common.leaveWorkspaceConfirmationAdmin');
+        }
+
+        if (isPolicyAuditor(policyToLeave)) {
+            return translate('common.leaveWorkspaceConfirmationAuditor');
+        }
+
+        return translate('common.leaveWorkspaceConfirmation');
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
@@ -273,11 +366,22 @@ function WorkspacesListPage() {
             ];
 
             const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
+            if (!isOwner && defaultApprover !== session?.email) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                    onSelected: callFunctionIfActionIsAllowed(() => {
+                        const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
+
+                        setPolicyIDToLeave(item.policyID);
+
+                        if (isReimburser) {
+                            setIsCannotLeaveWorkspaceModalOpen(true);
+                            return;
+                        }
+
+                        setIsLeaveModalOpen(true);
+                    }),
                 });
             }
 
@@ -449,6 +553,7 @@ function WorkspacesListPage() {
      */
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
         if (isEmptyObject(policies)) {
             return [];
         }
@@ -456,6 +561,21 @@ function WorkspacesListPage() {
         return Object.values(policies)
             .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
             .map((policy): WorkspaceItem => {
+                if (shouldShowPolicy(policy, isOffline, session?.email)) {
+                    if (policy.employeeList && session?.email && policy.employeeList?.[session?.email]) {
+                        const employee = policy.employeeList[session.email];
+
+                        if (employee.errors && employee.pendingAction === 'delete') {
+                            const hasApprovalError = Object.values(employee.errors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+                            if (hasApprovalError) {
+                                setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(true);
+                                // Clear the error after showing the modal to prevent it from triggering again
+                                removePendingApproverMemberErrorMessage(policy.id, employee.errors);
+                            }
+                        }
+                    }
+                }
+
                 const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
@@ -738,6 +858,31 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 isConfirmLoading={isPendingDelete}
                 danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isLeaveModalOpen}
+                onConfirm={confirmLeaveAndHideModal}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.leaveWorkspace')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isCannotLeaveWorkspaceModalOpen || isCannotLeaveWorkspaceWithPendingReportsModalOpen}
+                onConfirm={() => {
+                    if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+                        setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(false);
+                        return;
+                    }
+                    setIsCannotLeaveWorkspaceModalOpen(false);
+                }}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success
             />
             <ConfirmModal
                 title={translate('workspace.common.delete')}

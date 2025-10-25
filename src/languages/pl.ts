@@ -641,6 +641,19 @@ const translations = {
         help: 'Pomoc',
         expenseReport: 'Raport wydatków',
         expenseReports: 'Raporty wydatków',
+        leaveWorkspace: 'Opuszcz przestrzeń roboczą',
+        leaveWorkspaceConfirmation: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zgłaszać wydatków.',
+        leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł przeglądać jej raportów ani ustawień.',
+        leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zarządzać jej ustawieniami.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony w procesie zatwierdzania przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+        leaveWorkspaceReimburser:
+            'Nie możesz opuścić tej przestrzeni roboczej jako osoba odpowiedzialna za zwroty. Ustaw nową osobę odpowiedzialną za zwroty w przestrzeniach roboczych > Tworzenie lub śledzenie płatności, a następnie spróbuj ponownie.',
+        cannotLeaveWorkspaceOutstandingReport: 'Zatwierdź wszystkie zaległe raporty wydatków przed opuszczeniem tej przestrzeni roboczej.',
         rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
         editYourProfile: 'Edytuj swój profil',
@@ -5104,6 +5117,18 @@ ${amount} dla ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Dodane przez dodatkowe logowanie ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Importuj członków',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Jeśli usuniesz ${approver} z tej przestrzeni roboczej, zostanie on zastąpiony w procesie zatwierdzania przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Proszę poproś ich o zatwierdzenie lub przejąć ich raporty, zanim usuniesz ich z przestrzeni roboczej.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Nie możesz usunąć ${memberName} z tej przestrzeni roboczej. Ustaw nowego zwracającego pieniądze w Workflows > Utwórz lub śledź płatności, a następnie spróbuj ponownie.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zostanie on zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zostanie on zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} ma zaległy raport, który wymaga działania. Proszę poproś ich, aby zakończyli wymaganą akcję, zanim usuniesz ich z przestrzeni roboczej.`,
         },
         card: {
             getStartedIssuing: 'Rozpocznij, wydając swoją pierwszą wirtualną lub fizyczną kartę.',

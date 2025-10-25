@@ -641,6 +641,19 @@ const translations = {
         help: 'Aiuto',
         expenseReport: 'Report di spesa',
         expenseReports: 'Report di spesa',
+        leaveWorkspace: 'Lascia lo spazio di lavoro',
+        leaveWorkspaceConfirmation: 'Se lasci questo spazio di lavoro, non potrai inviare più spese.',
+        leaveWorkspaceConfirmationAuditor: 'Se lasci questo spazio di lavoro, non potrai visualizzare i suoi report e le impostazioni.',
+        leaveWorkspaceConfirmationAdmin: 'Se lasci questo spazio di lavoro, non potrai gestirne le impostazioni.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, sarai sostituito nel flusso di approvazione da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, sarai sostituito come esportatore preferito da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, sarai sostituito come contatto tecnico da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceReimburser:
+            'Non puoi lasciare questo spazio di lavoro come rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o traccia i pagamenti e poi riprova.',
+        cannotLeaveWorkspaceOutstandingReport: 'Approva i rapporti delle spese in sospeso prima di lasciare questo spazio di lavoro.',
         rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
@@ -5120,6 +5133,18 @@ ${amount} per ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Se rimuovi ${approver} da questo spazio di lavoro, lo sostituiremo nel flusso di approvazione con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} ha dei rapporti di spesa in sospeso da approvare. Chiedi loro di approvarli, o prendi il controllo dei loro rapporti prima di rimuoverli dallo spazio di lavoro.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro. Imposta un nuovo rimborsatore in Workflows > Crea o traccia i pagamenti e riprova.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, lo sostituiremo come esportatore preferito con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, lo sostituiremo come contatto tecnico con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} ha un rapporto in sospeso da completare. Chiedi loro di completare l'azione richiesta prima di rimuoverli dallo spazio di lavoro.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
