@@ -3,9 +3,10 @@
  * It handles the problematic case of plain objects by converting them to JSON.
  * It helps with eslint rule https://typescript-eslint.io/rules/no-base-to-string
  * @param value - The value to convert to a string.
+ * @param dateAsISO - Whether date should be converted to ISO format
  * @returns The string representation of the value.
  */
-export default function SafeString(value: unknown): string {
+export default function SafeString(value: unknown, dateAsISO: boolean = false): string {
     if (value === undefined || value === null) {
         return '';
     }
@@ -27,6 +28,14 @@ export default function SafeString(value: unknown): string {
                 return JSON.stringify(value);
             } catch {
                 return '[object Array]';
+            }
+        }
+
+        if (dateAsISO && value instanceof Date) {
+            try {
+                return value.toISOString();
+            } catch {
+                return 'Invalid Date';
             }
         }
 

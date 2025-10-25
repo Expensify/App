@@ -186,6 +186,18 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type SearchQueryTokenKey = SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER;
+
+type SearchQueryToken = {
+    key: SearchQueryTokenKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    raw?: string;
+    isDefault?: boolean;
+    isImplicitKeyword?: boolean;
+    isNegated?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -194,11 +206,12 @@ type SearchQueryAST = {
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
-    filters: ASTNode;
+    filters: ASTNode | null;
     policyID?: string[];
+    tokens?: SearchQueryToken[];
 };
 
-type SearchQueryJSON = {
+type SearchQueryJSON = SearchQueryAST & {
     inputQuery: SearchQueryString;
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
@@ -206,7 +219,8 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
-} & SearchQueryAST;
+    tokens?: SearchQueryToken[];
+};
 
 type SearchAutocompleteResult = {
     autocomplete: SearchAutocompleteQueryRange | null;
@@ -273,4 +287,6 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
+    SearchQueryToken,
+    SearchQueryAST,
 };

@@ -12,6 +12,7 @@ import type {
     SearchFilterKey,
     SearchQueryJSON,
     SearchQueryString,
+    SearchQueryToken,
     SearchStatus,
     SearchWithdrawalType,
     UserFriendlyKey,
@@ -27,6 +28,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import SafeString from '@src/utils/SafeString';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -38,7 +40,7 @@ import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
-import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {parse as parseSearchQuery} from './SearchParser';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -54,6 +56,14 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+
+const PRIMARY_ROOT_KEYS = new Set<string>([
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+]);
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -110,6 +120,43 @@ function sanitizeSearchValue(str: string) {
         return `"${str}"`;
     }
     return str;
+}
+
+const operatorToSymbolMap: Record<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, string> = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':',
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>',
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=',
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<',
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=',
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',',
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ',
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=',
+};
+
+function getTokenRawString(token: SearchQueryToken): string {
+    if (token.raw && token.raw.length > 0) {
+        return token.raw.trim();
+    }
+
+    if (token.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && token.isImplicitKeyword) {
+        const values = Array.isArray(token.value) ? token.value : [token.value];
+        return values.join(' ');
+    }
+
+    const key = getUserFriendlyKey(token.key);
+    const valueList = Array.isArray(token.value) ? token.value : [token.value];
+    const formattedValues = valueList.map((value) => sanitizeSearchValue(value.toString())).join(',');
+
+    if (token.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        if (token.isNegated) {
+            return `-${key}:${formattedValues}`;
+        }
+        return `${key}${operatorToSymbolMap[token.operator]}${formattedValues}`;
+    }
+
+    const prefix = token.isNegated ? '-' : '';
+    const operatorSymbol = operatorToSymbolMap[token.operator] ?? ':';
+    return `${prefix}${key}${operatorSymbol}${formattedValues}`;
 }
 
 /**
@@ -360,6 +407,310 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     return {primaryHash, recentSearchHash, similarSearchHash};
 }
 
+function toStringArray(value: unknown): string[] {
+    if (value == null) return [];
+
+    const convert = (v: unknown): string => SafeString(v, true);
+    return Array.isArray(value) ? value.map(convert) : [convert(value)];
+}
+
+function syncTokensWithQuery(queryJSON: SearchQueryJSON) {
+    if (!queryJSON.tokens || queryJSON.tokens.length === 0) {
+        return;
+    }
+
+    const filterQueues = createFilterQueues(queryJSON);
+    const toCanonicalRootKey = (rawKey: string) => (rawKey === 'group-by' ? CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY : rawKey);
+
+    const updatedTokens: SearchQueryToken[] = [];
+
+    queryJSON.tokens.forEach((token) => {
+        const rawKey = token.key as string;
+        const canonicalKey = toCanonicalRootKey(rawKey);
+
+        if (PRIMARY_ROOT_KEYS.has(canonicalKey)) {
+            const values = toStringArray(queryJSON[canonicalKey as keyof SearchQueryJSON]).filter((value) => value !== '');
+            if (values.length === 0) {
+                return;
+            }
+
+            let newValue: string | string[] = values;
+            if (values.length === 1) {
+                [newValue] = values;
+            }
+
+            updatedTokens.push({
+                ...token,
+                value: newValue,
+            });
+            return;
+        }
+
+        if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            const keywordFilters = filterQueues.get(rawKey);
+            if (!keywordFilters || keywordFilters.length === 0) {
+                return;
+            }
+            updatedTokens.push(token);
+            return;
+        }
+
+        const queueKey = filterQueues.has(rawKey) ? rawKey : canonicalKey;
+        const queue = queueKey ? filterQueues.get(queueKey) : undefined;
+        if (!queue || queue.length === 0) {
+            return;
+        }
+
+        queue.shift();
+        filterQueues.set(queueKey, queue);
+        updatedTokens.push(token);
+    });
+
+    queryJSON.tokens = updatedTokens;
+}
+
+function tokensMatchQuery(tokens: SearchQueryToken[] | undefined, queryJSON?: SearchQueryJSON): boolean {
+    return !!(tokens && tokens.length > 0 && queryJSON);
+}
+
+function createFilterQueues(queryJSON: SearchQueryJSON) {
+    const queues = new Map<string, QueryFilter[]>();
+    queryJSON.flatFilters.forEach(({key, filters}) => {
+        const existing = queues.get(key) ?? [];
+        const newFilters = filters.map((filter) => ({
+            operator: filter.operator,
+            value: filter.value,
+        }));
+        queues.set(key, existing.concat(newFilters));
+    });
+    return queues;
+}
+
+function consumeFilterFromQueue(filterQueues: Map<string, QueryFilter[]>, rawKey: string, canonicalKey: string, token: SearchQueryToken, fallback: string) {
+    const queueKey = filterQueues.has(rawKey) ? rawKey : canonicalKey;
+    const queue = queueKey ? (filterQueues.get(queueKey) ?? []) : [];
+
+    if (queue.length === 0) {
+        return fallback;
+    }
+
+    let valuesToConsume = Array.isArray(token.value) ? token.value.length : 1;
+    if (valuesToConsume <= 0 || valuesToConsume > queue.length) {
+        valuesToConsume = queue.length;
+    }
+
+    const filtersToUse: QueryFilter[] = [];
+    for (let i = 0; i < valuesToConsume; i += 1) {
+        const filter = queue.shift();
+        if (!filter) {
+            break;
+        }
+        filtersToUse.push(filter);
+    }
+
+    filterQueues.set(queueKey, queue);
+
+    const filterString = buildFilterValuesString(queueKey ?? rawKey, filtersToUse).trim();
+    return filterString.length > 0 ? filterString : fallback;
+}
+
+function appendRemainingFilters(filterQueues: Map<string, QueryFilter[]>, orderedParts: string[]) {
+    filterQueues.forEach((queue, key) => {
+        if (!queue || queue.length === 0) {
+            return;
+        }
+        const leftoverString = buildFilterValuesString(key, queue).trim();
+        if (leftoverString.length > 0) {
+            orderedParts.push(leftoverString);
+        }
+    });
+}
+
+function appendMissingPrimaryRoots(
+    canonicalRootOrder: string[],
+    orderedParts: string[],
+    emittedRootKeys: Set<string>,
+    rootKeyToIndex: Map<string, number>,
+    emitRoot: (rootKey: string, tokenValue?: string | string[], fallbackRaw?: string, outputKey?: string) => string,
+) {
+    const insertAtIndex = (index: number, value: string) => {
+        if (index < 0 || index > orderedParts.length) {
+            orderedParts.push(value);
+            return orderedParts.length - 1;
+        }
+        orderedParts.splice(index, 0, value);
+        rootKeyToIndex.forEach((originalIndex, key) => {
+            if (originalIndex >= index) {
+                rootKeyToIndex.set(key, originalIndex + 1);
+            }
+        });
+        return index;
+    };
+
+    const findInsertIndexForRoot = (rootKey: string) => {
+        const rootIndex = canonicalRootOrder.indexOf(rootKey);
+        let insertIndex: number | undefined;
+
+        for (let i = rootIndex - 1; i >= 0; i -= 1) {
+            const prevKey = canonicalRootOrder[i];
+            const prevIndex = rootKeyToIndex.get(prevKey);
+            if (prevIndex !== undefined) {
+                insertIndex = prevIndex + 1;
+                break;
+            }
+        }
+
+        if (insertIndex === undefined) {
+            for (let i = rootIndex + 1; i < canonicalRootOrder.length; i += 1) {
+                const nextKey = canonicalRootOrder[i];
+                const nextIndex = rootKeyToIndex.get(nextKey);
+                if (nextIndex !== undefined) {
+                    insertIndex = nextIndex;
+                    break;
+                }
+            }
+        }
+
+        return insertIndex ?? 0;
+    };
+
+    canonicalRootOrder.forEach((rootKey) => {
+        if (emittedRootKeys.has(rootKey)) {
+            return;
+        }
+        const formatted = emitRoot(rootKey);
+        if (formatted.length > 0) {
+            const targetIndex = findInsertIndexForRoot(rootKey);
+            const insertedIndex = insertAtIndex(targetIndex, formatted);
+            rootKeyToIndex.set(rootKey, insertedIndex);
+            emittedRootKeys.add(rootKey);
+        }
+    });
+}
+
+function appendMissingGroupBy(
+    orderedParts: string[],
+    emittedRootKeys: Set<string>,
+    rootKeyToIndex: Map<string, number>,
+    emitRoot: (rootKey: string, tokenValue?: string | string[], fallbackRaw?: string, outputKey?: string) => string,
+) {
+    const groupByKey = CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
+    if (emittedRootKeys.has(groupByKey)) {
+        return;
+    }
+
+    const formattedGroupBy = emitRoot(groupByKey);
+    if (formattedGroupBy.length === 0) {
+        return;
+    }
+
+    const index = orderedParts.push(formattedGroupBy) - 1;
+    rootKeyToIndex.set(groupByKey, index);
+    emittedRootKeys.add(groupByKey);
+}
+
+function appendPolicyIfMissing(orderedParts: string[], tokens: SearchQueryToken[], queryJSON: SearchQueryJSON) {
+    const hasPolicyToken = tokens.some((token) => token.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    if (hasPolicyToken || !queryJSON.policyID || queryJSON.policyID.length === 0) {
+        return;
+    }
+
+    const policyValues = queryJSON.policyID.map((value) => sanitizeSearchValue(value)).join(',');
+    if (policyValues.length > 0) {
+        orderedParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyValues}`);
+    }
+}
+
+function removeRootPart(orderedParts: string[], rootKeyToIndex: Map<string, number>, rootKey: string) {
+    const existingIndex = rootKeyToIndex.get(rootKey);
+    if (existingIndex === undefined) {
+        return;
+    }
+
+    orderedParts.splice(existingIndex, 1);
+    rootKeyToIndex.delete(rootKey);
+    rootKeyToIndex.forEach((index, key) => {
+        if (index > existingIndex) {
+            rootKeyToIndex.set(key, index - 1);
+        }
+    });
+}
+
+function buildQueryStringFromTokens(queryJSON: SearchQueryJSON, tokens: SearchQueryToken[], defaultQueryJSON?: SearchQueryJSON): string {
+    const filterQueues = createFilterQueues(queryJSON);
+
+    const toCanonicalRootKey = (rawKey: string) => (rawKey === 'group-by' ? CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY : rawKey);
+
+    const emitRoot = (rootKey: string, _tokenValue?: string | string[], _fallbackRaw?: string, outputKey?: string) => {
+        let values = toStringArray(queryJSON[rootKey as keyof SearchQueryJSON]).filter((value) => value !== '');
+
+        if (values.length === 0 && defaultQueryJSON) {
+            values = toStringArray(defaultQueryJSON[rootKey as keyof SearchQueryJSON]).filter((value) => value !== '');
+        }
+
+        if (values.length === 0) {
+            return '';
+        }
+
+        if (values.length === 1) {
+            (queryJSON as Record<string, unknown>)[rootKey] = values[0];
+        }
+
+        const sanitised = values.map((value) => sanitizeSearchValue(value)).join(',');
+        const keyForOutput = outputKey ?? rootKey;
+        return `${keyForOutput}:${sanitised}`;
+    };
+
+    const orderedParts: string[] = [];
+    const emittedRootKeys = new Set<string>();
+    const rootKeyToIndex = new Map<string, number>();
+
+    tokens.forEach((token) => {
+        const rawKey = token.key as string;
+        const tokenRaw = getTokenRawString(token);
+
+        if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            const keywordValue = tokenRaw.trim();
+            if (keywordValue.length > 0) {
+                orderedParts.push(keywordValue);
+            }
+            filterQueues.set(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, []);
+            return;
+        }
+
+        const canonicalKey = toCanonicalRootKey(rawKey);
+        const trimmedRaw = tokenRaw.trim();
+        const outputKey = tokenRaw.trim().includes(':') ? trimmedRaw.split(':')[0] : rawKey;
+
+        if (PRIMARY_ROOT_KEYS.has(canonicalKey)) {
+            const formatted = emitRoot(canonicalKey, token.value, trimmedRaw, outputKey);
+            if (formatted.length > 0) {
+                removeRootPart(orderedParts, rootKeyToIndex, canonicalKey);
+                const index = orderedParts.push(formatted) - 1;
+                rootKeyToIndex.set(canonicalKey, index);
+                emittedRootKeys.add(canonicalKey);
+            }
+            return;
+        }
+
+        const fallback = trimmedRaw.length > 0 ? trimmedRaw : '';
+        const filterString = consumeFilterFromQueue(filterQueues, rawKey, canonicalKey, token, fallback);
+        if (filterString.length > 0) {
+            orderedParts.push(filterString);
+        }
+    });
+
+    appendRemainingFilters(filterQueues, orderedParts);
+
+    const canonicalRootOrder = [CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY, CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS];
+
+    appendMissingPrimaryRoots(canonicalRootOrder, orderedParts, emittedRootKeys, rootKeyToIndex, emitRoot);
+    appendMissingGroupBy(orderedParts, emittedRootKeys, rootKeyToIndex, emitRoot);
+    appendPolicyIfMissing(orderedParts, tokens, queryJSON);
+
+    return orderedParts.join(' ').trim();
+}
+
 /**
  * Returns whether a given string is a date preset (e.g. Last month)
  */
@@ -404,6 +755,7 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+        syncTokensWithQuery(result);
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
@@ -435,12 +787,25 @@ function buildSearchQueryJSON(query: SearchQueryString) {
  * In a way this is the reverse of buildSearchQueryJSON()
  */
 function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
-    const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
+    if (queryJSON?.tokens && queryJSON.tokens.length > 0) {
+        syncTokensWithQuery(queryJSON);
+    }
+
+    if (queryJSON?.tokens && tokensMatchQuery(queryJSON.tokens, queryJSON)) {
+        const orderedQuery = buildQueryStringFromTokens(queryJSON, queryJSON.tokens, defaultQueryJSON);
+        if (orderedQuery.length > 0) {
+            return orderedQuery;
+        }
+    }
+
+    const queryParts: string[] = [];
+    const baseQueryJSON = queryJSON ?? defaultQueryJSON;
+
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        const existingFieldValue = queryJSON?.[key];
-        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+        const existingFieldValue = baseQueryJSON?.[key as keyof SearchQueryJSON];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key as keyof SearchQueryJSON];
 
         if (queryFieldValue) {
             if (Array.isArray(queryFieldValue)) {
@@ -451,8 +816,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
         }
     }
 
-    if (queryJSON?.policyID) {
-        queryParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(queryJSON.policyID) ? queryJSON.policyID.join(',') : queryJSON.policyID}`);
+    const policyValues = toStringArray(baseQueryJSON?.policyID ?? defaultQueryJSON?.policyID).filter((value) => value.length > 0);
+    if (policyValues.length > 0) {
+        queryParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyValues.join(',')}`);
     }
 
     if (!queryJSON) {
@@ -885,6 +1251,100 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
+function getDisplayQueryFiltersForKey(
+    filterObject: QueryFilters[number],
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    taxRates: Record<string, string[]>,
+    cardList: OnyxTypes.CardList,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+): QueryFilter[] {
+    const key = filterObject.key as SearchFilterKey;
+    const queryFilter = filterObject.filters;
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
+        const taxRateNames = taxRateIDs.flatMap((id) => {
+            const taxRate = Object.entries(taxRates)
+                .filter(([, IDs]) => IDs.includes(id))
+                .map(([name]) => name);
+            return taxRate.length > 0 ? taxRate : id;
+        });
+
+        const uniqueTaxRateNames = [...new Set(taxRateNames)];
+
+        return uniqueTaxRateNames.map<QueryFilter>((taxRate) => ({
+            operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            value: taxRate,
+        }));
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return queryFilter.reduce<QueryFilter[]>((acc, filter) => {
+            const cardValue = filter.value.toString();
+            const cardID = Number(cardValue);
+            if (Number.isNaN(cardID)) {
+                acc.push({operator: filter.operator, value: cardValue});
+            } else {
+                acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID.toString()});
+            }
+
+            return acc;
+        }, []);
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
+        return queryFilter.reduce<QueryFilter[]>((acc, filter) => {
+            const attendee = filter.value.toString();
+            if (Number.isNaN(Number(attendee))) {
+                acc.push({operator: filter.operator, value: getUserFriendlyValue(attendee)});
+            } else {
+                const attendeePersonalDetails = personalDetails?.[attendee];
+                if (attendeePersonalDetails) {
+                    acc.push({operator: filter.operator, value: attendeePersonalDetails.displayName ?? attendee});
+                } else {
+                    acc.push({operator: filter.operator, value: attendee});
+                }
+            }
+            return acc;
+        }, [] as QueryFilter[]);
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        return queryFilter.map((filter) => ({
+            operator: filter.operator,
+            value: getUserFriendlyValue(filter.value.toString()),
+        }));
+    }
+
+    return queryFilter.map((filter) => ({
+        operator: filter.operator,
+        value: getFilterDisplayValue(key, filter.value.toString(), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+    }));
+}
+
+function buildFilterDisplayString(
+    filterObject: QueryFilters[number],
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    taxRates: Record<string, string[]>,
+    cardList: OnyxTypes.CardList,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+): string {
+    const key = filterObject.key as SearchFilterKey;
+    const displayQueryFilters = getDisplayQueryFiltersForKey(filterObject, personalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+
+    if (!displayQueryFilters || displayQueryFilters.length === 0) {
+        return '';
+    }
+
+    return buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters).trim();
+}
+
 /**
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
@@ -901,86 +1361,155 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {
-    const {type, status, groupBy, policyID} = queryJSON;
+    const {type, status, groupBy, policyID, tokens} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
-        : `type:${getUserFriendlyValue(type)}`;
+    const filterDisplayEntries = filters
+        .map((filterObject) => {
+            const displayString = buildFilterDisplayString(filterObject, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            return {key: filterObject.key as string, value: displayString};
+        })
+        .filter((entry) => entry.value.length > 0);
 
-    if (groupBy) {
-        title += ` group-by:${getUserFriendlyValue(groupBy)}`;
-    }
+    const filterQueues = new Map<string, string[]>();
+    filterDisplayEntries.forEach(({key, value}) => {
+        const queue = filterQueues.get(key) ?? [];
+        queue.push(value);
+        filterQueues.set(key, queue);
+    });
 
-    if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`;
-    }
+    const getWorkspaceValues = () =>
+        toStringArray(policyID)
+            .map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id))
+            .filter((value) => value.length > 0);
 
-    for (const filterObject of filters) {
-        const key = filterObject.key;
-        const queryFilter = filterObject.filters;
+    const tokensList = tokens ?? [];
 
-        let displayQueryFilters: QueryFilter[] = [];
-        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
-            const taxRateNames = taxRateIDs
-                .map((id) => {
-                    const taxRate = Object.entries(taxRates)
-                        .filter(([, IDs]) => IDs.includes(id))
-                        .map(([name]) => name);
-                    return taxRate.length > 0 ? taxRate : id;
-                })
-                .flat();
+    if (tokensList.length === 0) {
+        let title =
+            status && (!Array.isArray(status) || status.length > 0)
+                ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+                : `type:${getUserFriendlyValue(type)}`;
 
-            const uniqueTaxRateNames = [...new Set(taxRateNames)];
-
-            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
-                operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                value: taxRate,
-            }));
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            displayQueryFilters = queryFilter.reduce((acc, filter) => {
-                const feedKey = filter.value.toString();
-                const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
-                const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
-                const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
-                const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-                const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
-                if (plaidFeedName) {
-                    if (plaidValue) {
-                        acc.push({operator: filter.operator, value: plaidValue});
-                    }
-                    return acc;
-                }
-                const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
-                acc.push({operator: filter.operator, value});
-
-                return acc;
-            }, [] as QueryFilter[]);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            displayQueryFilters = queryFilter.reduce((acc, filter) => {
-                const cardValue = filter.value.toString();
-                const cardID = parseInt(cardValue, 10);
-
-                if (cardList?.[cardID]) {
-                    if (Number.isNaN(cardID)) {
-                        acc.push({operator: filter.operator, value: cardID});
-                    } else {
-                        acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
-                    }
-                }
-                return acc;
-            }, [] as QueryFilter[]);
-        } else {
-            displayQueryFilters = queryFilter.map((filter) => ({
-                operator: filter.operator,
-                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
-            }));
+        if (groupBy) {
+            title += ` group-by:${getUserFriendlyValue(groupBy)}`;
         }
-        title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
+
+        const workspaceValues = getWorkspaceValues();
+        if (workspaceValues.length > 0) {
+            title += ` ${getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)}:${workspaceValues.join(',')}`;
+        }
+
+        filterDisplayEntries.forEach(({value}) => {
+            title += ` ${value}`;
+        });
+
+        return title.trim();
     }
 
-    return title;
+    const rootDisplayKeyMap: Record<string, string> = {
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS]: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY,
+    };
+
+    const toCanonicalRootKey = (rawKey: string) => (rawKey === 'group-by' ? CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY : rawKey);
+
+    const buildRootPart = (rootKey: string, fallbackValues?: string | string[]) => {
+        let values = toStringArray(queryJSON[rootKey as keyof SearchQueryJSON]).filter((value) => value !== '');
+        if (values.length === 0 && fallbackValues) {
+            values = toStringArray(fallbackValues).filter((value) => value !== '');
+        }
+        if (values.length === 0) {
+            return '';
+        }
+
+        const friendlyValues = values.map((value) => sanitizeSearchValue(getUserFriendlyValue(value)));
+        if (friendlyValues.length === 0) {
+            return '';
+        }
+
+        const displayKey = rootDisplayKeyMap[rootKey] ?? rootKey;
+        return `${displayKey}:${friendlyValues.join(',')}`;
+    };
+
+    let policyTokenConsumed = false;
+    const parts: string[] = [];
+
+    tokensList.forEach((token) => {
+        const rawKey = token.key as string;
+        const canonicalKey = toCanonicalRootKey(rawKey);
+
+        if (canonicalKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY || canonicalKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) {
+            return;
+        }
+
+        if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            const keywordPart = getTokenRawString(token).trim();
+            if (keywordPart.length > 0) {
+                parts.push(keywordPart);
+            }
+            filterQueues.set(rawKey, []);
+            return;
+        }
+
+        if (canonicalKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE || canonicalKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS || canonicalKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+            const rootPart = buildRootPart(canonicalKey, token.value);
+            if (rootPart.length > 0) {
+                parts.push(rootPart);
+            }
+            return;
+        }
+
+        if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+            const workspaceValues = getWorkspaceValues();
+            if (workspaceValues.length > 0) {
+                parts.push(`${getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)}:${workspaceValues.join(',')}`);
+                policyTokenConsumed = true;
+                return;
+            }
+        }
+
+        const queueKey = filterQueues.has(rawKey) ? rawKey : canonicalKey;
+        const queue = queueKey ? filterQueues.get(queueKey) : undefined;
+        if (queue && queue.length > 0) {
+            const part = queue.shift();
+            if (part && part.length > 0) {
+                parts.push(part.trim());
+            }
+            filterQueues.set(queueKey, queue);
+            return;
+        }
+
+        const fallback = getTokenRawString(token).trim();
+        if (fallback.length > 0) {
+            parts.push(fallback);
+        }
+    });
+
+    queryJSON.flatFilters.forEach((filterObject) => {
+        const key = filterObject.key as string;
+        const queue = filterQueues.get(key);
+        if (!queue) {
+            return;
+        }
+        while (queue.length > 0) {
+            const part = queue.shift();
+            if (part && part.length > 0) {
+                parts.push(part.trim());
+            }
+        }
+        filterQueues.set(key, queue);
+    });
+
+    if (!policyTokenConsumed) {
+        const workspaceValues = getWorkspaceValues();
+        if (workspaceValues.length > 0) {
+            parts.push(`${getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)}:${workspaceValues.join(',')}`);
+        }
+    }
+
+    return parts.join(' ').trim();
 }
 
 /**
@@ -1074,6 +1603,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
     }
 
     standardQuery.flatFilters = getFilters(standardQuery);
+    syncTokensWithQuery(standardQuery);
     return standardQuery;
 }
 
@@ -1173,4 +1703,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    getTokenRawString,
 };

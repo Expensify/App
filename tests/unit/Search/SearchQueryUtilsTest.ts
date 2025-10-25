@@ -6,6 +6,8 @@ import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
+    buildSearchQueryString,
+    buildUserReadableQueryString,
     getQueryWithUpdatedValues,
     shouldHighlight,
     sortOptionsWithEmptyValue,
@@ -50,7 +52,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+            expect(result).toEqual(`${defaultQuery} foo test amount:2000000`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -74,7 +76,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
+            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 hello amount:15000 test`);
         });
 
         test('returns query with updated groupBy', () => {
@@ -82,7 +84,44 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+            expect(result).toEqual(`${defaultQuery} from:12345 groupBy:reports`);
+        });
+
+        test('preserves simple keyword order', () => {
+            const userQuery = 'hello world';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} hello world`);
+        });
+
+        test('preserves simple keyword order for full query', () => {
+            const userQuery = `${defaultQuery} hello world`;
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} hello world`);
+        });
+
+        test('removing groupBy does not resurrect it', () => {
+            const groupedQuery = buildSearchQueryJSON('type:expense group-by:reports');
+            expect(groupedQuery).toBeDefined();
+            if (!groupedQuery) {
+                return;
+            }
+
+            groupedQuery.groupBy = undefined;
+            const result = buildSearchQueryString(groupedQuery);
+
+            expect(result).toBe('type:expense sortBy:date sortOrder:desc');
+        });
+
+        test('preserves manual filter order when adding groupBy', () => {
+            const userQuery = 'type:expense action:submit from:me group-by:from';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} action:submit from:me group-by:from`);
         });
     });
 
@@ -378,6 +417,49 @@ describe('SearchQueryUtils', () => {
             const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
 
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+    });
+
+    describe('buildUserReadableQueryString', () => {
+        test('preserves token order when formatting user friendly string', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense action:submit from:me group-by:from');
+            expect(queryJSON).toBeDefined();
+            if (!queryJSON) {
+                return;
+            }
+
+            const readableQuery = buildUserReadableQueryString(queryJSON, undefined, {} as never, {}, {} as never, {} as never, {} as never, CONST.DEFAULT_NUMBER_ID);
+
+            expect(readableQuery).toBe('type:expense action:submit from:me group-by:from');
+        });
+
+        test('preserves repeated filter keys', () => {
+            const queryString = 'type:expense tag:foo tag:bar tag:baz';
+            const queryJSON = buildSearchQueryJSON(queryString);
+            expect(queryJSON).toBeDefined();
+            if (!queryJSON) {
+                return;
+            }
+
+            const rebuilt = buildSearchQueryString(queryJSON);
+            expect(rebuilt.includes('tag:foo')).toBe(true);
+            expect(rebuilt.includes('tag:bar')).toBe(true);
+            expect(rebuilt.includes('tag:baz')).toBe(true);
+            expect(rebuilt.indexOf('tag:foo')).toBeLessThan(rebuilt.indexOf('tag:bar'));
+            expect(rebuilt.indexOf('tag:bar')).toBeLessThan(rebuilt.indexOf('tag:baz'));
+        });
+
+        test('keeps only the last root token and maintains order', () => {
+            const queryString = 'type:expense group-by:report action:submit from:me group-by:from';
+            const queryJSON = buildSearchQueryJSON(queryString);
+            expect(queryJSON).toBeDefined();
+            if (!queryJSON) {
+                return;
+            }
+
+            const rebuilt = buildSearchQueryString(queryJSON);
+
+            expect(rebuilt).toBe('type:expense sortBy:date sortOrder:desc action:submit from:me group-by:from');
         });
     });
 });

@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import {parse} from '@libs/SearchParser/searchParser';
+import {parse} from '@libs/SearchParser';
+import {buildSearchQueryJSON, getTokenRawString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
@@ -782,15 +783,32 @@ const keywordTests = [
 ];
 
 describe('search parser', () => {
+    test('aggregates keywords and preserves token order', () => {
+        const result = buildSearchQueryJSON('hello world type:expense group-by:from');
+        expect(result).not.toBeNull();
+        if (!result) {
+            return;
+        }
+
+        const keywordFilter = result.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+        expect(keywordFilter).not.toBeUndefined();
+        expect(keywordFilter?.filters).toEqual([
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'hello'},
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'world'},
+        ]);
+
+        expect(result.tokens?.map((token) => getTokenRawString(token))).toEqual(['hello', 'world', 'type:expense', 'group-by:from']);
+    });
+
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
         const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        expect(result).toMatchObject(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
         const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        expect(result).toMatchObject(expected);
     });
 });

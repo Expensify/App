@@ -8,8 +8,8 @@
 // To make changes, edit the corresponding *.peggy files only.
 // Use the `generate-search-parser` and `generate-autocomplete-parser` scripts to regenerate parsers after modifications.
 
-  function buildFilter(operator, left, right) {
-    return { operator, left, right };
+  function buildFilter(operator, left, right, props = {}) {
+    return { operator, left, right, ...props };
   }
 
 function peg$subclass(child, parent) {
@@ -364,40 +364,14 @@ function peg$parse(input, options) {
   var peg$e90 = peg$anyExpectation();
   var peg$e91 = peg$classExpectation([","], false, false);
 
-  var peg$f0 = function(filters) { return applyDefaults(filters); };
+  var peg$f0 = function(filters) { return filters ?? []; };
   var peg$f1 = function(head, tail) {
-      const allFilters = [head, ...tail.map(([_, filter]) => filter)]
-        .filter(Boolean)
-        .filter((filter) => filter.right);
-      if (!allFilters.length) {
-        return null;
-      }
-
-      const keywords = allFilters.filter(
-        (filter) =>
-          filter.left === "keyword" || filter.right?.left === "keyword"
-      );
-      const nonKeywords = allFilters.filter(
-        (filter) =>
-          filter.left !== "keyword" && filter.right?.left !== "keyword"
-      );
-
-      const keywordFilter = buildFilter(
-        "eq",
-        "keyword",
-        keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
-          .flat()
-      );
-      if (keywordFilter.right.length > 0) {
-        nonKeywords.push(keywordFilter);
-      }
-      return nonKeywords.reduce((result, filter) =>
-        buildFilter("and", result, filter)
-      );
+      const entries = [head, ...tail.map(([_, filter]) => filter)].filter(Boolean);
+      return entries;
     };
   var peg$f2 = function(key, op, value) {
-      updateDefaultValues(key, value);
+      const raw = text().trim();
+      return buildFilter(op, key, value, {isDefault: true, raw});
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -407,7 +381,8 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const raw = text().trim();
+      return buildFilter("eq", "keyword", word, {isImplicitKeyword: true, raw});
     };
   var peg$f4 = function(neg, field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
@@ -422,7 +397,12 @@ function peg$parse(input, options) {
         }
       }
 
-      return buildFilter(operator, key, values);
+      const raw = text().trim();
+      const props = {raw};
+      if (neg) {
+        props.isNegated = true;
+      }
+      return buildFilter(operator, key, values, props);
     };
   var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
@@ -730,21 +710,14 @@ function peg$parse(input, options) {
   }
 
   function peg$parsefilter() {
-    var s0, s1;
+    var s0;
 
-    s0 = peg$currPos;
-    s1 = peg$parsestandardFilter();
-    if (s1 === peg$FAILED) {
-      s1 = peg$parsedefaultFilter();
-      if (s1 === peg$FAILED) {
-        s1 = peg$parsefreeTextFilter();
+    s0 = peg$parsestandardFilter();
+    if (s0 === peg$FAILED) {
+      s0 = peg$parsedefaultFilter();
+      if (s0 === peg$FAILED) {
+        s0 = peg$parsefreeTextFilter();
       }
-    }
-    if (s1 !== peg$FAILED) {
-      s0 = s1;
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
     }
 
     return s0;
@@ -3027,32 +3000,10 @@ function peg$parse(input, options) {
   }
 
 
-  const defaultValues = {
-    type: "expense",
-    status: "",
-    sortBy: "date",
-    sortOrder: "desc",
-  };
-
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
     "type", "keyword", "groupCurrency", "groupBy"
   ]);
-
-  function applyDefaults(filters) {
-    return {
-      ...defaultValues,
-      filters,
-    };
-  }
-
-  function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-    defaultValues[field] = value;
-  }
 
  
   let nameOperator = false;

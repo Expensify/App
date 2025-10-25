@@ -21,81 +21,33 @@
 // To make changes, edit the corresponding *.peggy files only.
 // Use the `generate-search-parser` and `generate-autocomplete-parser` scripts to regenerate parsers after modifications.
 
-  function buildFilter(operator, left, right) {
-    return { operator, left, right };
+  function buildFilter(operator, left, right, props = {}) {
+    return { operator, left, right, ...props };
   }
 }}
 
 // per-parser initializer (code executed before every parse)
 {
-  const defaultValues = {
-    type: "expense",
-    status: "",
-    sortBy: "date",
-    sortOrder: "desc",
-  };
-
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
     "type", "keyword", "groupCurrency", "groupBy"
   ]);
-
-  function applyDefaults(filters) {
-    return {
-      ...defaultValues,
-      filters,
-    };
-  }
-
-  function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-    defaultValues[field] = value;
-  }
 }
 
-query = _ filters:filterList? _ { return applyDefaults(filters); }
+query = _ filters:filterList? _ { return filters ?? []; }
 
 filterList
   = head:filter tail:(logicalAnd filter)* {
-      const allFilters = [head, ...tail.map(([_, filter]) => filter)]
-        .filter(Boolean)
-        .filter((filter) => filter.right);
-      if (!allFilters.length) {
-        return null;
-      }
-
-      const keywords = allFilters.filter(
-        (filter) =>
-          filter.left === "keyword" || filter.right?.left === "keyword"
-      );
-      const nonKeywords = allFilters.filter(
-        (filter) =>
-          filter.left !== "keyword" && filter.right?.left !== "keyword"
-      );
-
-      const keywordFilter = buildFilter(
-        "eq",
-        "keyword",
-        keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
-          .flat()
-      );
-      if (keywordFilter.right.length > 0) {
-        nonKeywords.push(keywordFilter);
-      }
-      return nonKeywords.reduce((result, filter) =>
-        buildFilter("and", result, filter)
-      );
+      const entries = [head, ...tail.map(([_, filter]) => filter)].filter(Boolean);
+      return entries;
     }
 
-filter = @(standardFilter / defaultFilter / freeTextFilter)
+filter = standardFilter / defaultFilter / freeTextFilter
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
-      updateDefaultValues(key, value);
+      const raw = text().trim();
+      return buildFilter(op, key, value, {isDefault: true, raw});
     }
 
 freeTextFilter
@@ -107,7 +59,8 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const raw = text().trim();
+      return buildFilter("eq", "keyword", word, {isImplicitKeyword: true, raw});
     }
 
 standardFilter
@@ -124,7 +77,12 @@ standardFilter
         }
       }
 
-      return buildFilter(operator, key, values);
+      const raw = text().trim();
+      const props = {raw};
+      if (neg) {
+        props.isNegated = true;
+      }
+      return buildFilter(operator, key, values, props);
     }
 
 key "key"
