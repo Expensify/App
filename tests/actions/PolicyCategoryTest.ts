@@ -1,3 +1,4 @@
+import {act} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -249,7 +250,7 @@ describe('actions/PolicyCategory', () => {
 
     describe('enablePolicyCategories', () => {
         it('Disable categories feature should also disable all category lists', async () => {
-            // Give policy data consisting of policy/workspace, categories and tags
+            // Given the policy data consisting of policy workspace, categories lists & tags
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 areCategoriesEnabled: true,
@@ -257,16 +258,19 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const fakeTags = createRandomPolicyTags('Fake tag', 3);
 
-            // Pause network requests, test offline behaviour
+            // Then pause the network requests to test the offline behaviour
             mockFetch?.pause?.();
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+            await act(async () => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+                await waitForBatchedUpdates();
+            });
 
-            // Disable categories feature
-            // Category.enablePolicyCategories(fakePolicy.id, false, fakeTags, fakeCategories, undefined, false);
+            // Then disable the categories feature
+            Category.enablePolicyCategories(fakePolicy.id, false, fakeTags, fakeCategories, undefined, false);
 
-            // Then verify the categories feature are disabled and all the lists are disabled too
+            // Then verify the categories feature are disabled and all the lists are disabled too (offline + online behaviour)
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -308,7 +312,7 @@ describe('actions/PolicyCategory', () => {
             });
         });
         it('Re-enable categories feature should enable all category lists', async () => {
-            // Give policy data consisting of policy/workspace with categories feature disabled, categories and tags
+            // Give policy data consisting of policy workspace with categories feature disabled, categories lists & tags
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 areCategoriesEnabled: false,
@@ -316,16 +320,20 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const fakeTags = createRandomPolicyTags('Fake tag', 3);
 
-            // Pause network requests, test offline behaviour
+            // Then pause the network requests to test the offline behaviour
             mockFetch?.pause?.();
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
 
-            // Enable categories feature
+            await act(async () => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+                await waitForBatchedUpdates();
+            });
+
+            // Then enable the categories feature
             Category.enablePolicyCategories(fakePolicy.id, true, fakeTags, fakeCategories, undefined, false);
 
-            // Then verify the categories feature are enabled and all the lists are enabled too
+            // Then verify the categories feature are enabled and all the lists are enabled too (offline + online behaviour)
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
