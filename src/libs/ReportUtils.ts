@@ -685,6 +685,7 @@ type BaseOptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
+    reportActionID?: string;
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -8380,6 +8381,7 @@ function buildOptimisticMoneyRequestEntities({
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
+    reportActionID,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8408,6 +8410,7 @@ function buildOptimisticMoneyRequestEntities({
         isOwnPolicyExpenseChat,
         created: iouActionCreationTime,
         linkedExpenseReportAction: linkedTrackedExpenseReportAction,
+        reportActionID,
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
@@ -10712,7 +10715,7 @@ function sortOutstandingReportsBySelected(
     if (report2?.reportID === selectedReportID) {
         return 1;
     }
-    return localeCompare(report1?.reportName?.toLowerCase() ?? '', report2?.reportName?.toLowerCase() ?? '');
+    return localeCompare(report2?.created ?? '', report1?.created ?? '');
 }
 
 /**
