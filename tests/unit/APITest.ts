@@ -811,7 +811,7 @@ describe('APITests', () => {
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-                value: 'failed',
+                value: 'onboarding.errorSelection',
             },
         ];
 
@@ -836,7 +836,7 @@ describe('APITests', () => {
                     if (!Array.isArray(updates)) {
                         return false;
                     }
-                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed');
+                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'onboarding.errorSelection');
                 });
                 expect(failureApplied).toBe(true);
 

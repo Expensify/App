@@ -82,7 +82,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             numberOfLinesTitle: 0,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
-                setOnboardingErrorMessage('');
+                setOnboardingErrorMessage(undefined);
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
@@ -113,8 +113,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        setOnboardingErrorMessage(translate('onboarding.errorSelection'));
-    }, [translate]);
+        setOnboardingErrorMessage('onboarding.errorSelection');
+    }, []);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
@@ -148,7 +148,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 </View>
             </ScrollView>
             <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                <FormHelpMessage message={onboardingErrorMessage} />
+                <FormHelpMessage message={onboardingErrorMessage ? translate(onboardingErrorMessage) : undefined} />
             </View>
         </ScreenWrapper>
     );

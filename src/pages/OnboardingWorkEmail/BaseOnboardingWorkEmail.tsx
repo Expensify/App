@@ -60,14 +60,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(undefined);
     }, []);
 
     useEffect(() => {
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(undefined);
 
         if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
@@ -170,16 +170,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                            errors={onboardingErrorMessage ? {addWorkEmailError: translate(onboardingErrorMessage)} : undefined}
                             errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
+                            onClose={() => setOnboardingErrorMessage(undefined)}
                         >
                             <Button
                                 large
                                 text={translate('common.skip')}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
-                                    setOnboardingErrorMessage('');
+                                    setOnboardingErrorMessage(undefined);
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}

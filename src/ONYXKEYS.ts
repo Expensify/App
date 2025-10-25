@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
+import type {TranslationPaths} from './languages/types';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
@@ -1213,7 +1214,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
-    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
+    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;

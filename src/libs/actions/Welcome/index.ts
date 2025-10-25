@@ -8,6 +8,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, OnboardingPurpose} from '@src/types/onyx';
@@ -105,7 +106,7 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: string) {
+function setOnboardingErrorMessage(value: TranslationPaths | undefined | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
 
