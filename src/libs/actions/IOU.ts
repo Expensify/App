@@ -10210,8 +10210,8 @@ function approveMoneyRequest(
     const optimisticNextStep = buildNextStepNew({
         report: expenseReport,
         policy,
-        currentUserAccountIDParam: userAccountID,
-        currentUserEmailParam: currentUserEmail,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
         predictedNextStatus,
