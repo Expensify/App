@@ -48,6 +48,7 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean,
     ) => GetModalStyles;
 };
 
@@ -60,6 +61,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -240,7 +242,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
                 }
 
-                shouldAddBottomSafeAreaPadding = !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding && !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
                 shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
@@ -287,7 +289,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 animationOut = 'slideOutRight';
 
                 swipeDirection = undefined;
-                shouldAddBottomSafeAreaPadding = true;
+                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 shouldAddTopSafeAreaPadding = true;
                 break;
             default:

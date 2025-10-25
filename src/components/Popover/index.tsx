@@ -31,6 +31,7 @@ function Popover(props: PopoverProps) {
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
         shouldCloseWhenBrowserNavigationChanged = true,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     } = props;
 
     // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
@@ -87,6 +88,7 @@ function Popover(props: PopoverProps) {
                 onLayout={onLayout}
                 animationIn={animationIn}
                 animationOut={animationOut}
+                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
             />,
             document.body,
         );
@@ -119,6 +121,7 @@ function Popover(props: PopoverProps) {
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         />
     );
 }
