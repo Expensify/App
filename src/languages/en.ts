@@ -328,6 +328,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
+        noThanks: 'No thanks',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
@@ -632,6 +633,7 @@ const translations = {
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
+        expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
@@ -6232,7 +6234,6 @@ const translations = {
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
@@ -6810,7 +6811,6 @@ const translations = {
         quickTip: 'Quick tip...',
         quickTipSubTitle: 'You can go straight to Expensify Classic by visiting expensify.com. Bookmark it for an easy shortcut!',
         bookACall: 'Book a call',
-        noThanks: 'No thanks',
         bookACallTitle: 'Would you like to speak to a product manager?',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chatting directly on expenses and reports',
@@ -6903,7 +6903,6 @@ const translations = {
             },
             earlyDiscount: {
                 claimOffer: 'Claim offer',
-                noThanks: 'No thanks',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,
@@ -7217,7 +7216,6 @@ const translations = {
             manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
             confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
             tryItOut: 'Try it out',
-            noThanks: 'No thanks',
         },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
