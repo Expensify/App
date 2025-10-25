@@ -320,10 +320,11 @@ function MoneyRequestReceiptView({
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}
+                                onLoadFailure={() => setIsLoading(false)}
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && receiptAuditMessagesRow}
+                    {!!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
