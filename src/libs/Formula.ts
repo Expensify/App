@@ -190,6 +190,38 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
+ * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
+ * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
+ */
+function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
+    if (!context) {
+        return false;
+    }
+
+    const {report} = context;
+
+    for (const part of parts) {
+        if (part.type === FORMULA_PART_TYPES.REPORT) {
+            const [field, ...additionalPath] = part.fieldPath;
+            // Reconstruct format string by joining additional path elements with ':'
+            // This handles format strings with colons like 'HH:mm:ss'
+            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
+
+            if (field?.toLowerCase() === 'total') {
+                // Use formatAmount to determine if conversion is needed
+                // null return value signals that backend computation is required
+                const result = formatAmount(report.total, report.currency, format);
+                if (result === null) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -254,8 +286,11 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
-        case 'total':
-            return formatAmount(report.total, report.currency, format);
+        case 'total': {
+            const formattedAmount = formatAmount(report.total, report.currency, format);
+            // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
+            return formattedAmount ?? '';
+        }
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -359,8 +394,9 @@ function getSubstring(value: string, args: string[]): string {
 
 /**
  * Format an amount value
+ * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
     if (amount === undefined) {
         return '';
     }
@@ -375,12 +411,13 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         // Check if format is a valid currency code (e.g., USD, EUR, eur)
         const currencyCode = displayCurrency?.trim().toUpperCase();
         if (currencyCode) {
-            if (isValidCurrencyCode(currencyCode)) {
-                return convertToDisplayString(absoluteAmount, currencyCode);
+            // When currency conversion is needed (displayCurrency differs from source currency),
+            // return null to signal that backend computation is required
+            if (currency !== currencyCode) {
+                return null;
             }
 
-            // For invalid codes, falls back to '0.00' to match backend behavior
-            return convertToDisplayStringWithoutCurrency(0);
+            return convertToDisplayString(absoluteAmount, currencyCode);
         }
 
         if (currency && isValidCurrencyCode(currency)) {
@@ -536,6 +573,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {FORMULA_PART_TYPES, compute, requiresBackendComputation, extract, parse};
 
 export type {FormulaContext, FormulaPart};
