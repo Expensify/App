@@ -24,6 +24,7 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
@@ -888,10 +889,10 @@ function changeTransactionsReport(
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
+        const transactionAmount = getTransactionDetails(transaction, undefined, undefined, allowNegative)?.amount ?? 0;
 
         if (oldReport) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : transactionAmount;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
@@ -901,9 +902,11 @@ function changeTransactionsReport(
         }
         if (reportID && newReport) {
             updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
+
             updatedReportNonReimbursableTotals[targetReportID] =
                 (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
                 (transactionReimbursable ? 0 : transactionAmount);
+
             updatedReportUnheldNonReimbursableTotals[targetReportID] =
                 (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
                 (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
