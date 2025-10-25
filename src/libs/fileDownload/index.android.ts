@@ -3,8 +3,10 @@ import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert, splitExtensionFromFileName} from './FileUtils';
 import type {FileDownload} from './types';
+
+const SAFE_FILE_NAME_LENGTH = 70;
 
 /**
  * Android permission check to store images
@@ -33,6 +35,22 @@ function hasAndroidPermission(): Promise<boolean> {
 }
 
 /**
+ * Truncates the file name to a safe length
+ * @param fileName - The file name to truncate
+ * @returns The truncated file name
+ */
+export function truncateFileNameToSafeLength(fileName: string): string {
+    const file = splitExtensionFromFileName(fileName);
+    const fileNameWithoutExtension = file.fileName;
+    const fileExtension = file.fileExtension;
+
+    const lengthSafeFileName = fileNameWithoutExtension.substring(0, SAFE_FILE_NAME_LENGTH);
+
+
+    return `${lengthSafeFileName}.${fileExtension}`;
+}
+
+/**
  * Handling the download
  */
 function handleDownload(url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
@@ -42,7 +60,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string,
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = appendTimeToFileName(fileName || getFileName(url));
+        const attachmentName = appendTimeToFileName(truncateFileNameToSafeLength(fileName || getFileName(url)));
 
         const isLocalFile = url.startsWith('file://');
 
@@ -114,7 +132,7 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = appendTimeToFileName(fileName ?? 'Expensify');
+            const finalFileName = appendTimeToFileName(truncateFileNameToSafeLength(fileName ?? 'Expensify'));
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
