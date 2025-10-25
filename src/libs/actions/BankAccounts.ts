@@ -275,7 +275,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     if (source) {
         parameters.source = source;
     }
-
     const personalPolicy = getPersonalPolicy();
 
     const onyxData: OnyxData = {
