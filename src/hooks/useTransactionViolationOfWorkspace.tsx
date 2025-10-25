@@ -20,6 +20,7 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
             transactionIDSet.add(transaction.transactionID);
         }
     });
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [transactionViolations] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         {

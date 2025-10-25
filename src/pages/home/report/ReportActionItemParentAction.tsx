@@ -117,6 +117,7 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [ancestorsReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {

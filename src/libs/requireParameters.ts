@@ -11,10 +11,10 @@ export default function requireParameters(parameterNames: string[], parameters: 
             return;
         }
 
-        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+        const propertiesToRedact = new Set(['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode']);
         const parametersCopy = {...parameters};
         Object.keys(parametersCopy).forEach((key) => {
-            if (!propertiesToRedact.includes(key.toString())) {
+            if (!propertiesToRedact.has(key.toString())) {
                 return;
             }
 

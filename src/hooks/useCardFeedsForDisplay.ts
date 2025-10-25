@@ -11,6 +11,7 @@ const useCardFeedsForDisplay = () => {
     const {localeCompare} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [eligiblePoliciesIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies) => {
             return Object.values(policies ?? {}).reduce((policiesIDs, policy) => {

@@ -8,6 +8,7 @@ import useOnyx from './useOnyx';
  * Hook that returns a Set of archived report IDs
  */
 function useArchivedReportsIdSet(): ArchivedReportsIDSet {
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (all): ArchivedReportsIDSet => {

@@ -16,6 +16,7 @@ const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
     }) as PolicySelector;
 
 function usePersonalPolicy() {
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
     return personalPolicy;

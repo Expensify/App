@@ -742,11 +742,13 @@ function IOURequestStepConfirmation({
 
             // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
-                const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
-                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
-                    .map((accountID) => Number(accountID));
+                const participantsWithAmount = new Set(
+                    Object.keys(transaction.splitShares ?? {})
+                        .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
+                        .map((accountID) => Number(accountID)),
+                );
                 splitParticipants = selectedParticipants.filter((participant) =>
-                    participantsWithAmount.includes(
+                    participantsWithAmount.has(
                         participant.isPolicyExpenseChat ? (participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) : (participant.accountID ?? CONST.DEFAULT_NUMBER_ID),
                     ),
                 );

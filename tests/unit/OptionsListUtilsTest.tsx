@@ -1066,8 +1066,8 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with no search value
             const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {});
-            const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
-            const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
+            const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
+            const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.has(personalDetailOption.login));
 
             // Then we should expect all the personalDetails to show except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);

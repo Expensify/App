@@ -35,6 +35,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 

@@ -49,6 +49,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [submitterEmail] = useOnyx(
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         {canBeMissing: false, selector: (personalDetailsList) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login},

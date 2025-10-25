@@ -61,6 +61,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [iouActionForTargetTransaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
         {

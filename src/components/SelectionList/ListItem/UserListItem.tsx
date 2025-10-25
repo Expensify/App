@@ -54,6 +54,7 @@ function UserListItem<TItem extends ListItem>({
     }, [item, onCheckboxPress, onSelectRow]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
         selector: (report) => !!report,

@@ -29,6 +29,7 @@ function SearchFiltersTaxRatePage() {
         });
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`, {
         selector: (allPolicies) => (allPolicies ? Object.values(allPolicies).filter((policy) => policy && policyIDs.includes(policy.id)) : undefined),
         canBeMissing: true,

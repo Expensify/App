@@ -49,7 +49,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {DATE_FILTER_KEY_SET, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -83,6 +83,7 @@ function SearchFiltersBar({
 }: SearchFiltersBarProps) {
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
@@ -612,19 +613,30 @@ function SearchFiltersBar({
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
-        const exposedFiltersKeys = filters.flatMap((filter) => {
-            const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
-            if (dateFilterKey) {
-                return dateFilterKey;
+
+        // Track which filters are currently visible to the user
+        const exposedFiltersKeys = new Set<string>(
+            filters.flatMap((filter) => {
+                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+                if (dateFilterKey) {
+                    return dateFilterKey;
+                }
+                return filter.filterKey;
+            }),
+        );
+
+        // Find filters that have values but aren't visible - these need to be shown as active filter badges
+        return advancedSearchFiltersKeys.filter((key) => {
+            if (exposedFiltersKeys.has(key as SearchAdvancedFiltersKey)) {
+                return false;
             }
-            return filter.filterKey;
-        });
-        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
-        return hiddenFilters.filter((key) => {
-            const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
+
+            // Date filters can be set using On/After/Before variants, so check all three
+            const dateFilterKey = DATE_FILTER_KEY_SET.has(key as SearchDateFilterKeys) ? (key as SearchDateFilterKeys) : undefined;
             if (dateFilterKey) {
                 return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
+
             return filterFormValues[key as SearchAdvancedFiltersKey];
         });
     }, [filterFormValues, filters, typeFiltersKeys]);

@@ -11,6 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,

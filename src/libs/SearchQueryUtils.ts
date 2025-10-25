@@ -23,7 +23,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEY_SET, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -177,6 +177,7 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
+    // eslint-disable-next-line unicorn/prefer-set-has
     const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
 
     let filterValueString = '';
@@ -751,7 +752,7 @@ function buildFilterFormValuesFromQuery(
                 .join(' ');
         }
 
-        if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
+        if (DATE_FILTER_KEY_SET.has(filterKey as SearchDateFilterKeys)) {
             const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;

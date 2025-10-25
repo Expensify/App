@@ -120,8 +120,8 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         }
 
         // Combine selected members with unselected members
-        const selectedLogins = selectedOptions.map(({login}) => login);
-        const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.includes(login));
+        const selectedLogins = new Set(selectedOptions.map(({login}) => login));
+        const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.has(login));
 
         const allMembersWithState: MemberForList[] = [];
         filterSelectedOptions.forEach((member) => {

@@ -79,6 +79,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {

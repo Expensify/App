@@ -37,6 +37,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);

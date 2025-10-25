@@ -70,10 +70,10 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+    const rateIDs = new Set(customUnitRates.map((rate) => rate.customUnitRateID));
 
     for (const rateID of Object.keys(customUnit.rates)) {
-        if (rateIDs.includes(rateID)) {
+        if (rateIDs.has(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
             optimisticRates[rateID] = {
                 ...foundRate,
