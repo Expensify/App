@@ -674,7 +674,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     const reason = originalMessage?.reason;
                     const violationName = originalMessage?.violationName;
-
                     Clipboard.setString(translate(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
                     Clipboard.setString(translate('violations.resolvedDuplicates'));
