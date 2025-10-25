@@ -70,6 +70,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
@@ -186,13 +187,11 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        // Check if the workspace currency is supported for global reimbursement
-        if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
+        if (!isSupportedGlobalReimbursement) {
             setIsUpdateWorkspaceCurrencyModalOpen(true);
             return;
         }
 
-        // If there are existing eligible bank accounts and no in-progress setup, navigate to connect existing account
         if (hasValidExistingAccounts && !shouldShowContinueModal) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policyID));
             return;
@@ -211,6 +210,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             <PaymentMethodList
                 onPress={paymentMethodPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
+                shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
