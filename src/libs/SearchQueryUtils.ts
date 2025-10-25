@@ -122,6 +122,43 @@ function sanitizeSearchValue(str: string) {
     return str;
 }
 
+const operatorToSymbolMap: Record<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, string> = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':',
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>',
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=',
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<',
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=',
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',',
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ',
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=',
+};
+
+function getTokenRawString(token: SearchQueryToken): string {
+    if (token.raw && token.raw.length > 0) {
+        return token.raw.trim();
+    }
+
+    if (token.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && token.isImplicitKeyword) {
+        const values = Array.isArray(token.value) ? token.value : [token.value];
+        return values.join(' ');
+    }
+
+    const key = getUserFriendlyKey(token.key);
+    const valueList = Array.isArray(token.value) ? token.value : [token.value];
+    const formattedValues = valueList.map((value) => sanitizeSearchValue(value.toString())).join(',');
+
+    if (token.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        if (token.isNegated) {
+            return `-${key}:${formattedValues}`;
+        }
+        return `${key}${operatorToSymbolMap[token.operator]}${formattedValues}`;
+    }
+
+    const prefix = token.isNegated ? '-' : '';
+    const operatorSymbol = operatorToSymbolMap[token.operator] ?? ':';
+    return `${prefix}${key}${operatorSymbol}${formattedValues}`;
+}
+
 /**
  * @private
  * Returns date filter value for QueryString.
@@ -630,9 +667,10 @@ function buildQueryStringFromTokens(queryJSON: SearchQueryJSON, tokens: SearchQu
 
     tokens.forEach((token) => {
         const rawKey = token.key as string;
+        const tokenRaw = getTokenRawString(token);
 
         if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            const keywordValue = token.raw.trim();
+            const keywordValue = tokenRaw.trim();
             if (keywordValue.length > 0) {
                 orderedParts.push(keywordValue);
             }
@@ -641,8 +679,8 @@ function buildQueryStringFromTokens(queryJSON: SearchQueryJSON, tokens: SearchQu
         }
 
         const canonicalKey = toCanonicalRootKey(rawKey);
-        const trimmedRaw = token.raw.trim();
-        const outputKey = trimmedRaw.includes(':') ? trimmedRaw.split(':')[0] : rawKey;
+        const trimmedRaw = tokenRaw.trim();
+        const outputKey = tokenRaw.trim().includes(':') ? trimmedRaw.split(':')[0] : rawKey;
 
         if (PRIMARY_ROOT_KEYS.has(canonicalKey)) {
             const formatted = emitRoot(canonicalKey, token.value, trimmedRaw, outputKey);
@@ -1407,7 +1445,7 @@ function buildUserReadableQueryString(
         }
 
         if (rawKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            const keywordPart = token.raw.trim();
+            const keywordPart = getTokenRawString(token).trim();
             if (keywordPart.length > 0) {
                 parts.push(keywordPart);
             }
@@ -1443,7 +1481,7 @@ function buildUserReadableQueryString(
             return;
         }
 
-        const fallback = token.raw.trim();
+        const fallback = getTokenRawString(token).trim();
         if (fallback.length > 0) {
             parts.push(fallback);
         }
@@ -1665,4 +1703,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    getTokenRawString,
 };

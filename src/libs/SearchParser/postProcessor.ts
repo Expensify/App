@@ -6,10 +6,10 @@ type RawFilterEntry = {
     operator: string;
     left: string;
     right: string | string[];
-    type: 'default' | 'filter';
     isDefault?: boolean;
     isImplicitKeyword?: boolean;
     isNegated?: boolean;
+    raw: string;
 };
 
 type DefaultValues = {
@@ -33,37 +33,6 @@ const DEFAULT_VALUES: DefaultValues = {
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
 };
 
-const operatorToSymbol: Record<string, string> = {
-    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':',
-    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>',
-    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=',
-    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<',
-    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=',
-};
-
-const userFriendlyKeyMap = buildUserFriendlyKeyMap();
-
-function buildUserFriendlyKeyMap() {
-    const map = new Map<string, string>();
-    const friendlyKeys = CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS as Record<string, string>;
-
-    Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, canonical]) => {
-        const friendlyKey = friendlyKeys[keyName];
-        if (friendlyKey) {
-            map.set(canonical, friendlyKey);
-        }
-    });
-
-    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, canonical]) => {
-        const friendlyKey = friendlyKeys[keyName];
-        if (friendlyKey) {
-            map.set(canonical, friendlyKey);
-        }
-    });
-
-    return map;
-}
-
 function toStringValue(value: string | string[]): string {
     if (Array.isArray(value)) {
         return value.at(0) ?? '';
@@ -77,22 +46,7 @@ function toStringArray(value: string | string[]): string[] {
 
 function sanitizeKeywordValue(value: string | string[]): string[] {
     const values = Array.isArray(value) ? value : [value];
-    return values
-        .map((entry) => (typeof entry === 'string' ? entry.replace(/^(['"])(.*)\1$/, '$2') : entry))
-        .filter((entry) => entry !== '');
-}
-
-function needsQuotes(value: string) {
-    return value.includes(' ') || value.includes('\xA0');
-}
-
-function formatValue(value: string | string[]): string {
-    const values = Array.isArray(value) ? value : [value];
-    return values.map((entry) => (needsQuotes(entry) ? `"${entry}"` : entry)).join(',');
-}
-
-function getUserFriendlyKey(key: string): string {
-    return userFriendlyKeyMap.get(key) ?? key;
+    return values.map((entry) => (typeof entry === 'string' ? entry.replace(/^(['"])(.*)\1$/, '$2') : entry)).filter((entry) => entry !== '');
 }
 
 function buildFilterNode(entry: RawFilterEntry): ASTNode {
@@ -120,55 +74,23 @@ function buildFilterTree(nodes: ASTNode[]): ASTNode | null {
 }
 
 function updateDefaultValues(defaults: DefaultValues, entry: RawFilterEntry) {
-    const value = entry.right;
-    switch (entry.left) {
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
-            defaults.type = toStringValue(value) as SearchDataTypes;
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
-            const statusValue = toStringValue(value);
-            const normalizedStatus = statusValue.toLowerCase() === 'all' ? CONST.SEARCH.STATUS.EXPENSE.ALL : statusValue;
-            defaults.status = normalizedStatus as SearchStatus;
-            break;
-        }
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY:
-            defaults.sortBy = toStringValue(value) as SearchColumnType;
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER:
-            defaults.sortOrder = toStringValue(value) as SortOrder;
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
-            defaults.groupBy = toStringValue(value) as SearchGroupBy;
-            break;
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
-            const values = toStringArray(value);
-            defaults.policyID = values.length > 0 ? values : defaults.policyID;
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-function formatTokenRaw(entry: RawFilterEntry): string {
-    if (entry.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && entry.isImplicitKeyword) {
-        return Array.isArray(entry.right) ? entry.right.join(' ') : String(entry.right);
+    const {left, right} = entry;
+    if (left === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+        const statusValue = toStringValue(right);
+        const normalized = statusValue.toLowerCase() === 'all' ? CONST.SEARCH.STATUS.EXPENSE.ALL : statusValue;
+        defaults.status = normalized as SearchStatus;
+        return;
     }
 
-    const key = getUserFriendlyKey(entry.left);
-    const value = formatValue(entry.right);
-
-    if (entry.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-        if (entry.isNegated) {
-            return `-${key}:${value}`;
+    if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+        const values = toStringArray(right).filter((policy) => policy !== '');
+        if (values.length > 0) {
+            defaults.policyID = values;
         }
-        return `${key}!=${value}`;
+        return;
     }
 
-    const prefix = entry.isNegated ? '-' : '';
-    const operatorSymbol = operatorToSymbol[entry.operator] ?? ':';
-
-    return `${prefix}${key}${operatorSymbol}${value}`;
+    (defaults as Record<string, unknown>)[left] = toStringValue(right);
 }
 
 function buildToken(entry: RawFilterEntry): SearchQueryToken {
@@ -177,10 +99,10 @@ function buildToken(entry: RawFilterEntry): SearchQueryToken {
         key: entry.left as SearchQueryToken['key'],
         operator: entry.operator as SearchQueryToken['operator'],
         value,
-        raw: formatTokenRaw(entry),
+        raw: entry.raw,
     };
 
-    if (entry.type === 'default' || entry.isDefault) {
+    if (entry.isDefault) {
         token.isDefault = true;
     }
 
@@ -188,19 +110,23 @@ function buildToken(entry: RawFilterEntry): SearchQueryToken {
         token.isImplicitKeyword = true;
     }
 
+    if (entry.isNegated) {
+        token.isNegated = true;
+    }
+
     return token;
 }
 
-function postProcess(_query: string, entries: RawFilterEntry[]): PostProcessResult {
+function postProcess(_query: string, rawFilterList: RawFilterEntry[]): PostProcessResult {
     const defaults: DefaultValues = {...DEFAULT_VALUES};
     const tokens: SearchQueryToken[] = [];
     const filters: ASTNode[] = [];
     const keywordValues: string[] = [];
 
-    entries.forEach((entry) => {
+    rawFilterList.forEach((entry) => {
         tokens.push(buildToken(entry));
 
-        if (entry.type === 'default') {
+        if (entry.isDefault) {
             updateDefaultValues(defaults, entry);
             return;
         }

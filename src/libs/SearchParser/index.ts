@@ -4,8 +4,8 @@ import type {PostProcessResult, RawFilterEntry} from './postProcessor';
 import {postProcess} from './postProcessor';
 
 function parseSearchQuery(query: string): SearchQueryAST & {tokens: SearchQueryToken[]} {
-    const result = parseRaw(query) as RawFilterEntry[];
-    const processed = postProcess(query, result) as PostProcessResult;
+    const rawFilterList = parseRaw(query) as RawFilterEntry[];
+    const processed = postProcess(query, rawFilterList) as PostProcessResult;
     return {
         ...processed,
     };

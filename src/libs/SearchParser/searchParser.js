@@ -370,7 +370,8 @@ function peg$parse(input, options) {
       return entries;
     };
   var peg$f2 = function(key, op, value) {
-      return buildFilter(op, key, value, {type: "default", isDefault: true});
+      const raw = text().trim();
+      return buildFilter(op, key, value, {isDefault: true, raw});
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -380,7 +381,8 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word, {type: "filter", isImplicitKeyword: true});
+      const raw = text().trim();
+      return buildFilter("eq", "keyword", word, {isImplicitKeyword: true, raw});
     };
   var peg$f4 = function(neg, field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
@@ -395,11 +397,12 @@ function peg$parse(input, options) {
         }
       }
 
-      return buildFilter(operator, key, values, {
-        type: "filter",
-        isImplicitKeyword: false,
-        isNegated: Boolean(neg),
-      });
+      const raw = text().trim();
+      const props = {raw};
+      if (neg) {
+        props.isNegated = true;
+      }
+      return buildFilter(operator, key, values, props);
     };
   var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");

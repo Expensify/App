@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import {parse} from '@libs/SearchParser';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getTokenRawString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
@@ -797,7 +797,7 @@ describe('search parser', () => {
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'world'},
         ]);
 
-        expect(result.tokens?.map((token) => token.raw)).toEqual(['hello', 'world', 'type:expense', 'group-by:from']);
+        expect(result.tokens?.map((token) => getTokenRawString(token))).toEqual(['hello', 'world', 'type:expense', 'group-by:from']);
     });
 
     test.each(tests)(`parsing: $query`, ({query, expected}) => {

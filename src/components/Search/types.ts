@@ -192,9 +192,10 @@ type SearchQueryToken = {
     key: SearchQueryTokenKey;
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | string[];
-    raw: string;
+    raw?: string;
     isDefault?: boolean;
     isImplicitKeyword?: boolean;
+    isNegated?: boolean;
 };
 
 type SearchQueryString = string;

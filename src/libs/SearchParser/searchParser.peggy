@@ -46,7 +46,8 @@ filter = standardFilter / defaultFilter / freeTextFilter
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
-      return buildFilter(op, key, value, {type: "default", isDefault: true});
+      const raw = text().trim();
+      return buildFilter(op, key, value, {isDefault: true, raw});
     }
 
 freeTextFilter
@@ -58,7 +59,8 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word, {type: "filter", isImplicitKeyword: true});
+      const raw = text().trim();
+      return buildFilter("eq", "keyword", word, {isImplicitKeyword: true, raw});
     }
 
 standardFilter
@@ -75,11 +77,12 @@ standardFilter
         }
       }
 
-      return buildFilter(operator, key, values, {
-        type: "filter",
-        isImplicitKeyword: false,
-        isNegated: Boolean(neg),
-      });
+      const raw = text().trim();
+      const props = {raw};
+      if (neg) {
+        props.isNegated = true;
+      }
+      return buildFilter(operator, key, values, props);
     }
 
 key "key"
