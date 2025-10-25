@@ -4148,6 +4148,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiPickerButtonDropdownIcon: {
             fontSize: 30,
+            overflow: 'visible',
         },
 
         moneyRequestImage: {
