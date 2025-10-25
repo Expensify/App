@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    evenlyDistributeSplitExpenseAmounts,
     getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
@@ -117,6 +118,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction, transactionID]);
+
+    const onSplitEvenly = useCallback(() => {
+        if (!draftTransaction) {
+            return;
+        }
+        evenlyDistributeSplitExpenseAmounts(draftTransaction);
+    }, [draftTransaction]);
 
     const onSaveSplitExpense = useCallback(() => {
         if (splitExpenses.length <= 1 && (!childTransactions.length || !isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS))) {
@@ -280,6 +288,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
+    const shouldShowSplitEvenly = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
+
     const headerContent = useMemo(
         () => (
             <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
@@ -290,9 +300,17 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     text={translate('iou.addSplit')}
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
+                {shouldShowSplitEvenly && (
+                    <Button
+                        onPress={onSplitEvenly}
+                        icon={Expensicons.ArrowsLeftRight}
+                        text={translate('iou.splitEvenly')}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
+                    />
+                )}
             </View>
         ),
-        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
+        [onAddSplitExpense, onSplitEvenly, shouldShowSplitEvenly, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
     );
 
     const footerContent = useMemo(() => {
