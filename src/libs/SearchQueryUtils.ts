@@ -40,7 +40,7 @@ import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
-import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {parse as parseSearchQuery} from './SearchParser';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 

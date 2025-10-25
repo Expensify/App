@@ -8,10 +8,6 @@
 // To make changes, edit the corresponding *.peggy files only.
 // Use the `generate-search-parser` and `generate-autocomplete-parser` scripts to regenerate parsers after modifications.
 
-  function buildFilter(operator, left, right) {
-    return { operator, left, right };
-  }
-
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
   C.prototype = parent.prototype;
@@ -364,61 +360,21 @@ function peg$parse(input, options) {
   var peg$e90 = peg$anyExpectation();
   var peg$e91 = peg$classExpectation([","], false, false);
 
-  var peg$f0 = function(filters) { return applyDefaults(filters); };
+  var peg$f0 = function(filters) { return filters ?? []; };
   var peg$f1 = function(head, tail) {
       const entries = [head, ...tail.map(([_, filter]) => filter)].filter(Boolean);
-      if (!entries.length) {
-        return {tree: null, tokens: []};
-      }
-
-      const filters = [];
-      const tokens = [];
-      const keywordValues = [];
-
-      entries.forEach((entry) => {
-        if (entry.token) {
-          tokens.push(entry.token);
-        }
-        if (entry.filter && entry.filter.right) {
-          if (entry.filter.left === "keyword") {
-            const values = Array.isArray(entry.filter.right) ? entry.filter.right : [entry.filter.right];
-            const sanitizedValues = values.map((value) => (typeof value === "string" ? value.replace(/^(['"])(.*)\1$/, "$2") : value));
-            keywordValues.push(...sanitizedValues);
-          } else {
-            filters.push(entry.filter);
-          }
-        }
-      });
-
-      if (keywordValues.length > 0) {
-        filters.push(buildFilter("eq", "keyword", keywordValues));
-      }
-
-      if (!filters.length) {
-        return {tree: null, tokens};
-      }
-
-      const [firstFilter, ...restFilters] = filters;
-      const tree = restFilters.reduce(
-        (result, filter) => buildFilter("and", result, filter),
-        firstFilter
-      );
-
-      return {tree, tokens};
+      return entries;
     };
   var peg$f2 = function(key, op, value) {
-      updateDefaultValues(key, value);
       const {start, end} = location();
-      const rawText = input.slice(start.offset, end.offset).trim();
       return {
-        filter: null,
-        token: {
-          operator: op,
-          key,
-          value,
-          isDefault: true,
-          isImplicitKeyword: false,
-          raw: rawText,
+        type: "default",
+        key,
+        operator: op,
+        value,
+        location: {
+          start: start.offset,
+          end: end.offset,
         },
       };
     };
@@ -431,16 +387,15 @@ function peg$parse(input, options) {
         word = value;
       }
       const {start, end} = location();
-      const rawText = input.slice(start.offset, end.offset).trim();
       return {
-        filter: buildFilter("eq", "keyword", word),
-        token: {
-          operator: "eq",
-          key: "keyword",
-          value: word,
-          isDefault: false,
-          isImplicitKeyword: true,
-          raw: rawText,
+        type: "filter",
+        key: "keyword",
+        operator: "eq",
+        value: word,
+        isImplicitKeyword: true,
+        location: {
+          start: start.offset,
+          end: end.offset,
         },
       };
     };
@@ -458,16 +413,15 @@ function peg$parse(input, options) {
       }
 
       const {start, end} = location();
-      const rawText = input.slice(start.offset, end.offset).trim();
       return {
-        filter: buildFilter(operator, key, values),
-        token: {
-          operator,
-          key,
-          value: values,
-          isDefault: false,
-          isImplicitKeyword: false,
-          raw: rawText,
+        type: "filter",
+        key,
+        operator,
+        value: values,
+        isImplicitKeyword: false,
+        location: {
+          start: start.offset,
+          end: end.offset,
         },
       };
     };
@@ -777,21 +731,14 @@ function peg$parse(input, options) {
   }
 
   function peg$parsefilter() {
-    var s0, s1;
+    var s0;
 
-    s0 = peg$currPos;
-    s1 = peg$parsestandardFilter();
-    if (s1 === peg$FAILED) {
-      s1 = peg$parsedefaultFilter();
-      if (s1 === peg$FAILED) {
-        s1 = peg$parsefreeTextFilter();
+    s0 = peg$parsestandardFilter();
+    if (s0 === peg$FAILED) {
+      s0 = peg$parsedefaultFilter();
+      if (s0 === peg$FAILED) {
+        s0 = peg$parsefreeTextFilter();
       }
-    }
-    if (s1 !== peg$FAILED) {
-      s0 = s1;
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
     }
 
     return s0;
@@ -3074,36 +3021,10 @@ function peg$parse(input, options) {
   }
 
 
-  const defaultValues = {
-    type: "expense",
-    status: "",
-    sortBy: "date",
-    sortOrder: "desc",
-  };
-
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
     "type", "keyword", "groupCurrency", "groupBy"
   ]);
-
-  function applyDefaults(result) {
-    const defaults = {...defaultValues};
-    const filters = result?.tree ?? null;
-    const tokens = result?.tokens ?? [];
-    return {
-      ...defaults,
-      filters,
-      tokens,
-    };
-  }
-
-  function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-    defaultValues[field] = value;
-  }
 
  
   let nameOperator = false;

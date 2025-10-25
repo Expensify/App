@@ -287,4 +287,5 @@ export type {
     SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchQueryToken,
+    SearchQueryAST,
 };

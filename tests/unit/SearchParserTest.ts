@@ -1,5 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import {parse} from '@libs/SearchParser/searchParser';
+import {parse} from '@libs/SearchParser';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
