@@ -2,7 +2,13 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true' ? true : false;
 
 const config = {
     assets: ['./assets/fonts/native'],
-    dependencies: {},
+    dependencies: {
+        'react-native-webrtc': {
+            platforms: {
+                android: null,
+            },
+        },
+    },
 };
 
 // We need to unlink the react-native-wallet package from the android standalone build

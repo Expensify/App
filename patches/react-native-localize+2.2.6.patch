@@ -1,0 +1,19 @@
+diff --git a/node_modules/react-native-localize/android/src/main/java/com/zoontek/rnlocalize/RNLocalizeModule.java b/node_modules/react-native-localize/android/src/main/java/com/zoontek/rnlocalize/RNLocalizeModule.java
+index 2eb8ae3..ab53e5e 100644
+--- a/node_modules/react-native-localize/android/src/main/java/com/zoontek/rnlocalize/RNLocalizeModule.java
++++ b/node_modules/react-native-localize/android/src/main/java/com/zoontek/rnlocalize/RNLocalizeModule.java
+@@ -98,11 +98,10 @@ public class RNLocalizeModule extends ReactContextBaseJavaModule {
+   }
+ 
+   @Override
+-  public void onCatalystInstanceDestroy() {
+-    super.onCatalystInstanceDestroy();
+-
++  public void invalidate() {
++    super.invalidate();
+     getReactApplicationContext()
+-      .unregisterReceiver(mBroadcastReceiver);
++            .unregisterReceiver(mBroadcastReceiver);
+   }
+ 
+   @ReactMethod
