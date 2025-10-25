@@ -7,7 +7,7 @@ import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
-import {compute, FORMULA_PART_TYPES, parse} from './Formula';
+import {compute, FORMULA_PART_TYPES, parse, requiresBackendComputation} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
@@ -198,7 +198,7 @@ function isValidReportType(reportType?: string): boolean {
  * Compute a new report name if needed based on an optimistic update
  */
 function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
-    const {allPolicies} = context;
+    const {allPolicies, isOffline} = context;
 
     // If no report is provided, extract it from the update (for new reports)
     const targetReport = report ?? (incomingUpdate.value as Report);
@@ -257,6 +257,13 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         policy: updatedPolicy,
         transaction: updatedTransaction,
     };
+
+    // When we cannot properly compute the formula (e.g., currency conversion requires exchange rates),
+    // computing while online causes flickering between incorrect optimistic values and correct backend values.
+    // Return null to skip optimistic updates and let the backend provide the accurate result.
+    if (!isOffline && requiresBackendComputation(formulaParts, formulaContext)) {
+        return null;
+    }
 
     const newName = compute(formula, formulaContext);
 
