@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
+import {formatDate} from './FormulaDatetime';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
@@ -237,7 +238,10 @@ function compute(formula?: string, context?: FormulaContext): string {
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     const {report, policy} = context;
-    const [field, format] = part.fieldPath;
+    const [field, ...additionalPath] = part.fieldPath;
+    // Reconstruct format string by joining additional path elements with ':'
+    // This handles format strings with colons like 'HH:mm:ss'
+    const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
 
     if (!field) {
         return part.definition;
@@ -351,54 +355,6 @@ function getSubstring(value: string, args: string[]): string {
     }
 
     return value.substring(start);
-}
-
-/**
- * Format a date value with support for multiple date formats
- */
-function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
-    if (!dateString) {
-        return '';
-    }
-
-    try {
-        const date = new Date(dateString);
-        if (Number.isNaN(date.getTime())) {
-            return '';
-        }
-
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        switch (format) {
-            case 'M/dd/yyyy':
-                return `${month}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'MMMM dd, yyyy':
-                return `${monthNames.at(month - 1)} ${day.toString().padStart(2, '0')}, ${year}`;
-            case 'dd MMM yyyy':
-                return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
-            case 'yyyy/MM/dd':
-                return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'MMMM, yyyy':
-                return `${monthNames.at(month - 1)}, ${year}`;
-            case 'yy/MM/dd':
-                return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'dd/MM/yy':
-                return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
-            case 'yyyy':
-                return year.toString();
-            case 'MM/dd/yyyy':
-                return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'yyyy-MM-dd':
-            default:
-                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        }
-    } catch {
-        return '';
-    }
 }
 
 /**
