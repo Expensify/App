@@ -83,6 +83,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
+    const prevPolicyCurrency = usePrevious(policyCurrency);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -201,18 +202,17 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
-        if (!isPreviousPolicy || hasConfirmedUSDCurrency) {
+        if (!isPreviousPolicy || hasConfirmedUSDCurrency || !policyCurrency || policyCurrency === prevPolicyCurrency) {
             return;
         }
 
         if (policyCurrency === CONST.CURRENCY.USD) {
             setNonUSDBankAccountStep(null);
-            setBankAccountSubStep(null);
-            return;
+        } else {
+            setUSDBankAccountStep(null);
         }
-        setUSDBankAccountStep(null);
         setBankAccountSubStep(null);
-    }, [isPreviousPolicy, hasConfirmedUSDCurrency, policyCurrency]);
+    }, [isPreviousPolicy, hasConfirmedUSDCurrency, policyCurrency, prevPolicyCurrency]);
 
     useEffect(
         () => {
