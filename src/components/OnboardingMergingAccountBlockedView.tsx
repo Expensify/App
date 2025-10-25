@@ -26,7 +26,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
 
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage) {
-            return onboardingErrorMessage;
+            return translate(onboardingErrorMessage);
         }
         // Fallback to generic error message
         return translate('onboarding.mergeBlockScreen.subtitle', {workEmail});
@@ -48,7 +48,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 style={[styles.mb5]}
                 text={translate('common.buttonConfirm')}
                 onPress={() => {
-                    setOnboardingErrorMessage('');
+                    setOnboardingErrorMessage(undefined);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                         return;

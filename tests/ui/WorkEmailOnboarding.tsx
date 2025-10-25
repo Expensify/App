@@ -583,7 +583,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
-        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
+        const specificErrorMessage = 'onboarding.errorSelection';
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -602,7 +602,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(specificErrorMessage)).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(specificErrorMessage))).toBeOnTheScreen();
         });
 
         unmount();

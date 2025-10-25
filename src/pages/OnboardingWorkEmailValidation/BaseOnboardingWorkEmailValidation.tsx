@@ -42,7 +42,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(undefined);
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -76,7 +76,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
     const validateAccountAndMerge = useCallback(
         (validateCode: string) => {
-            setOnboardingErrorMessage('');
+            setOnboardingErrorMessage(undefined);
             MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
         },
         [workEmail, session?.accountID],
@@ -110,15 +110,15 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
                         validateCodeActionErrorField="mergeIntoAccountAndLogIn"
-                        clearError={() => setOnboardingErrorMessage('')}
+                        clearError={() => setOnboardingErrorMessage(undefined)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            setOnboardingErrorMessage('');
+                            setOnboardingErrorMessage(undefined);
                             setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}
-                        validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}
+                        validateError={onboardingErrorMessage ? {invalidCodeError: translate(onboardingErrorMessage)} : undefined}
                     />
                 </View>
             )}
