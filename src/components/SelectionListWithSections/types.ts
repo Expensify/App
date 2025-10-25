@@ -30,6 +30,7 @@ import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
+    SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
     SearchPolicy,
@@ -363,7 +364,7 @@ type TransactionGroupListItemType = ListItem & {
     transactionsQueryJSON?: SearchQueryJSON;
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -531,6 +532,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    searchType?: SearchDataTypes;
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
@@ -549,7 +551,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
     isEmpty: boolean;
-    isGroupByReports: boolean;
+    isExpenseReportType: boolean;
     transactionsSnapshot?: SearchResults;
     shouldDisplayEmptyView: boolean;
     transactionsQueryJSON?: SearchQueryJSON;
