@@ -5,12 +5,23 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replace(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
 
 jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
@@ -39,7 +50,7 @@ describe('Subscription/AddPaymentCard', () => {
 
     const renderAddPaymentCardPage = (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, HTMLEngineProvider]}>
                 <PortalProvider>
                     <NavigationContainer>
                         <Stack.Navigator initialRouteName={initialRouteName}>
