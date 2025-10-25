@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, parse} from '@libs/Formula';
+import {compute, extract, parse, requiresBackendComputation} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -244,11 +244,12 @@ describe('CustomFormula', () => {
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
 
-        describe('Currency Formatting', () => {
+        describe('Currency Formatting & Conversion', () => {
             const currencyContext: FormulaContext = {
                 report: {
                     reportID: '123',
                     total: -10000,
+                    currency: 'USD',
                 } as Report,
                 policy: {} as Policy,
             };
@@ -257,53 +258,90 @@ describe('CustomFormula', () => {
                 jest.clearAllMocks();
             });
 
-            test('should handle total with nosymbol format', () => {
-                currencyContext.report.currency = 'USD';
-                const result = compute('{report:total:nosymbol}', currencyContext);
-                // Should format without currency symbol
-                expect(result).toBe('100.00');
+            describe('Format options', () => {
+                test('nosymbol - should format without currency symbol', () => {
+                    const result = compute('{report:total:nosymbol}', currencyContext);
+                    expect(result).toBe('100.00');
+
+                    // Should not require backend computation
+                    const parts = parse('{report:total:nosymbol}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
+
+                test('same currency - should format normally (case insensitive)', () => {
+                    currencyContext.report.currency = 'EUR';
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('€100.00');
+                    expect(compute('{report:total:eur}', currencyContext)).toBe('€100.00');
+
+                    // Should not require backend computation when currencies match
+                    const parts = parse('{report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
+
+                test('default (no format) - should use report currency', () => {
+                    currencyContext.report.currency = 'NPR';
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('NPR\u00A0100.00');
+
+                    // Should not require backend computation
+                    const parts = parse('{report:total}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
             });
 
-            test('should handle total with currency override format', () => {
-                currencyContext.report.currency = 'USD';
-                const result = compute('{report:total:EUR}', currencyContext);
-                // Should format as EUR instead of USD
-                expect(result).toBe('€100.00');
+            describe('Currency conversion (requires backend)', () => {
+                test('different valid currencies - should return placeholder', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Various currencies requiring conversion
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('{report:total:EUR}');
+                    expect(compute('{report:total:JPY}', currencyContext)).toBe('{report:total:JPY}');
+
+                    // Should require backend computation
+                    const parts = parse('{report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
+                });
+
+                test('case and whitespace handling - should normalize and detect conversion', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Mixed case and whitespace
+                    expect(compute('{report:total:EuR}', currencyContext)).toBe('{report:total:EuR}');
+                    expect(compute('{report:total: EUR }', currencyContext)).toBe('{report:total: EUR }');
+                    expect(compute('{report:total:eur }', currencyContext)).toBe('{report:total:eur }');
+                });
+
+                test('in complex formulas - should detect conversion need', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Multiple parts where one needs conversion
+                    const parts = parse('Report: {report:type} Total: {report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
+
+                    // Non-total fields don't need backend
+                    const simpleParts = parse('{report:type} {report:policyname}');
+                    expect(requiresBackendComputation(simpleParts, currencyContext)).toBe(false);
+                });
             });
 
-            test('should handle lowercase currency override format', () => {
-                currencyContext.report.currency = 'USD';
-                const result = compute('{report:total:eur }', currencyContext);
-                // Should format as EUR despite lowercase and whitespace is trimmed
-                expect(result).toBe('€100.00');
-            });
+            describe('Edge cases', () => {
+                test('undefined currency - should format without symbol', () => {
+                    currencyContext.report.currency = undefined;
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('100.00');
+                });
 
-            test('should handle undefined currency gracefully', () => {
-                currencyContext.report.currency = undefined;
-                const result = compute('{report:total}', currencyContext);
-                // Should handle missing currency and format without currency symbol
-                expect(result).toBe('100.00');
-            });
+                test('invalid source currency - should return placeholder', () => {
+                    currencyContext.report.currency = 'UNKNOWN';
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('{report:total}');
+                });
 
-            test('should handle invalid currency code gracefully', () => {
-                currencyContext.report.currency = 'UNKNOWN';
-                const result = compute('{report:total}', currencyContext);
-                // Should fallback to formula definition when currency code is not recognized
-                expect(result).toBe('{report:total}');
-            });
-
-            test('should return zero amount when format currency is invalid', () => {
-                currencyContext.report.currency = 'EUR';
-                const result = compute('{report:total:UNKNOWN}', currencyContext);
-                // Should return 0.00 when invalid currency format is used (matches backend behavior)
-                expect(result).toBe('0.00');
-            });
-
-            test('should use report currency when not explicitly defined in formula', () => {
-                currencyContext.report.currency = 'NPR';
-                const result = compute('{report:total}', currencyContext);
-                // Should format with report currency (NPR formats with a non-breaking space \u00A0)
-                expect(result).toBe('NPR\u00A0100.00');
+                test('invalid format currency - should return placeholder', () => {
+                    currencyContext.report.currency = 'EUR';
+                    const result = compute('{report:total:UNKNOWN}', currencyContext);
+                    expect(result).toBe('{report:total:UNKNOWN}');
+                });
             });
         });
     });
