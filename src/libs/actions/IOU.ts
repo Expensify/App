@@ -13403,6 +13403,43 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
     });
 }
 
+/**
+ * Evenly distribute the draft split expense amounts across all split items.
+ * Remainders are added to the first or last item to ensure the total matches the original amount.
+ *
+ * Notes:
+ * - Works entirely on the provided `draftTransaction` to avoid direct Onyx reads.
+ * - Uses `calculateAmount` utility to handle currency subunits and rounding consistently with existing logic.
+ */
+function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!draftTransaction) {
+        return;
+    }
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const currency = draftTransaction?.currency ?? CONST.CURRENCY.USD;
+    const total = draftTransaction?.amount ?? 0;
+
+    if (!originalTransactionID || splitExpenses.length === 0) {
+        return;
+    }
+
+    const participantCountExcludingDefault = Math.max(0, splitExpenses.length - 1);
+    const remainderIndex = Math.max(0, splitExpenses.length - 1);
+
+    const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
+        ...splitExpense,
+        amount: calculateIOUAmount(participantCountExcludingDefault, total, currency, index === remainderIndex),
+    }));
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
+}
+
 function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
@@ -14145,6 +14182,7 @@ export {
     initSplitExpense,
     initSplitExpenseItemData,
     addSplitExpenseField,
+    evenlyDistributeSplitExpenseAmounts,
     updateSplitExpenseAmountField,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,
