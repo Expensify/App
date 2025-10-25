@@ -52,9 +52,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const isLoadingReportFromOnyx = isLoadingOnyxValue(reportResult);
-    const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report?.reportID;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
@@ -62,7 +60,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
@@ -139,8 +137,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
-                                    shouldDisplayReportFooter={!shouldWaitForReportSync}
-                                    shouldWaitForReportSync={shouldWaitForReportSync}
+                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     backToRoute={route.params.backTo}
                                     shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                 />
@@ -176,8 +173,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
-                                        shouldDisplayReportFooter={!shouldWaitForReportSync}
-                                        shouldWaitForReportSync={shouldWaitForReportSync}
+                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
                                         shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                     />
