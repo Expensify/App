@@ -8,6 +8,10 @@
 // To make changes, edit the corresponding *.peggy files only.
 // Use the `generate-search-parser` and `generate-autocomplete-parser` scripts to regenerate parsers after modifications.
 
+  function buildFilter(operator, left, right, props = {}) {
+    return { operator, left, right, ...props };
+  }
+
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
   C.prototype = parent.prototype;
@@ -366,17 +370,7 @@ function peg$parse(input, options) {
       return entries;
     };
   var peg$f2 = function(key, op, value) {
-      const {start, end} = location();
-      return {
-        type: "default",
-        key,
-        operator: op,
-        value,
-        location: {
-          start: start.offset,
-          end: end.offset,
-        },
-      };
+      return buildFilter(op, key, value, {type: "default", isDefault: true});
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -386,18 +380,7 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      const {start, end} = location();
-      return {
-        type: "filter",
-        key: "keyword",
-        operator: "eq",
-        value: word,
-        isImplicitKeyword: true,
-        location: {
-          start: start.offset,
-          end: end.offset,
-        },
-      };
+      return buildFilter("eq", "keyword", word, {type: "filter", isImplicitKeyword: true});
     };
   var peg$f4 = function(neg, field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
@@ -412,18 +395,11 @@ function peg$parse(input, options) {
         }
       }
 
-      const {start, end} = location();
-      return {
+      return buildFilter(operator, key, values, {
         type: "filter",
-        key,
-        operator,
-        value: values,
         isImplicitKeyword: false,
-        location: {
-          start: start.offset,
-          end: end.offset,
-        },
-      };
+        isNegated: Boolean(neg),
+      });
     };
   var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
