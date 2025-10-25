@@ -259,6 +259,7 @@ function OptionRowLHN({
                                                 <DisplayNames
                                                     accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                                     fullTitle={optionItem.text ?? ''}
+                                                    shouldParseFullTitle={false}
                                                     displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
                                                     tooltipEnabled
                                                     numberOfLines={1}
