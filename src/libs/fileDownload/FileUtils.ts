@@ -108,7 +108,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -156,14 +156,14 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
-    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
+    return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
     // Replace illegal characters before trying to download the attachment.
-    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    newFileName = newFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
     if (file.fileExtension) {
         newFileName += `.${file.fileExtension}`;
     }
@@ -692,7 +692,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
                         return;
                     }
 
-                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFileName = fileName.replaceAll(/\.(heic|heif)$/i, '.jpg');
                     const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
                     resolve(jpegFile);
                 },

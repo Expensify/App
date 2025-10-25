@@ -172,7 +172,7 @@ function maskCard(lastFour = ''): string {
     const maskedString = '•'.repeat(maskedLength) + lastFour;
 
     // Insert space for every four symbols
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -189,21 +189,21 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
         return '';
     }
     const hasSpace = /\s/.test(cardName);
-    const maskedString = cardName.replace(/X/g, '•');
+    const maskedString = cardName.replaceAll('X', '•');
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
         if (showOriginalName) {
             return cardName;
         }
-        return cardName.replace(/ - \d{4}$/, '');
+        return cardName.replaceAll(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
-        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+        return maskedString.replaceAll(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
     }
 
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -223,7 +223,7 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
 }
 
 function getMCardNumberString(cardNumber: string): string {
-    return cardNumber.replace(/\s/g, '');
+    return cardNumber.replaceAll(/\s/g, '');
 }
 
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {

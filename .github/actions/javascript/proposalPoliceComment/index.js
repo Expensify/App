@@ -12066,7 +12066,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12594,7 +12594,7 @@ function sanitizeJSONStringValues(inputString) {
         // Function to recursively sanitize string values in an object
         const sanitizeValues = (obj) => {
             if (typeof obj === 'string') {
-                return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+                return obj.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
             }
             if (Array.isArray(obj)) {
                 return obj.map((item) => sanitizeValues(item));

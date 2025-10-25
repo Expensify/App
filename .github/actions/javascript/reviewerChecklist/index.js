@@ -11632,7 +11632,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 break;
             }
             const whitespace = /([\n\r])/gm;
-            const comment = combinedComments.at(i)?.replace(whitespace, '');
+            const comment = combinedComments.at(i)?.replaceAll(whitespace, '');
             console.log(`Comment ${i} starts with: ${comment?.slice(0, 20)}...`);
             // Found the reviewer checklist, so count how many completed checklist items there are
             if (comment?.indexOf(reviewerChecklistContains) !== -1) {
@@ -11899,7 +11899,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,

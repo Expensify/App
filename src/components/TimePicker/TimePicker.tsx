@@ -208,7 +208,7 @@ function TimePicker(
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetHours();
             return;
@@ -324,7 +324,7 @@ function TimePicker(
     */
     const handleMinutesChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMinutes();
             return;
@@ -403,7 +403,7 @@ function TimePicker(
     */
     const handleSecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetSeconds();
             return;
@@ -482,7 +482,7 @@ function TimePicker(
     */
     const handleMillisecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMilliseconds();
             return;
@@ -604,7 +604,7 @@ function TimePicker(
                 }
                 return;
             }
-            const trimmedKey = key.replace(/[^0-9]/g, '');
+            const trimmedKey = key.replaceAll(/[^0-9]/g, '');
 
             if (isHourFocused) {
                 handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));

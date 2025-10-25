@@ -183,7 +183,7 @@ describe('GithubUtils', () => {
 
         test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
             const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
-            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
+            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replaceAll('\r', '');
 
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
                 data: [modifiedIssueWithDeployBlockers],

@@ -143,7 +143,7 @@ function useReportActionAvatars({
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                actorHint: String(policyID).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+                actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: workspaceAccountID,
                 delegateAccountID: undefined,
             },
@@ -331,7 +331,7 @@ function useReportActionAvatars({
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
         },

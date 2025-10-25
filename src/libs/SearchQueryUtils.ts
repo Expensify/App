@@ -1146,7 +1146,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
     const escapedText = searchText
         .toLowerCase()
         .trim()
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
     return pattern.test(referenceText.toLowerCase());

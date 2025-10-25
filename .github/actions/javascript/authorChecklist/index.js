@@ -15351,7 +15351,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             if (match) {
                 // Remove it from the PR body
                 console.log('Check has been removed from the checklist:', check);
-                checklist = checklist.replace(match[0], '');
+                checklist = checklist.replaceAll(match[0], '');
                 didChecklistChange = true;
             }
         }
@@ -15765,7 +15765,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,

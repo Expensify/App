@@ -82,7 +82,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (reportActionMessage.html) {
-                return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+                return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
             }
 
             return getReportActionMessageText(reportAction);
