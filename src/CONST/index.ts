@@ -703,7 +703,6 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
-        NEWDOT_UPDATE_SPLITS: 'newDotUpdateSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -1054,6 +1053,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SIGN_OUT: 'signout',
+        SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1253,6 +1253,7 @@ const CONST = {
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
+                CONCIERGE_AUTO_MAP_MCC_GROUPS: 'CONCIERGEAUTOMAPMCCGROUPS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1726,6 +1727,7 @@ const CONST = {
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
+        INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -1745,6 +1747,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
+        MAX_OPEN_APP_REQUEST_RETRIES: 2,
         NETWORK_STATUS: {
             ONLINE: 'online',
             OFFLINE: 'offline',
@@ -3626,8 +3629,8 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
-        EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
+        EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
+        EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
@@ -5386,6 +5389,7 @@ const CONST = {
     LOTTIE_VIEW_TEST_ID: 'LottieView',
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
+    ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6477,6 +6481,7 @@ const CONST = {
         ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
+            EXPENSE_REPORT: 'expense-report',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -6534,7 +6539,6 @@ const CONST = {
             DESC: 'desc',
         },
         GROUP_BY: {
-            REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
@@ -6551,6 +6555,14 @@ const CONST = {
             EXPENSE: {
                 ALL: '',
                 UNREPORTED: 'unreported',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                DONE: 'done',
+                PAID: 'paid',
+            },
+            EXPENSE_REPORT: {
+                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6710,7 +6722,6 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
-                [this.GROUP_BY.REPORTS]: 'report',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
@@ -6817,7 +6828,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT, SCREENS.MONEY_REQUEST.STEP_SCAN] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -7212,6 +7223,7 @@ const CONST = {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
+            ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
@@ -7302,24 +7314,11 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
 
-const FEATURE_IDS = {
-    CATEGORIES: 'categories',
-    ACCOUNTING: 'accounting',
-    COMPANY_CARDS: 'company-cards',
-    TAGS: 'tags',
-    WORKFLOWS: 'workflows',
-    INVOICES: 'invoices',
-    RULES: 'rules',
-    PER_DIEM: 'per-diem',
-    DISTANCE_RATES: 'distance-rates',
-    EXPENSIFY_CARD: 'expensify-card',
-};
-
 const TASK_TO_FEATURE: Record<string, string> = {
-    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: FEATURE_IDS.CATEGORIES,
-    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: FEATURE_IDS.ACCOUNTING,
-    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: FEATURE_IDS.COMPANY_CARDS,
-    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: FEATURE_IDS.TAGS,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
 };
 
 const FRAUD_PROTECTION_EVENT = {
@@ -7355,6 +7354,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS, FRAUD_PROTECTION_EVENT};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT};
 
 export default CONST;
