@@ -103,8 +103,8 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove: boolean, policy: OnyxEntry<Policy>) {
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove, policy);
 
     return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
@@ -198,8 +198,8 @@ function buildNextStep(
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove, policy);
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove, policy);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
@@ -559,8 +559,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove, policy);
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove, policy);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
