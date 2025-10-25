@@ -144,20 +144,12 @@ function WorkspacesListPage() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const continueDeleteWorkspace = useCallback(() => {
-        if (isOffline) {
-            setPolicyIDToDelete(undefined);
-            setPolicyNameToDelete(undefined);
-            setShouldShowOfflineModal(true);
-            return;
-        }
-
         setIsDeleteModalOpen(true);
-    }, [isOffline]);
+    }, []);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -206,6 +198,11 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             lastPaymentMethod,
         );
+        if (isOffline) {
+            setIsDeleteModalOpen(false);
+            setPolicyIDToDelete(undefined);
+            setPolicyNameToDelete(undefined);
+        }
     };
 
     const hideDeleteWorkspaceErrorModal = () => {
@@ -244,7 +241,7 @@ function WorkspacesListPage() {
     );
 
     useEffect(() => {
-        if (!prevIsPendingDelete || isPendingDelete) {
+        if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
             return;
         }
         setIsDeleteModalOpen(false);
@@ -252,7 +249,7 @@ function WorkspacesListPage() {
             return;
         }
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage]);
+    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage, policyIDToDelete]);
 
     /**
      * Gets the menu item for each workspace
@@ -344,7 +341,7 @@ function WorkspacesListPage() {
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
-                    shouldShowErrorMessages={false}
+                    shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                     shouldHideOnDelete={false}
                 >
                     <PressableWithoutFeedback
@@ -397,6 +394,7 @@ function WorkspacesListPage() {
             resetLoadingSpinnerIconIndex,
             continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
+            policyIDToDelete,
         ],
     );
 
@@ -748,15 +746,6 @@ function WorkspacesListPage() {
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 success={false}
-            />
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
