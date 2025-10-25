@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/SearchUIUtils';
-import {getTransactionViolations} from '@libs/TransactionUtils';
+import {getTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -120,7 +120,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             return;
         }
 
-        const siblingTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+        const siblingTransactionIDs = transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
