@@ -15,14 +15,6 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let authToken: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        authToken = value?.authToken;
-    },
-});
-
 let personalDetailsByEmail: PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -44,7 +36,7 @@ type ClearApprovalWorkflowApproverParams = {
 };
 
 function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -94,12 +86,12 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -160,7 +152,6 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 
     const parameters: UpdateWorkspaceApprovalParams = {
         policyID: policy.id,
-        authToken,
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
     };
@@ -168,7 +159,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 }
 
 function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -217,7 +208,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 

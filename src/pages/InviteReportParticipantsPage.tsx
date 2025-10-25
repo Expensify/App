@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
@@ -154,9 +154,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         if (
             !availableOptions.userToInvite &&
             excludedUsers[
-                parsePhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode)).possible
-                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode))
-                    : processedLogin
+                parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
@@ -165,8 +163,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
             !!availableOptions.userToInvite,
             processedLogin,
-            false,
             countryCode,
+            false,
         );
     }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
 
