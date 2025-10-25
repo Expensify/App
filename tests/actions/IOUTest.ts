@@ -9341,7 +9341,7 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport);
+            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be approved since admin took control and is the last approver
@@ -9379,7 +9379,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(expenseReport);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be submitted to senior manager (normal flow) since take control was invalidated
@@ -9413,7 +9413,7 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport);
+            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             // Get the optimistic next step
@@ -9523,7 +9523,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report (no take control actions)
-            approveMoneyRequest(expenseReport);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be submitted to admin (next in approval chain) since manager is not the final approver
@@ -9540,7 +9540,7 @@ describe('actions/IOU', () => {
                 accountID: managerAccountID,
             });
 
-            approveMoneyRequest(expenseReport);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be submitted to admin
@@ -9555,7 +9555,7 @@ describe('actions/IOU', () => {
                 accountID: adminAccountID,
             });
 
-            approveMoneyRequest(updatedReport);
+            approveMoneyRequest(updatedReport, policy, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be fully approved
@@ -9600,7 +9600,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(singleApproverReport);
+            approveMoneyRequest(singleApproverReport, singleApproverPolicy, managerAccountID, managerEmail, false, false);
             await waitForBatchedUpdates();
 
             // Should be fully approved since manager is the final approver in the chain
