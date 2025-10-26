@@ -241,6 +241,7 @@ function useAdvancedSearchFilters() {
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
+    // eslint-disable-next-line unicorn/prefer-set-has
     const nonPersonalPolicyCategoryIds = Object.values(policies)
         .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
         .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
