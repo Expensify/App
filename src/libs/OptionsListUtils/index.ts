@@ -441,7 +441,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastAction?.childVisibleActionCount === 0) ||
         (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
