@@ -302,7 +302,7 @@ function ReportActionsList({
         }
 
         return [null, -1];
-    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [accountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -325,7 +325,7 @@ function ReportActionsList({
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
         };
-    }, [report.reportID]);
+    }, [report.reportID, isAnonymousUser]);
 
     /**
      * When the user reads a new message as it is received, we'll push the unreadMarkerTime down to the timestamp of
