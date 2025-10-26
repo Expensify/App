@@ -41,7 +41,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
@@ -168,7 +168,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchInputValue = debouncedSearchValue.trim().toLowerCase();
 
-        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, false, countryCode);
+        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, countryCode, false);
     }, [debouncedSearchValue, sections, userToInvite, countryCode]);
 
     return (

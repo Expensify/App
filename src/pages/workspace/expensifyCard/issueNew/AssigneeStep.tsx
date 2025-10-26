@@ -40,8 +40,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, isSearchingForReports} = useOptions();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currency = useCurrencyForExpensifyCard({policyID});
     const isEditing = issueNewCard?.isEditing;
 
@@ -149,7 +149,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchInputValue = debouncedSearchValue.trim().toLowerCase();
 
-        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, false, countryCode);
+        return getHeaderMessage(sections[0].data.length !== 0, !!userToInvite, searchInputValue, countryCode, false);
     }, [debouncedSearchValue, sections, userToInvite, countryCode]);
 
     return (
