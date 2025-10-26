@@ -92,6 +92,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             );
 
             Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
+                // eslint-disable-next-line unicorn/prefer-set-has
                 const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID);
                 const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
                     (transaction) => !splitIDs.includes(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),

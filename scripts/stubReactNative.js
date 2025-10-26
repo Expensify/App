@@ -4,6 +4,7 @@ const Module = require('module');
 const originalRequire = Module.prototype.require;
 
 // List of modules to stub (we don't need these in scripts)
+// eslint-disable-next-line unicorn/prefer-set-has
 const MODULES_TO_STUB = [
     'react-native',
     'react-native-config',

@@ -75,6 +75,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     },
 };
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [
     ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
@@ -85,6 +86,7 @@ const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [
     ONYXKEYS.ONFIDO_APPLICANT_ID,
 ];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const keysToMask = [
     'addressCity',
     'addressName',
@@ -130,8 +132,10 @@ const keysToMask = [
     'zipCode',
 ];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const amountKeysToRandomize = ['amount', 'modifiedAmount', 'originalAmount', 'total', 'unheldTotal', 'unheldNonReimbursableTotal', 'nonReimbursableTotal'];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const nodesToFullyMask = ['reservationList'];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;

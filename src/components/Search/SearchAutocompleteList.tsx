@@ -328,6 +328,7 @@ function SearchAutocompleteList({
             }
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const alreadyAutocompletedKeys = ranges
             .filter((range) => {
                 return autocompleteKey && range.key === autocompleteKey;

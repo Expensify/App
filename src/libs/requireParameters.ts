@@ -11,6 +11,7 @@ export default function requireParameters(parameterNames: string[], parameters: 
             return;
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
         const parametersCopy = {...parameters};
         Object.keys(parametersCopy).forEach((key) => {

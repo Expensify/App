@@ -34,6 +34,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
 
 function TransferBalancePage() {

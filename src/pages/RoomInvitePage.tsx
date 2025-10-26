@@ -146,6 +146,7 @@ function RoomInvitePage({
         });
 
         // Filtering out selected users from the search results
+        // eslint-disable-next-line unicorn/prefer-set-has
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
