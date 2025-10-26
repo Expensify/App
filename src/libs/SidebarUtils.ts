@@ -201,6 +201,7 @@ function shouldDisplayReportInLHN(
 
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldOverrideHidden =
         !!draftComment ||
         hasErrorsOtherThanFailedReceipt ||
