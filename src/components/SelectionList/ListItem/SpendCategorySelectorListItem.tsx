@@ -1,11 +1,11 @@
 import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
-import type {BaseListItemProps, ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCleanCategoryName} from '@libs/CategoryUtils';
+import BaseListItem from './BaseListItem';
+import type {ListItem, SpendCategorySelectorListItemProps} from './types';
 
-function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: BaseListItemProps<TItem>) {
+function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: SpendCategorySelectorListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {groupID, categoryID: category} = item;
 

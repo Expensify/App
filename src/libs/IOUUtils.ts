@@ -5,6 +5,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
+import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -217,7 +218,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
         email: currentUser?.login ?? '',
         login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
-        avatarUrl: currentUser.avatar?.toString() ?? '',
+        avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
         text: currentUser.login,
         selected: true,
