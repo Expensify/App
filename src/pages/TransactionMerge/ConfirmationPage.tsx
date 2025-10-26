@@ -15,14 +15,15 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
@@ -42,8 +43,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
-
-    const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const targetTransactionThreadReportIDSelector = useCallback(
+        (reportActionsList: OnyxEntry<ReportActions>) => {
+            const reportActions = Object.values(reportActionsList ?? {});
+            const transactionIOUReportAction = mergeTransaction?.targetTransactionID ? getIOUActionForTransactionID(reportActions, mergeTransaction.targetTransactionID) : undefined;
+            return transactionIOUReportAction?.childReportID;
+        },
+        [mergeTransaction?.targetTransactionID],
+    );
+    const [targetTransactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`, {
+        canBeMissing: true,
+        selector: targetTransactionThreadReportIDSelector,
+    });
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
     const policyID = targetTransactionThreadReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});

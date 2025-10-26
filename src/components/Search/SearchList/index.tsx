@@ -115,6 +115,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -165,20 +168,21 @@ function SearchList({
     areAllOptionalColumnsHidden,
     newTransactions = [],
     violations,
+    onDEWModalOpen,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
 
     const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
-        if (groupBy) {
+        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
                 return data;
             }
             return data.flatMap((item) => item.transactions);
         }
         return data;
-    }, [data, groupBy]);
+    }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
@@ -220,8 +224,10 @@ function SearchList({
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
+    const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
     const handleLongPressRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
@@ -236,10 +242,11 @@ function SearchList({
                 return;
             }
             if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item);
+                onCheckboxPress(item, itemTransactions);
                 return;
             }
             setLongPressedItem(item);
+            setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
         [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
@@ -250,9 +257,9 @@ function SearchList({
         setIsModalVisible(false);
 
         if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem);
+            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress]);
+    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -319,6 +326,7 @@ function SearchList({
                         allReports={allReports}
                         groupBy={groupBy}
                         searchType={type}
+                        onDEWModalOpen={onDEWModalOpen}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -359,6 +367,7 @@ function SearchList({
             isOffline,
             areAllOptionalColumnsHidden,
             violations,
+            onDEWModalOpen,
         ],
     );
 
