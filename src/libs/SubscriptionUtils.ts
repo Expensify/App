@@ -1,4 +1,4 @@
-import {differenceInDays, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -73,14 +73,6 @@ let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     callback: (value) => (billingStatus = value),
-});
-
-let hasManualTeam2025Pricing: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
-    callback: (value) => {
-        hasManualTeam2025Pricing = value;
-    },
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -546,29 +538,15 @@ function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): b
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
-function checkIfHasTeam2025Pricing(firstPolicyDate: string | undefined) {
-    if (hasManualTeam2025Pricing) {
-        return true;
-    }
-
-    if (!firstPolicyDate) {
-        return true;
-    }
-
-    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
-}
-
 function getSubscriptionPrice(
     plan: PersonalPolicyTypeExcludedProps | null,
     preferredCurrency: PreferredCurrency,
     privateSubscriptionType: SubscriptionType | undefined,
-    firstPolicyDate: string | undefined,
+    hasTeam2025Pricing: boolean,
 ): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
-
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
@@ -582,11 +560,10 @@ function getSubscriptionPlanInfo(
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
-    firstPolicyDate: string | undefined,
+    hasTeam2025Pricing: boolean,
 ): SubscriptionPlanInfo {
-    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, firstPolicyDate);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -688,5 +665,4 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
-    checkIfHasTeam2025Pricing,
 };
