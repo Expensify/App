@@ -20,8 +20,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -97,10 +95,11 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
+                        title: 'spreadsheet.importSuccessfulTitle',
+                        prompt: 'spreadsheet.importTagsSuccessfulDescription',
+                        params: {
+                            tags: tagsLength,
+                        },
                     },
                 },
             },
@@ -112,8 +111,10 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        title: 'spreadsheet.importFailedTitle',
+                        prompt: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -809,8 +810,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
+                    importFinalModal: {
+                        title: 'spreadsheet.importSuccessfulTitle',
+                        prompt: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
+                    },
                 },
             },
         ],
@@ -827,8 +830,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        title: 'spreadsheet.importFailedTitle',
+                        prompt: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
