@@ -173,16 +173,16 @@ function SearchList({
 }: SearchListProps) {
     const styles = useThemeStyles();
 
-    const {hash, groupBy} = queryJSON;
+    const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
-        if (groupBy) {
+        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
                 return data;
             }
             return data.flatMap((item) => item.transactions);
         }
         return data;
-    }, [data, groupBy]);
+    }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
@@ -229,7 +229,6 @@ function SearchList({
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
-            const isReadonlyGroupBy = groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -239,7 +238,7 @@ function SearchList({
                 return;
             }
             // disable long press for empty expense reports
-            if ('transactions' in item && item.transactions.length === 0 && !isReadonlyGroupBy) {
+            if ('transactions' in item && item.transactions.length === 0 && !groupBy) {
                 return;
             }
             if (isMobileSelectionModeEnabled) {
@@ -326,6 +325,7 @@ function SearchList({
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
@@ -341,6 +341,7 @@ function SearchList({
             );
         },
         [
+            type,
             groupBy,
             newTransactions,
             shouldAnimate,
@@ -370,7 +371,7 @@ function SearchList({
         ],
     );
 
-    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
+    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 

@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {appendCountryCodeWithCountryCode, getPhoneLogin, getPhoneNumberWithoutSpecialChars, isEmailPublicDomain, validateNumber} from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneLogin, getPhoneNumberWithoutSpecialChars, isEmailPublicDomain, validateNumber} from '@libs/LoginUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,13 +35,13 @@ describe('LoginUtils', () => {
         it('Should return valid phone number with country code when received a phone with country code', () => {
             const givenPhone = '+12345678901';
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
-            const parsedPhone = appendCountryCodeWithCountryCode(givenPhone, countryCode);
+            const parsedPhone = appendCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return valid phone number with country code when received a phone without country code', () => {
             const givenPhone = '2345678901';
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
-            const parsedPhone = appendCountryCodeWithCountryCode(givenPhone, countryCode);
+            const parsedPhone = appendCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
     });
@@ -82,17 +82,20 @@ describe('LoginUtils', () => {
     describe('getPhoneLogin', () => {
         it('Should return valid phone number with country code if provided phone number is valid and with country code', () => {
             const givenPhone = '+12345678901';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return valid phone number with country code if provided phone number is valid and without country code', () => {
             const givenPhone = '2345678901';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return empty string if provided phone number is empty', () => {
             const givenPhone = '';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('');
         });
     });

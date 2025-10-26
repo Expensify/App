@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/await-thenable */
 import fs from 'fs';
 import path from 'path';
 import type {RawSourceMap} from 'source-map';

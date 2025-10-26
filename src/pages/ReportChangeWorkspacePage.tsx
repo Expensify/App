@@ -9,6 +9,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
@@ -17,7 +18,6 @@ import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportT
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {
@@ -55,8 +55,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         [report?.ownerAccountID],
     );
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
