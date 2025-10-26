@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -120,10 +120,12 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 shouldShowCancelButton={false}
                 onCancel={onClose}
                 prompt={
-                    <RenderHTML
-                        html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
-                        onLinkPress={onMoveToCompanyCardFeeds}
-                    />
+                    <View style={styles.flexRow}>
+                        <RenderHTML
+                            html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                            onLinkPress={onMoveToCompanyCardFeeds}
+                        />
+                    </View>
                 }
                 confirmText={translate('common.buttonConfirm')}
             />
