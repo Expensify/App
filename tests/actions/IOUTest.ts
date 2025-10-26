@@ -2108,6 +2108,152 @@ describe('actions/IOU', () => {
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
+
+        it('sets TRACK_DISTANCE quick action when creating distance request in self-DM', async () => {
+            const selfDMReport: Report = {
+                reportID: '456',
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                },
+            };
+
+            const validWaypoints = {
+                waypoint0: {
+                    lat: 37.7749,
+                    lng: -122.4194,
+                    address: 'San Francisco, CA',
+                },
+                waypoint1: {
+                    lat: 37.8044,
+                    lng: -122.2712,
+                    address: 'Oakland, CA',
+                },
+            };
+
+            const existingTransaction: Transaction = {
+                transactionID: '123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Track distance to self-DM'},
+                merchant: 'Distance',
+                created: '2024-01-01',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                reportID: selfDMReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction);
+            mockFetch?.pause?.();
+
+            // Create a distance request to self-DM with TRACK iouType
+            createDistanceRequest({
+                report: selfDMReport,
+                participants: [{login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}],
+                iouType: CONST.IOU.TYPE.TRACK,
+                existingTransaction,
+                transactionParams: {
+                    amount: 1000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '2024-01-01',
+                    merchant: 'Distance',
+                    comment: 'Track distance to self-DM',
+                    validWaypoints,
+                },
+            });
+
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+
+            // Verify the quick action is set to TRACK_DISTANCE (not REQUEST_DISTANCE) for self-DM
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    callback: (quickAction) => {
+                        Onyx.disconnect(connection);
+
+                        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.TRACK_DISTANCE);
+                        expect(quickAction?.chatReportID).toBe(selfDMReport.reportID);
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('sets REQUEST_DISTANCE quick action when creating distance request in regular chat', async () => {
+            const chatReport: Report = {
+                reportID: '789',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                    [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
+                },
+            };
+
+            const validWaypoints = {
+                waypoint0: {
+                    lat: 37.7749,
+                    lng: -122.4194,
+                    address: 'San Francisco, CA',
+                },
+                waypoint1: {
+                    lat: 37.8044,
+                    lng: -122.2712,
+                    address: 'Oakland, CA',
+                },
+            };
+
+            const existingTransaction: Transaction = {
+                transactionID: '456',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Request distance from another user'},
+                merchant: 'Distance',
+                created: '2024-01-01',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                reportID: chatReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction);
+            mockFetch?.pause?.();
+
+            // Create a distance request to another user with SUBMIT iouType
+            createDistanceRequest({
+                report: chatReport,
+                participants: [{login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}],
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                existingTransaction,
+                transactionParams: {
+                    amount: 1000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '2024-01-01',
+                    merchant: 'Distance',
+                    comment: 'Request distance from another user',
+                    validWaypoints,
+                },
+            });
+
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+
+            // Verify the quick action is set to REQUEST_DISTANCE (not TRACK_DISTANCE) for regular chat
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    callback: (quickAction) => {
+                        Onyx.disconnect(connection);
+
+                        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_DISTANCE);
+                        expect(quickAction?.chatReportID).toBe(chatReport.reportID);
+                        resolve();
+                    },
+                });
+            });
+        });
     });
 
     describe('split expense', () => {
