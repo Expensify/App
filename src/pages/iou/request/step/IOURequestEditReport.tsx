@@ -4,11 +4,11 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -35,8 +35,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});

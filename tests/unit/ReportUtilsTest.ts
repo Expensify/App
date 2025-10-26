@@ -3420,7 +3420,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, invoiceReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -3460,7 +3460,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, expenseReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(true);
         });
