@@ -259,9 +259,7 @@ const ViolationsUtils = {
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            const isEmptyCategory = emptyCategories.some((category) => updatedTransaction.category === category);
-            const categoryKey = isEmptyCategory ? '' : updatedTransaction.category;
+            const categoryKey = updatedTransaction.category;
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
