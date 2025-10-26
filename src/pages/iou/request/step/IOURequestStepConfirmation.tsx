@@ -445,7 +445,7 @@ function IOURequestStepConfirmation({
                     }
                 };
 
-                return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure);
+                return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
             if (isScanFilesCanBeRead) {
