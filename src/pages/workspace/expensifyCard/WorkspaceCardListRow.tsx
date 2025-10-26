@@ -31,9 +31,12 @@ type WorkspacesListRowProps = {
 
     /** Type of card */
     isVirtual: boolean;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -118,7 +121,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={theme.icon}
-                    additionalStyles={[styles.alignSelfCenter]}
+                    additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                     medium
                     isButtonIcon
                 />
