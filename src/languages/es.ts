@@ -4162,6 +4162,8 @@ ${amount} para ${merchant} - ${date}`,
                             'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                     },
                 },
+                expenseReportDestinationWarningMessage:
+                    'Si cambias la configuración de exportación de tarjetas de empresa a informes de gastos, los proveedores de NetSuite y las cuentas de publicación para tarjetas individuales se deshabilitarán. No te preocupes, aún guardaremos tus selecciones previas en caso de que quieras volver a cambiar más tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con NetSuite todos los días.',

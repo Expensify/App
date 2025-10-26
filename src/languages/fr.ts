@@ -4181,6 +4181,8 @@ ${amount} pour ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationWarningMessage:
+                    'Si vous changez le paramètre d’exportation des cartes d’entreprise vers les rapports de frais, les fournisseurs NetSuite et les comptes de publication pour les cartes individuelles seront désactivés. Ne vous inquiétez pas, nous sauvegarderons toujours vos sélections précédentes au cas où vous voudriez revenir en arrière plus tard.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se synchronisera automatiquement avec NetSuite tous les jours.',
