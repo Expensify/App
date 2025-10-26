@@ -269,7 +269,6 @@ const config = defineConfig([
             // Rulesdir specific rules
             'rulesdir/no-default-props': 'error',
             'rulesdir/prefer-type-fest': 'error',
-            'rulesdir/no-multiple-onyx-in-file': 'off',
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
@@ -571,6 +570,7 @@ const config = defineConfig([
         'docs/assets/**/*',
         'web/gtm.js',
         '**/.expo/**/*',
+        '**/.rock/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
