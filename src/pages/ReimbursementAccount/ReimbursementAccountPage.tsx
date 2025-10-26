@@ -202,7 +202,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
-        if (!isPreviousPolicy || hasConfirmedUSDCurrency || !policyCurrency || policyCurrency === prevPolicyCurrency) {
+        if (!policyCurrency || policyCurrency === prevPolicyCurrency) {
             return;
         }
 
@@ -212,7 +212,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setUSDBankAccountStep(null);
         }
         setBankAccountSubStep(null);
-    }, [isPreviousPolicy, hasConfirmedUSDCurrency, policyCurrency, prevPolicyCurrency]);
+    }, [policyCurrency, prevPolicyCurrency]);
 
     useEffect(
         () => {
