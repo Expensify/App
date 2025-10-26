@@ -1,5 +1,7 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
@@ -54,6 +56,9 @@ type TextPickerProps = {
 
     /** Whether the field is required */
     required?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
     TextProps;
 

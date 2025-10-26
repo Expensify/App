@@ -2,7 +2,7 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
@@ -16,9 +16,10 @@ import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 type Props = {
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
+    ref?: ForwardedRef<LottieView>;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, forwardedRef: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenStateContext();
@@ -117,14 +118,14 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             {...props}
             source={animationFile}
             key={`${hasNavigatedAway}`}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                animationRef.current = ref;
+                animationRef.current = newRef;
             }}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
@@ -136,4 +137,4 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
 Lottie.displayName = 'Lottie';
 
-export default forwardRef(Lottie);
+export default Lottie;
