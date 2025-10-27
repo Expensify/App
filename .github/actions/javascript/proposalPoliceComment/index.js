@@ -11845,7 +11845,6 @@ const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
-    DEFAULT_BASE_REF: 'main',
 };
 const CONST = {
     ...GIT_CONST,
@@ -12429,7 +12428,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path, ref = CONST_1.default.DEFAULT_BASE_REF) {
+    static async getFileContents(path, ref = 'main') {
         const { data } = await this.octokit.repos.getContent({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
