@@ -56,20 +56,21 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -102,6 +103,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -368,6 +371,20 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
+                    // Check if any of the selected items have DEW enabled
+                    const selectedPolicyIDList = selectedReports.length
+                        ? selectedReports.map((report) => report.policyID)
+                        : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
+                    const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                        return hasDynamicExternalWorkflow(policy);
+                    });
+
+                    if (hasDEWPolicy) {
+                        setIsDEWModalVisible(true);
+                        return;
+                    }
+
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
@@ -452,9 +469,28 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID = transactionEntry.ownerAccountID ?? getReportOrDraftReport(transactionEntry.reportID)?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+                if (ownerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        if (canAllTransactionsBeMoved) {
+        if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
                 icon: Expensicons.DocumentMerge,
@@ -651,7 +687,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
-    const shouldShowFooter = !!metadata?.count;
+    const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {
@@ -694,16 +730,16 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
     const footerData = useMemo(() => {
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
-
-        const currency = metadata?.currency;
+        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const selectedTransactionItems = Object.values(selectedTransactions);
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
@@ -781,6 +817,18 @@ function SearchPage({route}: SearchPageProps) {
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
                         />
+                        <ConfirmModal
+                            title={translate('customApprovalWorkflow.title')}
+                            isVisible={isDEWModalVisible}
+                            onConfirm={() => {
+                                setIsDEWModalVisible(false);
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            }}
+                            onCancel={() => setIsDEWModalVisible(false)}
+                            prompt={translate('customApprovalWorkflow.description')}
+                            confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                            shouldShowCancelButton={false}
+                        />
                     </View>
                 )}
             </>
@@ -839,6 +887,7 @@ function SearchPage({route}: SearchPageProps) {
                                     onSortPressedCallback={() => {
                                         setIsSorting(true);
                                     }}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter
@@ -917,6 +966,18 @@ function SearchPage({route}: SearchPageProps) {
                     secondOptionText={translate('common.buttonConfirm')}
                     isVisible={isDownloadErrorModalVisible}
                     onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
+                <ConfirmModal
+                    title={translate('customApprovalWorkflow.title')}
+                    isVisible={isDEWModalVisible}
+                    onConfirm={() => {
+                        setIsDEWModalVisible(false);
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    }}
+                    onCancel={() => setIsDEWModalVisible(false)}
+                    prompt={translate('customApprovalWorkflow.description')}
+                    confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
+                    shouldShowCancelButton={false}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

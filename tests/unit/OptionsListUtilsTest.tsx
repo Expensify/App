@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
+import {translate} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
@@ -18,6 +21,7 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     getLastActorDisplayName,
+    getLastMessageTextForReport,
     getMemberInviteOptions,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
@@ -29,13 +33,27 @@ import {
     recentReportComparator,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
+import Parser from '@libs/Parser';
+import {getChangedApproverActionMessage} from '@libs/ReportActionsUtils';
+import {
+    canCreateTaskInReport,
+    canUserPerformWriteAction,
+    formatReportLastMessageText,
+    getMovedActionMessage,
+    getMovedTransactionMessage,
+    getReportPreviewMessage,
+    isCanceledTaskReport,
+    isExpensifyOnlyParticipantInReport,
+} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import createRandomReportAction from '../utils/collections/reportActions';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -62,6 +80,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRHPActiveRoute: jest.fn(),
 }));
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
@@ -1187,7 +1207,8 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+                if (canUserPerformWriteAction(report, isReportArchived.current) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1221,8 +1242,9 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) with workspace rooms before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1536,7 +1558,7 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                if (canUserPerformWriteAction(report, false) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1572,7 +1594,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1609,7 +1631,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -2407,6 +2429,189 @@ describe('OptionsListUtils', () => {
             const result = createOption([1, 2], PERSONAL_DETAILS, report, {showChatPreviewLine: true});
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
+        });
+    });
+
+    describe('getLastMessageTextForReport', () => {
+        describe('REPORT_PREVIEW action', () => {
+            it('should show report preview message for non-policy expense chat', async () => {
+                const report: Report = {
+                    ...createRandomReport(0),
+                    chatType: undefined,
+                    isOwnPolicyExpenseChat: false,
+                };
+                const iouReport: Report = {
+                    ...createRandomReport(1),
+                    chatType: undefined,
+                    isOwnPolicyExpenseChat: false,
+                    type: CONST.REPORT.TYPE.IOU,
+                    isWaitingOnBankAccount: false,
+                };
+                const reportPreviewAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childMoneyRequestCount: 1,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        linkedReportID: iouReport.reportID,
+                    },
+                    shouldShow: true,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: '',
+                    modifiedMerchant: '',
+                    comment: {
+                        comment: '<strong>A</strong><br />A<br />A',
+                    },
+                };
+                const iouAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        IOUTransactionID: transaction.transactionID,
+                        type: 'create',
+                    },
+                    shouldShow: true,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
+                    [iouAction.reportActionID]: iouAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
+                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(lastMessage).toBe(expected);
+            });
+        });
+        it('MOVED_TRANSACTION action', async () => {
+            const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            const report: Report = createRandomReport(0);
+            const report2: Report = {
+                ...createRandomReport(1),
+                reportName: 'Expense Report #123',
+            };
+            const movedTransactionAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    toReportID: report2.reportID,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`, report2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [movedTransactionAction.reportActionID]: movedTransactionAction,
+            });
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(report2)));
+        });
+        describe('SUBMITTED action', () => {
+            it('should return automatic submitted message if submitted via harvesting', async () => {
+                const report: Report = createRandomReport(0);
+                const submittedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: 1,
+                        harvesting: true,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
+            });
+        });
+        describe('APPROVED action', () => {
+            it('should return automatic approved message if approved automatically', async () => {
+                const report: Report = createRandomReport(0);
+                const approvedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+                        automaticAction: true,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [approvedAction.reportActionID]: approvedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
+            });
+        });
+        describe('FORWARDED action', () => {
+            it('should return automatic forwarded message if forwarded automatically', async () => {
+                const report: Report = createRandomReport(0);
+                const forwardedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        automaticAction: true,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [forwardedAction.reportActionID]: forwardedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
+            });
+        });
+        it('TAKE_CONTROL action', async () => {
+            const report: Report = createRandomReport(0);
+            const takeControlAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+            });
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(takeControlAction)));
+        });
+        it('REROUTE action', async () => {
+            const report: Report = createRandomReport(0);
+            const rerouteAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [rerouteAction.reportActionID]: rerouteAction,
+            });
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(rerouteAction)));
+        });
+        it('MOVED action', async () => {
+            const report: Report = createRandomReport(0);
+            const movedAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [movedAction.reportActionID]: movedAction,
+            });
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
         });
     });
 });
