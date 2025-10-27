@@ -22,9 +22,9 @@ import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserUtils';
-import {isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
+import {getDefaultAvatarName, isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
-import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -124,21 +124,9 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
-        if (isDirty) {
-            setSelected(undefined);
-            setImageData({...EMPTY_FILE});
-            return;
-        }
-        deleteAvatar({
-            avatar: currentUserPersonalDetails?.avatar,
-            fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-            accountID: currentUserPersonalDetails?.accountID,
-            email: currentUserPersonalDetails?.email,
-        });
-        setSelected(undefined);
+        setSelected(getDefaultAvatarName(currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email));
         setImageData({...EMPTY_FILE});
-        Navigation.dismissModal();
-    }, [currentUserPersonalDetails, isDirty]);
+    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
 
     const clearError = useCallback(() => {
         setError(null, {});

@@ -367,6 +367,7 @@ export {
     generateAccountID,
     getAvatar,
     getAvatarUrl,
+    getDefaultAvatarName,
     getDefaultAvatarNameFromURL,
     getDefaultAvatarURL,
     getFullSizeAvatar,
