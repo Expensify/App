@@ -2428,10 +2428,10 @@ ${amount} per ${merchant} - ${date}`,
                     '*Configura le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Categorie*.\n' +
-                    '5. Disattiva le categorie che non ti servono.\n' +
-                    '6. Aggiungi le tue categorie in alto a destra.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Categorie*.\n' +
+                    '4. Disattiva le categorie che non ti servono.\n' +
+                    '5. Aggiungi le tue categorie in alto a destra.\n' +
                     '\n' +
                     `[Vai alle impostazioni delle categorie dello spazio di lavoro](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2513,10 +2513,10 @@ ${amount} per ${merchant} - ${date}`,
                     '*Invita il tuo team* su Expensify così possono iniziare a monitorare le spese oggi stesso.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Membri* > *Invita membro*.\n' +
-                    '5. Inserisci email o numeri di telefono.\n' +
-                    '6. Aggiungi un messaggio personalizzato se vuoi!\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Membri* > *Invita membro*.\n' +
+                    '4. Inserisci email o numeri di telefono.\n' +
+                    '5. Aggiungi un messaggio personalizzato se vuoi!\n' +
                     '\n' +
                     `[Vai ai membri dello spazio di lavoro](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2535,11 +2535,11 @@ ${amount} per ${merchant} - ${date}`,
                     'Usa i tag per aggiungere dettagli extra alle spese come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Altre funzionalità*.\n' +
-                    '5. Abilita *Tag*.\n' +
-                    '6. Vai a *Tag* nell’editor dello spazio di lavoro.\n' +
-                    '7. Clicca su *+ Aggiungi tag* per crearne uno tuo.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Altre funzionalità*.\n' +
+                    '4. Abilita *Tag*.\n' +
+                    '5. Vai a *Tag* nell’editor dello spazio di lavoro.\n' +
+                    '6. Clicca su *+ Aggiungi tag* per crearne uno tuo.\n' +
                     '\n' +
                     `[Vai a altre funzionalità](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
