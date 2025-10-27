@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import {
     buildMergedTransactionData,
     getDisplayValue,
@@ -13,14 +14,22 @@ import {
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 describe('MergeTransactionUtils', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForBatchedUpdates();
+    });
+
     describe('getSourceTransactionFromMergeTransaction', () => {
         it('should return undefined when mergeTransaction is undefined', () => {
             // Given a null merge transaction
@@ -717,6 +726,61 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+
+        it('should return "None" for unreported reportID', () => {
+            // Given a transaction with unreported reportID
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return translated "None"
+            expect(result).toBe('common.none');
+        });
+
+        it("should return transation's reportName when available for reportID", () => {
+            // Given a transaction with reportID and reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: '123',
+                reportName: 'Test Report Name',
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return the reportName
+            expect(result).toBe('Test Report Name');
+        });
+
+        fit("should return report's name when no reportName available on transaction", async () => {
+            // Given a random report
+            const reportID = 456;
+            const report = {
+                ...createRandomReport(reportID),
+                reportName: 'Test Report Name',
+            };
+
+            // Store the report in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // Given a transaction with reportID but no reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: report.reportID,
+                reportName: undefined,
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return the report's name from Onyx
+            expect(result).toBe(report.reportName);
         });
     });
 
