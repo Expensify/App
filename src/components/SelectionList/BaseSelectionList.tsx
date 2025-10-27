@@ -314,6 +314,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={listItemWrapperStyle}
                 titleStyles={listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
     };
