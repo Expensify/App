@@ -188,7 +188,7 @@ function BaseValidateCodeForm({
         } else {
             inputValidateCodeRef.current?.clear();
         }
-    }, [validateCodeSent]);
+    }, [validateCodeSent, wideRHPRouteKeys.length]);
 
     useEffect(() => {
         if (timeRemaining > 0) {
