@@ -509,6 +509,7 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                reportName: 'Test Report',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -534,6 +535,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                reportName: 'Test Report',
             });
         });
     });
