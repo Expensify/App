@@ -322,7 +322,9 @@ function IOURequestStepConfirmation({
             if (!item.category) {
                 return;
             }
-            if (policyCategories?.[item.category] && !policyCategories[item.category].enabled) {
+
+            // Clear category field when the category doesn't exist for selected policy, or it's disabled
+            if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
                 setMoneyRequestCategory(item.transactionID, '', policy?.id);
             }
         });
