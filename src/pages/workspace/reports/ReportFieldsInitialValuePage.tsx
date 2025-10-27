@@ -121,7 +121,7 @@ function ReportFieldsInitialValuePage({
                         validate={validateForm}
                         style={styles.flex1}
                         enabledWhenOffline
-                        isSubmitButtonVisible={isTextFieldType || isFormulaFieldType}
+                        isSubmitButtonVisible
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >
