@@ -1,9 +1,9 @@
-import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import {NavigationContainer} from '@react-navigation/native';
-import CONST from '@src/CONST';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 
 describe('FloatingReceiptButton hover', () => {
     const onPress = jest.fn();
