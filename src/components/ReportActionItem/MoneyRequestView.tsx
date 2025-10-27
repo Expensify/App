@@ -169,7 +169,23 @@ function MoneyRequestView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
-    const allowNegativeAmount = shouldEnableNegative(report, policy);
+    const moneyRequestReport = parentReport;
+    const isApproved = isReportApproved({report: moneyRequestReport});
+    const isInvoice = isInvoiceReport(moneyRequestReport);
+    const isTrackExpense = isTrackExpenseReport(report);
+
+    const iouType = useMemo(() => {
+        if (isTrackExpense) {
+            return CONST.IOU.TYPE.TRACK;
+        }
+        if (isInvoice) {
+            return CONST.IOU.TYPE.INVOICE;
+        }
+
+        return CONST.IOU.TYPE.SUBMIT;
+    }, [isTrackExpense, isInvoice]);
+
+    const allowNegativeAmount = shouldEnableNegative(parentReport, policy, iouType);
 
     const {
         created: transactionDate,
@@ -209,10 +225,6 @@ function MoneyRequestView({
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
     const shouldShowCard = isCardTransaction && cardProgramName;
 
-    const moneyRequestReport = parentReport;
-    const isApproved = isReportApproved({report: moneyRequestReport});
-    const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReport(report);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = updatedTransaction?.taxAmount
         ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
@@ -233,7 +245,7 @@ function MoneyRequestView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && isEditable;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
@@ -253,17 +265,6 @@ function MoneyRequestView({
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
-
-    const iouType = useMemo(() => {
-        if (isTrackExpense) {
-            return CONST.IOU.TYPE.TRACK;
-        }
-        if (isInvoice) {
-            return CONST.IOU.TYPE.INVOICE;
-        }
-
-        return CONST.IOU.TYPE.SUBMIT;
-    }, [isTrackExpense, isInvoice]);
 
     const category = transactionCategory ?? '';
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;

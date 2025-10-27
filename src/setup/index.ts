@@ -1,5 +1,6 @@
 import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
+import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
@@ -9,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
+
+const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
 
 export default function () {
     telemetry();
@@ -30,7 +33,7 @@ export default function () {
      */
     Onyx.init({
         keys: ONYXKEYS,
-
+        enableDevTools,
         // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
         maxCachedKeysCount: 50000,
         evictableKeys: [

@@ -48,7 +48,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -60,14 +60,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     useEffect(() => {
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
 
         if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
@@ -170,16 +170,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                            errors={onboardingErrorMessage ? {addWorkEmailError: translate(onboardingErrorMessage)} : undefined}
                             errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
+                            onClose={() => setOnboardingErrorMessage(null)}
                         >
                             <Button
                                 large
                                 text={translate('common.skip')}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
-                                    setOnboardingErrorMessage('');
+                                    setOnboardingErrorMessage(null);
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}

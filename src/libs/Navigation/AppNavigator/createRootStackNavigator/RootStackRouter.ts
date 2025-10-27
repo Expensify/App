@@ -1,7 +1,6 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
@@ -51,7 +50,7 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
-function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, translate: LocalizedTranslate) {
+function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
     }
@@ -60,7 +59,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorBackButton'));
+        Welcome.setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
         return true;
     }
 
@@ -113,7 +112,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
-            if (shouldPreventReset(state, action, options.translate)) {
+            if (shouldPreventReset(state, action)) {
                 syncBrowserHistory(state);
                 return state;
             }
