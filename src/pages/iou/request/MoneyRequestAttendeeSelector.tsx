@@ -39,6 +39,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -64,7 +65,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
@@ -88,18 +89,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             getEmptyOptions();
         }
-        const optionList = getAttendeeOptions(
-            options.reports,
-            options.personalDetails,
+        const optionList = getAttendeeOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             betas,
             attendees,
-            recentAttendees ?? [],
-            draftComments,
-            iouType === CONST.IOU.TYPE.SUBMIT,
-            true,
-            false,
+            recentAttendees: recentAttendees ?? [],
+            draftComments: draftComments ?? {},
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
+            includeP2P: true,
+            includeInvoiceRooms: false,
             action,
-        );
+            countryCode,
+        });
         if (isPaidGroupPolicy) {
             const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatRoomsOverThreads: true,
@@ -123,6 +125,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         action,
         isPaidGroupPolicy,
         searchTerm,
+        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -211,6 +214,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             cleanSearchTerm,
+            countryCode,
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
@@ -224,8 +228,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         cleanSearchTerm,
         attendees,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        countryCode,
     ]);
 
     const addAttendeeToSelection = useCallback(
@@ -248,7 +253,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
+                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
                 newSelectedOptions = [
                     ...attendees,
                     {
