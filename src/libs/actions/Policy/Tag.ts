@@ -975,14 +975,16 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
-function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type SetPolicyTagsRequiredProps = {
+    policyID: string;
+    requiresTag: boolean;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-    if (!policyTag) {
-        return;
-    }
-
-    if (!policyTag.name) {
+function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}: SetPolicyTagsRequiredProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1037,9 +1039,18 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
-    const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
-    const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
+type SetPolicyTagGLCodeProps = {
+    policyID: string;
+    tagName: string;
+    tagListIndex: number;
+    glCode: string;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
+    const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
+    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
