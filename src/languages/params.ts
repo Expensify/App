@@ -85,6 +85,12 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type LearnMoreRouteParams = {
+    learnMoreMethodsRoute: string;
+    formattedPrice: string;
+    hasTeam2025Pricing: boolean;
+};
+
 type BeginningOfArchivedRoomParams = {
     reportName: string;
     reportDetailsLink: string;
@@ -214,8 +220,6 @@ type CreateExpensesParams = {expensesNumber: number};
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
-type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -603,11 +607,6 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
-
 type SpreadSheetColumnParams = {
     name: string;
 };
@@ -945,8 +944,17 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
@@ -1020,7 +1028,6 @@ export type {
     LowerUpperParams,
     LogSizeAndDateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomParams,
@@ -1046,6 +1053,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
+    LearnMoreRouteParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1161,7 +1169,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
@@ -1256,4 +1263,5 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    FocusModeUpdateParams,
 };
