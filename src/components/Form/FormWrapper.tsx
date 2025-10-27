@@ -107,7 +107,7 @@ function FormWrapper({
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
-        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
+        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
         if (!focusKey) {
             return;
