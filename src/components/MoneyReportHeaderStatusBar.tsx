@@ -14,7 +14,7 @@ import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report (deprecated old format) */
-    nextStep: ReportNextStepDeprecated;
+    nextStep: ReportNextStepDeprecated | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;

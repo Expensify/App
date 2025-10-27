@@ -359,7 +359,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 }
 
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
-    const optimisticNextStep: ReportNextStep = {
+    const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
