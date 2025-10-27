@@ -13,6 +13,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    ShareBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -1275,6 +1276,21 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
     return API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, parameters, onyxData);
 }
 
+function shareBankAccount(bankAccountID: number, emails: string[]) {
+    const parameters: ShareBankAccountParams = {
+        bankAccountID,
+        emails,
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [],
+        successData: [],
+        failureData: [],
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1303,6 +1319,7 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
+    shareBankAccount,
     clearReimbursementAccountBankCreation,
     getCorpayBankAccountFields,
     createCorpayBankAccountForWalletFlow,

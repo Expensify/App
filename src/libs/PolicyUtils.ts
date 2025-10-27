@@ -40,6 +40,8 @@ import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {formatMemberForList} from './OptionsListUtils';
+import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
@@ -187,19 +189,9 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
 }
 
 /** Return admins from active policies */
-function getActiveAllAdminsFromWorkspaces(
-    policies: OnyxCollection<Policy> | null,
-    currentUserLogin: string | undefined,
-): {
-    text?: string;
-    alternateText?: string;
-    keyForList?: string;
-    accountID?: number;
-    login?: string;
-    pendingAction?: PendingAction;
-}[] {
+function getActiveAllAdminsFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): MemberForList[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    const adminMap = new Map<string, PolicyEmployee>();
+    const adminMap = new Map<string, MemberForList>();
     Object.values(activePolicies ?? {}).forEach((policy) => {
         getAdminEmployees(policy).forEach((admin) => {
             if (!admin?.email || adminMap.has(admin.email)) {
@@ -210,14 +202,18 @@ function getActiveAllAdminsFromWorkspaces(
                 return;
             }
 
-            adminMap.set(admin.email, {
-                text: personalDetails?.displayName,
-                alternateText: personalDetails?.login,
-                keyForList: personalDetails?.accountID,
-                accountID: personalDetails?.accountID,
-                login: personalDetails?.login,
-                pendingAction: personalDetails?.pendingAction,
-            });
+            adminMap.set(
+                admin.email,
+                formatMemberForList({
+                    text: personalDetails?.displayName,
+                    alternateText: personalDetails?.login,
+                    keyForList: personalDetails?.login,
+                    accountID: personalDetails?.accountID,
+                    login: personalDetails?.login,
+                    pendingAction: personalDetails?.pendingAction,
+                    reportID: '',
+                }),
+            );
         });
     });
     return Array.from(adminMap.values());

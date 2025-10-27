@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -16,6 +17,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import {shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,18 +57,18 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     );
 
     const handleConfirm = useCallback(() => {
-        if (selectedOptions.length === 0) {
+        if (selectedOptions.length === 0 || !bankAccountID) {
             return;
         }
 
         const emails = selectedOptions.map((member) => member.login).filter(Boolean);
 
-        // TODO add api call to share bank account
+        shareBankAccount(Number(bankAccountID), emails);
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT_SUCCESS.getRoute(Number(bankAccountID)));
     }, [bankAccountID, selectedOptions]);
 
-    const sections = useMemo(() => {
+    const adminsList = useMemo(() => {
         if (admins.length === 0) {
             return [];
         }
@@ -101,20 +103,51 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             allMembersWithState.push({...member, isSelected: false});
         });
 
-        return [
+        return allMembersWithState;
+    }, [admins, countryCode, debouncedSearchTerm, selectedOptions]);
+
+    const sections = useMemo(
+        () => [
             {
                 title: undefined,
-                data: allMembersWithState,
+                data: adminsList,
                 shouldShow: true,
             },
-        ];
-    }, [admins, countryCode, debouncedSearchTerm, selectedOptions]);
+        ],
+        [adminsList],
+    );
+
+    const toggleSelectAll = useCallback(() => {
+        const someSelected = selectedOptions.length > 0;
+
+        if (someSelected) {
+            setSelectedOptions([]);
+        } else {
+            const everyLogin = adminsList?.map((member) => ({
+                ...member,
+                isSelected: true,
+            }));
+            setSelectedOptions(everyLogin);
+        }
+    }, [adminsList, selectedOptions.length]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
         return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, false, countryCode);
     }, [debouncedSearchTerm, sections, countryCode]);
+
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!selectedOptions.length}
+                buttonText={translate('common.share')}
+                onSubmit={handleConfirm}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            />
+        ),
+        [handleConfirm, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+    );
 
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
@@ -128,6 +161,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 sections={sections}
+                onSelectAll={toggleSelectAll}
                 headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
                 shouldShowTextInputAfterHeader
                 shouldShowListEmptyContent={false}
@@ -137,9 +171,8 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                 ListItem={UserListItem}
                 shouldUseDefaultRightHandSideCheckmark
                 onSelectRow={toggleOption}
-                showConfirmButton
-                confirmButtonText={translate('common.share')}
                 onConfirm={handleConfirm}
+                footerContent={footerContent}
                 isConfirmButtonDisabled={selectedOptions.length === 0}
                 addBottomSafeAreaPadding
             />

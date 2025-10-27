@@ -1,7 +1,7 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {BrokenCompanyCardBankConnection} from '@components/Icon/Illustrations';
+import {ShareBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,9 +35,10 @@ function ShareBankAccountSuccess({route}: ShareBankAccountSuccessProps) {
             <ConfirmationPage
                 heading={translate('walletPage.shareBankAccountSuccess')}
                 description={translate('walletPage.shareBankAccountSuccessDescription')}
-                illustration={BrokenCompanyCardBankConnection}
+                illustration={ShareBank}
                 shouldShowButton
-                illustrationStyle={styles.errorStateCardIllustration}
+                descriptionStyle={[styles.ph4, styles.textSupporting]}
+                illustrationStyle={styles.successBankSharedCardIllustration}
                 onButtonPress={onButtonPress}
                 buttonText={translate('common.buttonConfirm')}
                 containerStyle={styles.h100}
