@@ -283,9 +283,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
-        if (validationOptions?.isValidatingReceipts !== undefined) {
-            setIsValidatingReceipts(validationOptions.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS);
-        }
+        setIsValidatingReceipts(validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS);
 
         if (files.length > 1) {
             setIsValidatingMultipleFiles(true);
