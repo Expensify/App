@@ -89,11 +89,11 @@ function IOURequestStepCategory({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const fetchData = () => {
-        if ((!!policy && !!policyCategories) || !report?.policyID) {
+        if ((!!policy && !!policyCategories) || !policyID) {
             return;
         }
 
-        getPolicyCategories(report?.policyID);
+        getPolicyCategories(policyID);
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
@@ -117,7 +117,7 @@ function IOURequestStepCategory({
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit) {
-                setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
                 navigateBack();
                 return;
             }
