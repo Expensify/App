@@ -264,6 +264,10 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
+        if (isCreatingTrackExpense && realPolicyID !== undefined && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(realPolicyID);
+        }
+
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -272,7 +276,7 @@ function IOURequestStepConfirmation({
         if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
         }
-    }, [isOffline, participants, policy?.pendingAction]);
+    }, [isCreatingTrackExpense, isOffline, participants, policy?.pendingAction, realPolicyID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
