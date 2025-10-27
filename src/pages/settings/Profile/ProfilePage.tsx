@@ -3,7 +3,6 @@ import React, {useContext} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -18,7 +17,6 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
@@ -29,8 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
-import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +61,6 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
-    const {isBetaEnabled} = usePermissions();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -187,52 +183,17 @@ function ProfilePage() {
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        {isBetaEnabled(CONST.BETAS.CUSTOM_AVATARS) ? (
-                                            <AvatarButtonWithIcon
-                                                text={translate('avatarWithImagePicker.editImage')}
-                                                source={avatarURL}
-                                                avatarID={accountID}
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={avatarStyle}
-                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                                editIconStyle={styles.profilePageAvatar}
-                                            />
-                                        ) : (
-                                            <AvatarWithImagePicker
-                                                isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                                source={avatarURL}
-                                                avatarID={accountID}
-                                                onImageSelected={(file) => {
-                                                    updateAvatar(file, {
-                                                        avatar: currentUserPersonalDetails?.avatar,
-                                                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                                                        accountID: currentUserPersonalDetails?.accountID,
-                                                    });
-                                                }}
-                                                onImageRemoved={() => {
-                                                    deleteAvatar({
-                                                        avatar: currentUserPersonalDetails?.avatar,
-                                                        fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                                                        accountID: currentUserPersonalDetails?.accountID,
-                                                        email: currentUserPersonalDetails?.email,
-                                                    });
-                                                }}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={avatarStyle}
-                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                                errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                                errorRowStyles={styles.mt6}
-                                                onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
-                                                onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                                originalFileName={currentUserPersonalDetails.originalFileName}
-                                                headerTitle={translate('profilePage.profileAvatar')}
-                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                                editIconStyle={styles.profilePageAvatar}
-                                            />
-                                        )}
+                                        <AvatarButtonWithIcon
+                                            text={translate('avatarWithImagePicker.editImage')}
+                                            source={avatarURL}
+                                            avatarID={accountID}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                            size={CONST.AVATAR_SIZE.X_LARGE}
+                                            avatarStyle={avatarStyle}
+                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                            editIconStyle={styles.profilePageAvatar}
+                                        />
                                     </MenuItemGroup>
                                 )}
                             </View>
