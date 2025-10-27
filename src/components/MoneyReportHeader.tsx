@@ -1014,7 +1014,6 @@ function MoneyReportHeader({
             icon: Expensicons.ArrowCollapse,
             value: CONST.REPORT.SECONDARY_ACTIONS.MERGE,
             onSelected: () => {
-                const currentTransaction = transactions.at(0);
                 if (!currentTransaction) {
                     return;
                 }
