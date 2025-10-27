@@ -567,6 +567,8 @@ function getSuggestedSearchesVisibility(
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
+    const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
+
     Object.values(policies ?? {}).some((policy) => {
         if (!policy) {
             return false;
@@ -594,7 +596,6 @@ function getSuggestedSearchesVisibility(
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
 
-        const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
         const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo || hasPendingApprovals);
 
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
