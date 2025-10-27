@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
@@ -314,6 +315,7 @@ function MoneyReportHeader({
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const hasOutstandingChildTask = useOutstandingChildTask(moneyRequestReport);
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
             canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
@@ -436,10 +438,10 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, hasOutstandingChildTask, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, hasOutstandingChildTask, undefined, true, activePolicy);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,

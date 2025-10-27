@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
@@ -25,7 +26,8 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useOutstandingChildTask(report);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
+    const parentReportAction = useParentReportAction(report);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived, parentReportAction);
 
     if (!canWriteInReport(report)) {
         return null;

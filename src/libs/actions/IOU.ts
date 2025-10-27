@@ -3935,7 +3935,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to make an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
+function getTrackExpenseInformation(params: GetTrackExpenseInformationParams, hasOutstandingChildTask: boolean): TrackExpenseInformation | null {
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -4047,6 +4047,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            hasOutstandingChildTask,
         });
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
@@ -9626,6 +9627,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
     activePolicy,
+    hasOutstandingChildTask,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9638,6 +9640,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    hasOutstandingChildTask: boolean;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9659,6 +9662,7 @@ function getPayMoneyRequestParams({
             policyOwnerEmail: currentUserEmail,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            hasOutstandingChildTask,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -11195,6 +11199,7 @@ function payMoneyRequest(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    hasOutstandingChildTask: boolean,
     paymentPolicyID?: string,
     full = true,
     activePolicy?: OnyxEntry<OnyxTypes.Policy>,
@@ -11216,6 +11221,7 @@ function payMoneyRequest(
         full,
         paymentPolicyID,
         activePolicy,
+        hasOutstandingChildTask,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11232,6 +11238,7 @@ function payInvoice(
     chatReport: OnyxTypes.Report,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    hasOutstandingChildTask: boolean,
     payAsBusiness = false,
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
     methodID?: number,
@@ -11265,6 +11272,7 @@ function payInvoice(
         bankAccountID: methodID,
         existingB2BInvoiceReport,
         activePolicy,
+        hasOutstandingChildTask,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

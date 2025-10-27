@@ -468,6 +468,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
     routeToNavigateAfterCreate?: Route,
+    hasOutstandingChildTask?: boolean,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -479,7 +480,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, hasOutstandingChildTask, lastUsedPaymentMethod);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -502,6 +503,7 @@ function savePolicyDraftByNewWorkspace(
     makeMeAdmin = false,
     currency = '',
     file?: File,
+    hasOutstandingChildTask?: boolean,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     createWorkspace({
@@ -513,6 +515,7 @@ function savePolicyDraftByNewWorkspace(
         currency,
         file,
         lastUsedPaymentMethod,
+        hasOutstandingChildTask,
     });
 }
 

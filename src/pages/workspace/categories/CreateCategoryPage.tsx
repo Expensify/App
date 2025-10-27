@@ -6,6 +6,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +37,9 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
+    const hasOutstandingChildTask = useOutstandingChildTask(setupCategoryTaskReport);
+    const parentReportAction = useParentReportAction(setupCategoryTaskReport);
+
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             createPolicyCategory(
@@ -44,6 +49,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
