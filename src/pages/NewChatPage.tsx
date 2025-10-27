@@ -343,7 +343,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 />
             );
         },
-        [toggleOption, styles.buttonDefaultHovered, styles.pl2, translate],
+        [toggleOption, styles.buttonDefaultHovered, styles.pl2, styles.m0, styles.ml2, translate],
     );
 
     const createGroup = useCallback(() => {
