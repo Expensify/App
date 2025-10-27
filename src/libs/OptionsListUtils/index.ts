@@ -14,7 +14,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -460,13 +460,19 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig, lastActorDetails: Partial<PersonalDetails> | null = {}) {
+function getAlternateText(
+    option: OptionData,
+    {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
+    isReportArchived: boolean | undefined,
+    lastActorDetails: Partial<PersonalDetails> | null = {},
+) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
-    const formattedLastMessageText = formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({report, lastActorDetails});
+    const formattedLastMessageText =
+        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({report, lastActorDetails, isReportArchived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -783,7 +789,7 @@ function getLastMessageTextForReport({
         !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID, undefined, isReportArchived).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined).lastMessageText ?? '');
     }
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
@@ -886,14 +892,6 @@ function createOption(
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.keyForList = String(report.reportID);
 
-        // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
-        if (result.private_isArchived) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.lastMessageText = translateLocal('reportArchiveReasons.default');
-        } else {
-            result.lastMessageText = report.lastMessageText ?? '';
-        }
-
         // Type/category flags already set in initialization above, but update brickRoadIndicator
         const reportAttribute = reportAttributesDerived?.[report.reportID];
         result.allReportErrors = reportAttribute?.reportErrors ?? {};
@@ -904,9 +902,12 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)];
+        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
+        result.lastMessageText = getLastMessageTextForReport({report, lastActorDetails, isReportArchived: !!result.private_isArchived});
         result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, lastActorDetails);
+            showPersonalDetails && personalDetail?.login
+                ? personalDetail.login
+                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1115,9 +1116,9 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
     return false;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: OnyxEntry<number>) {
+function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode || CONST.DEFAULT_COUNTRY_CODE));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm), countryCode));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
@@ -1440,7 +1441,7 @@ function getUserToInviteOption({
         return null;
     }
 
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchValue), countryCode));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue), countryCode));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
@@ -1501,7 +1502,7 @@ function getUserToInviteContactOption({
     // Handle phone number parsing for either provided phone or searchValue
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
 
     const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
@@ -1733,7 +1734,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
@@ -2272,14 +2273,8 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(
-    hasSelectableOptions: boolean,
-    hasUserToInvite: boolean,
-    searchValue: string,
-    hasMatchedParticipant = false,
-    countryCode: OnyxEntry<number> = CONST.DEFAULT_COUNTRY_CODE,
-): string {
-    const isValidPhone = parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode)).possible;
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
@@ -2559,11 +2554,11 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config?: FilterUserToInviteConfig): Options {
+function filterOptions(options: Options, searchInputValue: string, countryCode: number, config?: FilterUserToInviteConfig): Options {
     const trimmedSearchInput = searchInputValue.trim();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2632,7 +2627,7 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: number, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, config);
