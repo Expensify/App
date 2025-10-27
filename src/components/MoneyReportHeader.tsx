@@ -1353,7 +1353,10 @@ function MoneyReportHeader({
                     }
 
                     if (goBackRoute) {
-                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
+                        });
                     }
                 }}
                 onCancel={() => setIsDeleteExpenseModalVisible(false)}
