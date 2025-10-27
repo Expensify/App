@@ -4,11 +4,10 @@
 import React, {useEffect} from 'react';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {KeyboardAvoidingViewProps} from '@components/KeyboardAvoidingView/types';
-import {isMobileSafari} from '@libs/Browser';
-import {getIosVersion} from '@libs/Browser/index.website';
+import {isMobileSafariOnIos26} from '@libs/Browser';
 import CONST from '@src/CONST';
 
-const isMobileSafariOnIos26 = isMobileSafari() && getIosVersion() >= 26;
+const isMobileSafariIos26 = isMobileSafariOnIos26();
 
 const initialViewportHeight = window?.visualViewport?.height;
 
@@ -21,7 +20,7 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
     });
 
     useEffect(() => {
-        if (!isMobileSafariOnIos26) {
+        if (!isMobileSafariIos26) {
             return;
         }
 
@@ -65,7 +64,7 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
         <Animated.View
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            style={[style, isMobileSafariOnIos26 && animatedStyle]}
+            style={[style, isMobileSafariIos26 && animatedStyle]}
         />
     );
 }

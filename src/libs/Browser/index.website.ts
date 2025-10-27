@@ -95,6 +95,10 @@ const isModernSafari: IsModernSafari = (): boolean => {
     return getIosVersion() >= 18;
 };
 
+const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
+    return isMobileSafari() && getIosVersion() >= 26;
+};
+
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
@@ -158,5 +162,5 @@ export {
     openRouteInDesktopApp,
     isOpeningRouteInDesktop,
     resetIsOpeningRouteInDesktop,
-    getIosVersion,
+    isMobileSafariOnIos26,
 };
