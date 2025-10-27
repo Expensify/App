@@ -123,6 +123,7 @@ function IOURequestStepUpgrade({
                 },
             ],
             adminParticipant,
+            hasOutstandingChildRequest: false,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -151,6 +152,7 @@ function IOURequestStepUpgrade({
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton
