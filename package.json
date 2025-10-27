@@ -256,7 +256,7 @@
     "@rock-js/platform-android": "0.11.5",
     "@rock-js/platform-ios": "0.11.5",
     "@rock-js/plugin-metro": "0.11.5",
-    "@rock-js/provider-github": "0.11.5",
+    "@rock-js/provider-s3": "0.11.5",
     "@storybook/addon-a11y": "^8.6.9",
     "@storybook/addon-essentials": "^8.6.9",
     "@storybook/addon-webpack5-compiler-babel": "^3.0.5",
