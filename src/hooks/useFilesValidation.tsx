@@ -23,6 +23,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
+const DEFAULT_IS_VALIDATING_RECEIPTS = true;
+
 type ErrorObject = {
     error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
     fileExtension?: string;
@@ -282,7 +284,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
         if (validationOptions?.isValidatingReceipts !== undefined) {
-            setIsValidatingReceipts(validationOptions.isValidatingReceipts);
+            setIsValidatingReceipts(validationOptions.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS);
         }
 
         if (files.length > 1) {
