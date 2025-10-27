@@ -154,7 +154,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
@@ -366,7 +366,8 @@ function WorkspacesListPage() {
             ];
 
             const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!isOwner && defaultApprover !== session?.email) {
+
+            if (!isOwner && defaultApprover !== session?.email && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
@@ -501,6 +502,7 @@ function WorkspacesListPage() {
             resetLoadingSpinnerIconIndex,
             continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
+            preferredPolicyID,
         ],
     );
 

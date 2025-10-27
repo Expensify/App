@@ -28,9 +28,11 @@ describe('maskOnyxState', () => {
             expect(result.session.loading).toBe(false);
             expect(result.session.creationDate).toBe('2024-01-01');
 
-            // Non-whitelisted fields should be redacted
-            expect(result.session.authToken).toBe('***');
-            expect(result.session.encryptedAuthToken).toBe('***');
+            // Non-whitelisted fields should be intelligently redacted
+            expect(result.session.authToken).not.toBe('sensitive-auth-token');
+            expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
+            expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+            expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
         });
 
         it('should mask fields in maskList while preserving structure', () => {
@@ -72,9 +74,11 @@ describe('maskOnyxState', () => {
             expect(result.session.email).toBe('user@example.com');
             expect(result.session.accountID).toBe(12345);
 
-            // Non-whitelisted fields should be redacted
-            expect(result.session.customField).toBe('***');
-            expect(result.session.anotherField).toBe('***');
+            // Non-whitelisted fields should be intelligently redacted
+            expect(result.session.customField).not.toBe('should-be-redacted');
+            expect(result.session.customField).toHaveLength('should-be-redacted'.length);
+            expect(result.session.anotherField).not.toBe('also-redacted');
+            expect(result.session.anotherField).toHaveLength('also-redacted'.length);
         });
 
         it('should handle collection keys correctly', () => {
@@ -109,8 +113,9 @@ describe('maskOnyxState', () => {
             expect(processedReport.reportName).toHaveLength('Test Report'.length);
             expect(processedReport.description).not.toBe('Test Description');
 
-            // Non-whitelisted, non-masked fields should be redacted
-            expect(processedReport.customField).toBe('***');
+            // Non-whitelisted, non-masked fields should be intelligently redacted
+            expect(processedReport.customField).not.toBe('should-be-redacted');
+            expect(processedReport.customField).toHaveLength('should-be-redacted'.length);
         });
 
         it('should remove sensitive keys from export', () => {
@@ -155,8 +160,10 @@ describe('maskOnyxState', () => {
         const input = {session: mockSession};
         const result = maskOnyxState(input) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).not.toBe('sensitive-auth-token');
+        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
     });
 
     it('should not mask fragile data when isMaskingFragileDataEnabled is false', () => {
@@ -165,8 +172,10 @@ describe('maskOnyxState', () => {
         };
         const result = maskOnyxState(input) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).not.toBe('sensitive-auth-token');
+        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
         expect(result.session.email).toBe('user@example.com');
     });
 
@@ -176,8 +185,10 @@ describe('maskOnyxState', () => {
         };
         const result = maskOnyxState(input, true) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).not.toBe('sensitive-auth-token');
+        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
     });
 
     it('should mask emails as a string value in property with a random email', () => {
