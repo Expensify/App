@@ -31,8 +31,8 @@ type VerifyDomainPageProps = PlatformStackScreenProps<DomainModalNavigatorParamL
 function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flexRow, styles.gap1]}>
-            <Text>{index}.</Text>
+        <View style={styles.flexRow}>
+            <Text>{index}. </Text>
             <View style={styles.flex1}>{children}</View>
         </View>
     );
@@ -101,7 +101,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                         <Text style={styles.webViewStyles.baseFontStyle}>{translate('domain.verifyDomain.saveChanges')}</Text>
                     </OrderedListRow>
 
-                    <Text style={[styles.webViewStyles.baseFontStyle]}>
+                    <Text style={styles.webViewStyles.baseFontStyle}>
                         {translate('domain.verifyDomain.youMayNeedToConsult')}{' '}
                         <TextLink
                             style={styles.link}

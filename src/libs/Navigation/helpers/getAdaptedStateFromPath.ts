@@ -10,7 +10,6 @@ import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigat
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
@@ -90,7 +89,6 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
-            path: ROUTES.WORKSPACES_LIST.route,
         };
     }
 
