@@ -177,13 +177,31 @@ function appendTimeToFileName(fileName: string): string {
  */
 const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}, fileType = '') =>
     new Promise((resolve) => {
+        Log.info('[FileUtils] readFileAsync called', true, {
+            path,
+            fileName,
+            fileType,
+        });
+
         if (!path) {
+            Log.warn('[FileUtils] readFileAsync failed - path not specified', {
+                fileName,
+            });
             resolve();
             onFailure('[FileUtils] Path not specified');
             return;
         }
         fetch(path)
             .then((res) => {
+                Log.info('[FileUtils] fetch response received', true, {
+                    path,
+                    fileName,
+                    ok: res.ok,
+                    status: res.status,
+                    statusText: res.statusText,
+                    platform: Platform.OS,
+                });
+
                 // For some reason, fetch is "Unable to read uploaded file"
                 // on Android even though the blob is returned, so we'll ignore
                 // in that case
@@ -199,16 +217,36 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend
                         file.uri = path;
+
+                        Log.info('[FileUtils] readFileAsync SUCCESS', true, {
+                            path,
+                            fileName,
+                            fileSize: blob.size,
+                            fileType: file.type,
+                        });
+
                         onSuccess(file);
                         resolve(file);
                     })
                     .catch((e) => {
+                        Log.warn('[FileUtils] readFileAsync FAILED - blob conversion error', {
+                            path,
+                            fileName,
+                            error: e,
+                            platform: Platform.OS,
+                        });
                         console.debug('[FileUtils] Could not read uploaded file', e);
                         onFailure(e);
                         resolve();
                     });
             })
             .catch((e) => {
+                Log.warn('[FileUtils] readFileAsync FAILED - fetch error', {
+                    path,
+                    fileName,
+                    error: e,
+                    platform: Platform.OS,
+                });
                 console.debug('[FileUtils] Could not read uploaded file', e);
                 onFailure(e);
                 resolve();

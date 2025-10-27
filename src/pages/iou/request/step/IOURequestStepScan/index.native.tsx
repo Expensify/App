@@ -232,6 +232,17 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            const transactionID = initialTransaction?.transactionID;
+            const hasReceipt = !!initialTransaction?.receipt?.source;
+            const receiptPath = initialTransaction?.receipt?.source;
+
+            Log.info('[IOURequestStepScan] Screen focused', true, {
+                transactionID,
+                hasReceipt,
+                receiptPath,
+                appState: AppState.currentState,
+            });
+
             setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
@@ -243,14 +254,30 @@ function IOURequestStepScan({
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
+                Log.info('[IOURequestStepScan] AppState changed', true, {
+                    appState,
+                    transactionID,
+                    hasReceipt,
+                    receiptPath,
+                });
+
                 if (appState !== 'active') {
                     return;
                 }
+
+                Log.info('[IOURequestStepScan] App became active - refreshing camera permission', true, {
+                    transactionID,
+                });
 
                 refreshCameraPermissionStatus();
             });
 
             return () => {
+                Log.info('[IOURequestStepScan] Screen unfocused/cleanup', true, {
+                    transactionID,
+                    hasReceipt,
+                });
+
                 subscription.remove();
 
                 if (isLoaderVisible) {
@@ -704,6 +731,14 @@ function IOURequestStepScan({
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
+                            Log.info('[IOURequestStepScan] Photo captured and cropped - saving receipt', true, {
+                                transactionID,
+                                filename,
+                                source,
+                                isEditing,
+                                isMultiScanEnabled,
+                            });
+
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
                             readFileAsync(
@@ -759,10 +794,19 @@ function IOURequestStepScan({
     ]);
 
     const toggleMultiScan = () => {
+        Log.info('[IOURequestStepScan] toggleMultiScan called', true, {
+            isMultiScanEnabled,
+            transactionID: initialTransactionID,
+            willRemoveDrafts: isMultiScanEnabled,
+        });
+
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShouldShowMultiScanEducationalPopup(true);
         }
         if (isMultiScanEnabled) {
+            Log.warn('[IOURequestStepScan] Calling removeDraftTransactions from toggleMultiScan', {
+                transactionID: initialTransactionID,
+            });
             removeDraftTransactions(true);
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
