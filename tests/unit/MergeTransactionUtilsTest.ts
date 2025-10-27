@@ -742,7 +742,7 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe('common.none');
         });
 
-        it("should return transation's reportName when available for reportID", () => {
+        it("should return transaction's reportName when available for reportID", () => {
             // Given a transaction with reportID and reportName
             const transaction = {
                 ...createRandomTransaction(0),
