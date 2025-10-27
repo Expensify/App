@@ -69,6 +69,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 setIsVisible(false);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (blockedNavigationAction.current) {
                         navigationRef.current?.dispatch(blockedNavigationAction.current);
