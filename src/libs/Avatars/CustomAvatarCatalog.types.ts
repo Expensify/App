@@ -91,7 +91,7 @@ type LetterAvatarIDs =
     | 'letter-default-avatar_z';
 
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
-type AvatarEntry = {local: React.FC<SvgProps>; url?: string};
+type AvatarEntry = {local: React.FC<SvgProps>; url: string};
 type CustomAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
 type LetterAvatarVariant = {

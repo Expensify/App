@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -6,7 +6,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -59,8 +58,6 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
 
     const submitButton = useRef<View>(null);
 
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-
     useEffect(() => {
         submitButton.current?.focus();
         resetValidateActionCodeSent();
@@ -70,14 +67,8 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         if (!isSuccessful) {
             return;
         }
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        }
-
-        clearIssueNewCardFlow(policyID);
-    }, [backTo, policyID, isSuccessful]);
+        setIsValidateCodeActionModalVisible(false);
+    }, [isSuccessful]);
 
     const submit = (validateCode: string) => {
         // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
@@ -95,6 +86,19 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
+
+    const onRedirect = useCallback(() => {
+        if (!isSuccessful) {
+            return;
+        }
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+
+        clearIssueNewCardFlow(policyID);
+    }, [backTo, policyID, isSuccessful]);
 
     return (
         <InteractiveStepWrapper
@@ -171,6 +175,8 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                    onModalHide={onRedirect}
+                    disableAnimation
                 />
             )}
         </InteractiveStepWrapper>

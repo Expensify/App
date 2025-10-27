@@ -8,13 +8,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import NewChatPage from '@pages/NewChatPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
@@ -79,7 +78,6 @@ describe('NewChatPage', () => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
@@ -117,7 +115,6 @@ describe('NewChatPage', () => {
 
             // Then "Add to group" button should not appear
             const userOption = screen.getByLabelText(email);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const addButton = within(userOption).queryByText(translateLocal('newChatPage.addToGroup'));
             expect(addButton).not.toBeOnTheScreen();
         });

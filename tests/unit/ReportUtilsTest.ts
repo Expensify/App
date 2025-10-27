@@ -14,6 +14,7 @@ import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -35,6 +36,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -59,6 +61,7 @@ import {
     getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
+    getReportOrDraftReport,
     getReportStatusTranslation,
     getReportURLForCurrentContext,
     getSearchReportName,
@@ -81,6 +84,7 @@ import {
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
+    shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
     shouldEnableNegative,
@@ -92,7 +96,6 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -112,9 +115,10 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -3417,7 +3421,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, invoiceReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -3457,7 +3461,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, expenseReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(true);
         });
@@ -3664,6 +3668,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3687,6 +3692,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3715,6 +3721,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3767,6 +3774,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3789,6 +3797,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3811,6 +3820,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3833,6 +3843,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3868,6 +3879,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3954,6 +3966,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeSelfDM,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3980,6 +3993,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3999,6 +4013,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4021,6 +4036,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4063,6 +4079,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4082,6 +4099,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4103,6 +4121,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4148,6 +4167,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4167,6 +4187,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4200,6 +4221,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -5778,6 +5800,28 @@ describe('ReportUtils', () => {
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            // Then the result is null
+            expect(result).toBe(null);
+        });
+        it('should return null for an archived report when there is a policy pending join request', async () => {
+            // Given an archived admin room with a pending join request
+            const joinRequestReportAction: ReportAction = {
+                ...createRandomReportAction(50400),
+                originalMessage: {
+                    choice: '' as JoinWorkspaceResolution,
+                    policyID: '1',
+                },
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            };
+
+            const adminReport = createAdminRoom(34001);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReport.reportID}`, {[joinRequestReportAction.reportActionID]: joinRequestReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -8269,6 +8313,234 @@ describe('ReportUtils', () => {
 
             const result = getMoneyRequestReportPendingAction(iouReport);
             expect(result).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+    });
+
+    describe('shouldBlockSubmitDueToStrictPolicyRules', () => {
+        const reportID = 'report123';
+
+        it('should return false when areStrictPolicyRulesEnabled is false regardless of violations', () => {
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}transaction1`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when areStrictPolicyRulesEnabled is true but no violations exist', () => {
+            const transactionViolations = {};
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when reportID is undefined', () => {
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}transaction1`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when areStrictPolicyRulesEnabled is false even with violations and transactions provided', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactions = [transaction];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, transactions);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when areStrictPolicyRulesEnabled is true and violations exist', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactions = [transaction];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        data: {},
+                    },
+                ],
+            };
+
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, transactions);
+
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('canRejectReportAction', () => {
+        it('should return false if the user is not the report manager', async () => {
+            const approver = 'approver@gmail.com';
+            const expenseReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: 1,
+            };
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(0),
+                approver,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: 2,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
+            expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
+        });
+    });
+
+    describe('getReportOrDraftReport', () => {
+        const mockReportIDIndex = 1;
+        const mockReportID = mockReportIDIndex.toString();
+        const mockSearchReport: SearchReport = {
+            ...createRandomReport(mockReportIDIndex),
+            reportName: 'Search Report',
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const mockOnyxReport: Report = {
+            ...createPolicyExpenseChat(mockReportIDIndex),
+            reportName: 'Onyx Report',
+        };
+        const mockDraftReport: Report = {
+            ...createExpenseReport(mockReportIDIndex),
+            reportName: 'Draft Report',
+        };
+        const mockFallbackReport: Report = {
+            ...createExpenseRequestReport(mockReportIDIndex),
+            reportName: 'Fallback Report',
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('returns search report when found in searchReports array', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockSearchReport);
+        });
+
+        test('returns onyx report when search report is not found but onyx report exists', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockOnyxReport);
+        });
+
+        test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockDraftReport);
+        });
+
+        test('returns fallback report when no other reports exist', () => {
+            const searchReports: SearchReport[] = [];
+            const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
+            expect(result).toEqual(mockFallbackReport);
+        });
+
+        test('returns undefined when no reports exist and no fallback provided', () => {
+            const searchReports: SearchReport[] = [];
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toBeUndefined();
+        });
+
+        test('returns undefined when reportID is undefined', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(undefined, searchReports);
+            expect(result).toBeUndefined();
+        });
+
+        test('returns undefined when only reportID is provided and it is not found', () => {
+            const result = getReportOrDraftReport('unknownReportID');
+            expect(result).toBeUndefined();
+        });
+
+        test('returns fallback report when reportID is undefined', () => {
+            const searchReports = [mockSearchReport];
+            const result = getReportOrDraftReport(undefined, searchReports, mockFallbackReport);
+            expect(result).toEqual(mockFallbackReport);
+        });
+
+        test('prioritizes search report over onyx report when both exist', async () => {
+            const searchReports = [mockSearchReport];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockSearchReport);
+            expect(result).not.toEqual(mockOnyxReport);
+        });
+
+        test('prioritizes onyx report over draft report when both exist', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports);
+            expect(result).toEqual(mockOnyxReport);
+            expect(result).not.toEqual(mockDraftReport);
+        });
+
+        test('prioritizes draft report over fallback when both exist', async () => {
+            const searchReports: SearchReport[] = [];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
+            expect(result).toEqual(mockDraftReport);
+            expect(result).not.toEqual(mockFallbackReport);
+        });
+
+        test('handles empty searchReports array gracefully', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
+            const result = getReportOrDraftReport(mockReportID);
+            expect(result).toEqual(mockOnyxReport);
         });
     });
 });

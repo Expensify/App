@@ -86,7 +86,7 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
 
-const LETTER_DEFAULTS: Record<LetterAvatarIDs, AvatarEntry> = {
+const LETTER_DEFAULTS: Record<LetterAvatarIDs, Omit<AvatarEntry, 'url'>> = {
     'letter-default-avatar_0': {local: LetterDefaultAvatars.Workspace0},
     'letter-default-avatar_1': {local: LetterDefaultAvatars.Workspace1},
     'letter-default-avatar_2': {local: LetterDefaultAvatars.Workspace2},
@@ -217,4 +217,13 @@ const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar};
+/**
+ * Type guard to check if a value is a valid CustomAvatarID
+ * @param value - The value to check
+ * @returns True if the value is a valid CustomAvatarID
+ */
+function isCustomAvatarID(value: unknown): value is CustomAvatarID {
+    return typeof value === 'string' && value in ALL_CUSTOM_AVATARS;
+}
+
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID};

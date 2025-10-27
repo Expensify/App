@@ -1,13 +1,11 @@
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {getNavigateToChatHintRegex} from '../utils/TestHelper';
+import {getNavigateToChatHintRegex, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -95,7 +93,6 @@ xdescribe('Sidebar', () => {
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(0);
@@ -129,7 +126,6 @@ xdescribe('Sidebar', () => {
 
                     // Then the report should be rendered in the LHN since it has a draft
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(1);
@@ -387,7 +383,6 @@ xdescribe('Sidebar', () => {
                             .then(() => {
                                 if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                     // Only one report visible
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     const displayNamesHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                                     const displayNames = screen.queryAllByLabelText(displayNamesHintText);
 
@@ -434,7 +429,6 @@ xdescribe('Sidebar', () => {
 
                     // Then the reports 1 and 2 are shown and 3 is not
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
@@ -507,7 +501,6 @@ xdescribe('Sidebar', () => {
 
                     // Then both reports are visible
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
@@ -562,7 +555,6 @@ xdescribe('Sidebar', () => {
 
                     // Then neither reports are visible
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(0);
@@ -588,7 +580,6 @@ xdescribe('Sidebar', () => {
 
                     // Then they are all visible
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -630,7 +621,6 @@ xdescribe('Sidebar', () => {
 
                     // Then neither reports are visible
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(0);
@@ -651,7 +641,6 @@ xdescribe('Sidebar', () => {
 
                     // Then both rooms are visible
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
@@ -738,7 +727,6 @@ xdescribe('Sidebar', () => {
                         .then(() => {
                             if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 const displayNamesHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                                 const displayNames = screen.queryAllByLabelText(displayNamesHintText);
 
@@ -975,7 +963,6 @@ xdescribe('Sidebar', () => {
                         )
 
                         .then(() => {
-                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
                         })
                 );

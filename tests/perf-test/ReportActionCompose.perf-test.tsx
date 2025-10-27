@@ -9,10 +9,10 @@ import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
-import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from '@src/pages/home/report/ReportActionCompose/ReportActionCompose';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // mock PortalStateContext
@@ -105,8 +105,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const hintAttachmentButtonText = Localize.translateLocal('common.create');
+        const hintAttachmentButtonText = translateLocal('common.create');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
         fireEvent.press(createButton, mockEvent);
@@ -119,8 +118,7 @@ test('[ReportActionCompose] should press create button', async () => {
 test('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const hintSendButtonText = Localize.translateLocal('common.send');
+        const hintSendButtonText = translateLocal('common.send');
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 
         fireEvent.press(sendButton);

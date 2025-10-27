@@ -241,7 +241,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
-        if (!report) {
+        if (!report?.reportID) {
             return;
         }
 
@@ -295,7 +295,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
-        if (!report) {
+        if (!report?.reportID) {
             return;
         }
 
@@ -621,7 +621,7 @@ function getOptionData({
     card,
     lastAction,
     localeCompare,
-    isReportArchived = false,
+    isReportArchived,
     lastActionReport,
     movedFromReport,
     movedToReport,
@@ -638,7 +638,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;

@@ -25,11 +25,11 @@ import {
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    hasViolations: boolean;
-    isASAPSubmitBetaEnabled: boolean;
+    policy?: OnyxEntry<Policy>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    hasViolations?: boolean;
+    isASAPSubmitBetaEnabled?: boolean;
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
@@ -130,6 +130,20 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
             },
             {
                 text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForStrictPolicyRuleViolations() {
+    const optimisticNextStep: ReportNextStep = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
             },
         ],
     };
@@ -533,7 +547,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID: currentUserAccountIDParam,
+        currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
     const isReportContainingTransactions =
@@ -882,5 +896,6 @@ export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildNextStepNew,
 };

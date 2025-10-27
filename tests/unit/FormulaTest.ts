@@ -484,4 +484,162 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
     });
+
+    describe('Date Format Tokens', () => {
+        // Test date: Wednesday, January 8, 2025, 3:30:45 PM (15:30:45) UTC
+        const testDate = '2025-01-08T15:30:45.123Z';
+        const morningDate = '2025-01-08T09:05:02.123Z'; // 9:05:02 AM for leading zero tests
+
+        const mockContextWithDate: FormulaContext = {
+            report: {reportID: '123'} as Report,
+            policy: null as unknown as Policy,
+        };
+
+        const setupMockDate = (date: string) => {
+            const mockTransaction = {
+                transactionID: 'trans1',
+                created: date,
+                amount: -5000,
+                merchant: 'Test Store',
+            } as Transaction;
+            mockReportUtils.getReportTransactions.mockReturnValue([mockTransaction]);
+
+            const mockReportAction = {
+                created: date,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            } as unknown as ReportActions[string];
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({action1: mockReportAction});
+        };
+
+        beforeEach(() => setupMockDate(testDate));
+
+        test('year formats - yyyy/yy/Y/y/YYYY', () => {
+            expect(compute('{report:startdate:yyyy}', mockContextWithDate)).toBe('2025');
+            expect(compute('{report:startdate:YYYY}', mockContextWithDate)).toBe('2025');
+            expect(compute('{report:startdate:Y}', mockContextWithDate)).toBe('2025');
+            expect(compute('{report:startdate:yy}', mockContextWithDate)).toBe('25');
+            expect(compute('{report:startdate:y}', mockContextWithDate)).toBe('25');
+        });
+
+        test('month formats - names and numbers', () => {
+            expect(compute('{report:startdate:MMMM}', mockContextWithDate)).toBe('January');
+            expect(compute('{report:startdate:F}', mockContextWithDate)).toBe('January');
+            expect(compute('{report:startdate:MMM}', mockContextWithDate)).toBe('Jan');
+            expect(compute('{report:startdate:M}', mockContextWithDate)).toBe('Jan');
+            expect(compute('{report:startdate:MM}', mockContextWithDate)).toBe('01');
+            expect(compute('{report:startdate:n}', mockContextWithDate)).toBe('1');
+            expect(compute('{report:startdate:t}', mockContextWithDate)).toBe('31');
+        });
+
+        test('day formats - numbers and names', () => {
+            expect(compute('{report:startdate:dd}', mockContextWithDate)).toBe('08');
+            expect(compute('{report:startdate:d}', mockContextWithDate)).toBe('08');
+            expect(compute('{report:startdate:j}', mockContextWithDate)).toBe('8');
+            expect(compute('{report:startdate:S}', mockContextWithDate)).toBe('th');
+            expect(compute('{report:startdate:jS}', mockContextWithDate)).toBe('8th');
+            expect(compute('{report:startdate:dddd}', mockContextWithDate)).toBe('Wednesday');
+            expect(compute('{report:startdate:l}', mockContextWithDate)).toBe('Wednesday');
+            expect(compute('{report:startdate:ddd}', mockContextWithDate)).toBe('Wed');
+            expect(compute('{report:startdate:D}', mockContextWithDate)).toBe('Wed');
+            expect(compute('{report:startdate:w}', mockContextWithDate)).toBe('3');
+            expect(compute('{report:startdate:N}', mockContextWithDate)).toBe('3');
+            expect(compute('{report:startdate:z}', mockContextWithDate)).toBe('7');
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('02');
+        });
+
+        test('ISO week number - first Thursday rule', () => {
+            // January 1, 2021 is a Friday
+            // Week 1 of 2021 contains the first Thursday (Jan 7)
+            // So Jan 1-3 (Fri, Sat, Sun) belong to week 53 of 2020
+            setupMockDate('2021-01-01T12:00:00Z'); // Friday, Jan 1, 2021
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('53');
+
+            // January 4 is Monday, which is in week 1
+            setupMockDate('2021-01-04T12:00:00Z'); // Monday, Jan 4, 2021
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('01');
+
+            // December 31, 2020 is Thursday, should be week 53
+            setupMockDate('2020-12-31T12:00:00Z'); // Thursday, Dec 31, 2020
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('53');
+        });
+
+        test('complex date formats', () => {
+            expect(compute('{report:startdate:MMMM dd, yyyy}', mockContextWithDate)).toBe('January 08, 2025');
+            expect(compute('{report:startdate:dd MMM yyyy}', mockContextWithDate)).toBe('08 Jan 2025');
+            expect(compute('{report:startdate:yyyy-MM-dd}', mockContextWithDate)).toBe('2025-01-08');
+        });
+
+        test('time formats - hours', () => {
+            // 24-hour format: 15:30:45 (afternoon) and 09:05:02 (morning with leading zero)
+            expect(compute('{report:startdate:HH}', mockContextWithDate)).toBe('15');
+            expect(compute('{report:startdate:H}', mockContextWithDate)).toBe('15');
+            expect(compute('{report:startdate:G}', mockContextWithDate)).toBe('15');
+
+            setupMockDate(morningDate);
+            expect(compute('{report:startdate:HH}', mockContextWithDate)).toBe('09');
+            expect(compute('{report:startdate:H}', mockContextWithDate)).toBe('09'); // H has leading zeros per spec
+            expect(compute('{report:startdate:G}', mockContextWithDate)).toBe('9'); // G has NO leading zeros
+
+            // 12-hour format: 3:30 PM (afternoon) and 9:05 AM (morning)
+            setupMockDate(testDate);
+            expect(compute('{report:startdate:hh}', mockContextWithDate)).toBe('03');
+            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('03'); // h has leading zeros per spec
+            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('3'); // g has NO leading zeros
+
+            setupMockDate(morningDate);
+            expect(compute('{report:startdate:hh}', mockContextWithDate)).toBe('09');
+            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('09'); // h has leading zeros per spec
+            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('9'); // g has NO leading zeros
+        });
+
+        test('time formats - minutes and seconds', () => {
+            // Minutes: 30 (double digit) and 05 (single digit with leading zero)
+            setupMockDate(testDate);
+            expect(compute('{report:startdate:mm}', mockContextWithDate)).toBe('30');
+            expect(compute('{report:startdate:i}', mockContextWithDate)).toBe('30');
+
+            setupMockDate(morningDate);
+            expect(compute('{report:startdate:mm}', mockContextWithDate)).toBe('05');
+            expect(compute('{report:startdate:i}', mockContextWithDate)).toBe('05');
+
+            // Seconds: 45 (double digit) and 02 (single digit with leading zero)
+            setupMockDate(testDate);
+            expect(compute('{report:startdate:ss}', mockContextWithDate)).toBe('45');
+            expect(compute('{report:startdate:s}', mockContextWithDate)).toBe('45');
+
+            setupMockDate(morningDate);
+            expect(compute('{report:startdate:ss}', mockContextWithDate)).toBe('02');
+            expect(compute('{report:startdate:s}', mockContextWithDate)).toBe('02');
+        });
+
+        test('time formats - AM/PM', () => {
+            expect(compute('{report:startdate:tt}', mockContextWithDate)).toBe('PM');
+            expect(compute('{report:startdate:A}', mockContextWithDate)).toBe('PM');
+            expect(compute('{report:startdate:a}', mockContextWithDate)).toBe('pm');
+        });
+
+        test('full date/time formats - c, r, U', () => {
+            // ISO 8601 format (c token)
+            const cResult = compute('{report:startdate:c}', mockContextWithDate);
+            expect(cResult).toBe('2025-01-08T15:30:45.123Z');
+
+            // RFC 2822 format (r token)
+            const rResult = compute('{report:startdate:r}', mockContextWithDate);
+            expect(rResult).toMatch(/^Wed, 08 Jan 2025 \d{2}:\d{2}:\d{2} [+-]\d{4}$/);
+
+            // Unix timestamp (U token)
+            const uResult = compute('{report:startdate:U}', mockContextWithDate);
+            const expectedTimestamp = Math.floor(new Date(testDate).getTime() / 1000).toString();
+            expect(uResult).toBe(expectedTimestamp);
+        });
+
+        test('format strings with colons', () => {
+            expect(compute('{report:startdate:HH:mm}', mockContextWithDate)).toBe('15:30');
+            expect(compute('{report:startdate:HH:mm:ss}', mockContextWithDate)).toBe('15:30:45');
+            expect(compute('{report:startdate:hh:mm tt}', mockContextWithDate)).toBe('03:30 PM');
+            expect(compute('{report:startdate:yyyy-MM-dd HH:mm:ss}', mockContextWithDate)).toBe('2025-01-08 15:30:45');
+            expect(compute('{report:created:HH:mm:ss}', mockContextWithDate)).toBe('15:30:45');
+            expect(compute('{report:startdate:g:i a}', mockContextWithDate)).toBe('3:30 pm');
+        });
+    });
 });

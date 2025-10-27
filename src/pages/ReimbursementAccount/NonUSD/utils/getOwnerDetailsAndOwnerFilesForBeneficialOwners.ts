@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {BeneficialOwnerDataKey, ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+import SafeString from '@src/utils/SafeString';
 
 const {
     FIRST_NAME,
@@ -42,25 +43,25 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            if (fieldName === SSN_LAST_4 && String(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
+            if (fieldName === SSN_LAST_4 && SafeString(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
                 return;
             }
 
             if (fieldName === OWNERSHIP_PERCENTAGE) {
-                ownerDetails[ownerDetailsKey] = String(reimbursementAccountDraft?.[ownerDetailsKey]);
+                ownerDetails[ownerDetailsKey] = SafeString(reimbursementAccountDraft?.[ownerDetailsKey]);
                 return;
             }
 
             if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
                 ownerDetails[ownerDetailsFullNameKey] = ownerDetails[ownerDetailsFullNameKey]
-                    ? `${String(ownerDetails[ownerDetailsFullNameKey])} ${String(reimbursementAccountDraft[ownerDetailsKey])}`
+                    ? `${SafeString(ownerDetails[ownerDetailsFullNameKey])} ${SafeString(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];
                 return;
             }
 
             if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
                 ownerDetails[ownerDetailsResidentialAddressKey] = ownerDetails[ownerDetailsResidentialAddressKey]
-                    ? `${String(ownerDetails[ownerDetailsResidentialAddressKey])}, ${String(reimbursementAccountDraft[ownerDetailsKey])}`
+                    ? `${SafeString(ownerDetails[ownerDetailsResidentialAddressKey])}, ${SafeString(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];
                 return;
             }

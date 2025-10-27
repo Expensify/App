@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 
-function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute: string | undefined, isReportArchived = false) {
+function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute: string | undefined, isReportArchived: boolean | undefined) {
     /**
      * When false the report is not ready to be fully displayed
      */

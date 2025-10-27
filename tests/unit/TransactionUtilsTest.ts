@@ -537,7 +537,8 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             });
-            const merchant = TransactionUtils.getMerchant(transaction);
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const merchant = TransactionUtils.getMerchant(transaction, policy);
             expect(merchant).toBe('Pending...');
         });
 
@@ -744,7 +745,7 @@ describe('TransactionUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)).toBe(false);
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
         });
     });
 });

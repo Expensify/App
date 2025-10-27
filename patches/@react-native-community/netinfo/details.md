@@ -5,7 +5,7 @@
 - Reason:
   
     ```
-    This patch makes the library support new architecture.
+    This patch makes the library support new architecture. It deliberately renames the file before modifying it to avoid this known issue: https://github.com/ds300/patch-package/issues/518
     ```
   
 - Upstream PR/issue: https://github.com/react-native-netinfo/react-native-netinfo/pull/655
