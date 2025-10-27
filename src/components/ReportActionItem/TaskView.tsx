@@ -128,7 +128,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         return;
                                                     }
                                                     if (isCompleted) {
-                                                        reopenTask(report);
+                                                        reopenTask(report, currentUserPersonalDetails.accountID);
                                                     } else {
                                                         completeTask(report);
                                                     }

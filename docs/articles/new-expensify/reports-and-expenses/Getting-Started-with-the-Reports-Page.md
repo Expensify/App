@@ -128,7 +128,7 @@ Smart suggestions recommend the next best action—like submitting a report or a
 # FAQ
 
 ## Can I export reports from the Reports page?
-Yes! You can export filtered reports to CSV using the export option at the top of the Reports page.
+Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Reports page.
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
