@@ -255,7 +255,7 @@ describe('actions/IOU', () => {
                 recentSearchHash: 2100977843,
                 similarSearchHash: 1855682507,
             } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
@@ -314,7 +314,7 @@ describe('actions/IOU', () => {
                 recentSearchHash: 967911777,
                 similarSearchHash: 1539858783,
             } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return false
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
@@ -358,7 +358,7 @@ describe('actions/IOU', () => {
                 similarSearchHash: 1832274510,
             } as SearchQueryJSON;
 
-            const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
@@ -404,16 +404,10 @@ describe('actions/IOU', () => {
             };
 
             // Given a selfDM report
-            const selfDMReport = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            };
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
 
             // Given a policyExpenseChat report
-            const policyExpenseChat = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
+            const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
             // Given policy categories and a policy
             const fakeCategories = createRandomPolicyCategories(3);
@@ -594,16 +588,14 @@ describe('actions/IOU', () => {
             const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
             const policy: Policy = {...createRandomPolicy(1), id: 'ABC'};
             const selfDMReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
             const policyExpenseChat: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID: '123',
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 isOwnPolicyExpenseChat: true,
             };
             const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
@@ -712,16 +704,14 @@ describe('actions/IOU', () => {
             const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
             const policy: Policy = {...createRandomPolicy(1), id: 'ABC', employeeList: {[accountant.login]: {email: accountant.login, role: CONST.POLICY.ROLE.USER}}};
             const selfDMReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
             const policyExpenseChat: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID: '123',
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 isOwnPolicyExpenseChat: true,
                 participants: {[accountant.accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             };
@@ -1990,7 +1980,7 @@ describe('actions/IOU', () => {
 
         it('increase the nonReimbursableTotal only when the expense is not reimbursable', async () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 nonReimbursableTotal: 0,
                 total: 0,
@@ -1998,9 +1988,8 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
             };
             const workspaceChat: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 iouReportID: expenseReport.reportID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
@@ -2836,7 +2825,7 @@ describe('actions/IOU', () => {
     describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const transaction: Transaction = {
@@ -2848,7 +2837,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
             };
             const transactionThread: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
             };
             const iouAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
@@ -2937,7 +2926,7 @@ describe('actions/IOU', () => {
         it('should remove the original transaction from the search snapshot data', async () => {
             // Given a single expense
             const expenseReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const transaction: Transaction = {
@@ -2949,7 +2938,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
             };
             const transactionThread: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
             };
             const iouAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
@@ -3039,13 +3028,10 @@ describe('actions/IOU', () => {
         });
 
         it('should add split transactions optimistically on search snapshot when current search filter is on unapprovedCash', async () => {
-            const chatReport: Report = {
-                ...createRandomReport(7),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
+            const chatReport: Report = createRandomReport(7, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             // Given a single expense
             const expenseReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 chatReportID: chatReport.reportID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -3060,7 +3046,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
             };
             const transactionThread: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
             };
             const iouAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
@@ -3603,12 +3589,12 @@ describe('actions/IOU', () => {
         it('should apply optimistic data correctly', async () => {
             // Given an outstanding IOU report
             const chatReport = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: DateUtils.getDBTime(),
             };
             const iouReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 chatType: undefined,
                 type: CONST.REPORT.TYPE.IOU,
                 total: 10,
@@ -4783,7 +4769,7 @@ describe('actions/IOU', () => {
     describe('bulk deleteMoneyRequest', () => {
         it('update IOU report total properly for bulk deletion of expenses', async () => {
             const expenseReport: Report = {
-                ...createRandomReport(11),
+                ...createRandomReport(11, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 total: 30,
                 currency: CONST.CURRENCY.USD,
@@ -5691,7 +5677,7 @@ describe('actions/IOU', () => {
 
             const invoiceReceiver = chatReport?.invoiceReceiver as {type: string; policyID: string; accountID: number};
 
-            const iouReport = {...createRandomReport(1), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const iouReport = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
@@ -6233,7 +6219,7 @@ describe('actions/IOU', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
             };
@@ -6271,7 +6257,7 @@ describe('actions/IOU', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -6327,7 +6313,7 @@ describe('actions/IOU', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -6374,7 +6360,7 @@ describe('actions/IOU', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -6428,7 +6414,7 @@ describe('actions/IOU', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6453,7 +6439,7 @@ describe('actions/IOU', () => {
     describe('canUnapproveIOU', () => {
         it('should return false if the report is waiting for a bank account', () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'A',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6468,7 +6454,7 @@ describe('actions/IOU', () => {
     describe('canCancelPayment', () => {
         it('should return true if the report is waiting for a bank account', () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'A',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6482,7 +6468,7 @@ describe('actions/IOU', () => {
 
     describe('canIOUBePaid', () => {
         it('should return false if the report has negative total', () => {
-            const policyChat = createRandomReport(1);
+            const policyChat = createRandomReport(1, undefined);
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number('AA')),
                 type: CONST.POLICY.TYPE.TEAM,
@@ -6490,7 +6476,7 @@ describe('actions/IOU', () => {
             };
 
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'AA',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6516,7 +6502,7 @@ describe('actions/IOU', () => {
 
         it('should return 0 when the currency and amount of the transactions are the same', () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6535,7 +6521,7 @@ describe('actions/IOU', () => {
 
         it('should return the difference between the updated amount and the current amount when the currency of the updated and current transactions have the same currency', () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6559,7 +6545,7 @@ describe('actions/IOU', () => {
 
         it('should return null when the currency of the updated and current transactions have different values', () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6583,7 +6569,7 @@ describe('actions/IOU', () => {
 
     describe('initMoneyRequest', () => {
         const fakeReport: Report = {
-            ...createRandomReport(0),
+            ...createRandomReport(0, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             policyID: '1',
             managerID: CARLOS_ACCOUNT_ID,
@@ -6595,7 +6581,7 @@ describe('actions/IOU', () => {
         };
 
         const fakeParentReport: Report = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             reportID: fakeReport.reportID,
             type: CONST.REPORT.TYPE.EXPENSE,
             policyID: '1',
@@ -6704,7 +6690,7 @@ describe('actions/IOU', () => {
     describe('updateMoneyRequestAmountAndCurrency', () => {
         it('update the amount of the money request successfully', async () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -6764,7 +6750,7 @@ describe('actions/IOU', () => {
 
         it('update the amount of the money request failed', async () => {
             const fakeReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -7374,9 +7360,8 @@ describe('actions/IOU', () => {
             createNewReport(creatorPersonalDetails, true, false, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
 
             const amount = 100;
@@ -7781,13 +7766,12 @@ describe('actions/IOU', () => {
             };
 
             const fakeReport: Report = {
-                ...createRandomReport(Number(reportID)),
+                ...createRandomReport(Number(reportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 managerID: RORY_ACCOUNT_ID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const fakeTransaction1: Transaction = {
                 ...createRandomTransaction(0),
@@ -7892,7 +7876,7 @@ describe('actions/IOU', () => {
         });
 
         const createMockReport = (reportID: string, total = 300): Report => ({
-            ...createRandomReport(Number(reportID)),
+            ...createRandomReport(Number(reportID), undefined),
             reportID,
             type: CONST.REPORT.TYPE.EXPENSE,
             total,
@@ -9060,14 +9044,13 @@ describe('actions/IOU', () => {
             policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY;
 
             chatReport = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID: policy?.id,
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
             iouReport = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 managerID: MANAGER_ACCOUNT_ID,
@@ -9152,7 +9135,7 @@ describe('actions/IOU', () => {
 
         beforeEach(async () => {
             transaction = createRandomTransaction(1);
-            iouReport = createRandomReport(1);
+            iouReport = createRandomReport(1, undefined);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
@@ -9195,16 +9178,14 @@ describe('actions/IOU', () => {
         it('should restore the chat report iouReportID', async () => {
             // Given a chat report with no iouReportID
             const chatReport: Report = {
-                ...createRandomReport(0),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 iouReportID: undefined,
             };
             const policy: OnyxEntry<Policy> = createRandomPolicy(1);
 
             const expenseReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                chatType: undefined,
             };
 
             // When retracting the submitted expense report

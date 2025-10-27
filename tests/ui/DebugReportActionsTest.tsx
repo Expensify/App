@@ -47,7 +47,7 @@ describe('DebugReportActions', () => {
         const reportID = '1';
         const reportActionID = '123';
         const policy: Policy = createRandomPolicy(Number(policyID));
-        const report: Report = {...createRandomReport(Number(reportID)), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID};
+        const report: Report = {...createRandomReport(Number(reportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM), policyID};
         const reportActionL: ReportAction = {
             ...createRandomReportAction(Number(reportActionID)),
             reportID,

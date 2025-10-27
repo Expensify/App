@@ -28,7 +28,7 @@ const RECENT_REPORTS_COUNT = 100;
 const reports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
     }),
@@ -45,7 +45,7 @@ const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => ({
-            ...createRandomReport(index),
+            ...createRandomReport(index, undefined),
             type: rand(Object.values(CONST.REPORT.TYPE)),
             lastVisibleActionCreated: getRandomDate(),
         }),

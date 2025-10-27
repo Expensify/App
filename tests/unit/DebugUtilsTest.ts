@@ -18,7 +18,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
-    ...createRandomReport(0),
+    ...createRandomReport(0, undefined),
 };
 
 const MOCK_REPORT_ACTION: ReportAction = {

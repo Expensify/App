@@ -26,7 +26,7 @@ afterEach(() => {
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -41,7 +41,7 @@ const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COL
 const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 
 test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', async () => {
-    const report = createRandomReport(1);
+    const report = createRandomReport(1, undefined);
     const reportAction = {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,

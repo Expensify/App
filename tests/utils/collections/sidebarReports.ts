@@ -26,7 +26,7 @@ function createSidebarReport(
     } = {},
 ): Report & {hasErrorsOtherThanFailedReceipt?: boolean} {
     const reportID = index.toString();
-    const baseReport = createRandomReport(index);
+    const baseReport = createRandomReport(index, options.chatType ?? CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
 
     return {
         ...baseReport,
@@ -37,7 +37,6 @@ function createSidebarReport(
         hasErrorsOtherThanFailedReceipt: options.hasErrorsOtherThanFailedReceipt ?? false,
         lastVisibleActionCreated: options.lastVisibleActionCreated ?? '2024-01-01 10:00:00',
         isOwnPolicyExpenseChat: options.isOwnPolicyExpenseChat ?? false,
-        chatType: options.chatType ?? CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         ownerAccountID: options.ownerAccountID ?? index,
         policyID: options.policyID ?? reportID,
         currency: options.currency ?? 'USD',

@@ -875,12 +875,12 @@ describe('ReportUtils', () => {
             const htmlTaskTitle = `<h1>heading with <a href="https://www.unknown.com" target="_blank" rel="noreferrer noopener">link</a></h1>`;
 
             it('Should return the text extracted from report name html', () => {
-                const report: Report = {...createRandomReport(1), type: 'task'};
+                const report: Report = {...createRandomReport(1, undefined), type: 'task'};
                 expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual('heading with link');
             });
 
             it('Should return deleted task translations when task is is deleted', () => {
-                const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
+                const report: Report = {...createRandomReport(1, undefined), type: 'task', isDeletedParentAction: true};
                 expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translate(CONST.LOCALES.EN, 'parentReportAction.deletedTask'));
             });
         });
@@ -2304,9 +2304,8 @@ describe('ReportUtils', () => {
 
         it('should return policy name for user created policy room', () => {
             const report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 policyID: policy.id,
             };
             const result = getChatRoomSubtitle(report);
@@ -4267,7 +4266,7 @@ describe('ReportUtils', () => {
 
     describe('isAllowedToApproveExpenseReport', () => {
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: currentUserAccountID,
         };
@@ -4306,14 +4305,8 @@ describe('ReportUtils', () => {
     });
 
     describe('isArchivedReport', () => {
-        const archivedReport: Report = {
-            ...createRandomReport(1),
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        };
-        const nonArchivedReport: Report = {
-            ...createRandomReport(2),
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        };
+        const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
@@ -4342,14 +4335,8 @@ describe('ReportUtils', () => {
     });
 
     describe('useReportIsArchived', () => {
-        const archivedReport: Report = {
-            ...createRandomReport(1),
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        };
-        const nonArchivedReport: Report = {
-            ...createRandomReport(2),
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        };
+        const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
@@ -4371,18 +4358,12 @@ describe('ReportUtils', () => {
 
     describe('canEditWriteCapability', () => {
         it('should return false for expense chat', () => {
-            const workspaceChat: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
+            const workspaceChat: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
             expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBe(false);
         });
 
-        const policyAnnounceRoom: Report = {
-            ...createRandomReport(1),
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-        };
+        const policyAnnounceRoom: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
         const adminPolicy = {...policy, role: CONST.POLICY.ROLE.ADMIN};
 
         it('should return true for non-archived policy announce room', () => {
@@ -4394,22 +4375,22 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for non-admin user', () => {
-            const normalChat = createRandomReport(11);
+            const normalChat = createRandomReport(11, undefined);
             const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
 
             expect(canEditWriteCapability(normalChat, memberPolicy, false)).toBe(false);
         });
 
         it('should return false for admin room', () => {
-            const adminRoom: Report = {...createRandomReport(12), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+            const adminRoom: Report = createRandomReport(12, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
 
             expect(canEditWriteCapability(adminRoom, adminPolicy, false)).toBe(false);
         });
 
         it('should return false for thread reports', () => {
-            const parent = createRandomReport(13);
+            const parent = createRandomReport(13, undefined);
             const thread: Report = {
-                ...createRandomReport(14),
+                ...createRandomReport(14, undefined),
                 parentReportID: parent.reportID,
                 parentReportActionID: '2',
             };
@@ -4418,7 +4399,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for invoice rooms', () => {
-            const invoiceRoom = {...createRandomReport(13), chatType: CONST.REPORT.CHAT_TYPE.INVOICE};
+            const invoiceRoom = createRandomReport(13, CONST.REPORT.CHAT_TYPE.INVOICE);
 
             expect(canEditWriteCapability(invoiceRoom, adminPolicy, false)).toBe(false);
         });
@@ -4614,18 +4595,16 @@ describe('ReportUtils', () => {
     describe('getPolicyExpenseChat', () => {
         it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
             const policyExpenseChat: Report = {
-                ...createRandomReport(11),
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 ownerAccountID: 1,
                 policyID: '1',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
             const taskReport: Report = {
-                ...createRandomReport(10),
+                ...createRandomReport(10, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 ownerAccountID: 1,
                 policyID: '1',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 type: CONST.REPORT.TYPE.TASK,
                 parentReportID: policyExpenseChat.reportID,
                 parentReportActionID: '1',
@@ -4749,7 +4728,7 @@ describe('ReportUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -4769,7 +4748,7 @@ describe('ReportUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -4788,7 +4767,7 @@ describe('ReportUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -4813,7 +4792,7 @@ describe('ReportUtils', () => {
                             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                         };
                         const expenseReport: Report = {
-                            ...createRandomReport(0),
+                            ...createRandomReport(0, undefined),
                             ownerAccountID: employeeAccountID,
                             type: CONST.REPORT.TYPE.EXPENSE,
                         };
@@ -4855,7 +4834,7 @@ describe('ReportUtils', () => {
                             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                         };
                         const expenseReport: Report = {
-                            ...createRandomReport(100),
+                            ...createRandomReport(100, undefined),
                             ownerAccountID: employeeAccountID,
                             type: CONST.REPORT.TYPE.EXPENSE,
                         };
@@ -5067,17 +5046,17 @@ describe('ReportUtils', () => {
     describe('isArchivedNonExpenseReport', () => {
         // Given an expense report, a chat report, and an archived chat report
         const expenseReport: Report = {
-            ...createRandomReport(1000),
+            ...createRandomReport(1000, undefined),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
         const chatReport: Report = {
-            ...createRandomReport(2000),
+            ...createRandomReport(2000, undefined),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.CHAT,
         };
         const archivedChatReport: Report = {
-            ...createRandomReport(3000),
+            ...createRandomReport(3000, undefined),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.CHAT,
         };
@@ -5134,7 +5113,7 @@ describe('ReportUtils', () => {
 
     describe('isPayer', () => {
         const approvedReport: Report = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
@@ -5142,7 +5121,7 @@ describe('ReportUtils', () => {
         };
 
         const unapprovedReport: Report = {
-            ...createRandomReport(2),
+            ...createRandomReport(2, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -5179,7 +5158,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
 
             const closedReport: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -5256,7 +5235,7 @@ describe('ReportUtils', () => {
     describe('getParticipantsList', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 chatType: 'policyRoom',
                 participants: {
                     1: {notificationPreference: 'hidden'},
@@ -5269,7 +5248,7 @@ describe('ReportUtils', () => {
 
         it('should include hidden participants for IOU report', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 participants: {
                     1: {notificationPreference: 'hidden'},
@@ -5282,7 +5261,7 @@ describe('ReportUtils', () => {
 
         it('should include hidden participants for expense report', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 participants: {
                     1: {notificationPreference: 'hidden'},
@@ -5295,7 +5274,7 @@ describe('ReportUtils', () => {
 
         it('should include hidden participants for IOU transaction report', async () => {
             const parentReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
             const parentReportAction: ReportAction = {
@@ -5315,7 +5294,7 @@ describe('ReportUtils', () => {
             });
 
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
                 participants: {
@@ -5329,7 +5308,7 @@ describe('ReportUtils', () => {
 
         it('should include hidden participants for expense transaction report', async () => {
             const parentReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const parentReportAction: ReportAction = {
@@ -5349,7 +5328,7 @@ describe('ReportUtils', () => {
             });
 
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
                 participants: {
@@ -5365,7 +5344,7 @@ describe('ReportUtils', () => {
     describe('isReportOutstanding', () => {
         it('should return true for submitted reports', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -5375,7 +5354,7 @@ describe('ReportUtils', () => {
         });
         it('should return false for submitted reports if we specify it', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -5385,14 +5364,14 @@ describe('ReportUtils', () => {
         });
         it('should return true for submitted reports if top most report ID is processing', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const activeReport: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -5403,7 +5382,7 @@ describe('ReportUtils', () => {
         });
         it('should return false for archived report', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -5433,10 +5412,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
@@ -5446,10 +5422,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
@@ -5459,10 +5432,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
@@ -5472,10 +5442,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.INVOICE);
             const result = getMoneyReportPreviewName(action, report);
             // Policies are empty, so the policy name is "Unavailable workspace"
             expect(result).toBe('Unavailable workspace');
@@ -5486,10 +5453,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
@@ -5499,10 +5463,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
@@ -5512,10 +5473,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const result = getMoneyReportPreviewName(action, report);
             // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe("Ragnar Lothbrok's expenses");
@@ -5526,10 +5484,7 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
             const result = getMoneyReportPreviewName(action, report);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
@@ -5541,8 +5496,7 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SYSTEM),
                 participants: {
                     1: {notificationPreference: 'hidden'},
                 },
@@ -5558,12 +5512,11 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.TRIP_ROOM),
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
                 },
-                chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             };
             const result = getMoneyReportPreviewName(action, report);
             // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
@@ -5585,7 +5538,7 @@ describe('ReportUtils', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
-                ...createRandomReport(10000),
+                ...createRandomReport(10000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserAccountID,
             };
@@ -5603,7 +5556,7 @@ describe('ReportUtils', () => {
         it('should return false for an expense report the current user is not the submitter', async () => {
             // Given an expense report the current user is not the submitter
             const report: Report = {
-                ...createRandomReport(10000),
+                ...createRandomReport(10000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserAccountID + 1,
             };
@@ -5618,7 +5571,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
-                ...createRandomReport(10001),
+                ...createRandomReport(10001, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserAccountID,
             };
@@ -5636,7 +5589,7 @@ describe('ReportUtils', () => {
         it('should return false for a closed report', async () => {
             // Given a closed expense report
             const report: Report = {
-                ...createRandomReport(10002),
+                ...createRandomReport(10002, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             };
@@ -5654,7 +5607,7 @@ describe('ReportUtils', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
-                ...createRandomReport(20000),
+                ...createRandomReport(20000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -5671,7 +5624,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
-                ...createRandomReport(20001),
+                ...createRandomReport(20001, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -5688,7 +5641,7 @@ describe('ReportUtils', () => {
         it('should return false for a closed report', async () => {
             // Given a closed expense report
             const report: Report = {
-                ...createRandomReport(10002),
+                ...createRandomReport(10002, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             };
@@ -5750,7 +5703,7 @@ describe('ReportUtils', () => {
         it('should return a reason for a non-archived report', async () => {
             // Given a non-archived expense report that is unread with a mention
             const report: OptionData = {
-                ...createRandomReport(30000),
+                ...createRandomReport(30000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -5766,7 +5719,7 @@ describe('ReportUtils', () => {
 
         it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
             const report: OptionData = {
-                ...createRandomReport(40000),
+                ...createRandomReport(40000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -5789,7 +5742,7 @@ describe('ReportUtils', () => {
         it('should return null for an archived report', async () => {
             // Given an archived expense report that is unread with a mention
             const report: OptionData = {
-                ...createRandomReport(30000),
+                ...createRandomReport(30000, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -5831,8 +5784,7 @@ describe('ReportUtils', () => {
         it('should return true for a non-archived policy room', async () => {
             // Given a non-archived policy room
             const report: Report = {
-                ...createRandomReport(40001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(40001, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -5848,8 +5800,7 @@ describe('ReportUtils', () => {
         it('should return false for an archived policy room', async () => {
             // Given an archived policy room
             const report: Report = {
-                ...createRandomReport(40002),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -5867,7 +5818,7 @@ describe('ReportUtils', () => {
     describe('isDeprecatedGroupDM', () => {
         it('should return false if the report is a chat thread', () => {
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 parentReportActionID: '1',
                 parentReportID: '1',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -5878,7 +5829,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is a task report', () => {
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.TASK,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
@@ -5887,7 +5838,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is a money request report', () => {
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
@@ -5896,7 +5847,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is an archived room', () => {
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isDeprecatedGroupDM(report, true)).toBeFalsy();
@@ -5904,8 +5855,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is a public / admin / announce chat room', () => {
             const report: Report = {
-                ...createRandomReport(0),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isDeprecatedGroupDM(report)).toBeFalsy();
@@ -5913,8 +5863,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report has less than 2 participants', () => {
             const report: Report = {
-                ...createRandomReport(0),
-                chatType: undefined,
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
@@ -5923,8 +5872,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the report has more than 2 participants', () => {
             const report: Report = {
-                ...createRandomReport(0),
-                chatType: undefined,
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
@@ -5937,8 +5885,7 @@ describe('ReportUtils', () => {
             // Given a policy announce room of a policy that the user has an auditor role
             const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.AUDITOR};
             const policyAnnounceRoom: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                ...createRandomReport(50001, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 policyID: policy.id,
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
@@ -5956,8 +5903,7 @@ describe('ReportUtils', () => {
             // Given a policy announce room of a policy that the user has an admin role
             const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
             const policyAnnounceRoom: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                ...createRandomReport(50001, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 policyID: policy.id,
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
@@ -5973,8 +5919,7 @@ describe('ReportUtils', () => {
             // Given a policy announce room of a policy that the user has an admin role
             const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
             const policyAnnounceRoom: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                ...createRandomReport(50001, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 policyID: policy.id,
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
@@ -5992,8 +5937,7 @@ describe('ReportUtils', () => {
         it('should return true for archived reports', async () => {
             // Given an archived policy room
             const report: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(50001, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -6010,8 +5954,7 @@ describe('ReportUtils', () => {
         it('should return true for default rooms', () => {
             // Given a default room
             const report: Report = {
-                ...createRandomReport(50002),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                ...createRandomReport(50002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 reportName: '#admins',
             };
 
@@ -6025,8 +5968,7 @@ describe('ReportUtils', () => {
         it('should return true for public rooms', () => {
             // Given a public room
             const report: Report = {
-                ...createRandomReport(50003),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(50003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
@@ -6040,7 +5982,7 @@ describe('ReportUtils', () => {
         it('should return true for threads', () => {
             // Given a thread report
             const report: Report = {
-                ...createRandomReport(50004),
+                ...createRandomReport(50004, undefined),
                 parentReportID: '12345',
                 parentReportActionID: '67890',
             };
@@ -6055,7 +5997,7 @@ describe('ReportUtils', () => {
         it('should return true for money request reports', () => {
             // Given a money request report
             const report: Report = {
-                ...createRandomReport(50005),
+                ...createRandomReport(50005, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
 
@@ -6069,7 +6011,7 @@ describe('ReportUtils', () => {
         it('should return true for expense reports', () => {
             // Given an expense report
             const report: Report = {
-                ...createRandomReport(50006),
+                ...createRandomReport(50006, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
@@ -6083,8 +6025,7 @@ describe('ReportUtils', () => {
         it('should return true for policy expense chats', () => {
             // Given a policy expense chat
             const report: Report = {
-                ...createRandomReport(50007),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(50007, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 isOwnPolicyExpenseChat: true,
             };
 
@@ -6098,8 +6039,7 @@ describe('ReportUtils', () => {
         it('should return true for invoice rooms', () => {
             // Given an invoice room
             const report: Report = {
-                ...createRandomReport(50008),
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                ...createRandomReport(50008, CONST.REPORT.CHAT_TYPE.INVOICE),
             };
 
             // When shouldDisableRename is called
@@ -6112,7 +6052,7 @@ describe('ReportUtils', () => {
         it('should return true for invoice reports', () => {
             // Given an invoice report
             const report: Report = {
-                ...createRandomReport(50009),
+                ...createRandomReport(50009, undefined),
                 type: CONST.REPORT.TYPE.INVOICE,
             };
 
@@ -6125,10 +6065,7 @@ describe('ReportUtils', () => {
 
         it('should return true for system chats', () => {
             // Given a system chat
-            const report: Report = {
-                ...createRandomReport(50010),
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
+            const report: Report = createRandomReport(50010, CONST.REPORT.CHAT_TYPE.SYSTEM);
 
             // When shouldDisableRename is called
             const result = shouldDisableRename(report);
@@ -6140,9 +6077,8 @@ describe('ReportUtils', () => {
         it('should return false for group chats', async () => {
             // Given a group chat
             const report: Report = {
-                ...createRandomReport(50011),
+                ...createRandomReport(50011, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -6185,18 +6121,14 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for root group chat', () => {
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            };
+            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
             expect(canLeaveChat(report, undefined)).toBe(true);
         });
 
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 isOwnPolicyExpenseChat: false,
                 policyID: '1',
             };
@@ -6211,8 +6143,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the chat is public room and the user is the guest', async () => {
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
@@ -6223,7 +6154,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is hidden for the current user', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
                     ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
@@ -6231,7 +6162,6 @@ describe('ReportUtils', () => {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
-                chatType: undefined,
             };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -6241,9 +6171,8 @@ describe('ReportUtils', () => {
 
         it('should return false for selfDM reports', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
 
             expect(canLeaveChat(report, undefined)).toBe(false);
@@ -6251,8 +6180,7 @@ describe('ReportUtils', () => {
 
         it('should return false for the public announce room if the user is a member of the policy', () => {
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE,
             };
 
@@ -6266,8 +6194,7 @@ describe('ReportUtils', () => {
 
         it('should return true for the invoice room if the user is not the sender or receiver', async () => {
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.INVOICE),
                 invoiceReceiver: {
                     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
                     accountID: 1234,
@@ -6288,9 +6215,8 @@ describe('ReportUtils', () => {
 
         it('should return true for chat thread if the user is joined', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
                 parentReportID: '12345',
                 parentReportActionID: '67890',
@@ -6303,8 +6229,7 @@ describe('ReportUtils', () => {
 
         it('should return true for user created policy room', async () => {
             const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
             };
 
@@ -6328,9 +6253,8 @@ describe('ReportUtils', () => {
 
         it('should return false if the parent report action is a whisper action', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
             };
 
@@ -6347,9 +6271,8 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is not hidden for the current user', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
             };
 
@@ -6360,9 +6283,8 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is one of these types: group chat, selfDM, invoice room, system chat, expense chat', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
 
             expect(canJoinChat(report, undefined, undefined)).toBe(false);
@@ -6370,7 +6292,7 @@ describe('ReportUtils', () => {
 
         it('should return false if the report is archived', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
             };
 
             expect(canJoinChat(report, undefined, undefined, true)).toBe(false);
@@ -6378,7 +6300,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the report is chat thread', async () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
                     ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
@@ -6386,7 +6308,6 @@ describe('ReportUtils', () => {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
-                chatType: undefined,
                 parentReportID: '12345',
                 parentReportActionID: '67890',
             };
@@ -6400,9 +6321,8 @@ describe('ReportUtils', () => {
     describe('isRootGroupChat', () => {
         it('should return false if the report is chat thread', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
                 parentReportID: '12345',
                 parentReportActionID: '67890',
             };
@@ -6412,9 +6332,8 @@ describe('ReportUtils', () => {
 
         it('should return true if the report is a group chat and it is not a chat thread', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
 
             expect(isRootGroupChat(report)).toBe(true);
@@ -6422,8 +6341,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the report is a deprecated group DM and it is not a chat thread', () => {
             const report: Report = {
-                ...createRandomReport(0),
-                chatType: undefined,
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
@@ -6482,9 +6400,7 @@ describe('ReportUtils', () => {
         });
 
         describe('a non-whisper action', () => {
-            const report = {
-                ...createRandomReport(1),
-            };
+            const report = createRandomReport(1, undefined);
             const nonWhisperReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -6552,7 +6468,7 @@ describe('ReportUtils', () => {
             it('cannot be flagged if the report is not allowed to be commented on', () => {
                 // eslint-disable-next-line rulesdir/no-negated-variables
                 const reportThatCannotBeCommentedOn = {
-                    ...createRandomReport(2),
+                    ...createRandomReport(2, undefined),
 
                     // If the permissions does not contain WRITE, then it cannot be commented on
                     permissions: [],
@@ -6594,7 +6510,7 @@ describe('ReportUtils', () => {
 
             beforeAll(async () => {
                 expenseReport = {
-                    ...createRandomReport(60000),
+                    ...createRandomReport(60000, undefined),
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
@@ -6626,7 +6542,7 @@ describe('ReportUtils', () => {
 
             beforeAll(async () => {
                 chatReport = {
-                    ...createRandomReport(60000),
+                    ...createRandomReport(60000, undefined),
                     type: CONST.REPORT.TYPE.CHAT,
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CHRONOS]),
                 };
@@ -6651,7 +6567,7 @@ describe('ReportUtils', () => {
 
             beforeAll(async () => {
                 chatReport = {
-                    ...createRandomReport(60000),
+                    ...createRandomReport(60000, undefined),
                     type: CONST.REPORT.TYPE.CHAT,
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 };
@@ -6683,7 +6599,7 @@ describe('ReportUtils', () => {
 
             beforeAll(async () => {
                 chatReport = {
-                    ...createRandomReport(60000),
+                    ...createRandomReport(60000, undefined),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
@@ -6721,10 +6637,9 @@ describe('ReportUtils', () => {
         it('should return false when report is not a money request report', async () => {
             // Given a regular chat report that is not a money request report
             const chatReport: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 reportID: mockReportID,
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, chatReport);
 
@@ -7048,16 +6963,14 @@ describe('ReportUtils', () => {
     describe('buildOptimisticReportPreview', () => {
         it('should include childOwnerAccountID and childManagerAccountID that matches with iouReport data', () => {
             const chatReport: Report = {
-                ...createRandomReport(100),
+                ...createRandomReport(100, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
             };
 
             const iouReport: Report = {
-                ...createRandomReport(200),
+                ...createRandomReport(200, undefined),
                 parentReportID: '1',
                 type: CONST.REPORT.TYPE.IOU,
-                chatType: undefined,
                 ownerAccountID: 1,
                 managerID: 2,
             };
@@ -7177,7 +7090,7 @@ describe('ReportUtils', () => {
         it('should return true if report is archived room ', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = {
-                ...createRandomReport(40002),
+                ...createRandomReport(40002, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
@@ -7186,7 +7099,7 @@ describe('ReportUtils', () => {
         it('should return true if the room has an assigned guide', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = {
-                ...createRandomReport(40002),
+                ...createRandomReport(40002, undefined),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
@@ -7195,10 +7108,7 @@ describe('ReportUtils', () => {
         });
         it('should return true if the report is admin room', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            const report: Report = {
-                ...createRandomReport(40002),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-            };
+            const report: Report = createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
             });
@@ -7207,12 +7117,12 @@ describe('ReportUtils', () => {
 
     describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention', () => {
         const report: Report = {
-            ...createRandomReport(40003),
+            ...createRandomReport(40003, undefined),
             parentReportID: '40004',
             parentReportActionID: '2',
         };
         const parentReport: Report = {
-            ...createRandomReport(40004),
+            ...createRandomReport(40004, undefined),
             statusNum: 0,
         };
         const reportAction1: ReportAction = {
@@ -7515,7 +7425,7 @@ describe('ReportUtils', () => {
     describe('requiresManualSubmission', () => {
         it('should return true when manual submit is enabled', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
@@ -7528,7 +7438,7 @@ describe('ReportUtils', () => {
 
         it('should return false when instant submit is enabled and report is not open', () => {
             const report: Report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
@@ -7542,7 +7452,7 @@ describe('ReportUtils', () => {
 
         it('should return false when instant submit is enabled with approvers', () => {
             const report: Report = {
-                ...createRandomReport(3),
+                ...createRandomReport(3, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
@@ -7556,7 +7466,7 @@ describe('ReportUtils', () => {
 
         it('should return true for open report in Submit & Close policy with instant submit', () => {
             const report: Report = {
-                ...createRandomReport(4),
+                ...createRandomReport(4, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
@@ -7570,7 +7480,7 @@ describe('ReportUtils', () => {
 
         it('should return false for closed report in Submit & Close policy with instant submit', () => {
             const report: Report = {
-                ...createRandomReport(5),
+                ...createRandomReport(5, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             };
@@ -7584,7 +7494,7 @@ describe('ReportUtils', () => {
 
         it('should return false when policy has auto reporting with monthly frequency (delayed submission)', () => {
             const report: Report = {
-                ...createRandomReport(8),
+                ...createRandomReport(8, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
@@ -7599,17 +7509,16 @@ describe('ReportUtils', () => {
     describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
         test('should return false when not a policy employee', () => {
             const report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
                 isOwnPolicyExpenseChat: true,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
         });
 
         test('should return true for restricted room when policy employee', () => {
             const report = {
-                ...createRandomReport(2),
+                ...createRandomReport(2, undefined),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
@@ -7617,40 +7526,36 @@ describe('ReportUtils', () => {
 
         test('should return true for policy expense chat when own chat and policy employee', () => {
             const report = {
-                ...createRandomReport(3),
+                ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: true,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
         });
 
         test('should return true for policy expense chat when policy admin and policy employee', () => {
             const report = {
-                ...createRandomReport(4),
+                ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
         });
 
         test('should return false for non-restricted, non-policy expense chat', () => {
             const report = {
-                ...createRandomReport(5),
+                ...createRandomReport(5, CONST.REPORT.CHAT_TYPE.GROUP),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
         });
 
         test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
             const report = {
-                ...createRandomReport(6),
+                ...createRandomReport(6, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
         });
@@ -8126,15 +8031,14 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(10);
@@ -8146,13 +8050,13 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: undefined,
             };
@@ -8168,15 +8072,14 @@ describe('ReportUtils', () => {
                 actorAccountID: 10,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(30);
@@ -8189,15 +8092,14 @@ describe('ReportUtils', () => {
                 actorAccountID: 10,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(10);
@@ -8211,15 +8113,14 @@ describe('ReportUtils', () => {
                 actorAccountID: 10,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(30);
@@ -8232,15 +8133,14 @@ describe('ReportUtils', () => {
                 actorAccountID: 10,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(10);
@@ -8253,15 +8153,14 @@ describe('ReportUtils', () => {
                 actorAccountID: 123,
             };
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 10,
                 managerID: 20,
             };
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
@@ -8374,7 +8273,7 @@ describe('ReportUtils', () => {
         it('should return false if the user is not the report manager', async () => {
             const approver = 'approver@gmail.com';
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: 1,
             };
@@ -8394,7 +8293,7 @@ describe('ReportUtils', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
         const mockSearchReport: SearchReport = {
-            ...createRandomReport(mockReportIDIndex),
+            ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
         };

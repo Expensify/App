@@ -36,7 +36,7 @@ describe('actions/PolicyMember', () => {
         it('Accept user join request to a workspace', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
             const fakeReportAction = {
@@ -101,7 +101,7 @@ describe('actions/PolicyMember', () => {
                     },
                 },
             };
-            const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
+            const adminRoom: Report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS), policyID: fakePolicy.id};
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -327,9 +327,8 @@ describe('actions/PolicyMember', () => {
                 approver: defaultApprover,
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
@@ -366,9 +365,8 @@ describe('actions/PolicyMember', () => {
             const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
@@ -445,9 +443,8 @@ describe('actions/PolicyMember', () => {
                 },
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                     [adminAccountID]: {notificationPreference: 'always'},
@@ -501,9 +498,8 @@ describe('actions/PolicyMember', () => {
             const userAccountID = 1236;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
