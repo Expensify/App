@@ -18,6 +18,7 @@ import {
 } from '@libs/fileDownload/FileUtils';
 import type {ValidateAttachmentOptions} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
@@ -42,6 +43,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const [isValidatingFiles, setIsValidatingFiles] = useState(false);
     const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
@@ -81,6 +83,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     }, []);
 
     const resetValidationState = useCallback(() => {
+        setIsValidatingFiles(false);
         setIsValidatingReceipts(undefined);
         setIsValidatingMultipleFiles(false);
         setIsErrorModalVisible(false);
@@ -283,6 +286,13 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
+        if (isValidatingFiles) {
+            Log.warn('Files are already being validated. Please wait for the current validation to complete before calling `validateFiles` again.');
+            return;
+        }
+
+        setIsValidatingFiles(true);
+
         setIsValidatingReceipts(validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS);
 
         if (files.length > 1) {
