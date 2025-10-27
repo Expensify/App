@@ -330,7 +330,7 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
         // Should not show PAY button for zero amount IOUs
-        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canPay should return true for submitted invoice', async () => {
