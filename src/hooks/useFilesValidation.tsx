@@ -293,7 +293,11 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         setIsValidatingFiles(true);
 
-        setIsValidatingReceipts(validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS);
+        const validationOptionsWithDefaults = {
+            ...validationOptions,
+            isValidatingReceipts: validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS,
+        };
+        setIsValidatingReceipts(validationOptionsWithDefaults.isValidatingReceipts);
 
         if (files.length > 1) {
             setIsValidatingMultipleFiles(true);
@@ -305,7 +309,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }
             setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
         } else {
-            validateAndResizeFiles(files, items ?? [], validationOptions);
+            validateAndResizeFiles(files, items ?? [], validationOptionsWithDefaults);
         }
     };
 
