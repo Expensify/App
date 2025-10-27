@@ -202,7 +202,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
-        if (!policyCurrency || policyCurrency === prevPolicyCurrency) {
+        if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
             return;
         }
 
