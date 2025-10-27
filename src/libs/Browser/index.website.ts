@@ -82,14 +82,17 @@ const isChromeIOS: IsChromeIOS = () => {
 
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
+const getIosVersion = () => {
+    const version = navigator.userAgent.match(/OS (\d+_\d+)/);
+    const iosVersion = version ? version[1].replace('_', '.') : '';
+
+    return parseFloat(iosVersion);
+};
 /**
  * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
  */
 const isModernSafari: IsModernSafari = (): boolean => {
-    const version = navigator.userAgent.match(/OS (\d+_\d+)/);
-    const iosVersion = version ? version[1].replace('_', '.') : '';
-
-    return parseFloat(iosVersion) >= 18;
+    return getIosVersion() >= 18;
 };
 
 /**
@@ -155,4 +158,5 @@ export {
     openRouteInDesktopApp,
     isOpeningRouteInDesktop,
     resetIsOpeningRouteInDesktop,
+    getIosVersion,
 };
