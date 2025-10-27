@@ -2759,6 +2759,7 @@ ${date} - ${merchant}に${amount}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと... ${isBreakLine ? '\n' : ''}何かがうまくいきませんでした。`,
         subtitle: 'リクエストを完了できませんでした。後でもう一度お試しください。',
+        wrongTypeSubtitle: 'その検索は無効です。検索条件を調整してみてください。',
     },
     setPasswordPage: {
         enterPassword: 'パスワードを入力してください',

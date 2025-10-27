@@ -2770,6 +2770,7 @@ ${amount} per ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Qualcosa è andato storto`,
         subtitle: 'La tua richiesta non può essere completata. Per favore riprova più tardi.',
+        wrongTypeSubtitle: 'Questa ricerca non è valida. Prova a modificare i criteri di ricerca.',
     },
     setPasswordPage: {
         enterPassword: 'Inserisci una password',

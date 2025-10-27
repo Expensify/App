@@ -2750,6 +2750,7 @@ const translations = {
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',
+        wrongTypeSubtitle: "That search isn't valid. Try adjusting your search criteria.",
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',

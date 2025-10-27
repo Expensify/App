@@ -2761,6 +2761,7 @@ ${amount} für ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut.',
+        wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuchen Sie, Ihre Suchkriterien anzupassen.',
     },
     setPasswordPage: {
         enterPassword: 'Passwort eingeben',
