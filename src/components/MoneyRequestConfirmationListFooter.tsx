@@ -1078,9 +1078,9 @@ function MoneyRequestConfirmationListFooter({
                 {!shouldRestrictHeight &&
                     fields
                         .filter((field) => field.shouldShow && !(field.isRequired ?? false))
-                        .map((field, index) => (
+                        .map((field) => (
                             <Animated.View
-                                key={index}
+                                key={field.item.key}
                                 entering={FadeInDown.easing(Easing.out(Easing.quad))}
                                 exiting={FadeOutUp.duration(500).easing(Easing.out(Easing.quad))}
                                 layout={LinearTransition.easing(Easing.out(Easing.quad))}
