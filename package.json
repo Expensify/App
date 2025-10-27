@@ -47,7 +47,7 @@
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
-    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=241 --cache --cache-location=node_modules/.cache/eslint",
+    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=154 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 ./scripts/lintChanged.sh",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
