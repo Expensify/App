@@ -314,6 +314,16 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
     return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
+function isPrimaryMarkAsResolvedAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    if (!reportTransactions || reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations);
+
+    return isExpenseReportUtils(report) && isMarkAsResolvedAction(report, transactionViolations, policy);
+}
+
 function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
         return [];
@@ -369,7 +379,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isExpenseReportUtils(report) && reportTransactions.length === 1 && isMarkAsResolvedAction(report, getTransactionViolations(reportTransactions.at(0), violations), policy)) {
+    if (isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
@@ -449,4 +459,5 @@ export {
     isMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    isPrimaryMarkAsResolvedAction,
 };
