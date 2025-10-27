@@ -550,7 +550,8 @@ describe('TransactionUtils', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 reportID: FAKE_OPEN_REPORT_ID,
             });
-            const merchant = TransactionUtils.getMerchant(transaction);
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const merchant = TransactionUtils.getMerchant(transaction, policy);
             expect(merchant).toBe('Pending...');
         });
 
