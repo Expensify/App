@@ -57,7 +57,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -468,9 +468,28 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID = transactionEntry.ownerAccountID ?? getReportOrDraftReport(transactionEntry.reportID)?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+                if (ownerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        if (canAllTransactionsBeMoved) {
+        if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
                 icon: Expensicons.DocumentMerge,
