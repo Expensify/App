@@ -6,6 +6,7 @@ import {
     getMergeFieldTranslationKey,
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
+    getRateFromMerchant,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -834,6 +835,30 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the generic error message with lowercase field name
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('getRateFromMerchant', () => {
+        it('should return empty string for undefined merchant', () => {
+            // Given an undefined merchant
+            const merchant = undefined;
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return empty string
+            expect(result).toBe('');
+        });
+
+        it('should extract rate from distance merchant string', () => {
+            // Given a distance merchant string with rate
+            const merchant = '5.2 mi @ $0.50 / mi';
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return the rate portion
+            expect(result).toBe('$0.50 / mi');
         });
     });
 });

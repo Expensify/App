@@ -466,6 +466,14 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
     return updatedValues;
 }
 
+function getRateFromMerchant(merchant: string | undefined): string {
+    if (!merchant) {
+        return '';
+    }
+
+    return merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(-1)?.trim() ?? '';
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -485,6 +493,7 @@ export {
     getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     MERGE_FIELDS,
+    getRateFromMerchant,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
