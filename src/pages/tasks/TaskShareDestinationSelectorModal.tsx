@@ -53,8 +53,7 @@ function TaskShareDestinationSelectorModal() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -64,6 +63,8 @@ function TaskShareDestinationSelectorModal() {
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: selectReportHandler,
     });
+
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const filteredOptions = useMemo(() => {
         const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
@@ -76,7 +77,7 @@ function TaskShareDestinationSelectorModal() {
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, false, countryCode);
+        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false);
     }, [filteredOptions.recentReports, searchTerm, countryCode]);
 
     const sections = useMemo(
