@@ -432,7 +432,7 @@ function WorkspacesListPage() {
                         {({hovered}) => (
                             <DomainsListRow
                                 title={item.title}
-                                isValidated={item.isValidated}
+                                badgeText={item.isAdmin && item.isValidated ? translate('domain.notVerified') : undefined}
                                 isHovered={hovered}
                                 menuItems={threeDotsMenuItems}
                             />

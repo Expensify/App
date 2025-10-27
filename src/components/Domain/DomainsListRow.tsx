@@ -7,7 +7,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -19,8 +18,8 @@ type DomainsListRowProps = {
     /** Whether the row is hovered, so we can modify its style */
     isHovered: boolean;
 
-    /** Is domain validated (aka verified) */
-    isValidated?: boolean;
+    /** The text to display inside a badge next to the title */
+    badgeText?: string;
 
     /** Items for the three dots menu */
     menuItems?: PopoverMenuItem[];
@@ -29,10 +28,9 @@ type DomainsListRowProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-function DomainsListRow({title, isHovered, isValidated, brickRoadIndicator, menuItems}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, styles.workspaceThreeDotMenu]}>
@@ -70,10 +68,10 @@ function DomainsListRow({title, isHovered, isValidated, brickRoadIndicator, menu
                     style={styles.textStrong}
                 />
 
-                {!isValidated && (
+                {!!badgeText && (
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
-                            text={translate('domain.notVerified')}
+                            text={badgeText}
                             textStyles={styles.textStrong}
                             badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
                         />
