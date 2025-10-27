@@ -7283,7 +7283,7 @@ const translations = {
             title: 'Domain verified',
             header: 'Wooo! Your domain has been verified',
             description: ({domainName}: {domainName: string}) =>
-                `The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.`,
+                `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
         },
     },
 };

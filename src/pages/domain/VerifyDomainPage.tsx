@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainValidationCode} from '@libs/actions/Domain';
+import {getDomainValidationCode, validateDomain} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainModalNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +43,13 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
+
+    useEffect(() => {
+        if (!domain?.validated) {
+            return;
+        }
+        Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
+    }, [accountID, domain]);
 
     useEffect(() => {
         if (!accountID) {
@@ -79,7 +86,11 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                     <OrderedListRow index={2}>
                         <View>
                             <Text style={[styles.webViewStyles.baseFontStyle]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
-                            <CopyableTextField value={domain?.validateCode} />
+
+                            <CopyableTextField
+                                value={domain?.validateCode}
+                                isLoading={domain?.isValidateCodeLoading}
+                            />
                         </View>
                     </OrderedListRow>
 
@@ -104,7 +115,8 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                     large
                     success
                     text={translate('domain.verifyDomain.title')}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(accountID))}
+                    onPress={() => validateDomain(accountID)}
+                    isLoading={domain?.isValidationPending}
                 />
             </FixedFooter>
         </ScreenWrapper>

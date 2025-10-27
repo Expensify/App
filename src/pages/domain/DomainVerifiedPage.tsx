@@ -39,9 +39,10 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                         <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain?.email ?? '')})} />
                     </View>
                 }
+                innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={Navigation.dismissModal}
+                onButtonPress={() => Navigation.dismissModal()}
             />
         </ScreenWrapper>
     );

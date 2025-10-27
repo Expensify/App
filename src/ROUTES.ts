@@ -3304,12 +3304,12 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
     DOMAIN_VERIFY_DOMAIN: {
-        route: 'domain/:accountID/verify-domain',
-        getRoute: (accountID: number) => `domain/${accountID}/verify-domain` as const,
+        route: 'workspaces/verify-domain/:accountID',
+        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
     },
     DOMAIN_DOMAIN_VERIFIED: {
-        route: 'domain/:accountID/domain-verified',
-        getRoute: (accountID: number) => `domain/${accountID}/domain-verified` as const,
+        route: 'workspaces/domain-verified/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
     },
 } as const;
 
