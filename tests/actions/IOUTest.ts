@@ -59,8 +59,6 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -107,7 +105,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -215,11 +213,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -233,7 +230,7 @@ describe('actions/IOU', () => {
                         right: '20671314',
                     },
                 },
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:submit from:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:submit from:20671314',
                 flatFilters: [
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
@@ -256,7 +253,7 @@ describe('actions/IOU', () => {
                 ],
                 hash: 1920151829,
                 recentSearchHash: 2100977843,
-                similarSearchHash: 1476388677,
+                similarSearchHash: 1855682507,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -274,11 +271,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -314,9 +310,9 @@ describe('actions/IOU', () => {
                 ],
 
                 hash: 1510971479,
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:approve to:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
                 recentSearchHash: 967911777,
-                similarSearchHash: 601088623,
+                similarSearchHash: 1539858783,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -335,11 +331,10 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                     left: 'reimbursable',
@@ -1643,7 +1638,6 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
@@ -1946,7 +1940,6 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
@@ -3597,7 +3590,6 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
@@ -9207,6 +9199,7 @@ describe('actions/IOU', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 iouReportID: undefined,
             };
+            const policy: OnyxEntry<Policy> = createRandomPolicy(1);
 
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -9215,7 +9208,7 @@ describe('actions/IOU', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
