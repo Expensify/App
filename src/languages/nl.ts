@@ -116,6 +116,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -135,6 +136,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -236,6 +238,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -334,6 +337,7 @@ const translations = {
         no: 'Nee',
         ok: 'OK',
         notNow: 'Niet nu',
+        noThanks: 'Nee, bedankt',
         learnMore: 'Meer informatie',
         buttonConfirm: 'Begrepen',
         name: 'Naam',
@@ -635,6 +639,7 @@ const translations = {
         downloadAsPDF: 'Downloaden als PDF',
         downloadAsCSV: 'Downloaden als CSV',
         help: 'Help',
+        expenseReport: 'Onkostennota',
         expenseReports: "Onkostennota's",
         rateOutOfPolicy: 'Tarief buiten beleid',
         reimbursable: 'Vergoedbaar',
@@ -670,6 +675,7 @@ const translations = {
         pinned: 'Vastgezet',
         read: 'Gelezen',
         copyToClipboard: 'Kopiëren naar klembord',
+        domains: 'Domeinen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -795,6 +801,11 @@ const translations = {
         nameEmailOrPhoneNumber: 'Naam, e-mail of telefoonnummer',
         findMember: 'Zoek een lid',
         searchForSomeone: 'Zoek iemand',
+    },
+    customApprovalWorkflow: {
+        title: 'Aangepaste goedkeuringsworkflow',
+        description: 'Uw bedrijf heeft een aangepaste goedkeuringsworkflow voor deze werkruimte. Voer deze actie uit in Expensify Classic',
+        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1689,7 +1700,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset naar oorspronkelijke staat',
             usingImportedState: 'U gebruikt geïmporteerde status. Druk hier om het te wissen.',
-            shouldBlockTransactionThreadReportCreation: 'Creatie van transactie thread rapporten blokkeren',
             debugMode: 'Debug-modus',
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
@@ -2743,8 +2753,8 @@ ${amount} voor ${merchant} - ${date}`,
     },
     focusModeUpdateModal: {
         title: 'Welkom in de #focusmodus!',
-        prompt: 'Blijf op de hoogte door alleen ongelezen chats of chats die uw aandacht nodig hebben te bekijken. Maak je geen zorgen, je kunt dit op elk moment wijzigen in',
-        settings: 'instellingen',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Blijf op de hoogte door alleen ongelezen chats of chats die uw aandacht nodig hebben te bekijken. Maak je geen zorgen, je kunt dit op elk moment wijzigen in <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'De chat die je zoekt kan niet worden gevonden.',
@@ -2761,6 +2771,7 @@ ${amount} voor ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oeps... ${isBreakLine ? '\n' : ''}Er is iets misgegaan`,
         subtitle: 'Uw verzoek kon niet worden voltooid. Probeer het later opnieuw.',
+        wrongTypeSubtitle: 'Die zoekopdracht is niet geldig. Probeer je zoekcriteria aan te passen.',
     },
     setPasswordPage: {
         enterPassword: 'Voer een wachtwoord in',
@@ -2943,8 +2954,8 @@ ${amount} voor ${merchant} - ${date}`,
         needSSNFull9: 'We hebben problemen met het verifiëren van uw SSN. Voer alstublieft de volledige negen cijfers van uw SSN in.',
         weCouldNotVerify: 'We konden niet verifiëren',
         pleaseFixIt: 'Pas deze informatie aan voordat u verdergaat.',
-        failedKYCTextBefore: 'We konden uw identiteit niet verifiëren. Probeer het later opnieuw of neem contact op met',
-        failedKYCTextAfter: 'als je vragen hebt.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `We konden uw identiteit niet verifiëren. Probeer het later opnieuw of neem contact op met <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> als je vragen hebt.`,
     },
     termsStep: {
         headerTitle: 'Voorwaarden en kosten',
@@ -4420,8 +4431,7 @@ ${amount} voor ${merchant} - ${date}`,
             employeeDefaultDescription: 'De standaardafdeling van de werknemer wordt toegepast op hun uitgaven in Sage Intacct indien deze bestaat.',
             displayedAsTagDescription: 'Afdeling zal selecteerbaar zijn voor elke individuele uitgave op het rapport van een werknemer.',
             displayedAsReportFieldDescription: 'Afdelingsselectie zal van toepassing zijn op alle uitgaven in het rapport van een werknemer.',
-            toggleImportTitleFirstPart: 'Kies hoe Sage Intacct te beheren',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Kies hoe Sage Intacct <strong>${mappingTitle}</strong> in Expensify te beheren.`,
             expenseTypes: 'Uitgavensoorten',
             expenseTypesDescription: 'Uw Sage Intacct-uitgavensoorten worden in Expensify geïmporteerd als categorieën.',
             accountTypesDescription: 'Uw Sage Intacct-rekeningschema wordt in Expensify geïmporteerd als categorieën.',
@@ -4886,9 +4896,11 @@ ${amount} voor ${merchant} - ${date}`,
             textType: 'Tekst',
             dateType: 'Datum',
             dropdownType: 'Lijst',
+            formulaType: 'Formule',
             textAlternateText: 'Voeg een veld toe voor vrije tekstinvoer.',
             dateAlternateText: 'Voeg een kalender toe voor datumselectie.',
             dropdownAlternateText: 'Voeg een lijst met opties toe om uit te kiezen.',
+            formulaAlternateText: 'Voeg een formuleveld toe.',
             nameInputSubtitle: 'Kies een naam voor het rapportveld.',
             typeInputSubtitle: 'Kies welk type rapportveld je wilt gebruiken.',
             initialValueInputSubtitle: 'Voer een startwaarde in om in het rapportveld te tonen.',
@@ -5388,7 +5400,6 @@ ${amount} voor ${merchant} - ${date}`,
                 `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
-
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Zorg ervoor dat dit account overeenkomt met uw <a href="${settlementAccountUrl}">Expensify Card afwikkelingsrekening</a> (eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
             },
@@ -5566,89 +5577,106 @@ ${amount} voor ${merchant} - ${date}`,
             reportFields: {
                 title: 'Rapportvelden',
                 description: `Rapportvelden laten u header-niveau details specificeren, anders dan tags die betrekking hebben op uitgaven op individuele regelitems. Deze details kunnen specifieke projectnamen, zakenreis-informatie, locaties en meer omvatten.`,
-                onlyAvailableOnPlan: 'Rapportvelden zijn alleen beschikbaar op het Control-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rapportvelden zijn alleen beschikbaar op het Control-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Geniet van geautomatiseerde synchronisatie en verminder handmatige invoer met de Expensify + NetSuite-integratie. Krijg diepgaande, realtime financiële inzichten met ondersteuning voor native en aangepaste segmenten, inclusief project- en klanttoewijzing.`,
-                onlyAvailableOnPlan: 'Onze NetSuite-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze NetSuite-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Geniet van geautomatiseerde synchronisatie en verminder handmatige invoer met de Expensify + Sage Intacct-integratie. Verkrijg diepgaande, realtime financiële inzichten met door de gebruiker gedefinieerde dimensies, evenals onkostencodering per afdeling, klasse, locatie, klant en project (taak).`,
-                onlyAvailableOnPlan: 'Onze Sage Intacct-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Sage Intacct-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `Geniet van geautomatiseerde synchronisatie en verminder handmatige invoer met de Expensify + QuickBooks Desktop-integratie. Behaal ultieme efficiëntie met een realtime, tweerichtingsverbinding en uitgavecodering per klasse, item, klant en project.`,
-                onlyAvailableOnPlan: 'Onze QuickBooks Desktop-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar op het Control-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
                 description: `Als je meer goedkeuringslagen wilt toevoegen – of gewoon wilt zorgen dat de grootste uitgaven nog een keer worden bekeken – hebben we je gedekt. Geavanceerde goedkeuringen helpen je om op elk niveau de juiste controles in te stellen, zodat je de uitgaven van je team onder controle houdt.`,
-                onlyAvailableOnPlan: 'Geavanceerde goedkeuringen zijn alleen beschikbaar op het Control-plan, dat begint bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Geavanceerde goedkeuringen zijn alleen beschikbaar op het Control-plan, dat begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             categories: {
                 title: 'Categorieën',
                 description: 'Categorieën stellen je in staat om uitgaven bij te houden en te organiseren. Gebruik onze standaardcategorieën of voeg je eigen toe.',
-                onlyAvailableOnPlan: 'Categorieën zijn beschikbaar op het Collect-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Categorieën zijn beschikbaar op het Collect-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             glCodes: {
                 title: 'GL-codes',
                 description: `Voeg GL-codes toe aan uw categorieën en tags voor eenvoudige export van uitgaven naar uw boekhoud- en salarissystemen.`,
-                onlyAvailableOnPlan: 'GL-codes zijn alleen beschikbaar in het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL-codes zijn alleen beschikbaar in het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'GL & Payroll-codes',
                 description: `Voeg GL- en Payroll-codes toe aan uw categorieën voor eenvoudige export van uitgaven naar uw boekhoud- en payrollsystemen.`,
-                onlyAvailableOnPlan: 'GL- en Payroll-codes zijn alleen beschikbaar op het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL- en Payroll-codes zijn alleen beschikbaar op het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             taxCodes: {
                 title: 'Belastingcodes',
                 description: `Voeg belastingcodes toe aan uw belastingen voor eenvoudige export van uitgaven naar uw boekhoud- en loonadministratiesystemen.`,
-                onlyAvailableOnPlan: 'Belastingcodes zijn alleen beschikbaar in het Control-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Belastingcodes zijn alleen beschikbaar in het Control-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             companyCards: {
                 title: 'Onbeperkte Bedrijfskaarten',
                 description: `Meer kaartfeeds nodig? Ontgrendel onbeperkte bedrijfskaarten om transacties van alle grote kaartuitgevers te synchroniseren.`,
-                onlyAvailableOnPlan: 'Dit is alleen beschikbaar op het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Dit is alleen beschikbaar op het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             rules: {
                 title: 'Regels',
                 description: `Regels draaien op de achtergrond en houden je uitgaven onder controle, zodat je je geen zorgen hoeft te maken over de kleine dingen.\n\nVereis uitgavendetails zoals bonnetjes en beschrijvingen, stel limieten en standaarden in, en automatiseer goedkeuringen en betalingen – allemaal op één plek.`,
-                onlyAvailableOnPlan: 'Regels zijn alleen beschikbaar in het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Regels zijn alleen beschikbaar in het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Per diem',
                 description:
                     'Per diem is een geweldige manier om uw dagelijkse kosten in overeenstemming en voorspelbaar te houden wanneer uw werknemers reizen. Geniet van functies zoals aangepaste tarieven, standaardcategorieën en meer gedetailleerde informatie zoals bestemmingen en subtarieven.',
-                onlyAvailableOnPlan: 'Dagvergoedingen zijn alleen beschikbaar in het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Dagvergoedingen zijn alleen beschikbaar in het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             travel: {
                 title: 'Reis',
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
-                onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Reizen is beschikbaar op het Collect-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             reports: {
                 title: 'Rapporten',
                 description: 'Rapporten stellen je in staat om uitgaven te groeperen voor eenvoudigere tracking en organisatie.',
-                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rapporten zijn beschikbaar op het Collect-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             multiLevelTags: {
                 title: 'Meerniveautags',
                 description:
                     'Multi-Level Tags helpen je om uitgaven met grotere precisie bij te houden. Ken meerdere tags toe aan elk regelitem—zoals afdeling, klant of kostenplaats—om de volledige context van elke uitgave vast te leggen. Dit maakt gedetailleerdere rapportage, goedkeuringsworkflows en boekhouduitvoer mogelijk.',
-                onlyAvailableOnPlan: 'Multi-level tags zijn alleen beschikbaar op het Control-plan, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Multi-level tags zijn alleen beschikbaar op het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             distanceRates: {
                 title: 'Afstandstarieven',
                 description: 'Maak en beheer je eigen tarieven, volg in mijlen of kilometers, en stel standaardcategorieën in voor afstandskosten.',
-                onlyAvailableOnPlan: 'Afstandstarieven zijn beschikbaar op het Collect-abonnement, beginnend bij',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Afstandstarieven zijn beschikbaar op het Collect-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Meerdere goedkeuringsniveaus',
                 description: 'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die vereisen dat meer dan één persoon een rapport goedkeurt voordat het kan worden vergoed.',
-                onlyAvailableOnPlan: 'Meerdere goedkeuringsniveaus zijn alleen beschikbaar op het Control-plan, vanaf ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar op het Control-plan, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per actief lid per maand.',
@@ -5671,10 +5699,8 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Upgrade naar het Control-plan',
                 note: 'Ontgrendel onze krachtigste functies, waaronder:',
                 benefits: {
-                    startsAt: 'Het Control-abonnement begint bij',
-                    perMember: 'per actief lid per maand.',
-                    learnMore: 'Meer informatie',
-                    pricing: 'over onze plannen en prijzen.',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>Het Control-abonnement begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`} <a href="${learnMoreMethodsRoute}">Meer informatie</a> over onze plannen en prijzen.</muted-text>`,
                     benefit1: 'Geavanceerde boekhoudkoppelingen (NetSuite, Sage Intacct en meer)',
                     benefit2: 'Slimme uitgavenregels',
                     benefit3: 'Meerniveau goedkeuringsworkflows',
@@ -5729,6 +5755,7 @@ ${amount} voor ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chat met je beheerder',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Betaalpas toevoegen',
+            goToSubscription: 'Ga naar het abonnement',
         },
         rules: {
             individualExpenseRules: {
@@ -6260,7 +6287,6 @@ ${amount} voor ${merchant} - ${date}`,
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
@@ -6404,6 +6430,7 @@ ${amount} voor ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `heeft ${fieldName} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
@@ -6476,6 +6503,9 @@ ${amount} voor ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `verwijderde verbinding met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
+            },
+            error: {
+                invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van uw verbinding.',
             },
         },
     },
@@ -6677,14 +6707,9 @@ ${amount} voor ${merchant} - ${date}`,
         copyReferralLink: 'Kopieer uitnodigingslink',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat met uw setup specialist in',
-            phrase2: 'voor hulp',
-        },
-        default: {
-            phrase1: 'Bericht',
-            phrase2: 'voor hulp bij de installatie',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chat met uw setup specialist in <a href="${href}">${adminReportName}</a> voor hulp`,
+        default: `Bericht <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> voor hulp bij de installatie`,
     },
     violations: {
         allTagLevelsRequired: 'Alle tags vereist',
@@ -6771,7 +6796,8 @@ ${amount} voor ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Ontvangst in behandeling vanwege verbroken bankverbinding',
-        adminBrokenConnectionError: 'Ontvangst in afwachting vanwege verbroken bankverbinding. Los dit alstublieft op in',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Bon in afwachting vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ontvangst in afwachting vanwege een verbroken bankverbinding. Vraag een werkruimtebeheerder om het op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
         smartscanFailed: ({canEdit = true}) => `Bonnetjes scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
@@ -6843,7 +6869,6 @@ ${amount} voor ${merchant} - ${date}`,
         quickTip: 'Snelle tip...',
         quickTipSubTitle: 'Je kunt direct naar Expensify Classic gaan door expensify.com te bezoeken. Voeg het toe aan je bladwijzers voor een gemakkelijke snelkoppeling!',
         bookACall: 'Boek een gesprek',
-        noThanks: 'Nee, bedankt',
         bookACallTitle: 'Wilt u met een productmanager spreken?',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Direct chatten over onkosten en rapporten',
@@ -6938,7 +6963,6 @@ ${amount} voor ${merchant} - ${date}`,
             },
             earlyDiscount: {
                 claimOffer: 'Aanbieding claimen',
-                noThanks: 'Nee, bedankt',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>${discountType}% korting op uw eerste jaar!</strong> Voeg gewoon een betaalkaart toe en start een jaarlijks abonnement.`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Aanbieding voor beperkte tijd: ${discountType}% korting op uw eerste jaar!`,
@@ -7253,7 +7277,6 @@ ${amount} voor ${merchant} - ${date}`,
             manager: '<tooltip>Kies onze <strong>testmanager</strong> om het uit te proberen!</tooltip>',
             confirmation: '<tooltip><strong>Dien nu je onkosten in</strong> en zie\nwat er gebeurt!</tooltip>',
             tryItOut: 'Probeer het uit',
-            noThanks: 'Nee, bedankt',
         },
         outstandingFilter: '<tooltip>Filter op onkosten\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur dit bonnetje om de\n<strong>test uit te voeren!</strong></tooltip>',
@@ -7319,6 +7342,11 @@ ${amount} voor ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
     avatarPage: {title: 'Profielfoto bewerken', upload: 'Uploaden', uploadPhoto: 'Foto uploaden', selectAvatar: 'Selecteer avatar', chooseCustomAvatar: 'Of kies een aangepaste avatar'},
+    openAppFailureModal: {
+        title: 'Er is iets misgegaan...',
+        subtitle: `We hebben niet al uw gegevens kunnen laden. We zijn op de hoogte gesteld en onderzoeken het probleem. Als dit aanhoudt, neem dan contact op met`,
+        refreshAndTryAgain: 'Vernieuw en probeer het opnieuw',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
