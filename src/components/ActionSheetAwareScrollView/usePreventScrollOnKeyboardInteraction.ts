@@ -35,7 +35,7 @@ function usePreventScrollOnKeyboardInteraction({scrollViewRef, enabled = false}:
         },
     });
 
-    return preventScrollOnKeyboardInteraction;
+    return enabled ? preventScrollOnKeyboardInteraction : null;
 }
 
 export default usePreventScrollOnKeyboardInteraction;
