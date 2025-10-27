@@ -750,6 +750,25 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.EUR,
             });
         });
+
+        it('should include reportName when field is reportID', () => {
+            // Given a transaction with a reportID and reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: '123',
+                reportName: 'Test Report',
+            };
+            const fieldValue = '456';
+
+            // When we get updated values for reportID field
+            const result = getMergeFieldUpdatedValues(transaction, 'reportID', fieldValue);
+
+            // Then it should include both reportID and reportName
+            expect(result).toEqual({
+                reportID: '456',
+                reportName: 'Test Report',
+            });
+        });
     });
 
     describe('getMergeFieldErrorText', () => {

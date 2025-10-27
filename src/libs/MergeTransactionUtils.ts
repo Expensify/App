@@ -325,6 +325,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        reportName: mergeTransaction.reportName,
     };
 }
 
@@ -435,7 +436,7 @@ function buildMergeFieldsData(
 
 /**
  * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field
+ * Handles special cases like currency for amount field, reportID
  */
 function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
     const updatedValues: MergeTransactionUpdateValues = {
@@ -444,6 +445,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
     }
 
     return updatedValues;
