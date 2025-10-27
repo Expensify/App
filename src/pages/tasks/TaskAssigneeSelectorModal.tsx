@@ -5,7 +5,6 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -37,12 +36,11 @@ function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
-    const session = useSession();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
@@ -57,24 +55,24 @@ function TaskAssigneeSelectorModal() {
     });
 
     const optionsWithoutCurrentUser = useMemo(() => {
-        if (!session?.accountID) {
+        if (!currentUserPersonalDetails?.accountID) {
             return availableOptions;
         }
 
         return {
             ...availableOptions,
-            personalDetails: availableOptions.personalDetails.filter((detail) => detail.accountID !== session.accountID),
-            recentReports: availableOptions.recentReports.filter((report) => report.accountID !== session.accountID),
+            personalDetails: availableOptions.personalDetails.filter((detail) => detail.accountID !== currentUserPersonalDetails.accountID),
+            recentReports: availableOptions.recentReports.filter((report) => report.accountID !== currentUserPersonalDetails.accountID),
         };
-    }, [availableOptions, session?.accountID]);
+    }, [availableOptions, currentUserPersonalDetails?.accountID]);
 
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
             (optionsWithoutCurrentUser.recentReports?.length || 0) + (optionsWithoutCurrentUser.personalDetails?.length || 0) !== 0 || !!optionsWithoutCurrentUser.currentUserOption,
             !!optionsWithoutCurrentUser.userToInvite,
             debouncedSearchTerm,
-            false,
             countryCode,
+            false,
         );
     }, [optionsWithoutCurrentUser, debouncedSearchTerm, countryCode]);
 
@@ -149,12 +147,20 @@ function TaskAssigneeSelectorModal() {
                     const assigneeChatReport = setAssigneeValue(
                         option?.login ?? '',
                         option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserPersonalDetails.accountID,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
                     );
                     // Pass through the selected assignee
-                    editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    editTaskAssignee(
+                        report,
+                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        option?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        option?.accountID,
+                        assigneeChatReport,
+                    );
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
@@ -165,6 +171,7 @@ function TaskAssigneeSelectorModal() {
                 setAssigneeValue(
                     option?.login ?? '',
                     option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails.accountID,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
@@ -175,7 +182,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report, backTo],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

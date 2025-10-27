@@ -76,9 +76,10 @@ function useOptions() {
             options.personalDetails.length + options.recentReports.length !== 0,
             !!options.userToInvite,
             debouncedSearchTerm.trim(),
+            countryCode,
             selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
-    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
+    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions, countryCode]);
 
     useFocusEffect(
         useCallback(() => {
