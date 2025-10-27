@@ -1419,7 +1419,7 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
     const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
     if (groupPolicies.length === 0) {
         return false;
@@ -1427,7 +1427,7 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
-function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
