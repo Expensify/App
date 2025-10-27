@@ -28,7 +28,6 @@ if [ "$#" -ne 1 ] || [[ "$1" != "--ios" && "$1" != "--ipad" && "$1" != "--ipad-s
 fi
 
 BUILD="$1"
-DEV_SERVER_FLAG="--dev-server"
 
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
@@ -58,16 +57,16 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" $DEV_SERVER_FLAG
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad)
-        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" $DEV_SERVER_FLAG
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad-sm)
-        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" $DEV_SERVER_FLAG
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --android)
-        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose $DEV_SERVER_FLAG
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server
         ;;
     *)
         print_error_and_exit
