@@ -192,17 +192,15 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
-function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean, isManualDistanceRequest: boolean) {
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean) {
     // Determine when to show the receipt empty state:
     // - Show for pay, submit or track expense types
     // - Hide for per diem requests
     // - Hide when submitting a track expense to a non-paid group policy (personal users)
-    // - Hide for manual distance requests because attaching a receipt before creating the expense will trigger Smartscan but distance request amount depends on the distance traveled and mileage rate
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY) &&
         !isPerDiemRequest &&
-        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy)) &&
-        !isManualDistanceRequest
+        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy))
     );
 }
 

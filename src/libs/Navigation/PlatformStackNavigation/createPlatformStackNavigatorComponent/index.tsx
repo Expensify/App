@@ -3,7 +3,6 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
 import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import type {
@@ -38,8 +37,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         persistentScreens,
         ...props
     }: PlatformStackNavigatorProps<ParamListBase>) {
-        const {translate} = useLocalize();
-
         const {
             navigation,
             state: originalState,
@@ -65,7 +62,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 parentRoute,
                 persistentScreens,
-                translate,
             },
             convertToWebNavigationOptions,
         );

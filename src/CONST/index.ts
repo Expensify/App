@@ -1688,6 +1688,7 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
+        INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
@@ -2071,7 +2072,7 @@ const CONST = {
     LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
-    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
+    EXPENSIFY_MERCHANT: 'Expensify',
     EMAIL,
 
     FULLSTORY: {
@@ -7007,6 +7008,7 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+        FORMULA: 'formula',
     },
 
     NAVIGATION_ACTIONS: {
