@@ -85,6 +85,12 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type LearnMoreRouteParams = {
+    learnMoreMethodsRoute: string;
+    formattedPrice: string;
+    hasTeam2025Pricing: boolean;
+};
+
 type BeginningOfArchivedRoomParams = {
     reportName: string;
     reportDetailsLink: string;
@@ -1054,6 +1060,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
+    LearnMoreRouteParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
