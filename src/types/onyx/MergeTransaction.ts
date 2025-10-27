@@ -59,8 +59,4 @@ type MergeTransaction = {
     attendees?: Attendee[];
 };
 
-/** Type for merge transaction update values that supports null values for clearing Onyx keys */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, unknown>>;
-
 export default MergeTransaction;
-export type {MergeTransactionUpdateValues};
