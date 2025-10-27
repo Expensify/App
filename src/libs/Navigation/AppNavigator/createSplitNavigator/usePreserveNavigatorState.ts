@@ -1,6 +1,6 @@
 import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
-import NAVIGATORS from '@src/NAVIGATORS';
 import {useEffect} from 'react';
+import NAVIGATORS from '@src/NAVIGATORS';
 
 const preservedNavigatorStates: Record<string, StackNavigationState<ParamListBase>> = {};
 
@@ -16,12 +16,11 @@ const cleanPreservedNavigatorStates = (state: NavigationState) => {
 
 const clearPreservedSearchNavigatorStates = () => {
     for (const key of Object.keys(preservedNavigatorStates)) {
-        console.log(key);
         if (key.startsWith(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)) {
             delete preservedNavigatorStates[key];
         }
     }
-}
+};
 
 const getPreservedNavigatorState = (key: string) => preservedNavigatorStates[key];
 

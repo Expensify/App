@@ -6,6 +6,7 @@ import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as 
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONFIG from '@src/CONFIG';
@@ -19,7 +20,6 @@ import {confirmReadyToOpenApp, openApp} from './App';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
-import { clearPreservedSearchNavigatorStates } from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
