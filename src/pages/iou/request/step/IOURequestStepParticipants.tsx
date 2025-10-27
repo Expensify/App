@@ -299,7 +299,8 @@ function IOURequestStepParticipants({
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
         transactions.forEach((transaction) => {
             setMoneyRequestTag(transaction.transactionID, '');
-            setMoneyRequestCategory(transaction.transactionID, '');
+            const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
+            setMoneyRequestCategory(transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
@@ -350,7 +351,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
