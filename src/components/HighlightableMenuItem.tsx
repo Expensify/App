@@ -3,6 +3,7 @@ import React, {forwardRef} from 'react';
 import type {View} from 'react-native';
 import {StyleSheet} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
@@ -14,12 +15,14 @@ type Props = MenuItemProps & {
 
 function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Props, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const flattenedWrapperStyles = StyleSheet.flatten(wrapperStyle);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
         height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem.height,
         borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem.borderRadius,
+        highlightColor: theme.messageHighlightBG,
     });
 
     return (
