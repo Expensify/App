@@ -2455,8 +2455,8 @@ function updateReportField(
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    // This can be removed after NextStep (simplified format) is fully migrated
-    // eslint-disable-next-line deprecation/deprecation
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report,
         predictedNextStatus,
@@ -2852,8 +2852,8 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    // This can be removed after NextStep (simplified format) is fully migrated
-    // eslint-disable-next-line deprecation/deprecation
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -5767,8 +5767,8 @@ function buildOptimisticChangePolicyData(
     }
 
     if (newStatusNum) {
-        // This can be removed after NextStep (simplified format) is fully migrated
-        // eslint-disable-next-line deprecation/deprecation
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,

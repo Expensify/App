@@ -284,9 +284,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     return nextStep;
 }
 
-/**
- * @deprecated Use NextStep new format and buildNextStepMessage instead
- */
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
     messages?.forEach((part, index) => {
@@ -327,9 +324,6 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
     return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
-/**
- * @deprecated Use NextStep new format and buildOptimisticNextStep instead
- */
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
@@ -373,9 +367,8 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 }
 
 /**
- * Please don't use this function anymore, let's use NextStep new format and buildOptimisticNextStep instead
+ * Please don't use this function anymore, let's use buildNextStepNew instead
  *
- * @deprecated Use NextStep new format and buildOptimisticNextStep instead
  * @param report
  * @param predictedNextStatus - a next expected status of the report
  * @param shouldFixViolations - whether to show `fix the issue` next step
@@ -754,7 +747,7 @@ function buildNextStep(
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
- * @deprecated Use NextStep new format and buildOptimisticNextStep instead
+ * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
 function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
     const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
@@ -1122,5 +1115,6 @@ export {
     buildNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };

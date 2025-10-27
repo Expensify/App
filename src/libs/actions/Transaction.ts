@@ -406,6 +406,8 @@ function dismissDuplicateTransactionViolation(
         const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -1265,8 +1267,8 @@ function changeTransactionsReport(
     };
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
 
-    // This can be removed after NextStep (simplified format) is fully migrated
-    // eslint-disable-next-line deprecation/deprecation
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: nextStepReport,
         policy,
