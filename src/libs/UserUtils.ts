@@ -181,14 +181,14 @@ function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accoun
  * @param avatarURL - the URL returned by getDefaultAvatarURL
  * @returns the avatar name (e.g., 'default-avatar_5', 'concierge') or undefined if not a valid default avatar URL
  */
-function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefined {
+function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): CustomAvatarID | undefined {
     if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
         return undefined;
     }
 
     // Extract avatar name from CloudFront URL and make sure it's one of defaults
-    const match = avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '';
-    if (ALL_CUSTOM_AVATARS[match as CustomAvatarID]) {
+    const match = (avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '') as CustomAvatarID;
+    if (ALL_CUSTOM_AVATARS[match]) {
         return match;
     }
 }
@@ -197,15 +197,9 @@ function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
  * * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
  * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string): avatarSource is string | undefined {
+function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
     if (typeof avatarSource === 'string') {
-        if (
-            avatarSource.includes('images/avatars/avatar_') ||
-            avatarSource.includes('images/avatars/default-avatar_') ||
-            avatarSource.includes('images/avatars/user/default') ||
-            avatarSource.includes('images/avatars/custom-avatars') || // F1 season avatars
-            (originalFileName && /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/.test(originalFileName)) // generated letter avatar name
-        ) {
+        if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
         }
 
@@ -213,6 +207,25 @@ function isDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string)
         if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
+    }
+
+    return false;
+}
+
+/**
+ * * Given a user's avatar path and originalFileName, returns true if URL points to a default avatar, false otherwise
+ * @param avatarSource - the avatar source from user's personalDetails
+ * @param originalFileName - the avatar original file name from user's personalDetails
+ */
+function isDefaultOrCustomDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string): boolean {
+    if (
+        (typeof avatarSource === 'string' && avatarSource.includes('images/avatars/custom-avatars')) || // F1 avatars
+        (originalFileName && /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/.test(originalFileName)) // Letter avatars
+    ) {
+        return true;
+    }
+    if (isDefaultAvatar(avatarSource)) {
+        return true;
     }
 
     return false;
@@ -264,7 +277,7 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number, acc
     }
     const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(avatarSource);
     if (maybeDefaultAvatarName) {
-        return getAvatarLocal(maybeDefaultAvatarName as CustomAvatarID);
+        return getAvatarLocal(maybeDefaultAvatarName);
     }
 
     // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
@@ -354,6 +367,7 @@ export {
     generateAccountID,
     getAvatar,
     getAvatarUrl,
+    getDefaultAvatarNameFromURL,
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
@@ -363,6 +377,7 @@ export {
     hasLoginListError,
     hasLoginListInfo,
     hashText,
+    isDefaultOrCustomDefaultAvatar,
     isDefaultAvatar,
     getContactMethod,
     isCurrentUserValidated,

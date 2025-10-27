@@ -22,7 +22,7 @@ import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
+import {isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -78,7 +78,7 @@ function ProfileAvatar() {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
 
-    const isUsingDefaultAvatar = (!imageData.uri && isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '', currentUserPersonalDetails?.originalFileName)) || !!selected;
+    const isUsingDefaultAvatar = (!imageData.uri && isDefaultOrCustomDefaultAvatar(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.originalFileName)) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -199,6 +199,7 @@ function ProfileAvatar() {
                 accountID: currentUserPersonalDetails?.accountID,
             });
             setSelected(undefined);
+            setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
             isSavingRef.current = false;
         });
