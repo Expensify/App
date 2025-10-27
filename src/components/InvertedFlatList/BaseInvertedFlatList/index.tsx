@@ -42,6 +42,8 @@ function BaseInvertedFlatList<T>({
         return null;
     });
     const [isInitialData, setIsInitialData] = useState(true);
+    const [isQueueRendering, setIsQueueRendering] = useState(false);
+
     const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
@@ -55,7 +57,7 @@ function BaseInvertedFlatList<T>({
     const dataIndexDifference = data.length - displayedData.length;
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
+    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
     useEffect(() => {
         return () => {
             renderQueue.cancel();
@@ -87,6 +89,10 @@ function BaseInvertedFlatList<T>({
     );
 
     const maintainVisibleContentPosition = useMemo(() => {
+        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
+            return undefined;
+        }
+
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
@@ -97,7 +103,7 @@ function BaseInvertedFlatList<T>({
         }
 
         return config;
-    }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {

@@ -39,6 +39,7 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
+import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -127,6 +128,7 @@ function App() {
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
                                         KYCWallContextProvider,
+                                        WideRHPContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

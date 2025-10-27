@@ -50,6 +50,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -341,8 +342,8 @@ type PureReportActionItemProps = {
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-        policy: OnyxEntry<OnyxTypes.Policy>,
         isReportArchived: boolean,
+        policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -386,6 +387,9 @@ type PureReportActionItemProps = {
 
     /** Current user's account id */
     currentUserAccountID?: number;
+
+    /** The bank account list */
+    bankAccountList?: OnyxTypes.BankAccountList | undefined;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -452,6 +456,7 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    bankAccountList,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -906,8 +911,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             });
@@ -923,8 +928,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
@@ -937,8 +942,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
@@ -1199,7 +1204,21 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                const originalMessage = getOriginalMessage(action);
+                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+                if (originalMessage?.bankAccountID) {
+                    const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
+                    children = (
+                        <ReportActionItemBasicMessage
+                            message={translate(originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {
+                                amount,
+                                last4Digits: bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                            })}
+                        />
+                    );
+                } else {
+                    children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
             const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
@@ -1841,6 +1860,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
-        prevProps.shouldHighlight === nextProps.shouldHighlight
+        prevProps.shouldHighlight === nextProps.shouldHighlight &&
+        deepEqual(prevProps.bankAccountList, nextProps.bankAccountList)
     );
 });
