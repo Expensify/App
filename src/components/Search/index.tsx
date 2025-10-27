@@ -538,7 +538,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!data.length || isRefreshingSelection.current) {
             return;
         }
-        const areItemsGrouped = !!validGroupBy;
+        const areItemsGrouped = !!validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
         const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -548,7 +548,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!areAllItemsSelected) {
             selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy, type]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
