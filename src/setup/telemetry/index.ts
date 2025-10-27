@@ -8,7 +8,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 export default function (): void {
     Sentry.init({
-        dsn: 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840',
+        dsn: CONFIG.SENTRY_DSN,
         tracesSampleRate: 1.0,
         profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
