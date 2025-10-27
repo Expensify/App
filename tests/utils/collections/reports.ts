@@ -1,8 +1,8 @@
 import {randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
+import type {ValueOf} from 'type-fest';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
-import type { ValueOf } from 'type-fest';
 
 /**
  * Creates a report with random settings
