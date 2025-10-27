@@ -579,7 +579,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 return `${value}`;
             }
 
-            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
                 const value = sanitizeSearchValue(filterValue as string);
                 const isFieldNegated = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX);
                 const isTextBasedReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) || isNegated;
