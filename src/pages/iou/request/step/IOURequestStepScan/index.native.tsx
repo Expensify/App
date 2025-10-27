@@ -560,6 +560,7 @@ function IOURequestStepScan({
             }
 
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, undefined, true);
+            removeDraftTransactions(true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);

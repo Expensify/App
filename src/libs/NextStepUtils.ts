@@ -25,11 +25,11 @@ import {
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    hasViolations: boolean;
-    isASAPSubmitBetaEnabled: boolean;
+    policy?: OnyxEntry<Policy>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    hasViolations?: boolean;
+    isASAPSubmitBetaEnabled?: boolean;
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
@@ -547,7 +547,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID: currentUserAccountIDParam,
+        currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
     const isReportContainingTransactions =

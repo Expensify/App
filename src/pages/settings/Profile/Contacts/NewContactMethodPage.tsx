@@ -33,24 +33,25 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const navigateBackTo = route?.params?.backTo;
 
     const handleValidateMagicCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
             const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
             resetValidateActionCodeSent();
             addPendingContactMethod(submitDetail);
             Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(submitDetail, navigateBackTo));
         },
-        [navigateBackTo],
+        [navigateBackTo, countryCode],
     );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
             const errors = {};
@@ -82,7 +83,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         // the loginList gets updated, causing this function to run again.
         // https://github.com/Expensify/App/issues/20610
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [translate],
+        [translate, countryCode],
     );
 
     const onBackButtonPress = useCallback(() => {

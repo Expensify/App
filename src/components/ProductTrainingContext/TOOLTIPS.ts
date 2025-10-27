@@ -3,20 +3,10 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {
-    CONCIERGE_LHN_GBR,
-    RENAME_SAVED_SEARCH,
-    SCAN_TEST_TOOLTIP,
-    SCAN_TEST_TOOLTIP_MANAGER,
-    SCAN_TEST_CONFIRMATION,
-    OUTSTANDING_FILTER,
-    ACCOUNT_SWITCHER,
-    SCAN_TEST_DRIVE_CONFIRMATION,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    MULTI_SCAN_EDUCATIONAL_MODAL,
-} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, SCAN_TEST_TOOLTIP, SCAN_TEST_TOOLTIP_MANAGER, SCAN_TEST_CONFIRMATION, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION} =
+    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof MULTI_SCAN_EDUCATIONAL_MODAL>;
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
