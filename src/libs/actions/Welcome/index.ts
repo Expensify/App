@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {Account, OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GetOnboardingInitialPathParamsType, OnboardingCompanySize} from './OnboardingFlow';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 import {startOnboardingFlow} from './OnboardingFlow';
 
 let isLoadingReportData = true;
@@ -64,7 +64,14 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
                     return;
                 }
 
-                startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
+                startOnboardingFlow({
+                    onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
+                    onboardingValuesParam: undefined,
+                    isUserFromPublicDomain: false,
+                    hasAccessiblePolicies: false,
+                    currentOnboardingCompanySize: undefined,
+                    currentOnboardingPurposeSelected: undefined,
+                });
             });
 
             return;
