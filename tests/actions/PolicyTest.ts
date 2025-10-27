@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
-import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
@@ -26,6 +25,8 @@ const ESH_ACCOUNT_ID = 1;
 const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
+
+const EMPLOYEE_EMAIL = 'employee@example.com';
 
 OnyxUpdateManager();
 describe('actions/Policy', () => {
@@ -717,6 +718,59 @@ describe('actions/Policy', () => {
             expect(policy?.autoReporting).toBe(autoReporting);
             expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
         });
+
+        it('upgradeToCorporate should set eReceipts to true when outputCurrency is USD', async () => {
+            // Given a policy with USD currency
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                eReceipts: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then eReceipts should be enabled
+            expect(policy?.eReceipts).toBe(true);
+        });
+
+        it("upgradeToCorporate shouldn't set eReceipts to true when outputCurrency is not USD", async () => {
+            // Given a policy with non-USD currency
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.EUR,
+                eReceipts: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
+        });
     });
 
     describe('disableWorkflows', () => {
@@ -800,6 +854,72 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('setWorkspaceApprovalMode', () => {
+        it('should not change employee list when disabling approval', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const policyID = Policy.generatePolicyID();
+            const employeeList = {
+                [ESH_EMAIL]: {
+                    email: ESH_EMAIL,
+                    submitsTo: ESH_EMAIL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+                [EMPLOYEE_EMAIL]: {
+                    email: EMPLOYEE_EMAIL,
+                    submitsTo: ESH_EMAIL,
+                    role: CONST.POLICY.ROLE.USER,
+                },
+            };
+
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+                employeeList,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            expect(policy?.employeeList).toEqual(employeeList);
+            expect(policy?.pendingFields?.approvalMode).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.pendingFields?.approvalMode).toBeFalsy();
+            expect(policy?.employeeList).toEqual(employeeList);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        });
+    });
+
     describe('deleteWorkspace', () => {
         it('should apply failure data when deleteWorkspace fails', async () => {
             // Given a policy
@@ -811,14 +931,12 @@ describe('actions/Policy', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyName: fakePolicy.name,
             };
-            const fakeReimbursementAccount = {errors: {}};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
-            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined);
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {});
 
             await waitForBatchedUpdates();
 
@@ -880,13 +998,13 @@ describe('actions/Policy', () => {
             const expenseChatReportID = '1';
             const expenseReportID = '2';
             const transactionID = '3';
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, {
+            const expenseChatReport = {
                 ...createRandomReport(Number(expenseChatReportID)),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID,
                 iouReportID: expenseReportID,
-            });
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, expenseChatReport);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reportID: expenseReportID,
@@ -898,7 +1016,21 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test', undefined, undefined);
+            Policy.deleteWorkspace(
+                policyID,
+                'test',
+                undefined,
+                undefined,
+                [expenseChatReport],
+                {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactionViolations_3: [
+                        {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                        {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+                    ],
+                },
+                undefined,
+            );
 
             await waitForBatchedUpdates();
 
@@ -923,7 +1055,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined);
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -947,7 +1079,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -973,7 +1105,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1014,8 +1146,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
@@ -1028,8 +1159,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
@@ -1044,8 +1174,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
 
         it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
@@ -1063,8 +1192,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
@@ -1075,8 +1203,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace', {}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
@@ -1098,8 +1225,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-
-            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
         });
     });
 
@@ -1166,7 +1292,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
-            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
         });
@@ -1204,7 +1330,7 @@ describe('actions/Policy', () => {
 
             // The policy join should have the genericAdd error
             expect(policyJoinData?.errors).toBeTruthy();
-            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
         });

@@ -86,6 +86,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
+        /** The date the report was created */
+        created?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 

@@ -18,6 +18,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
 import {approveMoneyRequest} from './actions/IOU';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
@@ -26,6 +27,21 @@ import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
+
+type SelectPaymentTypeParams = {
+    event: KYCFlowEvent;
+    iouPaymentType: PaymentMethodType;
+    triggerKYCFlow: TriggerKYCFlow;
+    policy: OnyxEntry<Policy>;
+    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    currentAccountID: number;
+    currentEmail: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    isUserValidated?: boolean;
+    confirmApproval?: () => void;
+    iouReport?: OnyxEntry<Report>;
+};
 
 /**
  * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
@@ -51,12 +67,15 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
 function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount, bankCurrency?: string): string {
     if (account) {
         if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${bankCurrency ? `${bankCurrency} ${CONST.DOT_SEPARATOR} ` : ''}${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT && 'accountNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
         }
     }
@@ -119,16 +138,9 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
  */
-const selectPaymentType = (
-    event: KYCFlowEvent,
-    iouPaymentType: PaymentMethodType,
-    triggerKYCFlow: TriggerKYCFlow,
-    policy: OnyxEntry<Policy>,
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void,
-    isUserValidated?: boolean,
-    confirmApproval?: () => void,
-    iouReport?: OnyxEntry<Report>,
-) => {
+const selectPaymentType = (params: SelectPaymentTypeParams) => {
+    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
+        params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -148,7 +160,7 @@ const selectPaymentType = (
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, true);
         }
         return;
     }
@@ -208,4 +220,4 @@ export {
     isSecondaryActionAPaymentOption,
     getActivePaymentType,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams};

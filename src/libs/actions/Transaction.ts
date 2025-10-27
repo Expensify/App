@@ -19,11 +19,13 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
     hasViolations as hasViolationsReportUtils,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -383,7 +385,13 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(transactionIDs: string[], dismissedPersonalDetails: PersonalDetails) {
+function dismissDuplicateTransactionViolation(
+    transactionIDs: string[],
+    dismissedPersonalDetails: PersonalDetails,
+    expenseReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
@@ -393,6 +401,54 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dismisse
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+
+    if (expenseReport) {
+        const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
+            ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
+        );
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: expenseReport,
+            predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: hasOtherViolationsBesideDuplicates,
+            policy,
+            currentUserAccountIDParam: dismissedPersonalDetails.accountID,
+            currentUserEmailParam: dismissedPersonalDetails.login ?? '',
+            hasViolations: hasOtherViolationsBesideDuplicates,
+            isASAPSubmitBetaEnabled,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: expenseReport,
+            predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: hasOtherViolationsBesideDuplicates,
+            policy,
+            currentUserAccountIDParam: dismissedPersonalDetails.accountID,
+            currentUserEmailParam: dismissedPersonalDetails.login ?? '',
+            hasViolations: hasOtherViolationsBesideDuplicates,
+            isASAPSubmitBetaEnabled,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {nextStep: optimisticNextStep},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+    }
 
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
@@ -484,6 +540,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dismisse
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
         reportActionIDList: optimisticDismissedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
+        reportID: expenseReport?.reportID,
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -634,8 +691,8 @@ function changeTransactionsReport(
     const successData: OnyxUpdate[] = [];
 
     const existingSelfDMReportID = findSelfDMReportID();
-    let selfDMReport: Report;
-    let selfDMCreatedReportAction: ReportAction;
+    let selfDMReport: Report | undefined;
+    let selfDMCreatedReportAction: ReportAction | undefined;
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -741,6 +798,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                comment: {
+                    hold: null,
+                },
             },
         });
 
@@ -757,6 +817,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                comment: {
+                    hold: transaction.comment?.hold,
+                },
             },
         });
 
@@ -841,10 +904,12 @@ function changeTransactionsReport(
             }
         }
 
+        const allowNegative = shouldEnableNegative(newReport);
+
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction);
+        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
@@ -855,14 +920,20 @@ function changeTransactionsReport(
                 (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
-        if (reportID && newReport) {
-            updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
-            updatedReportNonReimbursableTotals[targetReportID] =
-                (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
-                (transactionReimbursable ? 0 : transactionAmount);
-            updatedReportUnheldNonReimbursableTotals[targetReportID] =
-                (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
-                (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+
+        if (targetReportID) {
+            const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
+            const targetReport =
+                allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+
+            const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
+            updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
+
+            const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
+            updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
+
+            const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
+            updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -1064,7 +1135,7 @@ function changeTransactionsReport(
                 : {}),
         };
 
-        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
@@ -1073,6 +1144,33 @@ function changeTransactionsReport(
             };
         } else {
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
+
+        // Build unhold report action
+        if (isOnHold(transaction)) {
+            const unHoldAction = buildOptimisticUnHoldReportAction();
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: unHoldAction},
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: {pendingAction: null}},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: null},
+            });
+
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...transactionIDToReportActionAndThreadData[transaction.transactionID],
+                unholdReportActionID: unHoldAction.reportActionID,
+            };
         }
     });
 
@@ -1153,7 +1251,18 @@ function changeTransactionsReport(
     });
 
     // 9. Update next step for report
-    const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
+    const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
+    const destinationReport = destinationReportID
+        ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
+          (destinationReportID === newReport?.reportID ? newReport : undefined) ??
+          (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
+        : undefined;
+    const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
+    const nextStepReport = {
+        ...destinationReport,
+        reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
+        total: destinationTotal,
+    };
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
 
     // This can be removed after NextStep (simplified format) is fully migrated
@@ -1186,7 +1295,21 @@ function changeTransactionsReport(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {nextStep: optimisticNextStep},
+        value: {
+            nextStep: optimisticNextStep,
+            pendingFields: {
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            pendingFields: {
+                nextStep: null,
+            },
+        },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1196,7 +1319,12 @@ function changeTransactionsReport(
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {nextStep: nextStepReport.nextStep},
+        value: {
+            nextStep: nextStepReport.nextStep ?? null,
+            pendingFields: {
+                nextStep: null,
+            },
+        },
     });
 
     const parameters: ChangeTransactionsReportParams = {

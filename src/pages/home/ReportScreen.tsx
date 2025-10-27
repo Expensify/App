@@ -69,6 +69,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
+    isAdminRoom,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -203,9 +204,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!lastAccessedReportID) {
             return;
         }
-
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-        navigation.setParams({reportID: lastAccessedReportID});
+        Navigation.isNavigationReady().then(() => {
+            Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+            navigation.setParams({reportID: lastAccessedReportID});
+        });
     }, [isBetaEnabled, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -456,7 +458,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 clearDeleteTransactionNavigateBackUrl();
@@ -600,7 +602,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setShouldShowComposeInput(true);
         });
@@ -660,7 +662,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const prevOnyxReportID = prevReport?.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
         const isRemovalExpectedForReportType =
-            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport));
+            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport) || isAdminRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
@@ -749,10 +751,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report?.pendingFields || (!report?.pendingFields.addWorkspaceRoom && !report?.pendingFields.createChat);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             interactionTask = InteractionManager.runAfterInteractions(() => {
                 subscribeToReportLeavingEvents(reportIDFromRoute);
                 didSubscribeToReportLeavingEvents.current = true;
@@ -770,7 +772,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsLinkingToMessage(false);
         });
@@ -831,9 +833,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+
+    // WideRHP should be visible only on wide layout when report is opened in RHP and contains only one expense.
+    // This view is only available for reports of type CONST.REPORT.TYPE.EXPENSE or CONST.REPORT.TYPE.IOU.
     const shouldShowWideRHP =
         route.name === SCREENS.SEARCH.REPORT_RHP &&
         !isSmallScreenWidth &&
+        !shouldDisplayMoneyRequestActionsList &&
         (isTransactionThread(parentReportAction) ||
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
@@ -849,9 +857,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         setIsLinkingToMessage(!!reportActionIDFromRoute);
         return null;
     }
-
-    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -874,27 +879,27 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
-                        >
-                            {headerView}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAccountManagerText}
-                                onClose={dismissBanner}
-                                onButtonPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                                icon={Expensicons.Lightbulb}
-                                shouldShowIcon
-                                shouldShowButton
-                            />
-                        )}
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                errors={reportErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
+                            >
+                                {headerView}
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                    text={chatWithAccountManagerText}
+                                    onClose={dismissBanner}
+                                    onButtonPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                    icon={Expensicons.Lightbulb}
+                                    shouldShowIcon
+                                    shouldShowButton
+                                />
+                            )}
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
@@ -922,6 +927,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             parentReportAction={parentReportAction}
                                             transactionThreadReportID={transactionThreadReportID}
+                                            isReportTransactionThread={isTransactionThreadView}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

@@ -28,11 +28,11 @@ import {
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    hasViolations: boolean;
-    isASAPSubmitBetaEnabled: boolean;
+    policy?: OnyxEntry<Policy>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    hasViolations?: boolean;
+    isASAPSubmitBetaEnabled?: boolean;
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
@@ -358,6 +358,20 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
+function buildOptimisticNextStepForStrictPolicyRuleViolations() {
+    const optimisticNextStep: ReportNextStep = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 /**
  * Please don't use this function anymore, let's use NextStep new format and buildOptimisticNextStep instead
  *
@@ -368,6 +382,10 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
  * @param isUnapprove - whether a report is being unapproved
  * @param isReopen - whether a report is being reopened
  * @returns nextStep
+ */
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * All usages of this function should be replaced with useOnyx hook in React components.
  */
 function buildNextStep(
     report: OnyxEntry<Report>,
@@ -752,7 +770,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID: currentUserAccountIDParam,
+        currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
     const isReportContainingTransactions =
@@ -760,6 +778,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID});
@@ -964,7 +983,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = nextStepPayExpense;
+                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
                 break;
             }
             // Another owner
@@ -1050,7 +1069,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         email: currentUserEmailParam,
                     },
                     report,
-                )
+                ) ||
+                reimbursableSpend === 0
             ) {
                 optimisticNextStep = noActionRequired;
 
@@ -1093,5 +1113,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     return optimisticNextStep;
 }
 
-// eslint-disable-next-line deprecation/deprecation
-export {buildNextStepMessage, buildOptimisticNextStep, parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
+export {
+    buildNextStepMessage,
+    buildOptimisticNextStep,
+    parseMessage,
+    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    buildNextStep,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
+    buildNextStepNew,
+};
