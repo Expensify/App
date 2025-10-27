@@ -6,7 +6,7 @@ import type {InvertedFlatListProps} from './types';
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-function BaseInvertedFlatListE2E({ref, ...props}: InvertedFlatListProps<ReportAction>) {
+function InvertedFlatListE2E({ref, ...props}: InvertedFlatListProps<ReportAction>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
     const handleViewableItemsChanged = useMemo(
@@ -42,6 +42,6 @@ function BaseInvertedFlatListE2E({ref, ...props}: InvertedFlatListProps<ReportAc
     );
 }
 
-BaseInvertedFlatListE2E.displayName = 'BaseInvertedFlatListE2E';
+InvertedFlatListE2E.displayName = 'InvertedFlatListE2E';
 
-export default BaseInvertedFlatListE2E;
+export default InvertedFlatListE2E;

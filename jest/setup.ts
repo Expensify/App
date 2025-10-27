@@ -190,7 +190,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    '@components/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
