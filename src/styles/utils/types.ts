@@ -46,6 +46,11 @@ type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
 type TextColorStyle = {color: string};
 
+type Size = {
+    width: number;
+    height: number;
+};
+
 export type {
     AllStyles,
     ParsableStyle,
@@ -60,4 +65,5 @@ export type {
     SVGAvatarColorStyle,
     EreceiptColorStyle,
     TextColorStyle,
+    Size,
 };

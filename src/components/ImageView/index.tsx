@@ -17,7 +17,7 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type ImageViewProps from './types';
 
-type Dimensions = {
+type Size = {
     width: number;
     height: number;
 };
@@ -40,8 +40,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
 
-    const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
-    const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
+    const [containerSize, setContainerSize] = useState<Size>({width: 0, height: 0});
+    const [imageSize, setImageSize] = useState<Size>({width: 0, height: 0});
 
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
     const zoomScale = useMemo(() => {
@@ -209,7 +209,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         >
             <PressableWithoutFeedback
                 style={{
-                    ...StyleUtils.getZoomSizingStyle(isZoomed, imageSize.width, imageSize.height, zoomScale, containerSize.height, containerSize.width, isLoading),
+                    ...StyleUtils.getZoomSizingStyle({imageSize, containerSize, isZoomed, zoomScale, isLoading}),
                     ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
