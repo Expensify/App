@@ -70,7 +70,12 @@ function MoneyRequestReportGroupHeader({
                         style={styles.mr2}
                     />
                 )}
-                <Text style={[textStyle, shouldShowCheckbox && styles.ml2]}>{`${displayName} - ${formattedAmount}`}</Text>
+                <Text
+                    style={[textStyle, shouldShowCheckbox && styles.ml2]}
+                    shouldUseDefaultLineHeight={false}
+                >
+                    {`${displayName} - ${formattedAmount}`}
+                </Text>
             </View>
         </View>
     );

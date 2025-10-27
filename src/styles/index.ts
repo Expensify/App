@@ -4229,7 +4229,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportLayoutGroupHeaderText: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             lineHeight: 28,
             color: theme.text,
         },
