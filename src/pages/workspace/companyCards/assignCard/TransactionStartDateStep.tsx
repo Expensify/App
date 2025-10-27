@@ -26,7 +26,7 @@ function TransactionStartDateStep() {
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
-    const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const startDate = assignCard?.startDate ?? data?.startDate;
     const [errorText, setErrorText] = useState('');
 
     const handleBackButtonPress = () => {
@@ -46,7 +46,7 @@ function TransactionStartDateStep() {
     };
 
     const submit = () => {
-        if (!isRequiredFulfilled(startDate)) {
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
             return;
         }
@@ -117,7 +117,9 @@ function TransactionStartDateStep() {
                             <View style={[styles.ph5]}>
                                 <DatePicker
                                     inputID=""
-                                    defaultValue={startDate}
+                                    // sometimes startDate can be empty string, so we use || instead of ??
+                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                    defaultValue={startDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
                                         setErrorText('');
