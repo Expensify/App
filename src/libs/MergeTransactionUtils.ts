@@ -35,6 +35,9 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
+/** Type for merge transaction values that can be null to clear existing values in Onyx */
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
     currency: 'iou.currency',
@@ -430,6 +433,22 @@ function buildMergeFieldsData(
     });
 }
 
+/**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field
+ */
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
+    const updatedValues: MergeTransactionUpdateValues = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+    }
+
+    return updatedValues;
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -446,8 +465,9 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     MERGE_FIELDS,
 };
 
-export type {MergeFieldKey, MergeFieldData};
+export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

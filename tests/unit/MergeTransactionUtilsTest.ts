@@ -4,6 +4,7 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
@@ -714,6 +715,40 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldUpdatedValues', () => {
+        it('should return updated values with the field value for non-special fields', () => {
+            // Given a transaction and a basic field like merchant
+            const transaction = createRandomTransaction(0);
+            const fieldValue = 'New Merchant Name';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should return an object with the field value
+            expect(result).toEqual({
+                merchant: 'New Merchant Name',
+            });
+        });
+
+        it('should include currency when field is amount', () => {
+            // Given a transaction with EUR currency
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.EUR,
+            };
+            const fieldValue = 2500;
+
+            // When we get updated values for amount field
+            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+
+            // Then it should include both amount and currency
+            expect(result).toEqual({
+                amount: 2500,
+                currency: CONST.CURRENCY.EUR,
+            });
         });
     });
 
