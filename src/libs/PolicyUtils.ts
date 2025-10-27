@@ -34,7 +34,7 @@ import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
@@ -1439,27 +1439,6 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
-// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
-// is being accessed from the Subscriptions page without a specific policyID.
-// In this case, check if the user is an admin on more than one policy.
-// If the user is an admin for multiple policies, we can render the page as it contains a condition
-// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
-// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
-
-function canModifyPlan(policyID?: string) {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
-
-    if (!policyID) {
-        return ownerPolicies.length > 1;
-    }
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
-    return !!policy && isPolicyAdmin(policy);
-}
-
 function getAdminsPrivateEmailDomains(policy?: Policy) {
     if (!policy) {
         return [];
@@ -1699,7 +1678,6 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
-    canModifyPlan,
     getAdminsPrivateEmailDomains,
     getPolicyNameByID,
     getMostFrequentEmailDomain,

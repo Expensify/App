@@ -15,7 +15,7 @@ import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
+import {isCollectPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const {isOffline} = useNetwork();
     const [isDowngradeWarningModalOpen, setIsDowngradeWarningModalOpen] = useState(false);
 
-    const canPerformDowngrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const canPerformDowngrade = useMemo(() => isPolicyAdmin(policy), [policy]);
     const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
     const onDowngradeToTeam = () => {

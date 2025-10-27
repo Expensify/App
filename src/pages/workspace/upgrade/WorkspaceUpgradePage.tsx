@@ -12,7 +12,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const canPerformUpgrade = useMemo(() => isPolicyAdmin(policy), [policy]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
