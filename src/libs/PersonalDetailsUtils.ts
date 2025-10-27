@@ -36,23 +36,6 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -60,7 +43,8 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    youAfterTranslation = translateLocal('common.you').toLowerCase(),
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
@@ -100,8 +84,8 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return shouldFallbackToHidden ? translateLocal('common.hidden') : '';
 }
 
 /**
@@ -151,12 +135,12 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  * @param logins Array of user logins
  * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins: string[], shouldGenerateAccountID = true): number[] {
+function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
         const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(shouldGenerateAccountID ? generateAccountID(login) : -1);
+            foundAccountIDs.push(generateAccountID(login));
         } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }

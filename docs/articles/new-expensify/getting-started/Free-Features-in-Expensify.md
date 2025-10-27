@@ -1,87 +1,125 @@
 ---
-title: Free Features in Expensify
-description: Learn what features are available for free in Expensify and how individuals can use them for tax tracking, budgeting, and freelance expense management.
-keywords: [New Expensify, free features, SmartScan, expense tracking, tax deductions, budgeting, freelance receipts, personal finance, CSV export, gig worker tools]
+title: Use Free Features in Expensify
+description: Learn how to use free tools in Expensify to scan receipts, track mileage, manage personal expenses, and export your data.
+keywords: [free features, SmartScan, personal expenses, mileage tracking, export expenses, tax tracking, freelance, gig worker, CSV, New Expensify]
 ---
 
+<div id="new-expensify" markdown="1">
 
-You can use Expensify without joining a paid workspace! This guide outlines the free features available to individuals who want to manage personal, freelance, or household expenses.
+# Use Free Features in Expensify
 
----
-
-# Free Features Overview
-
-You can use Expensify without a paid workspace on a free account and still access these core tools:
-
-- **SmartScan receipts:** Scan unlimited receipts
-- **Email receipts:** Send to [receipts@expensify.com](mailto:receipts@expensify.com) for automatic scanning
-- **Track distance:** Log miles or kilometers
-- **Manual entry:** Add and edit expenses in the mobile or web app
-- **Export expenses:** Download your data as a spreadsheet or CSV
-
-💡**Note:** The following commonly used features require a paid workspace [starting at $5 a month](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview):
-
-- [Categories](https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories) and [tags](https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags)
-- [Automatic reimbursement](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
-- The [Expensify Corporate Card](https://use.expensify.com/company-credit-card)
-- Direct connections to [accounting integrations](https://help.expensify.com/new-expensify/hubs/connections/)
-- [Team collaboration tools](https://help.expensify.com/new-expensify/hubs/chat/)
+You don’t need a paid workspace to get value from Expensify. Whether you're a freelancer, gig worker, or just tracking household spending, you can use Expensify without a workspace to manage expenses for free.
 
 ---
 
-# Common Use Cases for Free Users
+## Who can use free features in Expensify
 
-## Track Receipts for Taxes or Deductions
+Anyone with an Expensify account can use the free features — no workspace required.
 
-Stay organized throughout the year and simplify tax time:
-- Store receipts digitally for deductions
-- Export expenses to upload into your tax software
-- Chat and share files with your accountant right in Expensify
+---
 
-**Also helpful for:** Tax documentation, freelance tax prep, 1099 expense tracking.
+## Where to find free features in Expensify
 
-👉 [Learn how to export your expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses)
+- **Web:** Use the navigation tabs on the left to access **Inbox**, **Reports**, or **Account**.
+- **Mobile:** Use the navigation tabs on the bottom to access **Inbox**, **Reports**, or **Account**.
 
+---
 
-## Freelance and Gig Work Expense Tracking
+## What free features are available in Expensify
 
-Perfect for freelancers and gig workers:
+Anyone with an Expensify account can:
 
-- Scan receipts for client-related purchases
-- Generate attachments for invoices
-- Track mileage for deductions
+- **SmartScan unlimited receipts**  
+- **Forward receipts** to [receipts@expensify.com](mailto:receipts@expensify.com) for automatic scanning  
+- **Track distance** using miles or kilometers  
+- **Manually enter expenses** from the web or mobile app  
+- **Export expenses** to CSV or spreadsheet  
 
-**Also helpful for:** Self-employed tracking, gig work deductions, freelance receipts
+**Note:** Paid workspaces are required for features like categories, tags, automatic reimbursement, accounting integrations, and the Expensify Card.
 
-👉 [Here’s how to create expenses](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense)
+---
 
+## How to scan receipts with SmartScan
 
-## Budgeting and Personal Finance Tracking
+Use SmartScan to capture and auto-code receipts.
 
-Use Expensify to manage everyday spending:
+### Web
+1. Click the **+** icon in the navigation tabs on the left > **Create expense**.
+2. Choose **Scan**, then upload or drag in your receipt.
+3. Fill in any details, then click **Submit**.
 
-- Monitor expenses for groceries, utilities, or entertainment
-- Save digital receipts for warranties or big purchases
+### Mobile
+1. Tap the **+** icon at the bottom > **Create expense**.
+2. Snap a photo or upload a file.
+3. Add details if needed, then tap **Submit**.
 
-**Also helpful for:** Household budgeting, shared expenses, tracking big purchases
+---
+
+## How to track mileage for deductions
+
+Use distance tracking to log travel for tax or business deductions.
+
+### Web
+1. Click the **+** icon in the navigation tabs on the left > **Track distance**.
+2. Enter the trip start and end point or enter the distance manually, then click **Next**.
+3. Choose yourself as the recipient and click **Create expense**.
+
+### Mobile
+1. Tap the **+** icon at the bottom > **Track distance**.
+2. Enter the trip start and end point or enter the distance manually, then click **Next**
+3. Choose yourself as the recipient and click **Create expense**.
+
+---
+
+## How to enter expenses manually
+
+For purchases without receipts, enter expenses by hand.
+
+### Web
+1. Click the **+** icon in the navigation tabs on the left > **Create expense** > **Manual**.
+2. Enter the expense amount and click **Next**.
+3. Choose yourself as the recipient.
+4. Fill out the expense details and click **Create expense**.
+
+### Mobile
+1. Tap the **+** icon at the bottom > **Create expense** > **Manual**.
+2. Enter the expense amount and click **Next**.
+3. Choose yourself as the recipient
+4. Fill out the expense details and click **Create expense**.
+
+---
+
+## How to export expenses to CSV
+
+Export your data for taxes, budgeting, or sharing with an accountant.
+
+### Web
+1. Click **Reports** > **Expenses**.
+2. Tick the boxes of the expenses you want to export. 
+3. Click **Selected** at the top.
+4. Choose **Export** from the dropdown menu.
+
+### Mobile
+CSV export is only available on the web. Log in on desktop to export expenses.
 
 ---
 
 # FAQ
 
-## Is SmartScan free?
+## Is SmartScan really free?
 
-Yes! Every account includes unlimited free SmartScans each month.
+Yes! Every personal account includes unlimited free SmartScans.
 
-## Can I use Expensify without a business?
+## Can I use Expensify for freelance or gig work?
 
-Absolutely. Expensify works great for individuals, households, and freelancers.
+Absolutely. You can track business purchases, mileage, and export everything for invoices or taxes.
 
-## Do I need to upgrade to export expenses?
+## Can I export expenses without upgrading?
 
-No. You can export your expenses anytime as a spreadsheet or CSV.
+Yes, you can export to CSV or spreadsheet anytime on the web.
 
-## What if I need advanced features later?
+## What if I need more advanced features later?
 
-You can [create or join a workspace](https://help.expensify.com/articles/new-expensify/getting-started/Track-Personal-Expenses#create-a-workspace) to unlock features like categories, bank connections, accounting integrations, and company card support.
+You can [create or join a workspace](https://help.expensify.com/articles/new-expensify/getting-started/Track-Personal-Expenses#create-a-workspace) to unlock categories, tags, accounting integrations, team tools, and the Expensify Card.
 
+</div>
