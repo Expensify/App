@@ -14,7 +14,7 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
