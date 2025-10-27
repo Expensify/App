@@ -1,8 +1,7 @@
-import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import type Reanimated from 'react-native-reanimated';
-import type {AnimatedScrollViewProps, ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 
 type ActionSheetAwareScrollViewMeasurements = {
@@ -21,17 +20,6 @@ type ActionSheetAwareScrollViewContextValue = {
     resetStateMachine: () => void;
 };
 
-type ActionSheetAwareScrollViewProps = Omit<AnimatedScrollViewProps, 'onScroll'> & {
-    children?: ReactNode | SharedValue<ReactNode>;
-    onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
-};
-
 type ActionSheetAwareScrollViewHandle = ScrollView | Reanimated.ScrollView;
 
-export type {
-    ActionSheetAwareScrollViewProps,
-    ActionSheetAwareScrollViewHandle,
-    ActionSheetAwareScrollViewContextValue,
-    ActionSheetAwareScrollViewMeasurements,
-    ActionSheetAwareScrollViewState,
-};
+export type {ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements, ActionSheetAwareScrollViewState};

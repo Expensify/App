@@ -1,12 +1,14 @@
 import React, {forwardRef} from 'react';
-import Reanimated, {useAnimatedStyle, useComposedEventHandler} from 'react-native-reanimated';
+import type {ScrollViewProps} from 'react-native';
+import Reanimated, {useAnimatedScrollHandler, useAnimatedStyle, useComposedEventHandler} from 'react-native-reanimated';
+import transformReanimatedScrollEventToRN from '@libs/transformReanimatedScrollEventToRN';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import type {ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps} from './types';
+import type {ActionSheetAwareScrollViewHandle} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps>(({style, children, onScroll: onScrollProp, ...restProps}, forwardedRef) => {
+const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ScrollViewProps>(({style, children, onScroll: onScrollProp, ...restProps}, forwardedRef) => {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(forwardedRef);
 
     const spacing = useActionSheetKeyboardSpacing(animatedRef);
@@ -14,8 +16,17 @@ const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, 
         paddingTop: spacing.get(),
     }));
 
+    const animatedScrollHandler = useAnimatedScrollHandler((e) => {
+        if (!onScrollProp) {
+            return;
+        }
+
+        const rnEvent = transformReanimatedScrollEventToRN(e);
+        onScrollProp(rnEvent);
+    });
+
     const preventScrollOnKeyboardInteraction = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
-    const onScroll = useComposedEventHandler([preventScrollOnKeyboardInteraction, onScrollProp ?? null]);
+    const onScroll = useComposedEventHandler([preventScrollOnKeyboardInteraction, animatedScrollHandler]);
 
     return (
         <Reanimated.ScrollView
@@ -37,7 +48,7 @@ export default ActionSheetAwareScrollView;
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView
  */
-const renderScrollComponent = (props: ActionSheetAwareScrollViewProps) => {
+const renderScrollComponent = (props: ScrollViewProps) => {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 };
