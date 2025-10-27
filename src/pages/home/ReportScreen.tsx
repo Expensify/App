@@ -526,6 +526,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
+        // If this function is called too early (while the application is still loading), we will not have information about policies,
+        // which means we will not be able to obtain the correct link for one of the tasks.
+        // More information here: https://github.com/Expensify/App/issues/71742
         if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
             const {choice, inviteType} = introSelected;
             const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
