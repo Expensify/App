@@ -5455,6 +5455,11 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 10,
             borderRadius: 8,
         },
+        copyableTextField: {
+            color: theme.textSupporting,
+            flex: 1,
+            ...wordBreak.breakWord,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>

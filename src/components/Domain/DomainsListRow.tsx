@@ -67,7 +67,7 @@ function DomainsListRow({title, isHovered, isValidated, brickRoadIndicator, menu
                 <TextWithTooltip
                     text={title}
                     shouldShowTooltip
-                    style={[styles.textStrong]}
+                    style={styles.textStrong}
                 />
 
                 {!isValidated && (

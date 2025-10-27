@@ -7278,6 +7278,7 @@ const translations = {
             saveChanges: 'Save changes and return here to verify your domain.',
             youMayNeedToConsult: "You may need to consult your organization's IT department to complete verification.",
             warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+            genericError: "We couldn't verify your domain. Please try again and reach out to Concierge if the problem persists.",
         },
         domainVerified: {
             title: 'Domain verified',

@@ -16,14 +16,14 @@ function CopyableTextField({value, isExpandable = false, isLoading = false}: {va
     const theme = useTheme();
 
     return (
-        <View style={[styles.qbdSetupLinkBox, styles.mt2, styles.border, styles.gap4]}>
+        <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4]}>
             <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter]}>
                 {isLoading ? (
                     <ActivityIndicator color={theme.text} />
                 ) : (
                     <>
                         <Text
-                            style={[styles.optionRowDisabled, {wordBreak: 'break-all'}, styles.flex1]}
+                            style={styles.copyableTextField}
                             numberOfLines={expanded ? undefined : 4}
                         >
                             {value}
@@ -40,7 +40,7 @@ function CopyableTextField({value, isExpandable = false, isLoading = false}: {va
                     small
                     shouldShowRightIcon
                     iconRight={expanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                    style={[styles.alignSelfCenter]}
+                    style={styles.alignSelfCenter}
                     onPress={() => setExpanded((prev) => !prev)}
                 />
             )}
