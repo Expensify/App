@@ -13568,6 +13568,11 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
+    const sumOfCurrentSplits = changesInReportTotal + splitExpensesTotal;
+    const calculatedNewReportTotal = isCreationOfSplits 
+        ? reportTotal - changesInReportTotal
+        : -sumOfCurrentSplits;
+
     const successData = [] as OnyxUpdate[];
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
@@ -13644,7 +13649,7 @@ function updateSplitTransactions({
             moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
             existingTransactionID,
-            newReportTotal: reportTotal - changesInReportTotal,
+            newReportTotal: calculatedNewReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
         });
