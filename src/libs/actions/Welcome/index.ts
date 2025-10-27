@@ -106,8 +106,8 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: TranslationPaths | undefined | null) {
-    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
+function setOnboardingErrorMessage(value: TranslationPaths | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {

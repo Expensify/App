@@ -34,7 +34,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
 
@@ -42,7 +42,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage(undefined);
+        setOnboardingErrorMessage(null);
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -76,7 +76,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
     const validateAccountAndMerge = useCallback(
         (validateCode: string) => {
-            setOnboardingErrorMessage(undefined);
+            setOnboardingErrorMessage(null);
             MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
         },
         [workEmail, session?.accountID],
@@ -110,11 +110,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
                         validateCodeActionErrorField="mergeIntoAccountAndLogIn"
-                        clearError={() => setOnboardingErrorMessage(undefined)}
+                        clearError={() => setOnboardingErrorMessage(null)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            setOnboardingErrorMessage(undefined);
+                            setOnboardingErrorMessage(null);
                             setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}

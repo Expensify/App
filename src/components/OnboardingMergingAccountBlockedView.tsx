@@ -22,7 +22,7 @@ type OnboardingMergingAccountBlockedViewProps = {
 function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
 
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage) {
@@ -48,7 +48,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 style={[styles.mb5]}
                 text={translate('common.buttonConfirm')}
                 onPress={() => {
-                    setOnboardingErrorMessage(undefined);
+                    setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                         return;

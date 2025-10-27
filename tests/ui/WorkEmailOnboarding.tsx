@@ -594,7 +594,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: 'test@company.com',
             });
-            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, specificErrorMessage);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
