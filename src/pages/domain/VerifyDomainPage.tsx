@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -65,6 +67,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen
             testID={VerifyDomainPage.displayName}
         >
             <HeaderWithBackButton
@@ -136,6 +139,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                     text={translate('domain.verifyDomain.title')}
                     onPress={() => validateDomain(accountID)}
                     isLoading={domain?.isValidationPending}
+                    isDisabled={isOffline}
                 />
             </FixedFooter>
         </ScreenWrapper>
