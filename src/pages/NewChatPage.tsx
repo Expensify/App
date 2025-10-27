@@ -41,6 +41,7 @@ const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => v
 
 function useOptions() {
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -48,7 +49,6 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const {contacts} = useContactImport();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     // Filter options which include recent reports, recent contacts, selfDM, invite option and match with the search term
     const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions} = useSearchSelector({
