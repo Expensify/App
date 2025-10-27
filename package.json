@@ -35,6 +35,7 @@
     "desktop": "./scripts/set-pusher-suffix.sh && npm run desktop:build-secure-store && ts-node desktop/start.ts",
     "desktop:build-secure-store": "cd desktop/secure-store && npm install --silent",
     "desktop-build": "./scripts/build-desktop.sh production",
+    "desktop-build-dev": "./scripts/build-desktop-dev.sh",
     "desktop-build-staging": "./scripts/build-desktop.sh staging",
     "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.ts",
     "detectRedirectCycle": "ts-node .github/scripts/detectRedirectCycle.ts",

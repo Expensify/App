@@ -5,6 +5,7 @@ import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +18,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {ElectronWindow} from '@desktop/secureStoreTypes';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +35,6 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
-import type {ElectronWindow} from '@desktop/secureStoreTypes';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +58,7 @@ function ProfilePage() {
 
     const [testKey, setTestKey] = useState('');
     const [testValue, setTestValue] = useState('');
+    const [requireAuth, setRequireAuth] = useState(true);
     const [secureStoreResult, setSecureStoreResult] = useState('');
     const [secureStoreError, setSecureStoreError] = useState('');
 
@@ -99,9 +101,9 @@ function ProfilePage() {
         }
 
         secureStore
-            .set(testKey, testValue)
+            .set(testKey, testValue, {requireAuthentication: requireAuth})
             .then(() => {
-                setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
+                setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue} (auth: ${requireAuth})`);
             })
             .catch((error) => {
                 setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -124,11 +126,11 @@ function ProfilePage() {
         }
 
         try {
-            const value = secureStore.get(testKey);
+            const value = secureStore.get(testKey, {requireAuthentication: requireAuth});
             if (value === null) {
                 setSecureStoreResult(`Key "${testKey}" not found`);
             } else {
-                setSecureStoreResult(`✓ Retrieved: ${testKey} = ${value}`);
+                setSecureStoreResult(`✓ Retrieved: ${testKey} = ${value} (auth: ${requireAuth})`);
             }
         } catch (error) {
             setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -151,8 +153,8 @@ function ProfilePage() {
         }
 
         try {
-            secureStore.delete(testKey);
-            setSecureStoreResult(`✓ Deleted key: ${testKey}`);
+            secureStore.delete(testKey, {requireAuthentication: requireAuth});
+            setSecureStoreResult(`✓ Deleted key: ${testKey} (auth: ${requireAuth})`);
         } catch (error) {
             setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -397,6 +399,13 @@ function ProfilePage() {
                                     onChangeText={setTestValue}
                                     containerStyles={[styles.mb4]}
                                     accessibilityLabel="Value"
+                                />
+                                <CheckboxWithLabel
+                                    isChecked={requireAuth}
+                                    onInputChange={(value) => setRequireAuth(!!value)}
+                                    label="Require biometric authentication (Touch ID/Face ID)"
+                                    accessibilityLabel="Require authentication checkbox"
+                                    style={[styles.mb4]}
                                 />
                                 <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
                                     <Button

@@ -58,6 +58,7 @@ yarn-error.log
 # Bundled code
 dist/
 desktop-build/
+desktop-build-dev/
 
 # BUCK
 buck-out/

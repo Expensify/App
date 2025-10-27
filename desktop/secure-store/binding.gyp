@@ -33,7 +33,11 @@
           ],
           "OTHER_LDFLAGS": [
             "-Wl,-rpath,@loader_path",
-            "-Wl,-install_name,@rpath/libSecureStore.a"
+            "-Wl,-install_name,@rpath/libSecureStore.a",
+            "-Wl,-headerpad_max_install_names",
+            "-framework", "Foundation",
+            "-framework", "Security",
+            "-framework", "LocalAuthentication"
           ],
           "HEADER_SEARCH_PATHS": [
             "$(SRCROOT)/include",
@@ -62,7 +66,8 @@
               "-emit-objc-header-path", "./build_swift/secure_store_addon-Swift.h",
               "-emit-library", "-o", "./build_swift/libSecureStore.a",
               "-emit-module", "-module-name", "secure_store_addon",
-              "-module-link-name", "SecureStore"
+              "-module-link-name", "SecureStore",
+              "-import-objc-header", "include/SecureStoreBridge.h"
             ]
           },
           {
@@ -76,7 +81,7 @@
             "action": [
               "sh",
               "-c",
-              "cp -f <(module_root_dir)/build_swift/libSecureStore.a <(PRODUCT_DIR)/libSecureStore.a && install_name_tool -id @rpath/libSecureStore.a <(PRODUCT_DIR)/libSecureStore.a"
+              "cp -f <(module_root_dir)/build_swift/libSecureStore.a <(PRODUCT_DIR)/libSecureStore.a && install_name_tool -id @rpath/libSecureStore.a <(PRODUCT_DIR)/libSecureStore.a 2>/dev/null || true"
             ]
           }
         ]

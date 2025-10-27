@@ -38,19 +38,26 @@ function loadSecureStoreAddon(): SecureStoreAPI | null {
         log.info('[SecureStore] Loading native addon...');
 
         const addonPaths = [
+            // Development paths
             `${__dirname}/../secure-store/build/Release/secure_store_addon.node`,
             `${app.getAppPath()}/secure-store/build/Release/secure_store_addon.node`,
+            // Packaged app paths (asar.unpacked)
+            `${app.getAppPath().replace('app.asar', 'app.asar.unpacked')}/secure-store/build/Release/secure_store_addon.node`,
+            // Packaged app - Resources folder (via extraFiles)
+            `${process.resourcesPath}/secure_store_addon.node`,
         ];
 
         const nodeModule = require('module') as NodeModuleLoader;
 
         for (const path of addonPaths) {
             try {
+                log.info(`[SecureStore] Trying path: ${path}`);
                 const nativeAddon = nodeModule._load(path, module, false) as SecureStoreAddonNative;
                 const instance = new nativeAddon.SecureStoreAddon();
-                log.info('[SecureStore] Loaded successfully');
+                log.info(`[SecureStore] Loaded successfully from: ${path}`);
                 return instance;
-            } catch {
+            } catch (error) {
+                log.info(`[SecureStore] Failed to load from ${path}: ${error}`);
                 // Try next path
             }
         }
@@ -62,7 +69,7 @@ function loadSecureStoreAddon(): SecureStoreAPI | null {
     }
 }
 
-const secureStore = loadSecureStoreAddon();
+let secureStore: SecureStoreAPI | null = null;
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
@@ -210,7 +217,8 @@ Object.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
-const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
+// For packaged dev builds, use app:// protocol. For unpackaged dev, use dev server URL
+const APP_DOMAIN = __DEV__ && !app.isPackaged ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion: string;
 process.argv.forEach((arg) => {
@@ -401,11 +409,16 @@ const mainWindow = (): Promise<void> => {
     let deeplinkUrl: string;
     let browserWindow: BrowserWindow;
 
-    const loadURL = __DEV__ ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
+    // For packaged dev builds, load from local files. For unpackaged dev, load from dev server
+    const loadURL = __DEV__ && !app.isPackaged ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        app?.dock?.setIcon(`${__dirname}/../icon-dev.png`);
+        // In packaged dev build, icon is in Resources. In unpackaged dev, use path from desktop folder
+        const iconPath = app.isPackaged
+            ? `${process.resourcesPath}/icon-dev.png`
+            : `${app.getAppPath()}/icon-dev.png`;
+        app?.dock?.setIcon(iconPath);
         app.setName('New Expensify Dev');
     }
 
@@ -432,6 +445,9 @@ const mainWindow = (): Promise<void> => {
         app
             .whenReady()
             .then(() => {
+                // Load SecureStore addon after app is ready
+                secureStore = loadSecureStoreAddon();
+
                 /**
                  * We only want to register the scheme this way when in dev, since
                  * when the app is bundled electron-builder will take care of it.

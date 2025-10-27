@@ -47,7 +47,10 @@ module.exports = {
     extraMetadata: {
         version,
     },
-    asarUnpack: ['**/node-mac-permissions/bin/**'],
+    asarUnpack: [
+        '**/node-mac-permissions/bin/**',
+        '**/secure-store/build/**',
+    ],
     mac: {
         category: 'public.app-category.finance',
         icon: macIcon[process.env.ELECTRON_ENV],
