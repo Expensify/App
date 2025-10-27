@@ -425,20 +425,27 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
         },
     ];
 
-    if (parentReport?.hasOutstandingChildTask) {
-        const hasOutstandingChildTask = getOutstandingChildTask(taskReport);
+    const parentReportAction = getParentReportAction(taskReport);
+    if (parentReportAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                hasOutstandingChildTask,
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
             },
         });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                hasOutstandingChildTask: parentReport?.hasOutstandingChildTask,
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
             },
         });
     }
