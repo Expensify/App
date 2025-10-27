@@ -11,6 +11,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,6 +44,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLoading,
     areAllOptionalColumnsHidden,
     violations,
+    onDEWModalOpen,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -70,6 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         transactionItem,
     ]);
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({hasParentReport: !!parentReport, hasTransaction: !!transaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!transactionThreadReport}),
         [parentReport, transaction, parentReportAction, transactionThreadReport],
@@ -99,9 +102,11 @@ function TransactionListItem<TItem extends ListItem>({
 
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
-            (violation: TransactionViolation) => !isViolationDismissed(transactionItem, violation) && shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, false),
+            (violation: TransactionViolation) =>
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
+                shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, currentUserDetails.email ?? '', false),
         );
-    }, [snapshotPolicy, snapshotReport, transactionItem, violations]);
+    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
@@ -113,6 +118,7 @@ function TransactionListItem<TItem extends ListItem>({
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
+            onDEWModalOpen,
         );
     }, [
         currentSearchHash,
@@ -126,6 +132,7 @@ function TransactionListItem<TItem extends ListItem>({
         currentSearchKey,
         onSelectRow,
         item,
+        onDEWModalOpen,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

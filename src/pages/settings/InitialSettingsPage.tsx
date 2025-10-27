@@ -93,6 +93,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -105,14 +106,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(policies, introSelected);
+    const freeTrialText = getFreeTrialText(policies, introSelected, firstDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
@@ -197,7 +198,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
-                brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator:
+                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: freeTrialText,
                 badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
@@ -223,6 +225,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         privateSubscription?.errors,
         stripeCustomerId,
         freeTrialText,
+        retryBillingSuccessful,
     ]);
 
     /**
