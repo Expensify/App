@@ -45,6 +45,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the item is hovered */
     isHovered?: boolean;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -172,6 +175,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isSelectAllChecked,
     isIndeterminate,
     isHovered,
+    onDEWModalOpen,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -202,6 +206,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
+            onDEWModalOpen,
         );
     };
     return !isLargeScreenWidth ? (
