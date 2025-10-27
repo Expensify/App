@@ -273,7 +273,7 @@ function WorkspacesListPage() {
             ];
 
             const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!(isAdmin || isOwner) && defaultApprover !== session?.email && item.policyID !== preferredPolicyID) {
+            if (!(isAdmin || isOwner) && defaultApprover !== session?.email && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
@@ -397,6 +397,7 @@ function WorkspacesListPage() {
             resetLoadingSpinnerIconIndex,
             continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
+            preferredPolicyID,
         ],
     );
 
