@@ -1,5 +1,4 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {InteractionManager} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -58,16 +57,14 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
         // The value `undefined` should not be used here because `testDriveModalDismissed` may not always exist in `onboarding`.
         // So we only compare it to `false` to avoid unintentionally opening the test drive modal.
         if (onboarding?.testDriveModalDismissed === false) {
-            InteractionManager.runAfterInteractions(() => {
-                requestAnimationFrame(() => {
-                    // Check if we're already on the test drive modal route or if navigation is in progress to prevent duplicate navigation
-                    const currentRoute = Navigation.getActiveRoute();
-                    if (currentRoute?.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
-                        return;
-                    }
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                // Check if we're already on the test drive modal route or if navigation is in progress to prevent duplicate navigation
+                const currentRoute = Navigation.getActiveRoute();
+                if (currentRoute?.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+                    return;
+                }
 
-                    startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
-                });
+                startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
             });
 
             return;
