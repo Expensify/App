@@ -40,6 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
+import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
@@ -63,7 +64,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -113,6 +114,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -164,20 +168,21 @@ function SearchList({
     areAllOptionalColumnsHidden,
     newTransactions = [],
     violations,
+    onDEWModalOpen,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
 
-    const {hash, groupBy} = queryJSON;
+    const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
-        if (groupBy) {
+        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
                 return data;
             }
             return data.flatMap((item) => item.transactions);
         }
         return data;
-    }, [data, groupBy]);
+    }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
@@ -219,10 +224,11 @@ function SearchList({
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
+    const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
     const handleLongPressRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
-            const isReadonlyGroupBy = groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -232,14 +238,15 @@ function SearchList({
                 return;
             }
             // disable long press for empty expense reports
-            if ('transactions' in item && item.transactions.length === 0 && !isReadonlyGroupBy) {
+            if ('transactions' in item && item.transactions.length === 0 && !groupBy) {
                 return;
             }
             if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item);
+                onCheckboxPress(item, itemTransactions);
                 return;
             }
             setLongPressedItem(item);
+            setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
         [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
@@ -250,9 +257,9 @@ function SearchList({
         setIsModalVisible(false);
 
         if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem);
+            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress]);
+    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -318,6 +325,8 @@ function SearchList({
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        searchType={type}
+                        onDEWModalOpen={onDEWModalOpen}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -332,6 +341,7 @@ function SearchList({
             );
         },
         [
+            type,
             groupBy,
             newTransactions,
             shouldAnimate,
@@ -357,10 +367,11 @@ function SearchList({
             isOffline,
             areAllOptionalColumnsHidden,
             violations,
+            onDEWModalOpen,
         ],
     );
 
-    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
+    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 

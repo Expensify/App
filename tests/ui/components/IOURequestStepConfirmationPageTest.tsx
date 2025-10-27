@@ -4,12 +4,11 @@ import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {translateLocal} from '@libs/Localize';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
-import {signInWithTestUser} from '../../utils/TestHelper';
+import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -73,7 +72,6 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     participantsAutoAssigned: true,
     reimbursable: true,
     reportID: REPORT_ID,
-    splitPayerAccountIDs: [ACCOUNT_ID],
     transactionID: TRANSACTION_ID,
 };
 
@@ -165,7 +163,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
         );
-
         fireEvent.press(await screen.findByText(translateLocal('iou.splitExpense')));
         expect(IOU.startSplitBill).toHaveBeenCalledTimes(1);
     });
@@ -215,7 +212,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
         );
-
         fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
         expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
     });

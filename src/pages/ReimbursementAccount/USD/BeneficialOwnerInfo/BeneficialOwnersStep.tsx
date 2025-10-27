@@ -11,6 +11,7 @@ import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
 import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
 import DateOfBirthUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/DateOfBirthUBO';
@@ -60,7 +61,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {
-                    acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
+                    acc[fieldName] = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                     return acc;
                 },
                 {} as Record<string, string | undefined>,
@@ -215,6 +216,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
+            shouldShowOfflineIndicatorInWideScreen={currentUBOSubStep === SUBSTEP.UBOS_LIST}
             startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
