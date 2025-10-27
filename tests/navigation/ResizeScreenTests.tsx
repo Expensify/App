@@ -31,8 +31,8 @@ const INITIAL_STATE = {
     ],
 };
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 
 describe('Resize screen', () => {
     it('Should display the settings profile after resizing the screen with the settings page opened to the wide layout', () => {
