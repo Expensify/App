@@ -603,7 +603,7 @@ const translations = {
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
         dropTitle: 'Let it go',
-        dropMessage: 'Drop your file here',
+        dropMessage: 'Drop your file right here',
         ignore: 'Ignore',
         enabled: 'Enabled',
         disabled: 'Disabled',
