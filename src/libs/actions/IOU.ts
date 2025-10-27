@@ -10989,7 +10989,7 @@ function submitReport(
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                      nextStep: expenseReport.nextStep,
+                      nextStep: optimisticNextStep,
                       pendingFields: {
                           nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                       },
@@ -11002,7 +11002,7 @@ function submitReport(
                       ...expenseReport,
                       stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                       statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                      nextStep: expenseReport.nextStep,
+                      nextStep: optimisticNextStep,
                       pendingFields: {
                           nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                       },
