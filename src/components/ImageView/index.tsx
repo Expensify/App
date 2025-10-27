@@ -1,5 +1,5 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
@@ -15,17 +15,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
+
+type Dimensions = {
+    width: number;
+    height: number;
+};
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
+    const scrollableRef = useRef<View & HTMLDivElement>(null);
+    const canUseTouchScreen = canUseTouchScreenUtil();
+
     const [isLoading, setIsLoading] = useState(true);
-    const [containerHeight, setContainerHeight] = useState(0);
-    const [containerWidth, setContainerWidth] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
@@ -33,54 +39,35 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [initialScrollTop, setInitialScrollTop] = useState(0);
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
-    const [imgWidth, setImgWidth] = useState(0);
-    const [imgHeight, setImgHeight] = useState(0);
-    const [zoomScale, setZoomScale] = useState(0);
+
+    const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
+    const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
+
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
-    const {isOffline} = useNetwork();
-
-    const scrollableRef = useRef<HTMLDivElement>(null);
-    const canUseTouchScreen = canUseTouchScreenUtil();
-
-    const setScale = (newContainerWidth: number, newContainerHeight: number, newImageWidth: number, newImageHeight: number) => {
-        if (!newContainerWidth || !newImageWidth || !newContainerHeight || !newImageHeight) {
-            return;
+    const zoomScale = useMemo(() => {
+        if (!containerSize.width || !containerSize.height || !imageSize.width || !imageSize.height) {
+            return 0;
         }
-        const newZoomScale = Math.min(newContainerWidth / newImageWidth, newContainerHeight / newImageHeight);
-        setZoomScale(newZoomScale);
-    };
+
+        return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
+    }, [containerSize.width, containerSize.height, imageSize.width, imageSize.height]);
 
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
-        const {width, height} = e.nativeEvent.layout;
-        setScale(width, height, imgWidth, imgHeight);
-
-        setContainerHeight(height);
-        setContainerWidth(width);
-    };
-
-    /**
-     * When open image, set image width, height.
-     */
-    const setImageRegion = (imageWidth: number, imageHeight: number) => {
-        if (imageHeight <= 0) {
-            return;
-        }
-        setScale(containerWidth, containerHeight, imageWidth, imageHeight);
-        setImgWidth(imageWidth);
-        setImgHeight(imageHeight);
+        setContainerSize(e.nativeEvent.layout);
     };
 
     const imageLoadingStart = () => {
         if (!isLoading) {
             return;
         }
+
+        setImageSize({width: 0, height: 0});
         setIsLoading(true);
-        setZoomScale(0);
         setIsZoomed(false);
     };
 
-    const imageLoad = ({nativeEvent}: ImageOnLoadEvent) => {
-        setImageRegion(nativeEvent.width, nativeEvent.height);
+    const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
+        setImageSize(size);
         setIsLoading(false);
     };
 
@@ -104,17 +91,17 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         let offsetY = 0;
 
         // Container size bigger than clicked position offset
-        if (x <= containerWidth / 2) {
+        if (x <= containerSize.width / 2) {
             offsetX = 0;
-        } else if (x > containerWidth / 2) {
+        } else if (x > containerSize.width / 2) {
             // Minus half of container size because we want to be center clicked position
-            offsetX = x - containerWidth / 2;
+            offsetX = x - containerSize.width / 2;
         }
-        if (y <= containerHeight / 2) {
+        if (y <= containerSize.height / 2) {
             offsetY = 0;
-        } else if (y > containerHeight / 2) {
+        } else if (y > containerSize.height / 2) {
             // Minus half of container size because we want to be center clicked position
-            offsetY = y - containerHeight / 2;
+            offsetY = y - containerSize.height / 2;
         }
         return {offsetX, offsetY};
     };
@@ -196,6 +183,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
+
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
     let isLocalToUserDeviceFile = isLocalFile(url);
@@ -215,14 +203,13 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     return (
         <View
-            // eslint-disable-next-line react-compiler/react-compiler
-            ref={viewRef(scrollableRef)}
+            ref={scrollableRef}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
         >
             <PressableWithoutFeedback
                 style={{
-                    ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
+                    ...StyleUtils.getZoomSizingStyle(isZoomed, imageSize.width, imageSize.height, zoomScale, containerSize.height, containerSize.width, isLoading),
                     ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
@@ -240,8 +227,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                     waitForSession={() => {
+                        setImageSize({width: 0, height: 0});
                         setIsLoading(true);
-                        setZoomScale(0);
                         setIsZoomed(false);
                     }}
                     onError={onError}
