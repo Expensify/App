@@ -53,6 +53,7 @@ describe('LHNOptionsList', () => {
         onSelectRow: jest.fn(),
         optionMode: CONST.OPTION_MODE.DEFAULT,
         onFirstItemRendered: jest.fn(),
+        isLoading: false,
     };
 
     const getLHNOptionsListElement = (props: Partial<LHNOptionsListProps> = {}) => {
@@ -61,6 +62,7 @@ describe('LHNOptionsList', () => {
             onSelectRow: props.onSelectRow ?? defaultProps.onSelectRow,
             optionMode: props.optionMode ?? defaultProps.optionMode,
             onFirstItemRendered: props.onFirstItemRendered ?? defaultProps.onFirstItemRendered,
+            isLoading: props.isLoading ?? defaultProps.isLoading,
         };
 
         return (
@@ -71,6 +73,7 @@ describe('LHNOptionsList', () => {
                         onSelectRow={mergedProps.onSelectRow}
                         optionMode={mergedProps.optionMode}
                         onFirstItemRendered={mergedProps.onFirstItemRendered}
+                        isLoading={mergedProps.isLoading}
                     />
                 </ComposeProviders>
             </NavigationContainer>

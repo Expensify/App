@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,12 +88,8 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                     shouldDisableFocusOptions={shouldUseNarrowLayout}
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
+                    isLoading={!!isLoading}
                 />
-                {!!isLoading && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView shouldAnimate />
-                    </View>
-                )}
             </View>
         </View>
     );
