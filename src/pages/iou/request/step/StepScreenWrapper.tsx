@@ -39,6 +39,9 @@ type StepScreenWrapperProps = {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+    keyboardVerticalOffset?: number;
+    includePaddingTop?: boolean;
+    shouldShowHeader?: boolean;
 };
 
 function StepScreenWrapper({
@@ -52,6 +55,9 @@ function StepScreenWrapper({
     includeSafeAreaPaddingBottom,
     shouldShowOfflineIndicator = true,
     shouldEnableKeyboardAvoidingView = true,
+    includePaddingTop = true,
+    keyboardVerticalOffset = 0,
+    shouldShowHeader = true,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -67,14 +73,18 @@ function StepScreenWrapper({
             shouldEnableMaxHeight={canUseTouchScreen()}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            keyboardVerticalOffset={keyboardVerticalOffset}
+            includePaddingTop={includePaddingTop}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1]}>
-                        <HeaderWithBackButton
-                            title={headerTitle}
-                            onBackButtonPress={onBackButtonPress}
-                        />
+                        {shouldShowHeader && (
+                            <HeaderWithBackButton
+                                title={headerTitle}
+                                onBackButtonPress={onBackButtonPress}
+                            />
+                        )}
                         {
                             // If props.children is a function, call it to provide the insets to the children
                             callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})

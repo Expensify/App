@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
-import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -144,62 +143,58 @@ function IOURequestStepDestination({
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
-        <ScreenWrapper
-            includePaddingTop={false}
+        <StepScreenWrapper
+            headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            testID={IOURequestStepDestination.displayName}
             keyboardVerticalOffset={keyboardVerticalOffset}
-            testID={`${IOURequestStepDestination.displayName}-container`}
+            shouldShowHeader={!openedFromStartPage}
         >
-            <StepScreenWrapper
-                headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
-                onBackButtonPress={navigateBack}
-                shouldShowWrapper={!openedFromStartPage}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
-            >
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
+            {isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                />
+            )}
+            {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
+            {shouldShowEmptyState && (
+                <View style={[styles.flex1]}>
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
+                        icon={Illustrations.EmptyStateExpenses}
+                        title={translate('workspace.perDiem.emptyList.title')}
+                        subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
                     />
-                )}
-                {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
-                {shouldShowEmptyState && (
-                    <View style={[styles.flex1]}>
-                        <WorkspaceEmptyStateSection
-                            shouldStyleAsCard={false}
-                            icon={Illustrations.EmptyStateExpenses}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
-                        />
-                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
-                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                                <Button
-                                    large
-                                    success
-                                    style={[styles.w100]}
-                                    onPress={() => {
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                        InteractionManager.runAfterInteractions(() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
-                                        });
-                                    }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
-                                />
-                            </FixedFooter>
-                        )}
-                    </View>
-                )}
-                {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
-                    <DestinationPicker
-                        selectedDestination={selectedDestination}
-                        policyID={policy.id}
-                        onSubmit={updateDestination}
-                    />
-                )}
-            </StepScreenWrapper>
-        </ScreenWrapper>
+                    {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                            <Button
+                                large
+                                success
+                                style={[styles.w100]}
+                                onPress={() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
+                                    });
+                                }}
+                                text={translate('workspace.perDiem.editPerDiemRates')}
+                                pressOnEnter
+                            />
+                        </FixedFooter>
+                    )}
+                </View>
+            )}
+            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
+                <DestinationPicker
+                    selectedDestination={selectedDestination}
+                    policyID={policy.id}
+                    onSubmit={updateDestination}
+                />
+            )}
+        </StepScreenWrapper>
     );
 }
 
