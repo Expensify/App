@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -45,7 +45,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
-    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -159,12 +158,13 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                                 />
                             </View>
                             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                {translate('workspace.companyCards.chooseCardFor', {
-                                    assignee: assigneeDisplayName,
-                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
-                                })}
-                            </Text>
+                            <View style={[styles.ph5, styles.mv3, styles.textSupporting]}>
+                                <RenderHTML
+                                    html={translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                    })}
+                                />
+                            </View>
                         </View>
                     }
                     shouldShowTextInputAfterHeader
