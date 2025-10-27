@@ -224,6 +224,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -317,6 +318,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Ahora no',
+        noThanks: 'No, gracias',
         learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
@@ -618,6 +620,7 @@ const translations = {
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
         help: 'Ayuda',
+        expenseReport: 'Informe de Gastos',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         reimbursable: 'Reembolsable',
@@ -653,6 +656,7 @@ const translations = {
         pinned: 'Fijado',
         read: 'Leído',
         copyToClipboard: 'Copiar al portapapeles',
+        domains: 'Dominios',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -776,6 +780,11 @@ const translations = {
         findMember: 'Encuentra un miembro',
         searchForSomeone: 'Busca a alguien',
     },
+    customApprovalWorkflow: {
+        title: 'Flujo de aprobación personalizado',
+        description: 'Tu empresa tiene un flujo de aprobación personalizado en este espacio de trabajo. Por favor, realiza esta acción en Expensify Classic',
+        goToExpensifyClassic: 'Cambiar a Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Presenta un gasto, recomienda a tu jefe',
@@ -883,17 +892,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de chat es para cualquier cosa relacionada con <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón <strong>+</strong> para enviar una factura.`,
+            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar una factura.`,
         beginningOfChatHistory: 'Este chat es con ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón <strong>+</strong>.`,
+            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón <strong>+</strong> para ${additionalText} un gasto`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} un gasto`,
         askConcierge: ' Haz preguntas y obtén soporte en tiempo real las 24/7.',
         conciergeSupport: 'Soporte 24/7',
         create: 'crear',
@@ -1207,8 +1216,8 @@ const translations = {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
@@ -1413,7 +1422,6 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
-
         reject: {
             educationalTitle: '¿Debes retener o rechazar?',
             educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
@@ -1671,7 +1679,6 @@ const translations = {
             testCrash: 'Prueba de fallo',
             resetToOriginalState: 'Restablecer al estado original',
             usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
-            shouldBlockTransactionThreadReportCreation: 'Bloquear la creación de informes de hilos de transacciones',
             debugMode: 'Modo depuración',
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
@@ -2407,7 +2414,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Envía un gasto',
                 description:
                     '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Añade el correo o teléfono de tu jefe.\n' +
@@ -2418,7 +2425,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Envía un gasto',
                 description:
                     '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Confirma los detalles.\n' +
@@ -2429,7 +2436,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Organiza un gasto',
                 description:
                     '*Organiza un gasto* en cualquier moneda, tengas recibo o no.\n\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear gasto*.\n' +
                     '3. Introduce una cantidad o escanea un recibo.\n' +
                     '4. Elige tu espacio *personal*.\n' +
@@ -2513,7 +2520,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Inicia un chat',
                 description:
                     '*Inicia un chat* con cualquier persona usando su correo o número.\n\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Iniciar chat*.\n' +
                     '3. Introduce un correo o teléfono.\n\n' +
                     'Si aún no usan Expensify, se les invitará automáticamente.\n\n' +
@@ -2523,7 +2530,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Divide un gasto',
                 description:
                     '*Divide gastos* con una o más personas.\n\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Iniciar chat*.\n' +
                     '3. Introduce correos o teléfonos.\n' +
                     '4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.\n' +
@@ -2544,7 +2551,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Así es como puedes crear un informe:\n' +
                     '\n' +
-                    `1. Haz clic en el botón <strong>+</strong>.\n` +
+                    `1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
                     '2. Elige *Crear informe*.\n' +
                     '3. Haz clic en *Añadir gasto*.\n' +
                     '4. Añade tu primer gasto.\n' +
@@ -2912,8 +2919,8 @@ ${amount} para ${merchant} - ${date}`,
         needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
         weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrige esta información antes de continuar.',
-        failedKYCTextBefore: 'No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunicate con ',
-        failedKYCTextAfter: ' si tienes alguna pregunta.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunícate con <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> si tienes alguna pregunta.`,
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
@@ -4396,8 +4403,7 @@ ${amount} para ${merchant} - ${date}`,
             employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
             displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
             displayedAsReportFieldDescription: 'La selección de departamento se aplicará a todos los gastos que figuren en el informe de un empleado.',
-            toggleImportTitleFirstPart: 'Elija cómo gestionar Sage Intacct ',
-            toggleImportTitleSecondPart: ' en Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Elija cómo gestionar Sage Intacct <strong>${mappingTitle}</strong> en Expensify.`,
             expenseTypes: 'Tipos de gastos',
             expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
             accountTypesDescription: 'Su plan de cuentas de Sage Intacct se importará a Expensify como categorías.',
@@ -5733,6 +5739,7 @@ ${amount} para ${merchant} - ${date}`,
             chatWithYourAdmin: 'Chatea con tu administrador',
             chatInAdmins: 'Chatea en #admins',
             addPaymentCard: 'Agregar tarjeta de pago',
+            goToSubscription: 'Ir a Suscripción',
         },
         rules: {
             individualExpenseRules: {
@@ -6139,7 +6146,7 @@ ${amount} para ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón <strong>+</strong>.`,
+                subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
@@ -6250,7 +6257,6 @@ ${amount} para ${merchant} - ${date}`,
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Informe',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
@@ -6394,6 +6400,7 @@ ${amount} para ${merchant} - ${date}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
@@ -6468,6 +6475,9 @@ ${amount} para ${merchant} - ${date}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'salió del chat',
+            },
+            error: {
+                invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',
             },
         },
     },
@@ -7220,7 +7230,8 @@ ${amount} para ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
-        adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
@@ -7292,7 +7303,6 @@ ${amount} para ${merchant} - ${date}`,
         quickTip: 'Consejo rápido...',
         quickTipSubTitle: 'Puedes ir directamente a Expensify Classic visitando expensify.com. Márcalo como favorito para tener un acceso directo fácil.',
         bookACall: 'Reservar una llamada',
-        noThanks: 'No, gracias',
         bookACallTitle: '¿Desea hablar con un responsable de producto?',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chat directo sobre gastos e informes',
@@ -7388,7 +7398,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             earlyDiscount: {
                 claimOffer: 'Solicitar oferta',
-                noThanks: 'No, gracias',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>¡${discountType}% de descuento en tu primer año!</strong> ¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
@@ -7704,7 +7713,6 @@ ${amount} para ${merchant} - ${date}`,
             manager: '<tooltip>¡Elige a <strong>nuestro gerente</strong> de prueba para probarlo!</tooltip>',
             confirmation: '<tooltip>Ahora, <strong>envía tu gasto y</strong>\n¡observa cómo ocurre la magia!</tooltip>',
             tryItOut: 'Prueba esto',
-            noThanks: 'No, gracias',
         },
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
@@ -7768,6 +7776,11 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+    },
+    openAppFailureModal: {
+        title: 'Algo salió mal...',
+        subtitle: `No hemos podido cargar todos sus datos. Hemos sido notificados y estamos investigando el problema. Si esto persiste, por favor comuníquese con`,
+        refreshAndTryAgain: 'Actualizar e intentar de nuevo',
     },
 };
 

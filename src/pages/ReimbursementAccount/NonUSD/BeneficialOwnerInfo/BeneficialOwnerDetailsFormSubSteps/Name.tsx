@@ -6,6 +6,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 
 type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -20,8 +21,8 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
     const stepFields = useMemo(() => [firstNameInputID, lastNameInputID], [firstNameInputID, lastNameInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourName' : 'ownershipInfoStep.whatsTheOwnersName');
     const defaultValues = {
-        firstName: String(reimbursementAccountDraft?.[firstNameInputID] ?? ''),
-        lastName: String(reimbursementAccountDraft?.[lastNameInputID] ?? ''),
+        firstName: SafeString(reimbursementAccountDraft?.[firstNameInputID]),
+        lastName: SafeString(reimbursementAccountDraft?.[lastNameInputID]),
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
