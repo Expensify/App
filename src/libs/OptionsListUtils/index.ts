@@ -1867,10 +1867,14 @@ function getValidOptions(
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
         selectedOptions.forEach((option) => {
-            if (!option.login) {
+            if (option.login) {
+                loginsToExclude[option.login] = true;
                 return;
             }
-            loginsToExclude[option.login] = true;
+
+            if(option.reportID){
+                loginsToExclude[option.reportID] = true;
+            }
         });
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
