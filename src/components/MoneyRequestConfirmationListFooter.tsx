@@ -5,6 +5,7 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated, {Easing, FadeInDown, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -870,7 +871,10 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
+            <Animated.View
+                layout={LinearTransition.easing(Easing.out(Easing.quad))}
+                style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}
+            >
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -930,7 +934,7 @@ function MoneyRequestConfirmationListFooter({
                         />
                     </PressableWithoutFocus>
                 )}
-            </View>
+            </Animated.View>
         ),
         [
             styles.moneyRequestImage,
@@ -938,6 +942,7 @@ function MoneyRequestConfirmationListFooter({
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
+            styles.expenseViewImageSmall,
             shouldRestrictHeight,
             isLocalFile,
             receiptFilename,
@@ -1054,7 +1059,10 @@ function MoneyRequestConfirmationListFooter({
 
             <View style={[styles.mb5, styles.mt2]}>
                 {isScan && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
+                    <Animated.View
+                        layout={LinearTransition.easing(Easing.out(Easing.quad))}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}
+                    >
                         <Icon
                             src={Expensicons.Sparkles}
                             fill={theme.icon}
@@ -1062,12 +1070,24 @@ function MoneyRequestConfirmationListFooter({
                             height={variables.iconSizeNormal}
                         />
                         <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                    </View>
+                    </Animated.View>
                 )}
 
                 {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
 
-                {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+                {!shouldRestrictHeight &&
+                    fields
+                        .filter((field) => field.shouldShow && !(field.isRequired ?? false))
+                        .map((field, index) => (
+                            <Animated.View
+                                key={index}
+                                entering={FadeInDown.easing(Easing.out(Easing.quad))}
+                                exiting={FadeOutUp.duration(500).easing(Easing.out(Easing.quad))}
+                                layout={LinearTransition.easing(Easing.out(Easing.quad))}
+                            >
+                                {field.item}
+                            </Animated.View>
+                        ))}
 
                 {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
