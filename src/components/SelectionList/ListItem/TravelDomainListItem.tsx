@@ -6,14 +6,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
-import type {BaseListItemProps, ListItem} from './types';
-
-type AdditionalDomainItemProps = {
-    value?: string;
-    isRecommended?: boolean;
-};
-
-type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps>;
+import type {ListItem, TravelDomainListItemProps} from './types';
 
 function TravelDomainListItem<TItem extends ListItem>({
     item,
@@ -25,7 +18,7 @@ function TravelDomainListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     accessibilityState,
-}: DomainItemProps<TItem>) {
+}: TravelDomainListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
