@@ -10274,7 +10274,7 @@ function approveMoneyRequest(
         nextStep: optimisticNextStep ?? undefined,
         pendingFields: {
             partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            nextStepp: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
     const optimisticIOUReportData: OnyxUpdate = {
