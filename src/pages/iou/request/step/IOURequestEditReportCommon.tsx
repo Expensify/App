@@ -36,7 +36,7 @@ type Props = {
     selectedPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
-    removeFromReport?: (report?: OnyxEntry<Report>) => void;
+    removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
