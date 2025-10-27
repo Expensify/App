@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {searchInServer} from './actions/Report';
 import memoize from './memoize';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from './OptionsListUtils';
+import {filterAndOrderOptions, getValidOptions} from './OptionsListUtils';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AssigneeStep.getValidOptions'});
 
@@ -16,7 +16,7 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
@@ -50,14 +50,11 @@ function useOptions() {
             },
         );
 
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
-
         return {
             userToInvite,
             recentReports,
             personalDetails,
             currentUserOption,
-            headerMessage,
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, draftComments]);
 
@@ -66,15 +63,9 @@ function useOptions() {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
-        );
 
         return {
             ...filteredOptions,
-            headerMessage,
         };
     }, [debouncedSearchValue, defaultOptions, existingDelegates, countryCode]);
 
