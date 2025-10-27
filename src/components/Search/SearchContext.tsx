@@ -125,15 +125,12 @@ function SearchContextProvider({children}: ChildrenProps) {
     const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
-                // Directly clear the IDs instead of calling setSelectedTransactions([])
-                // which has an early return that prevents clearing when areTransactionsEmpty is true
                 setSearchContextData((prevState) => ({
                     ...prevState,
                     selectedTransactionIDs: [],
                     shouldTurnOffSelectionMode,
                 }));
 
-                // Reset the empty flag
                 areTransactionsEmpty.current = true;
                 return;
             }
