@@ -2,6 +2,11 @@ import {useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 
+type UseEmitComposerScrollEventsOptions = {
+    enabled?: boolean;
+    inverted: boolean | null | undefined;
+};
+
 /**
  * This is used to trigger scroll behavior in the composer on web. On native, this is a no-op.
  * The scroll events are only emitted when the list is inverted, since it is only used in the report screen in combination with the composer.
@@ -10,7 +15,9 @@ import CONST from '@src/CONST';
  * @param inverted - Whether the list is inverted.
  * @returns A function that can be used to emit the scroll events.
  */
-function useEmitComposerScrollEvents(inverted: boolean | null | undefined = false) {
+function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOptions) {
+    const {enabled = true, inverted} = options ?? {};
+
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
@@ -19,8 +26,8 @@ function useEmitComposerScrollEvents(inverted: boolean | null | undefined = fals
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
      */
-    const emitOnScroll = () => {
-        if (!inverted) {
+    const onScroll = () => {
+        if (!enabled || !inverted) {
             return;
         }
 
@@ -35,8 +42,8 @@ function useEmitComposerScrollEvents(inverted: boolean | null | undefined = fals
     /**
      * Emits when the scrolling has ended.
      */
-    const emitOnScrollEnd = () => {
-        if (!inverted) {
+    const onScrollEnd = () => {
+        if (!enabled || !inverted) {
             return;
         }
 
@@ -58,12 +65,12 @@ function useEmitComposerScrollEvents(inverted: boolean | null | undefined = fals
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
      *
      */
-    const emitScrollEvents = () => {
-        if (!inverted) {
+    const emitComposerScrollEvents = () => {
+        if (!enabled || !inverted) {
             return;
         }
 
-        emitOnScroll();
+        onScroll();
 
         const timestamp = Date.now();
 
@@ -78,14 +85,14 @@ function useEmitComposerScrollEvents(inverted: boolean | null | undefined = fals
                 }
                 // Scroll has ended
                 lastScrollEvent.current = null;
-                emitOnScrollEnd();
+                onScrollEnd();
             }, 250);
         }
 
         lastScrollEvent.current = timestamp;
     };
 
-    return emitScrollEvents;
+    return emitComposerScrollEvents;
 }
 
 export default useEmitComposerScrollEvents;

@@ -9,10 +9,11 @@ import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatLi
 
 function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
     const {onScroll: onScrollHandleKeyboard} = useKeyboardDismissibleFlatListValues();
-    const emitScrollEvents = useEmitComposerScrollEvents(inverted);
+
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});
 
     const additionalOnScroll = useAnimatedScrollHandler({
-        onScroll: emitScrollEvents,
+        onScroll: emitComposerScrollEvents,
     });
 
     const onScroll = useComposedEventHandler([onScrollHandleKeyboard, additionalOnScroll, onScrollProp ?? null]);

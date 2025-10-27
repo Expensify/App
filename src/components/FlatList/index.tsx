@@ -223,14 +223,14 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, []);
 
-    const emitScrollEvents = useEmitComposerScrollEvents(restProps.inverted);
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted: restProps.inverted});
     const handleScroll = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onScrollProp?.(event);
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onScrollProp?.(e);
             prepareForMaintainVisibleContentPosition();
-            emitScrollEvents();
+            emitComposerScrollEvents();
         },
-        [emitScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
+        [emitComposerScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
     );
 
     return (
