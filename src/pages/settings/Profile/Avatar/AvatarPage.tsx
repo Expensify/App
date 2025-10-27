@@ -283,17 +283,17 @@ function ProfileAvatar() {
                             setSelected(id);
                         }}
                     />
-                    {!!errorData.validationError && (
-                        <DotIndicatorMessage
-                            style={styles.mt6}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                            type="error"
-                        />
-                    )}
                 </View>
             </ScrollView>
             <FixedFooter style={styles.mtAuto}>
+                {!!errorData.validationError && (
+                    <DotIndicatorMessage
+                        style={styles.mv5}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        type="error"
+                    />
+                )}
                 <Button
                     large
                     success
