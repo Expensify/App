@@ -125,6 +125,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -226,6 +227,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -327,6 +329,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
+        noThanks: 'No thanks',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
@@ -631,6 +634,7 @@ const translations = {
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
+        expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
@@ -790,6 +794,11 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
     },
+    customApprovalWorkflow: {
+        title: 'Custom approval workflow',
+        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Submit an expense, refer your boss',
@@ -897,17 +906,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <strong>+</strong> button to send an invoice.`,
+            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <strong>+</strong> button.`,
+            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the <strong>+</strong> button to ${additionalText} an expense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button to ${additionalText} an expense.`,
         askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
@@ -1219,8 +1228,8 @@ const translations = {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with bank account ${last4Digits}` : `paid with bank account ${last4Digits}`),
@@ -1681,7 +1690,6 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
-            shouldBlockTransactionThreadReportCreation: 'Block transaction thread report creation',
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
@@ -2407,7 +2415,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     `4. Add your boss's email or phone number.\n` +
@@ -2420,7 +2428,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Confirm details.\n' +
@@ -2433,7 +2441,7 @@ const translations = {
                 description:
                     '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Choose your *personal* space.\n' +
@@ -2532,7 +2540,7 @@ const translations = {
                 description:
                     '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter an email or phone number.\n' +
                     '\n' +
@@ -2546,7 +2554,7 @@ const translations = {
                 description:
                     '*Split expenses* with one or more people.\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter emails or phone numbers.\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
@@ -2569,7 +2577,7 @@ const translations = {
                 description:
                     'Here’s how to create a report:\n' +
                     '\n' +
-                    `1. Click the <strong>+</strong> button.\n` +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create report*.\n' +
                     '3. Click *Add expense*.\n' +
                     '4. Add your first expense.\n' +
@@ -2668,6 +2676,11 @@ const translations = {
             `<strong>Confirm that ${login} is spelled correctly and is a real, deliverable email address.</strong> Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.`,
         ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
         onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
+    },
+    openAppFailureModal: {
+        title: 'Something went wrong...',
+        subtitle: `We have not been able to load all of your data. We have been notified and are looking into the problem. If this persists, please reach out to`,
+        refreshAndTryAgain: 'Refresh and try again',
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -2919,8 +2932,8 @@ const translations = {
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
         weCouldNotVerify: "We couldn't verify",
         pleaseFixIt: 'Please fix this information before continuing',
-        failedKYCTextBefore: "We weren't able to verify your identity. Please try again later or reach out to ",
-        failedKYCTextAfter: ' if you have any questions.',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `We weren't able to verify your identity. Please try again later or reach out to <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> if you have any questions.`,
     },
     termsStep: {
         headerTitle: 'Terms and fees',
@@ -4384,8 +4397,7 @@ const translations = {
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
             displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
-            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
-            toggleImportTitleSecondPart: ' in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Choose how to handle Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
             expenseTypes: 'Expense types',
             expenseTypesDescription: 'Your Sage Intacct expense types will import into Expensify as categories.',
             accountTypesDescription: 'Your Sage Intacct chart of accounts will import into Expensify as categories.',
@@ -5528,89 +5540,106 @@ const translations = {
             reportFields: {
                 title: 'Report fields',
                 description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
-                onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Report fields are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.`,
-                onlyAvailableOnPlan: 'Our NetSuite integration is only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our NetSuite integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
-                onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Sage Intacct integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + QuickBooks Desktop integration. Gain ultimate efficiency with a realtime, two-way connection and expense coding by class, item, customer, and project.`,
-                onlyAvailableOnPlan: 'Our QuickBooks Desktop integration is only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
-                onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Advanced approvals are only available on the Control plan, which starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             categories: {
                 title: 'Categories',
                 description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
-                onlyAvailableOnPlan: 'Categories are available on the Collect plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `Categories are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             glCodes: {
                 title: 'GL codes',
                 description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
-                onlyAvailableOnPlan: 'GL codes are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL codes are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'GL & Payroll codes',
                 description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
-                onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL & Payroll codes are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             taxCodes: {
                 title: 'Tax codes',
                 description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
-                onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Tax codes are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             companyCards: {
                 title: 'Unlimited Company cards',
                 description: `Need to add more card feeds? Unlock unlimited company cards to sync transactions from all major card issuers.`,
-                onlyAvailableOnPlan: 'This is only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             rules: {
                 title: 'Rules',
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
-                onlyAvailableOnPlan: 'Rules are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rules are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Per diem',
                 description:
                     'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
-                onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Per diem are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             travel: {
                 title: 'Travel',
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
-                onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Travel is available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             reports: {
                 title: 'Reports',
                 description: 'Reports allow you to group expenses for easier tracking and organization.',
-                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Reports are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
                     'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
-                onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Multi-level tags are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             distanceRates: {
                 title: 'Distance rates',
                 description: 'Create and manage your own rates, track in miles or kilometers, and set default categories for distance expenses.',
-                onlyAvailableOnPlan: 'Distance rates are available on the Collect plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Distance rates are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Multiple approval levels',
                 description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
-                onlyAvailableOnPlan: 'Multiple approval levels are only available on the Control plan, starting at ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Multiple approval levels are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
@@ -5633,10 +5662,8 @@ const translations = {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
-                    startsAt: 'The Control plan starts at ',
-                    perMember: 'per active member per month.',
-                    learnMore: 'Learn more',
-                    pricing: 'about our plans and pricing.',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>The Control plan starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`} <a href="${learnMoreMethodsRoute}">Learn more</a> about our plans and pricing.</muted-text>`,
                     benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
                     benefit2: 'Smart expense rules',
                     benefit3: 'Multi-level approval workflows',
@@ -5691,7 +5718,7 @@ const translations = {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
-            goToSubscriptions: 'Go to Subscriptions',
+            goToSubscription: 'Go to Subscription',
         },
         rules: {
             individualExpenseRules: {
@@ -6112,7 +6139,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: `Try adjusting your search criteria or creating something with the <strong>+</strong> button.`,
+                subtitle: `Try adjusting your search criteria or creating something with the green ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -6223,7 +6250,6 @@ const translations = {
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
@@ -6366,6 +6392,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        connectionSettings: 'Connection Settings',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
@@ -6435,6 +6462,9 @@ const translations = {
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'left the chat',
+            },
+            error: {
+                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
             },
         },
     },
@@ -6724,7 +6754,8 @@ const translations = {
             return '';
         },
         brokenConnection530Error: 'Receipt pending due to broken bank connection',
-        adminBrokenConnectionError: 'Receipt pending due to broken bank connection. Please resolve in ',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
@@ -6796,7 +6827,6 @@ const translations = {
         quickTip: 'Quick tip...',
         quickTipSubTitle: 'You can go straight to Expensify Classic by visiting expensify.com. Bookmark it for an easy shortcut!',
         bookACall: 'Book a call',
-        noThanks: 'No thanks',
         bookACallTitle: 'Would you like to speak to a product manager?',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chatting directly on expenses and reports',
@@ -6889,7 +6919,6 @@ const translations = {
             },
             earlyDiscount: {
                 claimOffer: 'Claim offer',
-                noThanks: 'No thanks',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,
@@ -7203,7 +7232,6 @@ const translations = {
             manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
             confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
             tryItOut: 'Try it out',
-            noThanks: 'No thanks',
         },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',

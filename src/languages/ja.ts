@@ -136,6 +136,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -237,6 +238,7 @@ import type {
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
+    ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
     TransferParams,
@@ -335,6 +337,7 @@ const translations = {
         no: 'いいえ',
         ok: 'OK',
         notNow: '今は無理',
+        noThanks: '結構です',
         learnMore: '詳しくはこちら',
         buttonConfirm: '了解しました。',
         name: '名前',
@@ -637,6 +640,7 @@ const translations = {
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
         help: '助けて',
+        expenseReport: '経費報告書',
         expenseReports: '経費報告書',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
@@ -800,6 +804,11 @@ const translations = {
         findMember: 'メンバーを見つける',
         searchForSomeone: '誰かを検索',
     },
+    customApprovalWorkflow: {
+        title: 'カスタム承認ワークフロー',
+        description: 'お客様の会社では、このワークスペースにカスタム承認ワークフローがあります。Expensify Classicでこの操作を実行してください',
+        goToExpensifyClassic: 'Expensify Classicに切り替える',
+    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '経費を提出し、上司に紹介する',
@@ -907,17 +916,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>に関することなら何でもどうぞ。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<strong>+</strong> ボタンを使用してください。`,
+            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> ボタンを使用してください。`,
         beginningOfChatHistory: 'このチャットは',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<strong>+</strong>ボタンをクリックしてください。`,
+            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>ボタンをクリックしてください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！セットアップを始めましょう。',
         chatWithAccountManager: 'こちらでアカウントマネージャーとチャットしてください',
         sayHello: 'こんにちは！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName}へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` <strong>+</strong> ボタンを使用して経費を${additionalText}します。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンを使用して経費を${additionalText}します。`,
         askConcierge: '質問をして、24時間365日リアルタイムサポートを受けましょう。',
         conciergeSupport: '24時間年中無休サポート',
         create: '作成する',
@@ -1690,7 +1699,6 @@ const translations = {
             testCrash: 'クラッシュのテスト',
             resetToOriginalState: '元の状態にリセット',
             usingImportedState: 'インポートされた状態を使用しています。ここを押してクリアしてください。',
-            shouldBlockTransactionThreadReportCreation: 'トランザクションスレッドレポートの作成をブロック',
             debugMode: 'デバッグモード',
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
@@ -2930,8 +2938,8 @@ ${date} - ${merchant}に${amount}`,
         needSSNFull9: 'SSNの確認に問題が発生しています。SSNの9桁すべてを入力してください。',
         weCouldNotVerify: '確認できませんでした',
         pleaseFixIt: '続行する前にこの情報を修正してください。',
-        failedKYCTextBefore: '本人確認ができませんでした。後でもう一度お試しいただくか、にお問い合わせください。',
-        failedKYCTextAfter: 'ご質問がある場合。',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `本人確認ができませんでした。後でもう一度お試しいただくか、<a href="mailto:${conciergeEmail}">${conciergeEmail}</a> にお問い合わせください。ご質問がある場合。`,
     },
     termsStep: {
         headerTitle: '利用規約と手数料',
@@ -4387,8 +4395,7 @@ ${date} - ${merchant}に${amount}`,
             employeeDefaultDescription: '従業員のデフォルト部門は、Sage Intacct に存在する場合、その経費に適用されます。',
             displayedAsTagDescription: '部門は、従業員のレポートの各経費ごとに選択可能になります。',
             displayedAsReportFieldDescription: '部門の選択は、従業員のレポート上のすべての経費に適用されます。',
-            toggleImportTitleFirstPart: 'Sage Intacctの処理方法を選択',
-            toggleImportTitleSecondPart: 'in Expensify.',
+            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Sage Intacct <strong>${mappingTitle}</strong>をExpensifyでどのように処理するかを選択します。`,
             expenseTypes: '経費タイプ',
             expenseTypesDescription: 'あなたのSage Intacctの経費タイプは、Expensifyにカテゴリーとしてインポートされます。',
             accountTypesDescription: 'あなたのSage Intacct勘定科目表は、Expensifyにカテゴリとしてインポートされます。',
@@ -5525,89 +5532,106 @@ ${date} - ${merchant}に${amount}`,
             reportFields: {
                 title: 'レポートフィールド',
                 description: `レポートフィールドでは、個々の項目の経費に関連するタグとは異なり、ヘッダーレベルの詳細を指定できます。これらの詳細には、特定のプロジェクト名、出張情報、場所などが含まれることがあります。`,
-                onlyAvailableOnPlan: 'レポートフィールドは、Controlプランでのみ利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>レポートフィールドは、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Expensify + NetSuiteの統合により、自動同期を楽しみ、手動入力を削減できます。プロジェクトや顧客のマッピングを含むネイティブおよびカスタムセグメントのサポートで、詳細でリアルタイムの財務インサイトを得ることができます。`,
-                onlyAvailableOnPlan: '私たちのNetSuite統合は、Controlプランでのみ利用可能です。開始価格は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>私たちのNetSuite統合は、Controlプランでのみ利用可能です。開始価格は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Expensify + Sage Intacct の統合で、自動同期を楽しみ、手動入力を減らしましょう。ユーザー定義のディメンションによる詳細でリアルタイムな財務インサイトを得るとともに、部門、クラス、場所、顧客、プロジェクト（ジョブ）ごとの経費コード化が可能です。`,
-                onlyAvailableOnPlan: 'Sage Intacctとの統合は、Controlプランでのみ利用可能で、料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Sage Intacctとの統合は、Controlプランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `Expensify + QuickBooks Desktop の統合で、自動同期を楽しみ、手動入力を減らしましょう。クラス、アイテム、顧客、プロジェクトごとの経費コード化とリアルタイムの双方向接続で、究極の効率性を実現します。`,
-                onlyAvailableOnPlan: 'QuickBooks Desktopの統合は、Controlプランでのみ利用可能で、料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>QuickBooks Desktopの統合は、Controlプランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高度な承認',
                 description: `追加の承認レイヤーを加えたい場合や、最も大きな経費にもう一つの目を通したい場合でも、私たちがサポートします。高度な承認機能により、あらゆるレベルで適切なチェックを行い、チームの支出を管理することができます。`,
-                onlyAvailableOnPlan: '高度な承認は、Controlプランでのみ利用可能で、料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>高度な承認は、Controlプランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             categories: {
                 title: 'カテゴリ',
                 description: 'カテゴリを使用すると、支出を追跡し整理できます。デフォルトのカテゴリを使用するか、独自のカテゴリを追加してください。',
-                onlyAvailableOnPlan: 'カテゴリは、Collectプランで利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>カテゴリは、Collectプランで利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             glCodes: {
                 title: 'GLコード',
                 description: `GLコードをカテゴリとタグに追加して、会計および給与システムへの経費の簡単なエクスポートを実現しましょう。`,
-                onlyAvailableOnPlan: 'GLコードは、Controlプランでのみ利用可能です。開始価格は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GLコードは、Controlプランでのみ利用可能です。開始価格は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'GL & Payroll コード',
                 description: `GLコードと給与コードをカテゴリに追加して、経費を会計および給与システムに簡単にエクスポートしましょう。`,
-                onlyAvailableOnPlan: 'GLおよび給与コードは、Controlプランでのみ利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GLおよび給与コードは、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             taxCodes: {
                 title: '税コード',
                 description: `税コードを税金に追加して、経費を会計および給与システムに簡単にエクスポートしましょう。`,
-                onlyAvailableOnPlan: '税コードは、Controlプランでのみ利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>税コードは、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             companyCards: {
                 title: '無制限の会社カード',
                 description: `さらにカードフィードを追加する必要がありますか？すべての主要なカード発行会社からの取引を同期するために、無制限の会社カードをアンロックしましょう。`,
-                onlyAvailableOnPlan: 'これは、Controlプランでのみ利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>これは、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             rules: {
                 title: 'ルール',
                 description: `ルールはバックグラウンドで実行され、あなたの支出を管理するので、小さなことを心配する必要はありません。\n\n領収書や説明などの経費詳細を要求し、制限やデフォルトを設定し、承認と支払いを自動化します。すべてを一か所で行えます。`,
-                onlyAvailableOnPlan: 'ルールは、Controlプランでのみ利用可能で、料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>ルールは、Controlプランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             perDiem: {
                 title: '日当',
                 description:
                     '日当は、従業員が出張する際に日々の費用を遵守し、予測可能にするための優れた方法です。カスタム料金、デフォルトカテゴリ、目的地やサブレートなどの詳細な機能をお楽しみください。',
-                onlyAvailableOnPlan: '日当は、Controlプランでのみ利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>日当は、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             travel: {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
-                onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>旅行は、Collectプランで利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             reports: {
                 title: 'レポート',
                 description: 'レポートを使用すると、経費をグループ化して追跡と整理を簡単にできます。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>レポートは、Collectプランで利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
                     'マルチレベルタグは、経費をより正確に追跡するのに役立ちます。各項目に部門、クライアント、コストセンターなどの複数のタグを割り当てることで、すべての経費の完全なコンテキストを把握できます。これにより、より詳細なレポート作成、承認ワークフロー、および会計エクスポートが可能になります。',
-                onlyAvailableOnPlan: 'マルチレベルタグは、Controlプランでのみ利用可能です。開始価格は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>マルチレベルタグは、Controlプランでのみ利用可能です。開始価格は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             distanceRates: {
                 title: '距離料金',
                 description: '独自の料金を作成および管理し、マイルまたはキロメートルで追跡し、距離経費のデフォルトカテゴリを設定します。',
-                onlyAvailableOnPlan: '距離料金は、Collectプランで利用可能で、料金は',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>距離料金は、Collectプランで利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
                 description: '複数の承認レベルは、払い戻しが行われる前に複数の人がレポートを承認する必要がある企業向けのワークフローツールです。',
-                onlyAvailableOnPlan: '複数の承認レベルは、Controlプランでのみ利用可能です。料金は ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>複数の承認レベルは、Controlプランでのみ利用可能です。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'アクティブメンバー1人あたり月額。',
@@ -5630,10 +5654,8 @@ ${date} - ${merchant}に${amount}`,
                 title: 'Controlプランにアップグレード',
                 note: '以下を含む、最も強力な機能をアンロック:',
                 benefits: {
-                    startsAt: 'コントロールプランは、料金が',
-                    perMember: 'アクティブメンバー1人あたり月額。',
-                    learnMore: '詳細を確認',
-                    pricing: '私たちのプランと価格について。',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>コントロールプランは、料金が <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`} <a href="${learnMoreMethodsRoute}">詳細を確認</a> 私たちのプランと価格について。</muted-text>`,
                     benefit1: '高度な会計接続（NetSuite、Sage Intacct、その他）',
                     benefit2: 'スマート経費ルール',
                     benefit3: 'マルチレベル承認ワークフロー',
@@ -5688,7 +5710,7 @@ ${date} - ${merchant}に${amount}`,
             chatWithYourAdmin: '管理者とチャットする',
             chatInAdmins: '#adminsでチャットする',
             addPaymentCard: '支払いカードを追加',
-            goToSubscriptions: 'サブスクリプションに移動',
+            goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
             individualExpenseRules: {
@@ -6102,7 +6124,7 @@ ${date} - ${merchant}に${amount}`,
         searchResults: {
             emptyResults: {
                 title: '表示するものがありません',
-                subtitle: `検索条件を調整するか、<strong>+</strong>ボタンで何かを作成してみてください。`,
+                subtitle: `検索条件を調整するか、緑色の${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}ボタンで何かを作成してみてください。`,
             },
             emptyExpenseResults: {
                 title: 'まだ経費が作成されていません。',
@@ -6213,7 +6235,6 @@ ${date} - ${merchant}に${amount}`,
             reimbursable: '払い戻し可能',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'から',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
@@ -6357,6 +6378,7 @@ ${date} - ${merchant}に${amount}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポートの名前変更中に予期しないエラーが発生しました。後でもう一度お試しください。',
         noActivityYet: 'まだ活動がありません',
+        connectionSettings: '接続設定',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に変更しました（以前は"${oldValue}"でした）`,
@@ -6429,6 +6451,9 @@ ${date} - ${merchant}に${amount}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} への接続を削除しました。`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}に接続しました`,
                 leftTheChat: 'チャットを退出しました',
+            },
+            error: {
+                invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
             },
         },
     },
@@ -6716,7 +6741,8 @@ ${date} - ${merchant}に${amount}`,
             return '';
         },
         brokenConnection530Error: '銀行接続の不具合により領収書が保留中です。',
-        adminBrokenConnectionError: '銀行接続の不具合により領収書が保留されています。で解決してください。',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>銀行接続の問題により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社のカード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行接続が壊れているため、領収書が保留中です。ワークスペース管理者に解決を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true}) => `領収書のスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,
@@ -6788,7 +6814,6 @@ ${date} - ${merchant}に${amount}`,
         quickTip: 'ちょっとしたヒント...',
         quickTipSubTitle: 'expensify.comにアクセスして、Expensify Classicに直接移動できます。簡単なショートカットとしてブックマークしてください！',
         bookACall: '通話を予約する',
-        noThanks: '結構です',
         bookACallTitle: 'プロダクトマネージャーと話しますか？',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: '経費やレポートで直接チャットする',
@@ -6882,7 +6907,6 @@ ${date} - ${merchant}に${amount}`,
             },
             earlyDiscount: {
                 claimOffer: 'オファーを請求する',
-                noThanks: '結構です',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>最初の1年間は${discountType}%オフ！</strong> 支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー: 最初の1年間は${discountType}%オフ！`,
@@ -7196,7 +7220,6 @@ ${date} - ${merchant}に${amount}`,
             manager: '<tooltip><strong>テストマネージャー</strong>を選んで試してみましょう！</tooltip>',
             confirmation: '<tooltip>次に、<strong>経費を提出</strong>して魔法を見てみましょう！</tooltip>',
             tryItOut: '試してみる',
-            noThanks: '結構です',
         },
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費で絞り込みます</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して<strong>テストドライブを完了しましょう！</strong></tooltip>',
@@ -7266,6 +7289,11 @@ ${date} - ${merchant}に${amount}`,
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
         chooseCustomAvatar: 'またはカスタムアバターを選択',
+    },
+    openAppFailureModal: {
+        title: '問題が発生しました...',
+        subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
+        refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

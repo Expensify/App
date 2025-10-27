@@ -833,28 +833,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
     ]);
 
-    // A flag to indicate whether the user chose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-
-    useEffect(() => {
-        return () => {
-            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
-            if (!isTransactionDeleted.current) {
-                return;
-            }
-            isTransactionDeleted.current = false;
-            deleteTransaction();
-        };
-    }, [deleteTransaction]);
-
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        // If transaction was not deleted (i.e. Cancel was clicked), do nothing
-        // which only dismiss the delete confirmation modal
-        if (!isTransactionDeleted.current) {
-            return;
-        }
-
         let urlToNavigateBack: string | undefined;
 
         // Only proceed with navigation logic if transaction was actually deleted
@@ -889,7 +869,22 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
+
+    // A flag to indicate whether the user chose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    useEffect(() => {
+        return () => {
+            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+            isTransactionDeleted.current = false;
+            navigateToTargetUrl();
+            deleteTransaction();
+        };
+    }, [deleteTransaction, navigateToTargetUrl]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -1002,7 +997,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
-                    onModalHide={navigateToTargetUrl}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
