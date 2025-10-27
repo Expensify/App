@@ -747,6 +747,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     blurOnSubmit={!!flattenedSections.allOptions.length}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
