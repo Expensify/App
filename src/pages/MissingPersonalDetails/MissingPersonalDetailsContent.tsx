@@ -120,7 +120,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />
-
         </ScreenWrapper>
     );
 }

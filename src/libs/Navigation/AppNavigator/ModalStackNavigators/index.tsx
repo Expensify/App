@@ -37,6 +37,7 @@ import type {
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
+    SetDefaultWorkspaceNavigatorParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
     SignInNavigatorParamList,
@@ -210,6 +211,10 @@ const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorPar
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewReportWorkspaceSelectionPage').default,
+});
+
+const SetDefaultWorkspaceModalStackNavigator = createModalStackNavigator<SetDefaultWorkspaceNavigatorParamList>({
+    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
@@ -760,6 +765,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/EditPerDiemCurrencyPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/InviteReceiptPartnerPolicyPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage').default,
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -925,6 +931,7 @@ export {
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
+    SetDefaultWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
