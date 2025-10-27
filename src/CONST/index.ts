@@ -1688,6 +1688,7 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
+        INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
@@ -1727,6 +1728,7 @@ const CONST = {
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
+        INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -6480,6 +6482,7 @@ const CONST = {
         ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
+            EXPENSE_REPORT: 'expense-report',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -6537,7 +6540,6 @@ const CONST = {
             DESC: 'desc',
         },
         GROUP_BY: {
-            REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
@@ -6554,6 +6556,14 @@ const CONST = {
             EXPENSE: {
                 ALL: '',
                 UNREPORTED: 'unreported',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                DONE: 'done',
+                PAID: 'paid',
+            },
+            EXPENSE_REPORT: {
+                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6713,7 +6723,6 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
-                [this.GROUP_BY.REPORTS]: 'report',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
@@ -6999,6 +7008,7 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+        FORMULA: 'formula',
     },
 
     NAVIGATION_ACTIONS: {

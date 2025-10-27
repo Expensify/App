@@ -33,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -53,6 +53,13 @@ export {
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
+
+let bankAccountList: OnyxEntry<BankAccountList>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    callback: (value) => (bankAccountList = value),
+});
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
@@ -1291,6 +1298,16 @@ function shareBankAccount(bankAccountID: number, emails: string[]) {
     API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
 }
 
+/**
+ * Get bank account from bankAccountID
+ */
+function getBankAccountFromID(bankAccountID: number | undefined) {
+    if (!bankAccountID) {
+        return undefined;
+    }
+    return bankAccountList?.[bankAccountID];
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1340,4 +1357,5 @@ export {
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
+    getBankAccountFromID,
 };
