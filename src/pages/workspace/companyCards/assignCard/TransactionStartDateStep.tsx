@@ -33,7 +33,7 @@ type TransactionStartDateSelectionListFooterProps = TransactionStartDateStepProp
 function TransactionStartDateSelectionListFooter({dateOptionSelected, startDate, policyID, feed, backTo}: TransactionStartDateSelectionListFooterProps) {
     const {translate} = useLocalize();
 
-    if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM) {
+    if (dateOptionSelected !== CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM) {
         return null;
     }
 
