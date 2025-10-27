@@ -213,6 +213,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
+    "ua-parser-js": "^1.0.38",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -289,6 +290,7 @@
     "@types/react-test-renderer": "^19.0.0",
     "@types/semver": "^7.5.4",
     "@types/setimmediate": "^1.0.2",
+    "@types/ua-parser-js": "^0.7.39",
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@vercel/ncc": "0.38.1",
