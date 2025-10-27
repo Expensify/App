@@ -84,6 +84,9 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
@@ -152,7 +155,7 @@ function useSearchSelectorBase({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const onListEndReached = useCallback(() => {
@@ -179,6 +182,7 @@ function useSearchSelectorBase({
                     searchQuery: computedSearchTerm,
                     maxResults,
                     includeUserToInvite,
+                    countryCode,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, draftComments, {
@@ -200,7 +204,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
-                    loginsToExclude: excludeLogins,
+                    excludeLogins,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, draftComments, {
@@ -232,6 +236,7 @@ function useSearchSelectorBase({
         computedSearchTerm,
         maxResults,
         includeUserToInvite,
+        countryCode,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,
@@ -326,6 +331,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,

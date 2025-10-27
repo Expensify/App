@@ -22,10 +22,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import {AttachmentStateContext} from './AttachmentStateContextProvider';
@@ -86,7 +86,7 @@ function AttachmentModalBaseContent({
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>();
+    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
     const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
     const fileToDisplay = useMemo(() => {
         if (isMultipleFiles) {
@@ -106,10 +106,6 @@ function AttachmentModalBaseContent({
     }, []);
 
     useEffect(() => {
-        if (!filesProp) {
-            return;
-        }
-
         setFile(filesProp ?? fallbackFile);
     }, [filesProp, fallbackFile, setFile]);
 

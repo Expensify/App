@@ -15,7 +15,7 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
 
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return isPolicyAdmin(getPolicy(policyID)) ? expensifyCards?.[cardID] : allUserCards?.[cardID];
 }
 
