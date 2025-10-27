@@ -926,6 +926,7 @@ function MoneyRequestConfirmationListFooter({
                             fileExtension={fileExtension}
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
+                            shouldUseFullHeight
                         />
                     </PressableWithoutFocus>
                 )}
