@@ -20,6 +20,7 @@ import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 import type { notificationType } from './pages/MultiFactorAuthenticationNotificationPage';
+import { promptType } from '@pages/MultiFactorAuthenticationPrompt';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -3313,10 +3314,11 @@ const ROUTES = {
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
-    
-    MULTIFACTORAUTHENTICATION_ENABLE_BIOMETRICS_PROMPT: 'multifactorauthentication/prompt/enable-biometrics',
 
-    MULTIFACTORAUTHENTICATION_ENABLE_PASSKEY_PROMPT: 'multifactorauthentication/prompt/enable-passkey',
+    MULTIFACTORAUTHENTICATION_PROMPT: {
+        route: 'multifactorauthentication/prompt/:promptType',
+        getRoute: (promptType: promptType) => `multifactorauthentication/prompt/${promptType}` as const,
+    },
 } as const;
 
 /**

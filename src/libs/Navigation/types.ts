@@ -30,6 +30,7 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type { notificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
+import { promptType } from '@pages/MultiFactorAuthenticationPrompt';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
 
@@ -2418,8 +2419,10 @@ type MultiFactorAuthenticationParamList = {
         notificationType: notificationType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: undefined;
-    [SCREENS.MULTIFACTORAUTHENTICATION.ENABLE_BIOMETRICS_PROMPT]: undefined;
-    [SCREENS.MULTIFACTORAUTHENTICATION.ENABLE_PASSKEY_PROMPT]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
+        promptType: promptType;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: undefined;
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
