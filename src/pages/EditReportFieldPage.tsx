@@ -76,9 +76,11 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     const handleReportFieldDelete = () => {
-        deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
         goBack();
+        setTimeout(() => {
+            deleteReportField(report.reportID, reportField);
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
