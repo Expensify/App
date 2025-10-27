@@ -356,7 +356,7 @@ function EmptySearchViewContent({
                                                   }
 
                                                   if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                                      const createdReportID = createNewReport(
+                                                      const {reportID: createdReportID} = createNewReport(
                                                           currentUserPersonalDetails,
                                                           isASAPSubmitBetaEnabled,
                                                           hasViolations,
