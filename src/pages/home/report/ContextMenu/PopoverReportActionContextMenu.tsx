@@ -9,6 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import useAncestors from '@hooks/useAncestors';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -56,7 +57,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
-
     const cursorRelativePosition = useRef({
         horizontal: 0,
         vertical: 0,
@@ -304,6 +304,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
         canBeMissing: true,
     });
+    const ancestors = useAncestors(report);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
@@ -343,7 +344,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, ancestors, isReportArchived, isOriginalReportArchived);
             });
         }
 

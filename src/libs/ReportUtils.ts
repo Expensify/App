@@ -10175,6 +10175,31 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
         };
     });
 }
+/**
+ * Get optimistic data the ancestor report actions
+ * @param report The report that is updated
+ * @param lastVisibleActionCreated Last visible action created of the child report
+ * @param type The type of action in the child report
+ */
+function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
+    return Array.from(ancestors, ({report: ancestorReport, reportAction: ancestorReportAction}) => {
+        if (!ancestorReport || isEmptyObject(ancestorReport)) {
+            return null;
+        }
+
+        if (!ancestorReportAction?.reportActionID || isEmptyObject(ancestorReportAction)) {
+            return null;
+        }
+
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: {
+                [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type),
+            },
+        };
+    });
+}
 
 function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     if (isEmptyObject(policy)) {
@@ -12240,6 +12265,7 @@ export {
     getMoneyRequestOptions,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
+    getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getOutstandingChildRequest,

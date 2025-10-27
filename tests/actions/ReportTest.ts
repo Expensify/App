@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import useAncestors from '@hooks/useAncestors';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -314,6 +317,8 @@ describe('actions/Report', () => {
             callback: (val) => (reportActions = val ?? {}),
         });
 
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(report));
+
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
         const USER_2_ACCOUNT_ID = 2;
@@ -503,8 +508,9 @@ describe('actions/Report', () => {
                 return waitForNetworkPromises();
             })
             .then(() => {
+                rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -521,8 +527,9 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report, undefined)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
+                rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, ancestors.current);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -917,7 +924,9 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
+
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -950,7 +959,8 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        rerender(originalReport);
+        Report.deleteReportComment(REPORT_ID, newReportAction, ancestors.current);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -996,7 +1006,9 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
+
+        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1011,7 +1023,8 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        rerender(originalReport);
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1060,7 +1073,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, []);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1122,7 +1135,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, []);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1191,7 +1204,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, []);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1386,7 +1399,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction);
+        Report.deleteReportComment(REPORT_ID, newReportAction, []);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1469,7 +1482,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        Report.deleteReportComment(REPORT_ID, reportAction, []);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1513,26 +1526,20 @@ describe('actions/Report', () => {
             reportActionID,
         );
 
-        Report.deleteReportComment(REPORT_ID, reportAction);
+        await waitForBatchedUpdates();
+
+        const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
+
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    if (persistedRequests?.length !== 3) {
-                        return;
-                    }
-                    Onyx.disconnect(connection);
+        await waitForBatchedUpdates();
 
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
-                    expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
-                    resolve();
-                },
-            });
-        });
+        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+        expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
+        expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
@@ -1561,22 +1568,13 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
+        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
 
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-
-                    resolve();
-                },
-            });
-        });
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1605,9 +1603,12 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID,
         };
-        Report.editReportComment(originalReport, action, 'value1');
-        Report.editReportComment(originalReport, action, 'value2');
-        Report.editReportComment(originalReport, action, 'value3');
+
+        const {result: ancestors} = renderHook(() => useAncestors(originalReport));
+
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1');
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2');
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3');
 
         const requests = PersistedRequests?.getAll();
 
@@ -1647,22 +1648,21 @@ describe('actions/Report', () => {
             [mentionActionID]: mentionAction,
             [mentionActionID2]: mentionAction2,
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+
+        let report = {
             ...createRandomReport(Number(reportID)),
             lastMentionedTime: mentionAction2.created,
-        });
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
 
-        Report.deleteReportComment(reportID, mentionAction);
-        Report.deleteReportComment(reportID, mentionAction2);
+        const {result: ancestors} = renderHook(() => useAncestors({reportID}));
+
+        Report.deleteReportComment(reportID, mentionAction, ancestors.current);
+        Report.deleteReportComment(reportID, mentionAction2, ancestors.current);
 
         await waitForBatchedUpdates();
 
-        const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                callback: resolve,
-            });
-        });
+        report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
         expect(report?.lastMentionedTime).toBeUndefined();
     });
