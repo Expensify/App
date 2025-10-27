@@ -90,7 +90,6 @@ import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
     getIcons,
-    getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,

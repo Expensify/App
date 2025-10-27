@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getMoneyRequestSpendBreakdown, isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
