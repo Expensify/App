@@ -15,14 +15,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
-    'use no memo';
-
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
@@ -41,21 +38,11 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
     const {isOffline} = useNetwork();
 
-    const scrollableRef = useRef<HTMLDivElement>(null);
+    const scrollableRef = useRef<View & HTMLDivElement>(null);
     const canUseTouchScreen = canUseTouchScreenUtil();
-
-    const setScale = (newContainerWidth: number, newContainerHeight: number, newImageWidth: number, newImageHeight: number) => {
-        if (!newContainerWidth || !newImageWidth || !newContainerHeight || !newImageHeight) {
-            return;
-        }
-        const newZoomScale = Math.min(newContainerWidth / newImageWidth, newContainerHeight / newImageHeight);
-        setZoomScale(newZoomScale);
-    };
 
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         const {width, height} = e.nativeEvent.layout;
-        setScale(width, height, imgWidth, imgHeight);
-
         setContainerHeight(height);
         setContainerWidth(width);
     };
@@ -67,10 +54,18 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         if (imageHeight <= 0) {
             return;
         }
-        setScale(containerWidth, containerHeight, imageWidth, imageHeight);
         setImgWidth(imageWidth);
         setImgHeight(imageHeight);
     };
+
+    useEffect(() => {
+        if (!containerWidth || !containerHeight || !imgWidth || !imgHeight) {
+            return;
+        }
+
+        const newZoomScale = Math.min(containerWidth / imgWidth, containerHeight / imgHeight);
+        setZoomScale(newZoomScale);
+    }, [containerWidth, containerHeight, imgWidth, imgHeight]);
 
     const imageLoadingStart = () => {
         if (!isLoading) {
@@ -198,6 +193,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
+
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
     let isLocalToUserDeviceFile = isLocalFile(url);
@@ -217,8 +213,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     return (
         <View
-            // eslint-disable-next-line react-compiler/react-compiler
-            ref={viewRef(scrollableRef)}
+            ref={scrollableRef}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
         >
