@@ -69,6 +69,9 @@ type ImageOwnProps = BaseImageProps & {
 
     /** If you want to calculate the image height dynamically instead of using aspectRatio, pass the width in this property */
     imageWidthToCalculateHeight?: number;
+
+    /** Whether the image should use the full height of the container */
+    shouldUseFullHeight?: boolean;
 };
 
 type ImageProps = ImageOwnProps;

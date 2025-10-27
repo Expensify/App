@@ -209,6 +209,7 @@ function ReceiptImage({
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 onLoad={onLoad}
+                shouldUseFullHeight={shouldUseFullHeight}
             />
         );
     }
