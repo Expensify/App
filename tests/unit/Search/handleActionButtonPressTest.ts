@@ -9,7 +9,7 @@ import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockReportItemWithHold = {
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
@@ -67,6 +67,17 @@ const mockReportItemWithHold = {
         {
             report: {
                 reportID: '1350959062018695',
+            },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
             },
             accountID: 1206,
             action: 'view',
@@ -145,6 +156,17 @@ const mockReportItemWithHold = {
         {
             report: {
                 reportID: '1350959062018695',
+            },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
             },
             accountID: 1206,
             action: 'view',

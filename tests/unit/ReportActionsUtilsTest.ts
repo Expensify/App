@@ -1,7 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {translateLocal} from '@libs/Localize';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
@@ -14,6 +13,7 @@ import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/typ
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -1398,6 +1398,24 @@ describe('ReportActionsUtils', () => {
 
             // Then the action should not be visible
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for actionable card fraud alert if the resolution is recognized', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                reportActionID: '1',
+                originalMessage: {
+                    resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
+                    cardID: 123,
+                    maskedCardNumber: '1234',
+                    triggerAmount: 0,
+                    triggerMerchant: 'Merchant',
+                },
+                created: '2025-09-29',
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, false);
             expect(actual).toBe(false);
         });
 

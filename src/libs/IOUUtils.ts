@@ -5,6 +5,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
+import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -193,12 +194,12 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
 
 function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean, isManualDistanceRequest: boolean) {
     // Determine when to show the receipt empty state:
-    // - Show for submit or track expense types
+    // - Show for pay, submit or track expense types
     // - Hide for per diem requests
     // - Hide when submitting a track expense to a non-paid group policy (personal users)
     // - Hide for manual distance requests because attaching a receipt before creating the expense will trigger Smartscan but distance request amount depends on the distance traveled and mileage rate
     return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY) &&
         !isPerDiemRequest &&
         (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy)) &&
         !isManualDistanceRequest
@@ -217,7 +218,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
         email: currentUser?.login ?? '',
         login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
-        avatarUrl: currentUser.avatar?.toString() ?? '',
+        avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
         text: currentUser.login,
         selected: true,

@@ -20,10 +20,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, getReportTransactions, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    buildOptimisticExportIntegrationAction,
+    buildOptimisticIOUReportAction,
+    getReportTransactions,
+    hasHeldExpenses,
+    isExpenseReport,
+    isInvoiceReport,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -33,12 +41,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -47,6 +57,13 @@ type OnyxSearchResponse = {
         offset: number;
         hasMoreResults: boolean;
     };
+};
+
+type TransactionPreviewData = {
+    hasParentReport: boolean;
+    hasParentReportAction: boolean;
+    hasTransaction: boolean;
+    hasTransactionThreadReport: boolean;
 };
 
 function handleActionButtonPress(
@@ -58,6 +75,7 @@ function handleActionButtonPress(
     snapshotPolicy: SearchPolicy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
+    onDEWModalOpen?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -75,10 +93,14 @@ function handleActionButtonPress(
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+                onDEWModalOpen?.();
+                return;
+            }
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey, onDEWModalOpen);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -350,9 +372,9 @@ function search({
         allowPostSearchRecount: false,
     });
 
-    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
             const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
@@ -379,6 +401,8 @@ function search({
                     allowPostSearchRecount: true,
                 });
             }
+
+            return result?.jsonCode;
         });
     });
 }
@@ -420,7 +444,20 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(
+    hash: number,
+    reportList: SearchReport[],
+    policy: SearchPolicy[],
+    transactionIDList?: string[],
+    currentSearchKey?: SearchKey,
+    onDEWModalOpen?: () => void,
+) {
+    const policyData = policy.at(0);
+    if (policyData && hasDynamicExternalWorkflow(policyData)) {
+        onDEWModalOpen?.();
+        return;
+    }
+
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -607,7 +644,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
-            formData.append(key, String(value));
+            formData.append(key, SafeString(value));
         }
     });
 
@@ -665,6 +702,7 @@ function getExportTemplates(
     const exportTemplates: ExportTemplate[] = [
         normalizeTemplate(
             CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
             CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
         ),
@@ -675,6 +713,7 @@ function getExportTemplates(
         exportTemplates.push(
             normalizeTemplate(
                 CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
                 CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
             ),
@@ -871,6 +910,67 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
     return formattedAmount ?? '';
 }
 
+/* Optimistically sets the data necessary to show the transaction thread report right away if user opens it from the Search tab.
+ *
+ * When we open a transaction thread from the Search tab we already have all necessary information to show its preview without waiting for OpenReport API call to be finished.
+ * So we generate necessary data optimistically: parent report, parent report action, transaction, and transaction thread report.
+ * This way we provide users instant responsiveness when clicking search results.
+ *
+ * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
+ */
+function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
+    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
+    const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
+    const onyxUpdates: OnyxUpdate[] = [];
+
+    // Set optimistic parent report
+    if (!hasParentReport) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        });
+    }
+
+    // Set optimistic parent report action
+    if (!hasParentReportAction && moneyRequestReportActionID) {
+        const optimisticIOUAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment: '',
+            participants: [],
+            transactionID,
+            iouReportID: reportID,
+            created,
+            reportActionID: moneyRequestReportActionID,
+            linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
+        });
+        optimisticIOUAction.pendingAction = undefined;
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticIOUAction.reportActionID]: optimisticIOUAction},
+        });
+    }
+
+    // Set optimistic transaction
+    if (!hasTransaction) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: item,
+        });
+    }
+
+    // Set optimistic transaction thread report
+    if (!hasTransactionThreadReport) {
+        setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
+    }
+
+    Onyx.update(onyxUpdates);
+}
+
 export {
     saveSearch,
     search,
@@ -900,4 +1000,6 @@ export {
     getExportTemplates,
     getReportType,
     getTotalFormattedAmount,
+    setOptimisticDataForTransactionThreadPreview,
 };
+export type {TransactionPreviewData};
