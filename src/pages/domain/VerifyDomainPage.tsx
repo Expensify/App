@@ -125,7 +125,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
             <FixedFooter>
                 {!!domain?.validationError && (
                     <FormHelpMessage
-                        message={translate('domain.verifyDomain.genericError')}
+                        message={domain?.validationError}
                         style={[styles.pv3, styles.mb0, styles.mt0]}
                     />
                 )}
