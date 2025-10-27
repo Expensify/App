@@ -34,6 +34,7 @@ function ReanimatedModal({
     onModalShow = noop,
     onModalWillHide = noop,
     onModalHide = noop,
+    onDismiss,
     onBackdropPress = noop,
     onBackButtonPress = noop,
     style,
@@ -45,6 +46,7 @@ function ReanimatedModal({
     shouldPreventScrollOnFocus,
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
+    shouldEnableNewFocusManagement,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -149,8 +151,16 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        onModalHide();
-    }, [onModalHide]);
+
+        // On the web platform, the Modal's onDismiss callback may not be triggered if the dismiss process is interrupted by other actions such as navigation.
+        // Specifically on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
+        // Therefore, we manually call onDismiss and onModalHide here.
+        if (getPlatform() !== CONST.PLATFORM.IOS) {
+            onDismiss?.();
+            onModalHide();
+        }
+    }, [onDismiss, onModalHide]);
 
     const containerView = (
         <Container
@@ -207,6 +217,13 @@ function ReanimatedModal({
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
+                onDismiss={() => {
+                    if (getPlatform() !== CONST.PLATFORM.IOS) {
+                        return;
+                    }
+                    onDismiss?.();
+                    onModalHide();
+                }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
@@ -223,6 +240,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
+                        shouldReturnFocus={!shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}
