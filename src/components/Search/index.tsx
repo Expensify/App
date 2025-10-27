@@ -963,9 +963,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 }
 
-Search.displayName = 'Search';
 
 export type {SearchProps};
-const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+const WrappedSearch = Sentry.withProfiler(Search);
 WrappedSearch.displayName = 'Search';
 export default WrappedSearch;

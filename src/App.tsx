@@ -149,4 +149,7 @@ function App() {
 
 App.displayName = 'App';
 
-export default Sentry.wrap(App);
+
+const WrappedApp = Sentry.wrap(App);
+WrappedApp.displayName = 'App';
+export default WrappedApp;
