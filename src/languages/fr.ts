@@ -136,6 +136,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -336,6 +337,7 @@ const translations = {
         no: 'Non',
         ok: "D'accord",
         notNow: 'Pas maintenant',
+        noThanks: 'Non merci',
         learnMore: 'En savoir plus',
         buttonConfirm: 'Compris',
         name: 'Nom',
@@ -638,6 +640,7 @@ const translations = {
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger en CSV',
         help: 'Aide',
+        expenseReport: 'Rapport de dépenses',
         expenseReports: 'Rapports de dépenses',
         rateOutOfPolicy: 'Taux hors politique',
         reimbursable: 'Remboursable',
@@ -5578,91 +5581,108 @@ ${amount} pour ${merchant} - ${date}`,
             reportFields: {
                 title: 'Champs de rapport',
                 description: `Les champs de rapport vous permettent de spécifier des détails au niveau de l'en-tête, distincts des tags qui se rapportent aux dépenses sur des éléments de ligne individuels. Ces détails peuvent inclure des noms de projet spécifiques, des informations sur les voyages d'affaires, des emplacements, et plus encore.`,
-                onlyAvailableOnPlan: 'Les champs de rapport ne sont disponibles que sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les champs de rapport ne sont disponibles que sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l'intégration Expensify + NetSuite. Obtenez des informations financières approfondies et en temps réel avec la prise en charge des segments natifs et personnalisés, y compris la cartographie des projets et des clients.`,
-                onlyAvailableOnPlan: 'Notre intégration NetSuite est uniquement disponible avec le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration NetSuite est uniquement disponible avec le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles avec l'intégration Expensify + Sage Intacct. Obtenez des informations financières approfondies et en temps réel grâce à des dimensions définies par l'utilisateur, ainsi qu'un codage des dépenses par département, classe, emplacement, client et projet (travail).`,
-                onlyAvailableOnPlan: 'Notre intégration Sage Intacct est uniquement disponible avec le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Sage Intacct est uniquement disponible avec le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles avec l'intégration Expensify + QuickBooks Desktop. Obtenez une efficacité ultime grâce à une connexion bidirectionnelle en temps réel et au codage des dépenses par classe, article, client et projet.`,
-                onlyAvailableOnPlan: 'Notre intégration QuickBooks Desktop est uniquement disponible avec le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration QuickBooks Desktop est uniquement disponible avec le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvals avancés',
                 description: `Si vous souhaitez ajouter plus de niveaux d'approbation au processus – ou simplement vous assurer que les dépenses les plus importantes bénéficient d'un autre regard – nous avons ce qu'il vous faut. Les approbations avancées vous aident à mettre en place les contrôles appropriés à chaque niveau afin de garder les dépenses de votre équipe sous contrôle.`,
-                onlyAvailableOnPlan: 'Les approbations avancées ne sont disponibles que sur le plan Control, qui commence à',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les approbations avancées ne sont disponibles que sur le plan Control, qui commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             categories: {
                 title: 'Catégories',
                 description: "Les catégories vous permettent de suivre et d'organiser les dépenses. Utilisez nos catégories par défaut ou ajoutez les vôtres.",
-                onlyAvailableOnPlan: 'Les catégories sont disponibles sur le plan Collect, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les catégories sont disponibles sur le plan Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             glCodes: {
                 title: 'Codes GL',
                 description: `Ajoutez des codes GL à vos catégories et étiquettes pour faciliter l'exportation des dépenses vers vos systèmes de comptabilité et de paie.`,
-                onlyAvailableOnPlan: 'Les codes GL sont uniquement disponibles sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les codes GL sont uniquement disponibles sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'Codes GL et de paie',
                 description: `Ajoutez des codes GL et de paie à vos catégories pour faciliter l'exportation des dépenses vers vos systèmes de comptabilité et de paie.`,
-                onlyAvailableOnPlan: 'Les codes GL et de paie sont uniquement disponibles sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les codes GL et de paie sont uniquement disponibles sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             taxCodes: {
                 title: 'Codes fiscaux',
                 description: `Ajoutez des codes fiscaux à vos taxes pour faciliter l'exportation des dépenses vers vos systèmes de comptabilité et de paie.`,
-                onlyAvailableOnPlan: 'Les codes fiscaux sont uniquement disponibles avec le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les codes fiscaux sont uniquement disponibles avec le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             companyCards: {
                 title: "Cartes d'entreprise illimitées",
                 description: `Besoin d'ajouter plus de flux de cartes ? Débloquez des cartes d'entreprise illimitées pour synchroniser les transactions de tous les principaux émetteurs de cartes.`,
-                onlyAvailableOnPlan: 'Ceci est uniquement disponible sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Ceci est uniquement disponible sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             rules: {
                 title: 'Règles',
                 description: `Les règles fonctionnent en arrière-plan et gardent vos dépenses sous contrôle pour que vous n'ayez pas à vous soucier des petites choses.\n\nExigez des détails de dépense comme des reçus et des descriptions, définissez des limites et des valeurs par défaut, et automatisez les approbations et les paiements – tout en un seul endroit.`,
-                onlyAvailableOnPlan: 'Les règles sont uniquement disponibles sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les règles sont uniquement disponibles sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Per diem',
                 description:
                     'Le per diem est un excellent moyen de maintenir vos coûts quotidiens conformes et prévisibles lorsque vos employés voyagent. Profitez de fonctionnalités telles que des tarifs personnalisés, des catégories par défaut et des détails plus précis comme les destinations et les sous-tarifs.',
-                onlyAvailableOnPlan: 'Les indemnités journalières ne sont disponibles que sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les indemnités journalières ne sont disponibles que sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             travel: {
                 title: 'Voyage',
                 description:
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
-                onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Le voyage est disponible sur le plan Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             reports: {
                 title: 'Rapports',
                 description: 'Les rapports vous permettent de regrouper les dépenses pour un suivi et une organisation plus faciles.',
-                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les rapports sont disponibles sur le plan Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',
                 description:
                     "Les balises multi-niveaux vous aident à suivre les dépenses avec plus de précision. Assignez plusieurs balises à chaque poste—comme le département, le client ou le centre de coût—pour capturer le contexte complet de chaque dépense. Cela permet des rapports plus détaillés, des flux de travail d'approbation et des exportations comptables.",
-                onlyAvailableOnPlan: 'Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             distanceRates: {
                 title: 'Tarifs de distance',
                 description: 'Créez et gérez vos propres tarifs, suivez en miles ou en kilomètres, et définissez des catégories par défaut pour les frais de distance.',
-                onlyAvailableOnPlan: 'Les tarifs de distance sont disponibles sur le plan Collect, à partir de',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les tarifs de distance sont disponibles sur le plan Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: "Niveaux d'approbation multiples",
                 description:
                     "Les niveaux d'approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plus d'une personne approuve un rapport avant qu'il ne puisse être remboursé.",
-                onlyAvailableOnPlan: "Les niveaux d'approbation multiples sont uniquement disponibles sur le plan Control, à partir de ",
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les niveaux d'approbation multiples sont uniquement disponibles sur le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'par membre actif par mois.',
@@ -5685,10 +5705,8 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Passez au plan Control',
                 note: 'Débloquez nos fonctionnalités les plus puissantes, y compris :',
                 benefits: {
-                    startsAt: 'Le plan Control commence à',
-                    perMember: 'par membre actif par mois.',
-                    learnMore: 'En savoir plus',
-                    pricing: 'à propos de nos plans et tarifs.',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>Le plan Control commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`} <a href="${learnMoreMethodsRoute}">En savoir plus</a> à propos de nos plans et tarifs.</muted-text>`,
                     benefit1: 'Connexions comptables avancées (NetSuite, Sage Intacct, et plus)',
                     benefit2: 'Règles de dépenses intelligentes',
                     benefit3: "Flux de travail d'approbation à plusieurs niveaux",
@@ -6276,7 +6294,6 @@ ${amount} pour ${merchant} - ${date}`,
             reimbursable: 'Remboursable',
             purchaseCurrency: "Devise d'achat",
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
@@ -6859,7 +6876,6 @@ ${amount} pour ${merchant} - ${date}`,
         quickTip: 'Petit conseil...',
         quickTipSubTitle: 'Vous pouvez accéder directement à Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour un raccourci facile !',
         bookACall: 'Réserver un appel',
-        noThanks: 'Non merci',
         bookACallTitle: 'Souhaitez-vous parler à un chef de produit ?',
         benefits: {
             [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Discussion directe sur les dépenses et les rapports',
@@ -6958,7 +6974,6 @@ ${amount} pour ${merchant} - ${date}`,
             },
             earlyDiscount: {
                 claimOffer: "Réclamer l'offre",
-                noThanks: 'Non merci',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
                     `<strong>${discountType}% de réduction sur votre première année !</strong> Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Offre à durée limitée : ${discountType}% de réduction sur votre première année !`,
@@ -7273,7 +7288,6 @@ ${amount} pour ${merchant} - ${date}`,
             manager: "<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l'essayer !</tooltip>",
             confirmation: '<tooltip>Maintenant, <strong>soumettez votre dépense</strong> et regardez la magie opérer !</tooltip>',
             tryItOut: 'Essayez-le',
-            noThanks: 'Non merci',
         },
         outstandingFilter: "<tooltip>Filtrer les dépenses qui <strong>besoin d'approbation</strong></tooltip>",
         scanTestDriveTooltip: "<tooltip>Envoyer ce reçu à<strong>complétez l'essai !</strong></tooltip>",
