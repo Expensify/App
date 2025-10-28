@@ -21,6 +21,7 @@ import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 import type { NotificationType } from './pages/MultiFactorAuthenticationNotificationPage';
 import type { PromptType } from './pages/MultiFactorAuthenticationPromptPage';
+import type { FallbackFactorType } from './pages/MultiFactorAuthenticationFallbackFactorPage';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -3305,22 +3306,25 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
 
-    MULTIFACTORAUTHENTICATION_FALLBACK: 'multifactorauthentication/code-authentication',
+    MULTIFACTORAUTHENTICATION_FALLBACK: {
+        route: 'multifactor-authentication/factor/:factorType',
+        getRoute: (factorType: FallbackFactorType) => `multifactor-authentication/factor/${factorType}` as const
+    },
 
     MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
-        route: 'multifactorauthentication/approve-transaction/:transactionID/:reportID',
-        getRoute: (transactionID: string, reportID: string) => `multifactorauthentication/approve-transaction/${transactionID}/${reportID}` as const,        
+        route: 'multifactor-authentication/approve-transaction/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `multifactor-authentication/approve-transaction/${transactionID}/${reportID}` as const,        
     },
 
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
-        route: 'multifactorauthentication/notification/:notificationType',
-        getRoute: (notificationType: NotificationType) => `multifactorauthentication/notification/${notificationType}` as const,
+        route: 'multifactor-authentication/notification/:notificationType',
+        getRoute: (notificationType: NotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
     },
 
-    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
+    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
 
     MULTIFACTORAUTHENTICATION_PROMPT: {
-        route: 'multifactorauthentication/prompt/:promptType',
+        route: 'multifactor-authentication/prompt/:promptType',
         getRoute: (promptType: PromptType) => `multifactorauthentication/prompt/${promptType}` as const,
     },
 } as const;

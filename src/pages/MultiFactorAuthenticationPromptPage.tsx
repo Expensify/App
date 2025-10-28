@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,7 +45,7 @@ const getPromptData = (promptType: PromptType) : PromptData => {
     }
 };
 
-function multiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
+function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
@@ -57,12 +56,12 @@ function multiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         return <NotFoundPage/>
     }
 
-    const onConfirm = () => {
-        onGoBackPress();
-    };
+    // const onConfirm = () => {
+    //     onGoBackPress();
+    // };
 
     return (
-        <ScreenWrapper testID={multiFactorAuthenticationPromptPage.displayName}>
+        <ScreenWrapper testID={MultiFactorAuthenticationPromptPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
                 onBackButtonPress={onGoBackPress}
@@ -78,7 +77,7 @@ function multiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                         subtitle={translate(data.subtitle)}
                         subtitleStyle={styles.textSupporting}
                         containerStyle={styles.p0}
-                        testID={multiFactorAuthenticationPromptPage.displayName}
+                        testID={MultiFactorAuthenticationPromptPage.displayName}
                     />
                 </View>
                 <View style={[styles.flexColumn, styles.gap3, styles.m5]}>
@@ -99,8 +98,8 @@ function multiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     );
 }
 
-multiFactorAuthenticationPromptPage.displayName = 'MultiFactorAuthenticationPromptPage';
+MultiFactorAuthenticationPromptPage.displayName = 'MultiFactorAuthenticationPromptPage';
 
-export default multiFactorAuthenticationPromptPage;
+export default MultiFactorAuthenticationPromptPage;
 
 export type {PromptType};

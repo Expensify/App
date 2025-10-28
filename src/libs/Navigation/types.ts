@@ -30,6 +30,7 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type { NotificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type { PromptType } from '@pages/MultiFactorAuthenticationPromptPage';
+import type { FallbackFactorType } from '@pages/MultiFactorAuthenticationFallbackFactorPage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -2687,7 +2688,9 @@ type MultiFactorAuthenticationParamList = {
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
         notificationType: NotificationType;
     };
-    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: {
+        factorType: FallbackFactorType;
+    };
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
         promptType: PromptType;
     };
