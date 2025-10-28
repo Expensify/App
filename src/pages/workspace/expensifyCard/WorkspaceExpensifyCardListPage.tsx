@@ -83,7 +83,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
-    const [footerHeight, setFooterHeight] = useState(0);
+    const [footerHeight, setFooterHeight] = useState<number | undefined>(undefined);
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
@@ -259,10 +259,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         data={filteredSortedCards}
                         renderItem={renderItem}
                         ListHeaderComponent={renderListHeader}
-                        contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + (footerHeight ?? 0)}]}
                         ListFooterComponent={
                             <Text
-                                style={[styles.textMicroSupporting, styles.p5]}
+                                style={[styles.textMicroSupporting, styles.p5, footerHeight === undefined && styles.opacity0]}
                                 onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
                             >
                                 {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
