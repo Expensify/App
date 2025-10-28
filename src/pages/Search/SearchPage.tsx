@@ -73,6 +73,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -182,7 +183,11 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType) => {
+        (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
+            // TODO: We need to handle 2 cases for invoice
+            // - hasAdditionalData for the first time payment
+            // - only has paymentMethod > We need to get the bankID from that payment method and so on
+            const hasAdditionalData = !isEmptyObject(additionalData);
             if (!hash) {
                 return;
             }

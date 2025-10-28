@@ -133,6 +133,7 @@ function SettlementButton({
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
+    console.log('hasIntentToPay', hasIntentToPay)
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -188,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated]);
+    }, [isAccountLocked, isUserValidated, policy, showLockedAccountModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -420,6 +421,7 @@ function SettlementButton({
             // if user has intent to pay, we should get the only bank account information to pay the invoice.
             if (hasIntentToPay) {
                 const currentBankInformation = formattedPaymentMethods.at(0) as BankAccount;
+                console.log('currentBankInformation', currentBankInformation)
                 onPress(
                     CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                     currentBankInformation.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,

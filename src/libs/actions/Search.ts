@@ -851,7 +851,7 @@ function handleBulkPayItemSelected(
     latestBankItems: BankAccountMenuItem[] | undefined,
     activeAdminPolicies: Policy[],
     isUserValidated: boolean | undefined,
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
@@ -885,7 +885,8 @@ function handleBulkPayItemSelected(
         }
         return;
     }
-    confirmPayment?.(paymentType as PaymentMethodType);
+
+    confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
 }
 
 /**
@@ -895,6 +896,25 @@ function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], sele
     return selectedReports?.length > 0
         ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
         : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+}
+
+/**
+ * Return the payment params for paying invoice reports on Search.
+ */
+function getPayMoneyOnSearchInvoiceParams(policyID: string, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod): Partial<PaymentData> {
+    const invoiceParams: Partial<PaymentData> = {
+        policyID,
+        payAsBusiness,
+    };
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        invoiceParams.bankAccountID = methodID;
+    }
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        invoiceParams.fundID = methodID;
+    }
+
+    return invoiceParams;
 }
 
 /**
@@ -1001,5 +1021,6 @@ export {
     getReportType,
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
+    getPayMoneyOnSearchInvoiceParams,
 };
 export type {TransactionPreviewData};
