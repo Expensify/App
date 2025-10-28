@@ -1919,7 +1919,13 @@ function handlePreexistingReport(report: Report) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, ancestors: Ancestor[], isReportArchived: boolean | undefined, isOriginalReportArchived: boolean | undefined) {
+function deleteReportComment(
+    reportID: string | undefined,
+    reportAction: ReportAction,
+    ancestors: Ancestor[],
+    isReportArchived: boolean | undefined,
+    isOriginalReportArchived: boolean | undefined,
+) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 

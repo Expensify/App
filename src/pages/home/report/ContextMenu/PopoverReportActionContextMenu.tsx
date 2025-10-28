@@ -1,6 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
@@ -9,8 +9,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import useAncestors from '@hooks/useAncestors';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -320,9 +320,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
     useEffect(() => {
-        if (originalReport) {
-            ancestorsRef.current = ancestors;
+        if (!originalReport) {
+            return;
         }
+        ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
