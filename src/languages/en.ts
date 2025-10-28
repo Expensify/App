@@ -2400,10 +2400,10 @@ const translations = {
                     '*Set up categories* so your team can code expenses for easy reporting.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Categories*.\n' +
-                    "5. Disable any categories you don't need.\n" +
-                    '6. Add your own categories in the top right.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Categories*.\n' +
+                    "4. Disable any categories you don't need.\n" +
+                    '5. Add your own categories in the top right.\n' +
                     '\n' +
                     `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2486,10 +2486,10 @@ const translations = {
                     '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Members* > *Invite member*.\n' +
-                    '5. Enter emails or phone numbers. \n' +
-                    '6. Add a custom invite message if you’d like!\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Members* > *Invite member*.\n' +
+                    '4. Enter emails or phone numbers. \n' +
+                    '5. Add a custom invite message if you’d like!\n' +
                     '\n' +
                     `[Take me to workspace members](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2509,11 +2509,11 @@ const translations = {
                     'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Tags*.\n' +
-                    '6. Navigate to *Tags* in the workspace editor.\n' +
-                    '7. Click *+ Add tag* to make your own.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *More features*.\n' +
+                    '4. Enable *Tags*.\n' +
+                    '5. Navigate to *Tags* in the workspace editor.\n' +
+                    '6. Click *+ Add tag* to make your own.\n' +
                     '\n' +
                     `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
