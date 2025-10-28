@@ -663,6 +663,7 @@ function isOnboardingFlow() {
 
 function isValidateLoginFlow() {
     const state = navigationRef.getRootState();
+    console.log('state', state);
     const currentFocusedRoute = findFocusedRoute(state);
     return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
 }
