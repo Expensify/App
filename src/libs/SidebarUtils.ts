@@ -62,6 +62,7 @@ import {
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedBudgetMessage,
+    getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
@@ -958,6 +959,8 @@ function getOptionData({
             result.alternateText = getUpdatedReimbursementChoiceMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN) {
             result.alternateText = getSetAutoJoinMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
+            result.alternateText = getUpdatedDefaultTitleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

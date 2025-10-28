@@ -99,6 +99,7 @@ import {
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedBudgetMessage,
+    getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
@@ -1464,6 +1465,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedReimbursementChoiceMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN)) {
             children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(action)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

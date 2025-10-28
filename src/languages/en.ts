@@ -6187,6 +6187,8 @@ const translations = {
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: {newReimbursementChoice: string; oldReimbursementChoice: string}) =>
             `updated the reimbursement method from ${oldReimbursementChoice} to ${newReimbursementChoice}`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `set the pre-approval of workspace join requests to ${enabled ? 'Enabled' : 'Disabled'}`,
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: {newDefaultTitle: string; oldDefaultTitle: string}) =>
+            `updated the Custom Report Name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
