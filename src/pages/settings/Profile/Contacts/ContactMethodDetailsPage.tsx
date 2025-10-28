@@ -41,6 +41,7 @@ import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -58,7 +59,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const didClearError = useRef(false);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
@@ -72,7 +72,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
 
-    const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    const loginDataRef = useRef<Login | undefined>(undefined);
+    const loginData = useMemo(() => {
+        loginDataRef.current = loginList?.[contactMethod];
+        return loginList?.[contactMethod];
+    }, [loginList, contactMethod]);
 
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -147,23 +151,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
-
-    const clearError = useCallback(() => {
-        // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
-        // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-        if (!loginData?.partnerUserID) {
-            return;
-        }
-        clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
-    }, [contactMethod, loginData?.partnerUserID, validateLoginError]);
-
-    useEffect(() => {
-        if (isLoadingOnyxValues || didClearError.current) {
-            return;
-        }
-        didClearError.current = true;
-        clearError();
-    }, [clearError, isLoadingOnyxValues]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -345,7 +332,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                        clearError={clearError}
+                        clearError={() => {
+                            // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
+                            // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
+                            if (!loginDataRef.current?.partnerUserID) {
+                                return;
+                            }
+                            clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+                        }}
                         sendValidateCode={() => {
                             if (!loginData.partnerUserID) {
                                 return;
