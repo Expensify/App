@@ -5346,6 +5346,7 @@ const CONST = {
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
             POP_TO: 'POP_TO',
+            GO_BACK: 'GO_BACK',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',

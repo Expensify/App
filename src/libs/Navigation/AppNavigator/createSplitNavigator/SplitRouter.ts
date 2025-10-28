@@ -103,6 +103,11 @@ function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1;
 }
 
+// If only one central screen is displayed on a wide layout and GO_BACK action is performed, we need to pop the entire navigator
+function shouldPopEntireNavigator(state: StackState, action: CommonActions.Action | StackActionType) {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK && !getIsNarrowLayout() && state.routes.length === 2;
+}
+
 function SplitRouter(options: SplitNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     return {
@@ -115,6 +120,11 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 }
                 // On wide screen do nothing as we want to keep the central pane screen and the sidebar is visible.
                 return state;
+            }
+
+            if (shouldPopEntireNavigator(state, action)) {
+                const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions) as StackNavigationState<ParamListBase>;
+                return stackRouter.getStateForAction(stateAfterPop, StackActions.pop(), configOptions);
             }
             return stackRouter.getStateForAction(state, action, configOptions);
         },
