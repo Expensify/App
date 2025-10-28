@@ -2621,6 +2621,15 @@ function getWorkspaceCustomUnitUpdatedMessage(action: ReportAction): string {
         });
     }
 
+    if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField === 'defaultCategory') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateCustomUnitDefaultCategory', {
+            customUnitName,
+            newValue,
+            oldValue,
+        });
+    }
+
     if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateCustomUnit', {

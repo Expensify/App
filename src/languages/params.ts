@@ -386,6 +386,8 @@ type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boo
 
 type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
 
+type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
+
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
 type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
@@ -1249,6 +1251,7 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
+    UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddedPolicyApprovalRuleParams,
