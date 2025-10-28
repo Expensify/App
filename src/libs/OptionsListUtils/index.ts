@@ -581,12 +581,6 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
             };
         }
 
-        // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
-        // to ensures that actorDetails.accountID is correctly set in case it's empty string
-        if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && actorDetails) {
-            actorDetails.accountID = lastReportAction.actorAccountID;
-        }
-
         if (actorDetails) {
             return getLastActorDisplayName(actorDetails);
         }
