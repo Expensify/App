@@ -348,11 +348,9 @@ async function filterResultsByDiff(
                         continue;
                     }
 
-                    if (line.type === 'removed') {
-                        disabledLines.add(line.number);
-                    } else {
-                        disabledLines.add(line.number + 1);
-                    }
+                    // When the eslint-disable-next-line comment is removed, the react compiler error line number is the line number of the next line
+                    const reactCompilerErrorLineNumber = line.type === 'removed' ? line.number + hunk.newCount : line.number + hunk.newCount + 1;
+                    disabledLines.add(reactCompilerErrorLineNumber);
                 }
             }
         }
