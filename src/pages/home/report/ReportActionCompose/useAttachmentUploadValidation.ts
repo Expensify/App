@@ -116,7 +116,7 @@ function useAttachmentUploadValidation({
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated, false);
 
     const validateAttachments = useCallback(
         ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
@@ -161,7 +161,7 @@ function useAttachmentUploadValidation({
             const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
 
             attachmentUploadType.current = 'attachment';
-            validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
+            validateFiles(fileObjects, filteredItems);
         },
         [isAttachmentPreviewActive, validateFiles],
     );
@@ -187,7 +187,7 @@ function useAttachmentUploadValidation({
             }
 
             attachmentUploadType.current = 'receipt';
-            validateFiles(files, items, {isValidatingReceipts: true});
+            validateFiles(files, items);
         },
         [policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
     );

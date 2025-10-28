@@ -2,19 +2,21 @@ import type {AfterPackContext} from 'electron-builder';
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
 
-const getAssetSourceFilename = () => {
+const getAssetSuffix = () => {
     if (process.env.ELECTRON_ENV === 'adhoc') {
-        return 'Assets-adhoc.car';
+        return 'Adhoc';
     }
 
     if (process.env.ELECTRON_ENV === 'development') {
-        return 'Assets-dev.car';
+        return 'Dev';
     }
 
-    return 'Assets.car';
-};
+    if (process.env.ELECTRON_ENV === 'staging') {
+        return 'Staging';
+    }
 
-const assetSource = path.resolve(__dirname, `../${getAssetSourceFilename()}`);
+    return '';
+};
 
 // This will copy Assets.car with MacOS Liquid Glass icon
 // and will be removed after Electron builder supports this natively
@@ -26,6 +28,8 @@ export default function afterPack(context: AfterPackContext) {
     const appName = context?.packager?.appInfo.productFilename;
     const appRoot = path.join(context.appOutDir, `${appName}.app`, 'Contents');
     const resourcesDir = path.join(appRoot, 'Resources');
+
+    const assetSource = path.resolve(__dirname, `../Assets${getAssetSuffix()}.car`);
 
     return fs.mkdir(resourcesDir, {recursive: true}).then(() => fs.copyFile(assetSource, path.join(resourcesDir, 'Assets.car')));
 }

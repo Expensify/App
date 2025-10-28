@@ -85,13 +85,11 @@ const getSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
             icon: Expensicons.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            shouldUpdateSelectedIndex: false,
         },
         [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
             icon: Expensicons.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            shouldUpdateSelectedIndex: false,
         },
         [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
             text: translate('iou.payElsewhere', {formattedAmount: ''}),
