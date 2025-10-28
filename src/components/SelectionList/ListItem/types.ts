@@ -12,6 +12,7 @@ import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
+import type TravelDomainListItem from './TravelDomainListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -234,7 +235,13 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
-type ValidListItem = typeof RadioListItem | typeof BaseListItem | typeof MultiSelectListItem | typeof SingleSelectListItem | typeof SpendCategorySelectorListItem;
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof BaseListItem
+    | typeof MultiSelectListItem
+    | typeof SingleSelectListItem
+    | typeof SpendCategorySelectorListItem
+    | typeof TravelDomainListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
@@ -274,6 +281,16 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
     sectionIndex?: number;
 };
 
+type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
+    TItem & {
+        /** Value of the domain */
+        value?: string;
+
+        /** Should display tag 'Recommended' */
+        isRecommended?: boolean;
+    }
+>;
+
 export type {
     BaseListItemProps,
     ExtendedTargetedEvent,
@@ -284,6 +301,7 @@ export type {
     ValidListItem,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
+    TravelDomainListItemProps,
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
