@@ -1,10 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
-import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Exclamation} from '@components/Icon/Expensicons';
@@ -14,7 +12,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +44,6 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
-    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -65,83 +61,78 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID={VerifyDomainPage.displayName}
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
                 title={translate('domain.verifyDomain.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView
-                contentContainerStyle={styles.flexGrow1}
-                keyboardShouldPersistTaps="always"
-            >
-                <View style={[styles.pt3, styles.ph5, styles.gap5]}>
-                    <Text style={styles.webViewStyles.baseFontStyle}>
-                        <RenderHTML html={translate('domain.verifyDomain.beforeProceeding', {domainName})} />
-                    </Text>
+            <View style={[styles.ph5, styles.flex1]}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="always"
+                >
+                    <View style={[styles.pt3, styles.gap5]}>
+                        <Text style={styles.webViewStyles.baseFontStyle}>
+                            <RenderHTML html={translate('domain.verifyDomain.beforeProceeding', {domainName})} />
+                        </Text>
 
-                    <Text style={styles.webViewStyles.baseFontStyle}>
-                        <OrderedListRow index={1}>
-                            <RenderHTML html={translate('domain.verifyDomain.accessYourDNS', {domainName})} />
+                        <Text style={styles.webViewStyles.baseFontStyle}>
+                            <OrderedListRow index={1}>
+                                <RenderHTML html={translate('domain.verifyDomain.accessYourDNS', {domainName})} />
+                            </OrderedListRow>
+                        </Text>
+
+                        <OrderedListRow index={2}>
+                            <View>
+                                <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
+
+                                <CopyableTextField
+                                    value={domain?.validateCode}
+                                    isLoading={domain?.isValidateCodeLoading}
+                                />
+                            </View>
                         </OrderedListRow>
-                    </Text>
 
-                    <OrderedListRow index={2}>
-                        <View>
-                            <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
+                        <OrderedListRow index={3}>
+                            <Text style={styles.webViewStyles.baseFontStyle}>{translate('domain.verifyDomain.saveChanges')}</Text>
+                        </OrderedListRow>
 
-                            <CopyableTextField
-                                value={domain?.validateCode}
-                                isLoading={domain?.isValidateCodeLoading}
+                        <Text style={styles.webViewStyles.baseFontStyle}>
+                            {translate('domain.verifyDomain.youMayNeedToConsult')}{' '}
+                            <TextLink
+                                style={styles.link}
+                                href={CONST.DOMAIN_VERIFICATION_HELP_URL}
+                            >
+                                {translate('common.learnMore')}
+                            </TextLink>
+                            .
+                        </Text>
+
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                            <Icon
+                                src={Exclamation}
+                                fill={theme.icon}
+                                medium
                             />
+                            <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
                         </View>
-                    </OrderedListRow>
-
-                    <OrderedListRow index={3}>
-                        <Text style={styles.webViewStyles.baseFontStyle}>{translate('domain.verifyDomain.saveChanges')}</Text>
-                    </OrderedListRow>
-
-                    <Text style={styles.webViewStyles.baseFontStyle}>
-                        {translate('domain.verifyDomain.youMayNeedToConsult')}{' '}
-                        <TextLink
-                            style={styles.link}
-                            href={CONST.DOMAIN_VERIFICATION_HELP_URL}
-                        >
-                            {translate('common.learnMore')}
-                        </TextLink>
-                        .
-                    </Text>
-
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                        <Icon
-                            src={Exclamation}
-                            fill={theme.icon}
-                            medium
-                        />
-                        <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
                     </View>
-                </View>
-            </ScrollView>
-            <FixedFooter>
-                {!!domain?.validationError && (
-                    <FormHelpMessage
-                        message={domain?.validationError}
-                        style={[styles.pv3, styles.mb0, styles.mt0]}
-                    />
-                )}
+                </ScrollView>
 
-                <Button
-                    large
-                    success
-                    text={translate('domain.verifyDomain.title')}
-                    onPress={() => validateDomain(accountID)}
+                <FormAlertWithSubmitButton
+                    buttonText={translate('domain.verifyDomain.title')}
+                    onSubmit={() => validateDomain(accountID)}
+                    message={domain?.validationError}
+                    isAlertVisible={!!domain?.validationError}
+                    containerStyles={styles.mb5}
                     isLoading={domain?.isValidationPending}
-                    isDisabled={isOffline}
                 />
-            </FixedFooter>
+            </View>
         </ScreenWrapper>
     );
 }

@@ -42,7 +42,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.dismissModal()}
+                onButtonPress={Navigation.dismissModal}
             />
         </ScreenWrapper>
     );
