@@ -25,7 +25,6 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -33,7 +32,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -180,37 +179,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         setIsRemoveMemberConfirmModalVisible(false);
     }, [accountID, approvalWorkflows, policyID]);
 
-    const removeUser = useCallback(() => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
-
-        // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
-            removeMemberAndCloseModal();
-            return;
-        }
-
-        // Update approval workflows after approver removal
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-            approvalWorkflows,
-            removedApprover,
-            ownerDetails,
-        });
-
-        updatedWorkflows.forEach((workflow) => {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
-            }
-        });
-
-        // Remove the member and close the modal
-        removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
-
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
@@ -335,7 +303,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 danger
                                 title={translate('workspace.people.removeMemberTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
+                                onConfirm={removeMemberAndCloseModal}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}
