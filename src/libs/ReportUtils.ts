@@ -4104,7 +4104,6 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
     const isApproved = isReportApproved({report});
-    const isTypeFormulaReportField = reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
         return true;
     }
