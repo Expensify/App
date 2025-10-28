@@ -16,6 +16,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
@@ -47,7 +48,6 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
-    Size,
     SVGAvatarColorStyle,
     TextColorStyle,
 } from './types';
@@ -385,8 +385,8 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
 
 type GetZoomSizingStyleParams = {
     isZoomed: boolean;
-    imageSize: Size;
-    containerSize: Size;
+    imageSize: Dimensions;
+    containerSize: Dimensions;
     zoomScale: number;
     isLoading: boolean;
 };
