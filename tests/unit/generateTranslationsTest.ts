@@ -2039,7 +2039,7 @@ describe('generateTranslations', () => {
                     codesLoseAccess: dedent(\`
                         If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-                            1. Sometimes we have further indenation
+                            1. Sometimes we have further indentation
                             2. With bulleted lists and such
 
                         Note: Setting up two-factor authentication will log you out of all other active sessions.
@@ -2059,7 +2059,7 @@ describe('generateTranslations', () => {
             const expectedFormat = `codesLoseAccess: dedent(\`
         [it] If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-            1. Sometimes we have further indenation
+            1. Sometimes we have further indentation
             2. With bulleted lists and such
 
         Note: Setting up two-factor authentication will log you out of all other active sessions.
