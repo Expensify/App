@@ -20,8 +20,6 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -76,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -91,7 +89,6 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-    const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
 
     if (isAnyReceiptBeingScanned) {
         return false;
@@ -103,12 +100,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
-    const baseIsSubmit = isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
-    if (hasReportBeenRetracted && baseIsSubmit) {
-        return true;
-    }
-
-    return baseIsSubmit;
+    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
@@ -367,7 +359,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

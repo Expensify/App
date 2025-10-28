@@ -417,18 +417,16 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const reportList = !selectedReports.length
-                        ? Object.values(selectedTransactions).map((transaction) => transaction)
-                        : (selectedReports?.filter((report) => !!report) ?? []);
+                    const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    reportList.forEach((report) => {
-                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                    itemList.forEach((item) => {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             const searchPolicy = policy as unknown as SearchPolicy;
                             const reportTransactionIDs = selectedReports.length
                                 ? undefined
-                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === report.reportID);
-                            submitMoneyRequestOnSearch(hash, [report], [searchPolicy], reportTransactionIDs);
+                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
+                            submitMoneyRequestOnSearch(hash, [item], [searchPolicy], reportTransactionIDs);
                         }
                     });
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
