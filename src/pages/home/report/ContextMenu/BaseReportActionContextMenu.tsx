@@ -157,6 +157,7 @@ function BaseReportActionContextMenu({
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
 
@@ -366,6 +367,7 @@ function BaseReportActionContextMenu({
                             movedFromReport,
                             movedToReport,
                             getLocalDateFromDatetime,
+                            preferredSkinTone,
                         };
 
                         if ('renderContent' in contextAction) {
