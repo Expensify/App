@@ -5580,19 +5580,17 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         overlayStyles: ({
             progress,
-            hasMarginRight = false,
-            hasMarginLeft = false,
-            sidePanelTranslateX,
+            positionLeftValue,
+            positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            hasMarginRight?: boolean;
-            hasMarginLeft?: boolean;
-            sidePanelTranslateX?: RefObject<Animated.Value>;
+            positionLeftValue: number | Animated.Value;
+            positionRightValue: number | Animated.Value;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
-                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
+                left: positionLeftValue,
+                right: positionRightValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],

@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
@@ -129,7 +129,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
-                        hasMarginLeft
+                        positionLeftValue={receiptPaneRHPWidth}
                     />
                 ) : null}
             </View>
@@ -923,49 +923,49 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
 
 export {
     AddPersonalBankAccountModalStackNavigator,
+    AddUnreportedExpenseModalStackNavigator,
+    CategoriesModalStackNavigator,
+    ConsoleModalStackNavigator,
+    DebugModalStackNavigator,
+    DomainCardModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
+    ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeTransactionStackNavigator,
+    MissingPersonalDetailsModalStackNavigator,
     MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
+    NewReportWorkspaceSelectionModalStackNavigator,
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
-    TravelModalStackNavigator,
-    NewReportWorkspaceSelectionModalStackNavigator,
-    SetDefaultWorkspaceModalStackNavigator,
+    ReportChangeApproverModalStackNavigator,
+    ReportChangeWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    ReportChangeWorkspaceModalStackNavigator,
-    ReportChangeApproverModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    SettingsModalStackNavigator,
-    TwoFactorAuthenticatorStackNavigator,
-    SignInModalStackNavigator,
-    CategoriesModalStackNavigator,
-    TagsModalStackNavigator,
-    ExpensifyCardModalStackNavigator,
-    DomainCardModalStackNavigator,
-    SplitDetailsModalStackNavigator,
-    TaskModalStackNavigator,
-    WalletStatementStackNavigator,
-    TransactionDuplicateStackNavigator,
-    SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    ScheduleCallModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
-    ShareModalStackNavigator,
+    SearchMoneyRequestReportNavigator,
+    SearchReportModalStackNavigator,
     SearchSavedSearchModalStackNavigator,
-    MissingPersonalDetailsModalStackNavigator,
-    DebugModalStackNavigator,
+    SetDefaultWorkspaceModalStackNavigator,
+    SettingsModalStackNavigator,
+    ShareModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TagsModalStackNavigator,
+    TaskModalStackNavigator,
+    TransactionDuplicateStackNavigator,
+    TravelModalStackNavigator,
+    TwoFactorAuthenticatorStackNavigator,
+    WalletStatementStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
     WorkspaceDuplicateModalStackNavigator,
-    ConsoleModalStackNavigator,
-    AddUnreportedExpenseModalStackNavigator,
-    ScheduleCallModalStackNavigator,
-    MergeTransactionStackNavigator,
-    SearchMoneyRequestReportNavigator,
 };

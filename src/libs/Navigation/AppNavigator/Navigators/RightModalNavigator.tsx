@@ -1,19 +1,21 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
-import {InteractionManager} from 'react-native';
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
+import {InteractionManager, Animated as RNAnimated} from 'react-native';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {calculateReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -32,8 +34,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, shouldRenderThirdOverlay, thirdOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
+    const {sidePanelTranslateX} = useSidePanel();
+
+    const secondaryOverlayPositionRight = RNAnimated.add(variables.sideBarWidth, sidePanelTranslateX ? RNAnimated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0);
 
     const animatedStyle = useAnimatedStyle(() => {
         const width = interpolate(
@@ -284,9 +289,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
                     <Overlay
-                        hasMarginRight
                         progress={secondOverlayProgress}
-                        onPress={dismissToWideReport}
+                        positionRightValue={variables.sideBarWidth}
+                        onPress={() => Navigation.closeRHPFlow()}
                     />
                 )}
             </NoDropZone>
