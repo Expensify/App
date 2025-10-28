@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +26,9 @@ type GenericFeaturesViewProps = {
 function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, backTo, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const learnMoreMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}`;
+
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
@@ -57,16 +61,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     </View>
                 ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
-                    <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
-                    >
-                        {translate('workspace.upgrade.commonFeatures.benefits.learnMore')}
-                    </TextLink>{' '}
-                    {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
+                    <RenderHTML html={translate('workspace.upgrade.commonFeatures.benefits.startsAtFull', {learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing})} />
                 </Text>
             </View>
             {!policyID && (

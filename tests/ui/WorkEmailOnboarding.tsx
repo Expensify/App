@@ -13,8 +13,6 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
@@ -253,17 +251,14 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
         });
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
         });
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('common.skip'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('common.skip'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -426,8 +421,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('onboarding.workEmailValidation.magicCodeSent', {workEmail}))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidation.magicCodeSent', {workEmail}))).toBeOnTheScreen();
         });
 
         unmount();
@@ -456,8 +450,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
         unmount();
@@ -480,8 +473,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
 
         await waitForBatchedUpdatesWithAct();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const skipButton = screen.getByText(translateLocal('common.skip'));
+        const skipButton = screen.getByText(TestHelper.translateLocal('common.skip'));
 
         const mockEvent = {
             nativeEvent: {},
@@ -591,7 +583,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
-        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
+        const specificErrorMessage = 'onboarding.errorSelection';
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -602,7 +594,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: 'test@company.com',
             });
-            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, specificErrorMessage);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
@@ -610,7 +602,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(specificErrorMessage)).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(specificErrorMessage))).toBeOnTheScreen();
         });
 
         unmount();
@@ -636,8 +628,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
         unmount();
