@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -291,7 +290,6 @@ function BasePopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const {windowHeight} = useWindowDimensions();
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
@@ -490,10 +488,8 @@ function BasePopoverMenu({
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {
-        const DEFAULT_MAX_HEIGHT_OFFSET = 250;
-
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}] : [];
+            return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
@@ -503,7 +499,7 @@ function BasePopoverMenu({
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, shouldUseScrollView]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
     const {paddingVertical: menuContainerPaddingVertical, ...restMenuContainerStyle} = StyleSheet.flatten(menuContainerStyle) ?? {};
