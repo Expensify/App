@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 
 type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -28,10 +29,10 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
     } as const;
 
     const defaultValues = {
-        street: String(reimbursementAccountDraft?.[inputKeys.street] ?? ''),
-        city: String(reimbursementAccountDraft?.[inputKeys.city] ?? ''),
-        state: String(reimbursementAccountDraft?.[inputKeys.state] ?? ''),
-        zipCode: String(reimbursementAccountDraft?.[inputKeys.zipCode] ?? ''),
+        street: SafeString(reimbursementAccountDraft?.[inputKeys.street]),
+        city: SafeString(reimbursementAccountDraft?.[inputKeys.city]),
+        state: SafeString(reimbursementAccountDraft?.[inputKeys.state]),
+        zipCode: SafeString(reimbursementAccountDraft?.[inputKeys.zipCode]),
         country: (reimbursementAccountDraft?.[inputKeys.country] ?? '') as Country | '',
     };
 
