@@ -2591,6 +2591,7 @@ function getTagListNameUpdatedMessage(action: ReportAction): string {
 function getTagListUpdatedMessage(action: ReportAction): string {
     const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
     if (tagListName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateTagList', {
             tagListName,
         });
@@ -2601,6 +2602,7 @@ function getTagListUpdatedMessage(action: ReportAction): string {
 function getTagListUpdatedRequiredMessage(action: ReportAction): string {
     const {tagListsName, isRequired} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED>) ?? {};
     if (tagListsName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateTagListRequired', {
             tagListsName,
             isRequired: !!isRequired,
@@ -3095,6 +3097,7 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
         const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.addBudget', {
             frequency,
             entityName: categoryName,
@@ -3119,7 +3122,9 @@ function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const oldFrequency = translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const newFrequency = translateLocal(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
     const oldIndividual = convertAmountToDisplayString(previous.individual ?? 0, currency);
     const newIndividual = convertAmountToDisplayString(updated.individual ?? 0, currency);
@@ -3128,6 +3133,7 @@ function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
     const oldNotificationThreshold = previous.notificationThreshold ?? 100;
     const newNotificationThreshold = updated.notificationThreshold;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updateBudget', {
         entityType,
         entityName: categoryName,
@@ -3152,11 +3158,14 @@ function getDeletedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
     }
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const frequency = previous.frequency ? translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths) : undefined;
+    const frequency = previous.frequency // eslint-disable-next-line @typescript-eslint/no-deprecated
+        ? translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths)
+        : undefined;
     const individual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
     const shared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
     const notificationThreshold = previous.notificationThreshold;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.deleteBudget', {
         entityType,
         entityName: categoryName,
@@ -3171,6 +3180,7 @@ function getUpdatedTimeEnabledMessage(reportAction: OnyxEntry<ReportAction>) {
     const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
 
     if (typeof enabled === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updatedTimeEnabled', {enabled});
     }
 
@@ -3184,6 +3194,7 @@ function getUpdatedTimeRateMessage(reportAction: OnyxEntry<ReportAction>) {
     const oldRateText = oldRate !== undefined ? convertToDisplayString(convertToBackendAmount(oldRate), currency) : undefined;
 
     if (newRate !== undefined && oldRate !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updatedTimeRate', {newRate: newRateText, oldRate: oldRateText});
     }
 

@@ -146,8 +146,6 @@ function BaseReportActionContextMenu({
         canBeMissing: true,
         canEvict: false,
     });
-    const policyID = report?.policyID;
-    const policy = usePolicy(policyID);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
@@ -162,6 +160,7 @@ function BaseReportActionContextMenu({
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
+    const policy = usePolicy(policyID);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
