@@ -68,6 +68,7 @@ import {
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateImportedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
@@ -517,7 +518,21 @@ const ContextMenuActions: ContextMenuAction[] = [
         // the `text` and `icon`
         onPress: (
             closePopover,
-            {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, childReport, policy, getLocalDateFromDatetime},
+            {
+                reportAction,
+                transaction,
+                selection,
+                report,
+                reportID,
+                card,
+                originalReport,
+                isTryNewDotNVPDismissed,
+                movedFromReport,
+                movedToReport,
+                childReport,
+                policy,
+                getLocalDateFromDatetime,
+            },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
@@ -588,6 +603,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
                     Clipboard.setString(getWorkspaceCustomUnitUpdatedMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES) {
+                    Clipboard.setString(getWorkspaceCustomUnitRateImportedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
