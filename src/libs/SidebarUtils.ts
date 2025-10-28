@@ -64,6 +64,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
     getUpdatedTimeEnabledMessage,
@@ -969,6 +970,8 @@ function getOptionData({
             result.alternateText = getTravelUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
+            result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(lastAction, policy));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

@@ -616,6 +616,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New default title */
     newDefaultTitle?: string;
+
+    /** Old owner email */
+    oldOwnerEmail?: string;
+
+    /** Old owner name */
+    oldOwnerName?: string;
 };
 
 /** Model of `join policy` report action */

@@ -3314,6 +3314,17 @@ function getUpdatedDefaultTitleMessage(reportAction: OnyxEntry<ReportAction>) {
     return translateLocal('workspaceActions.updatedDefaultTitle', {newDefaultTitle, oldDefaultTitle});
 }
 
+function getUpdatedOwnershipMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {oldOwnerEmail, oldOwnerName} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP>) ?? {};
+
+    if (!oldOwnerEmail || !oldOwnerName) {
+        return getReportActionText(reportAction);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedOwnership', {oldOwnerEmail, oldOwnerName, policyName: policy?.name ?? ''});
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3715,6 +3726,7 @@ export {
     getSubmittedTo,
     getReceiptScanFailedMessage,
     getChangedApproverActionMessage,
+    getUpdatedOwnershipMessage,
     getUpdatedDefaultTitleMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,

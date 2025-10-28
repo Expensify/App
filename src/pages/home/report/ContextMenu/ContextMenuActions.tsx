@@ -63,6 +63,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
     getUpdatedTimeEnabledMessage,
@@ -641,6 +642,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultReimbursableMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
+                    setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {

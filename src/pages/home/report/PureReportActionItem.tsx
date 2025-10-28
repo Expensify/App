@@ -101,6 +101,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
     getUpdatedTimeEnabledMessage,
@@ -1467,6 +1468,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP)) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getUpdatedOwnershipMessage(action, policy)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

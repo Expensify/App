@@ -6189,6 +6189,9 @@ const translations = {
         setAutoJoin: ({enabled}: {enabled: boolean}) => `set the pre-approval of workspace join requests to ${enabled ? 'Enabled' : 'Disabled'}`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: {newDefaultTitle: string; oldDefaultTitle: string}) =>
             `updated the Custom Report Name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
+
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: {oldOwnerEmail: string; oldOwnerName: string; policyName: string}) =>
+            `took over ownership of <strong>${policyName}</strong>'s Workspace from ${oldOwnerName} (${oldOwnerEmail})`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
