@@ -15,8 +15,9 @@ function startTestDrive(
     viewTourTaskReport: OnyxEntry<OnyxTypes.Report>,
     viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
     isViewTourTaskParentReportArchived: boolean,
+    currentUserAccountID: number,
 ) {
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||
@@ -26,7 +27,7 @@ function startTestDrive(
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
             (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
         ) {
-            completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, shouldUpdateSelfTourViewedOnlyLocally);
+            completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, shouldUpdateSelfTourViewedOnlyLocally);
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
         } else {
             Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);

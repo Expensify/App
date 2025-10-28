@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -18,7 +17,7 @@ import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
+import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -39,13 +38,13 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
 
-const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
+const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen
-                        name={SCREENS.ATTACHMENTS}
+                        name={SCREENS.REPORT_ATTACHMENTS}
                         component={AttachmentModalScreen}
                         initialParams={initialParams}
                     />
@@ -181,7 +180,7 @@ describe('ReportAttachments', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -191,7 +190,7 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -201,7 +200,7 @@ describe('ReportAttachments', () => {
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -211,7 +210,7 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
         await waitForBatchedUpdatesWithAct();
 
         const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {

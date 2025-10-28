@@ -25,6 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
@@ -47,17 +48,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  * Modal render prop component that exposes modal launching triggers that can be used
  * to display a full size image or PDF modally with optional confirmation button.
  */
-
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     show: () => void;
@@ -437,7 +427,7 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -603,5 +593,3 @@ function AttachmentModal({
 AttachmentModal.displayName = 'AttachmentModal';
 
 export default memo(AttachmentModal);
-
-export type {FileObject, ImagePickerResponse};

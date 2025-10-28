@@ -1,11 +1,10 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {IllustrationName} from './chunks/illustrations.chunk';
 
 type IllustrationsChunk = {
     getIllustration: (illustrationName: IllustrationName) => IconAsset | undefined;
     AVAILABLE_ILLUSTRATIONS: IllustrationName[];
 } & Record<string, IconAsset>;
-
-type IllustrationName = string;
 
 let illustrationsChunk: IllustrationsChunk | null = null;
 let chunkLoadingPromise: Promise<IllustrationsChunk> | null = null;
