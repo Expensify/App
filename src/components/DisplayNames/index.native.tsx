@@ -12,11 +12,10 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
     const {translate} = useLocalize();
     const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
     const title = useMemo(() => {
-        if (shouldParseFullTitle) {
-            return StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
-        }
-        return fullTitle || translate('common.hidden');
+        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
     }, [fullTitle, shouldParseFullTitle, translate]);
+
     return (
         <Text
             accessibilityLabel={accessibilityLabel}

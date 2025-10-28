@@ -145,6 +145,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // If the parent report action has type add comment, we don't want to parse the full title
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const subscriptionPlan = useSubscriptionPlan();
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
@@ -291,7 +293,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
-                                                shouldParseFullTitle={parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}
+                                                shouldParseFullTitle={shouldParseFullTitle}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
