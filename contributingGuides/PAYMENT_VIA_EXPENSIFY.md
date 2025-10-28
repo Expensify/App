@@ -5,7 +5,7 @@ Contributors are eligible to be paid via Expensify 18 months after they were ass
   - Payoneer provides a U.S.-based USD account through Citibank. Since you won’t have direct access to a Citibank online account, you’ll need to connect the bank account manually instead of using Plaid. 
     - You can do this in **oldDot** by navigating to: Settings > Account > Wallet > Add Personal Bank Account > Connect manually.
   - Skydo is a service that contributors in India have used. 
-- View [Enable Global Reimbursement](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement) to get more details on setting up reimbursements in United States (USD), Canada (CAD), United Kingdom (GBP), European Union (EUR), Australia (AUD) and Singapore (SGD) currencies.. 
+- View [Enable Global Reimbursement](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement) to get more details on setting up reimbursements in United States (USD), Canada (CAD), United Kingdom (GBP), European Union (EUR), Australia (AUD) and Singapore (SGD) currencies.
 - View [Receive Payments](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments) for details on receiving payments in the US and internationally, including via Wise (formerly TransferWise), Paypal, Venmo and more.  
 
 After approval it can take between 1 business day and a week, depending on the country and service you use.  
