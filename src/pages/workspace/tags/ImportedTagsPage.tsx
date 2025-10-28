@@ -136,6 +136,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         <ScreenWrapper
             testID={ImportedTagsPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}

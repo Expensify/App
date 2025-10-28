@@ -47,6 +47,7 @@ module.exports = {
     extraMetadata: {
         version,
     },
+    asarUnpack: ['**/node-mac-permissions/bin/**'],
     mac: {
         category: 'public.app-category.finance',
         icon: macIcon[process.env.ELECTRON_ENV],
@@ -60,8 +61,11 @@ module.exports = {
                 arch: ['universal'],
             },
         ],
+        x64ArchFiles: '**/node_modules/node-mac-permissions/bin/**',
         extendInfo: {
             CFBundleIconName: getMacBundleIconName(),
+            NSLocationWhenInUseUsageDescription: 'This app uses location to help you track distance expenses.',
+            NSLocationUsageDescription: 'This app uses location to help you track distance expenses.',
         },
     },
     dmg: {

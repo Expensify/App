@@ -215,7 +215,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
         });
@@ -316,7 +316,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+        setPolicyTagsRequired({policyID, requiresTag: false, tagListIndex: route.params.orderWeight, policyTags});
     }
 
     const navigateToEditTag = () => {
@@ -376,7 +376,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                     return;
                                 }
 
-                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                                setPolicyTagsRequired({policyID, requiresTag: on, tagListIndex: route.params.orderWeight, policyTags});
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}

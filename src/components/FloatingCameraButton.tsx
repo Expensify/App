@@ -1,6 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
+import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,16 +35,17 @@ function FloatingCameraButton() {
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const reportID = useMemo(() => generateReportID(), []);
 
-    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: (reports) => {
+    const policyChatForActivePolicySelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => {
             if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
                 return undefined;
             }
             const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
             return policyChatsForActivePolicy.at(0);
         },
-    });
+        [activePolicy, activePolicyID, session?.accountID],
+    );
+    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
 
     const onPress = () => {
         interceptAnonymousUser(() => {
@@ -53,7 +55,8 @@ function FloatingCameraButton() {
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
-            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     };
 

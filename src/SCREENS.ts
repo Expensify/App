@@ -7,7 +7,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    ATTACHMENTS: 'Attachments',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
@@ -211,6 +211,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
+        SET_DEFAULT_WORKSPACE: 'Set_Default_Workspace',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -398,6 +399,10 @@ const SCREENS = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         ROOT: 'NewReportWorkspaceSelection_Root',
+    },
+
+    SET_DEFAULT_WORKSPACE: {
+        ROOT: 'SetDefaultWorkspace_Root',
     },
 
     REPORT_DETAILS: {
@@ -668,6 +673,7 @@ const SCREENS = {
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
         RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
