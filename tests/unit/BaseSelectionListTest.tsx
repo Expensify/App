@@ -57,7 +57,7 @@ describe('BaseSelectionList', () => {
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
         const {sections, canSelectMultiple, initialNumToRender, setSearchText, searchText} = props;
-        const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
+        const focusedKey = (sections[0].data as ListItem[]).find((item) => item.isSelected)?.keyForList;
         return (
             <OnyxListItemProvider>
                 <BaseSelectionList

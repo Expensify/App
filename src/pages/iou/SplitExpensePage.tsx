@@ -310,7 +310,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         ),
-        [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1],
+        [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3],
     );
 
     const enhancedSections = useMemo(
