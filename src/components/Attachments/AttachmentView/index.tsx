@@ -30,6 +30,7 @@ import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -313,7 +314,7 @@ function AttachmentView({
                     </>
                 );
             }
-            imageSource = previewSource?.toString() ?? imageSource;
+            imageSource = SafeString(previewSource) || imageSource;
         }
 
         return (
