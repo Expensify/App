@@ -1,5 +1,5 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
@@ -17,6 +17,14 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import type ImageViewProps from './types';
+
+function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {
+    if (!containerSize.width || !containerSize.height || !imageSize.width || !imageSize.height) {
+        return 0;
+    }
+
+    return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
+}
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
@@ -40,13 +48,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
 
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
-    const zoomScale = useMemo(() => {
-        if (!containerSize.width || !containerSize.height || !imageSize.width || !imageSize.height) {
-            return 0;
-        }
-
-        return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
-    }, [containerSize.width, containerSize.height, imageSize.width, imageSize.height]);
+    const zoomScale = calculateZoomScale(containerSize, imageSize);
 
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         setContainerSize(e.nativeEvent.layout);
@@ -236,7 +238,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         </View>
     );
 }
-
 ImageView.displayName = 'ImageView';
 
 export default ImageView;
