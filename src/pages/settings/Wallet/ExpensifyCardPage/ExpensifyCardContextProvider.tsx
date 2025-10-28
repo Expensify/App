@@ -3,6 +3,7 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
+import {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ExpensifyCardContextProviderProps = {
     cardsDetails: Record<number, ExpensifyCardDetails | null>;
@@ -31,19 +32,30 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
+    const cardListErrors = useMemo(() => {
+        if (!cardList) {
+            return {};
+        }
+        const errors: Record<string, Errors | undefined> = {};
+        Object.keys(cardList).forEach((cardID) => {
+            errors[cardID] = cardList[cardID]?.errors;
+        });
+        return errors;
+    }, [cardList]);
+
     // Update error state when error is cleared in Onyx DB
     useEffect(() => {
         setCardsDetailsErrors((prevErrors) => {
             const clearedErrors = {...prevErrors};
             Object.keys(clearedErrors).forEach((cardID) => {
-                if (cardList?.[cardID]?.errors && Object.keys(cardList[cardID].errors).length > 0) {
+                if (cardListErrors[cardID] && Object.keys(cardListErrors[cardID]).length > 0) {
                     return;
                 }
                 delete clearedErrors[Number(cardID)];
             });
             return clearedErrors;
         });
-    }, [cardList]);
+    }, [cardListErrors]);
 
     const value = useMemo(
         () => ({
