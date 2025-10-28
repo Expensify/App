@@ -2066,5 +2066,37 @@ describe('generateTranslations', () => {
     \`),`;
             expect(itContent).toContain(expectedFormat);
         });
+
+        it('works with simple template expressions in dedent calls', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    welcomeMessage: (name: string, company: string) =>
+                        dedent(\`
+                            Welcome to \${company}, \${name}!
+
+                            We're excited to have you here.
+                        \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            expect(itContent).toContain(`
+    welcomeMessage: (name: string, company: string) =>
+        dedent(\`
+            [it] Welcome to \${company}, \${name}!
+
+            We're excited to have you here.
+        \`),`);
+        });
     });
 });

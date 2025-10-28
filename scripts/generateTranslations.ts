@@ -806,7 +806,11 @@ class TranslationGenerator {
 
         if (ts.isNoSubstitutionTemplateLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : nodeToUse;
+            if (!translatedText) {
+                return nodeToUse;
+            }
+
+            return ts.factory.createNoSubstitutionTemplateLiteral(translatedText);
         }
 
         if (ts.isTemplateExpression(node)) {
@@ -935,9 +939,25 @@ class TranslationGenerator {
                         }
 
                         if (ts.isTemplateExpression(argument)) {
-                            // TODO: Handle template expressions with substitutions
                             // Format head and each template span's literal part
-                            return node;
+                            const isHeadBeforeSubstitution = true;
+                            const formattedHead = this.formatDedentTemplateContent(argument.head.text, targetIndentation, isHeadBeforeSubstitution);
+                            const newHead = ts.factory.createTemplateHead(formattedHead);
+
+                            const newSpans: ts.TemplateSpan[] = [];
+                            for (let i = 0; i < argument.templateSpans.length; i++) {
+                                const span = argument.templateSpans[i];
+                                const isLastSpan = i === argument.templateSpans.length - 1;
+                                const formattedLiteral = this.formatDedentTemplateContent(span.literal.text, targetIndentation, !isLastSpan);
+
+                                const newLiteral =
+                                    span.literal.kind === ts.SyntaxKind.TemplateTail ? ts.factory.createTemplateTail(formattedLiteral) : ts.factory.createTemplateMiddle(formattedLiteral);
+
+                                newSpans.push(ts.factory.createTemplateSpan(span.expression, newLiteral));
+                            }
+
+                            const newArgument = ts.factory.createTemplateExpression(newHead, newSpans);
+                            return ts.factory.createCallExpression(node.expression, node.typeArguments, [newArgument]);
                         }
                     }
 
@@ -953,20 +973,42 @@ class TranslationGenerator {
      * Format the content of a template literal inside a dedent() call.
      * Adds the specified base indentation to each line while preserving relative indentation.
      */
-    private formatDedentTemplateContent(text: string, baseIndentation: number): string {
+    private formatDedentTemplateContent(text: string, baseIndentation: number, isBeforeSubstitution = false): string {
+        // If there's no newline in the text, don't modify it
+        // (this is a fragment between template substitutions)
+        if (!text.includes('\n')) {
+            return text;
+        }
+
         const lines = text.split('\n');
         const formattedLines: string[] = [];
+        const isCompleteTemplate = text.endsWith('\n');
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines.at(i);
+            const isFirstLine = i === 0;
             const isLastLine = i === lines.length - 1;
 
-            if (isLastLine && line?.trim().length === 0) {
-                // The last line (before closing backtick) should be indented at the dedent call's level
+            if (isFirstLine && !text.startsWith('\n')) {
+                // If the fragment doesn't start with a newline, preserve the first line exactly as-is
+                // (it's on the same line as a template substitution, and spaces matter)
+                formattedLines.push(line ?? '');
+            } else if (isLastLine && isBeforeSubstitution) {
+                // Last line before a substitution: preserve spacing as-is (important for template fragments)
+                const formattedLine = `${' '.repeat(baseIndentation)}${line ?? ''}`;
+                formattedLines.push(formattedLine);
+            } else if (isLastLine && line?.trim().length === 0 && isCompleteTemplate) {
+                // The last empty line of a complete template (before closing backtick) should be indented at the dedent call's level
                 const closingIndent = baseIndentation - 4;
                 formattedLines.push(' '.repeat(Math.max(0, closingIndent)));
+            } else if (line?.trim().length === 0) {
+                // Empty lines in the middle stay empty (no trailing spaces)
+                formattedLines.push('');
             } else {
-                formattedLines.push(`${' '.repeat(baseIndentation)}${line ?? ''}`.trimEnd());
+                // Add indentation to content lines
+                const formattedLine = `${' '.repeat(baseIndentation)}${line ?? ''}`;
+                // Trim trailing whitespace from content lines
+                formattedLines.push(formattedLine.trimEnd());
             }
         }
 
