@@ -1,14 +1,13 @@
 import React, {forwardRef} from 'react';
 import type {ScrollViewProps} from 'react-native';
-import Reanimated, {useAnimatedScrollHandler, useAnimatedStyle, useComposedEventHandler} from 'react-native-reanimated';
-import transformReanimatedScrollEventToRN from '@libs/transformReanimatedScrollEventToRN';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewHandle} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ScrollViewProps>(({style, children, onScroll: onScrollProp, ...restProps}, forwardedRef) => {
+const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ScrollViewProps>(({style, children, ...restProps}, forwardedRef) => {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(forwardedRef);
 
     const spacing = useActionSheetKeyboardSpacing(animatedRef);
@@ -16,24 +15,13 @@ const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, 
         paddingTop: spacing.get(),
     }));
 
-    const animatedScrollHandler = useAnimatedScrollHandler((e) => {
-        if (!onScrollProp) {
-            return;
-        }
-
-        const rnEvent = transformReanimatedScrollEventToRN(e);
-        onScrollProp(rnEvent);
-    });
-
-    const preventScrollOnKeyboardInteraction = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
-    const onScroll = useComposedEventHandler([preventScrollOnKeyboardInteraction, animatedScrollHandler]);
+    usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
 
     return (
         <Reanimated.ScrollView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={onRef}
-            onScroll={onScroll}
             style={[style, animatedStyle]}
         >
             {children}

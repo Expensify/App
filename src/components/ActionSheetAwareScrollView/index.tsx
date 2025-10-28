@@ -1,13 +1,14 @@
 // The action sheet is only used on native platforms (iOS and Android)
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
 import React, {forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollViewProps} from 'react-native';
 import Reanimated from 'react-native-reanimated';
-import type {AnimatedScrollViewProps} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewHandle} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 
-const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, AnimatedScrollViewProps>(({children, ...restProps}, forwardedRef) => {
+const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ScrollViewProps>(({children, ...restProps}, forwardedRef) => {
     const {onRef} = useActionSheetAwareScrollViewRef(forwardedRef);
 
     return (
@@ -32,7 +33,7 @@ export default ActionSheetAwareScrollView;
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
 
-function renderScrollComponent(props: AnimatedScrollViewProps) {
+function renderScrollComponent(props: ScrollViewProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 }
