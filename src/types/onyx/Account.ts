@@ -205,9 +205,6 @@ type Account = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
-    /** Whether we should block the transaction thread report creation */
-    shouldBlockTransactionThreadReportCreation?: boolean;
-
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
