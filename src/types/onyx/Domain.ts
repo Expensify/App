@@ -1,5 +1,7 @@
+import type * as OnyxCommon from './OnyxCommon';
+
 /** Model of domain data */
-type Domain = {
+type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the domain is validated */
     validated: boolean;
 
@@ -20,6 +22,6 @@ type Domain = {
 
     /** Whether validation code is currently loading */
     isValidateCodeLoading?: boolean;
-};
+}>;
 
 export default Domain;
