@@ -1,15 +1,18 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, getCurrentUserAccountID, getCurrentUserEmail, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isPolicyMember} from '@libs/PolicyUtils';
+import {getParticipantsAccountIDsForDisplay, isAuditor, isReportParticipant, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
@@ -20,9 +23,10 @@ import Text from './Text';
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
     report: Report;
+    policy: OnyxEntry<Policy>;
 };
 
-function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -36,7 +40,13 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isPolicyRoom = isUserCreatedPolicyRoom(report);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const canEditRoomAvatar =
+        isUserCreatedPolicyRoom(report) &&
+        isPolicyMember(policy, currentUserPersonalDetails?.login) &&
+        isReportParticipant(currentUserPersonalDetails?.accountID, report) &&
+        !isAuditor(report);
 
     if (!icons.length) {
         return null;
@@ -49,7 +59,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom && !isAnonymousUser()) {
+        if (canEditRoomAvatar) {
             return (
                 <AvatarWithImagePicker
                     source={icon.source || report.avatarUrl}

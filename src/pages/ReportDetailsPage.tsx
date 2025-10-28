@@ -598,6 +598,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     <RoomHeaderAvatars
                         icons={icons}
                         report={report}
+                        policy={policy}
                     />
                 </View>
             );
