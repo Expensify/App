@@ -75,6 +75,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
         canBeMissing: true,
@@ -204,8 +205,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const continueDeleteWorkspace = useCallback(() => {
+        if (isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+        setIsDeleteModalOpen(true);
+    }, [isOffline]);
 
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
@@ -242,19 +251,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
-        if (shouldCalculateBillNewDot()) {
+        if (shouldCalculateBillNewDot(account?.canDowngrade)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
         }
 
-        if (isOffline) {
-            setShouldShowOfflineModal(true);
-            return;
-        }
-
-        setIsDeleteModalOpen(true);
-    }, [isOffline, setIsDeletingPaidWorkspace]);
+        continueDeleteWorkspace();
+    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace, account?.canDowngrade]);
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -314,7 +318,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(),
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade),
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
@@ -499,6 +503,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
                                         copyValue={readOnly ? formattedAddress : undefined}
+                                        copyable={readOnly && !!formattedAddress}
                                     />
                                 </View>
                             </OfflineWithFeedback>
