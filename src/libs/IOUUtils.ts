@@ -2,12 +2,15 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
+import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -91,6 +94,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     isDeleting = false,
     isUpdating = false,
     isOnHold = false,
+    unHeldAmount = amount,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -107,12 +111,12 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
+            iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
+            iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -162,9 +166,14 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param transactionTags - currently selected tags for a report
  * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
+ * @param hasMultipleTagLists - whether the policy has multiple levels tag
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
+    if (!hasMultipleTagLists) {
+        return tag;
+    }
+
     const tagArray = getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
@@ -183,6 +192,18 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean) {
+    // Determine when to show the receipt empty state:
+    // - Show for pay, submit or track expense types
+    // - Hide for per diem requests
+    // - Hide when submitting a track expense to a non-paid group policy (personal users)
+    return (
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY) &&
+        !isPerDiemRequest &&
+        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy))
+    );
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
@@ -195,7 +216,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
         email: currentUser?.login ?? '',
         login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
-        avatarUrl: currentUser.avatar?.toString() ?? '',
+        avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
         text: currentUser.login,
         selected: true,
@@ -216,4 +237,5 @@ export {
     updateIOUOwnerAndTotal,
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
+    shouldShowReceiptEmptyState,
 };

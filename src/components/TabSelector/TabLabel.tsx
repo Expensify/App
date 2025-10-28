@@ -13,17 +13,20 @@ type TabLabelProps = {
 
     /** Animated opacity value while the label is in active state */
     activeOpacity?: number | Animated.AnimatedInterpolation<number>;
+
+    /** Whether an icon is present - used to conditionally apply margin */
+    hasIcon?: boolean;
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1}: TabLabelProps) {
+function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false}: TabLabelProps) {
     const styles = useThemeStyles();
     return (
         <View>
             <Animated.View style={[{opacity: activeOpacity}]}>
-                <Text style={styles.tabText(true)}>{title}</Text>
+                <Text style={styles.tabText(true, hasIcon)}>{title}</Text>
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
-                <Text style={styles.tabText(false)}>{title}</Text>
+                <Text style={styles.tabText(false, hasIcon)}>{title}</Text>
             </Animated.View>
         </View>
     );

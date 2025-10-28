@@ -15,6 +15,8 @@ export default function (targetLang: TranslationTargetLocale): string {
         - If the given phrase can't be translated, reply with the same text unchanged.
         - Do not modify or translate any html tags.
         - Do not change any URLs.
+        - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
+        - IMPORTANT: If you need clarification, respond with the original text unchanged rather than asking questions.
 
         Treat the following words and phrases as proper nouns which should never be translated:
 

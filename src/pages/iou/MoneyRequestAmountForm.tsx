@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -48,6 +47,9 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
     /** The chatReportID of the request */
     chatReportID?: string;
 };
@@ -59,25 +61,24 @@ const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmoun
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
  */
-function MoneyRequestAmountForm(
-    {
-        amount = 0,
-        taxAmount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        isEditing = false,
-        skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        policyID = '',
-        onCurrencyButtonPress,
-        onSubmitButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
-        chatReportID,
-        hideCurrencySymbol = false,
-    }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function MoneyRequestAmountForm({
+    amount = 0,
+    taxAmount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    isEditing = false,
+    skipConfirmation = false,
+    iouType = CONST.IOU.TYPE.SUBMIT,
+    policyID = '',
+    onCurrencyButtonPress,
+    onSubmitButtonPress,
+    selectedTab = CONST.TAB_REQUEST.MANUAL,
+    shouldKeepUserInput = false,
+    chatReportID,
+    hideCurrencySymbol = false,
+    allowFlippingAmount = false,
+    ref,
+}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -85,9 +86,13 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
+    const [isNegative, setIsNegative] = useState(false);
+
     const [formError, setFormError] = useState<string>('');
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
+
+    const absoluteAmount = Math.abs(amount);
 
     const initializeAmount = useCallback(
         (newAmount: number) => {
@@ -97,11 +102,34 @@ function MoneyRequestAmountForm(
         [currency],
     );
 
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+    const toggleNegative = useCallback(() => {
+        setIsNegative(!isNegative);
+    }, [isNegative]);
+
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
+
+    const initializeIsNegative = useCallback((currentAmount: number) => {
+        if (currentAmount >= 0) {
+            setIsNegative(false);
             return;
         }
-        initializeAmount(amount);
+        setIsNegative(true);
+    }, []);
+
+    useEffect(() => {
+        initializeIsNegative(amount);
+    }, [amount, initializeIsNegative]);
+
+    useEffect(() => {
+        if (!currency || typeof absoluteAmount !== 'number') {
+            return;
+        }
+
+        initializeAmount(absoluteAmount);
+        initializeIsNegative(amount);
+
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
@@ -125,9 +153,11 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -153,7 +183,7 @@ function MoneyRequestAmountForm(
                     <SettlementButton
                         pressOnEnter
                         onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
@@ -220,14 +250,14 @@ function MoneyRequestAmountForm(
                     setFormError('');
                 }}
                 shouldShowBigNumberPad={canUseTouchScreen}
-                ref={(ref) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
+                ref={(newRef) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
                         // eslint-disable-next-line no-param-reassign
-                        forwardedRef.current = ref;
+                        ref.current = newRef;
                     }
-                    textInput.current = ref;
+                    textInput.current = newRef;
                 }}
                 moneyRequestAmountInputRef={moneyRequestAmountInputRef}
                 shouldKeepUserInput={shouldKeepUserInput}
@@ -235,6 +265,10 @@ function MoneyRequestAmountForm(
                 containerStyle={styles.iouAmountTextInputContainer}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
+                isNegative={isNegative}
+                allowFlippingAmount={allowFlippingAmount}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
             />
@@ -244,5 +278,5 @@ function MoneyRequestAmountForm(
 
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef(MoneyRequestAmountForm);
+export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};

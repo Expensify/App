@@ -1,4 +1,7 @@
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
+import useOnyx from '@hooks/useOnyx';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
@@ -7,7 +10,17 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    if (authenticated) {
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+
+    const shouldShowAuthScreens = useMemo(() => {
+        if (!CONFIG.IS_HYBRID_APP) {
+            return authenticated;
+        }
+
+        return authenticated && hybridApp?.readyToShowAuthScreens;
+    }, [hybridApp?.readyToShowAuthScreens, authenticated]);
+
+    if (shouldShowAuthScreens) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;
 
         // These are the protected screens and only accessible when an authToken is present

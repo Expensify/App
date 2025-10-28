@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';

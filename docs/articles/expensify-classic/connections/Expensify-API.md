@@ -4,7 +4,6 @@ description: User-sourced tips and tricks for using Expensify’s API.
 keywords: [Expensify Classic, API]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions.
 
@@ -242,4 +241,3 @@ Remember that there are 4 [required fields](https://integrations.expensify.com/I
 - employeeID	
 - policyID
 
-</div>

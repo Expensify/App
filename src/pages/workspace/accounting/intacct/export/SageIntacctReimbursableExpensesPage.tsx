@@ -57,7 +57,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
     const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
-            title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : translate('workspace.sageIntacct.notConfigured'),
+            title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
                 if (!policyID) {
@@ -94,7 +94,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             children: [
                 {
                     type: 'menuitem',
-                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
+                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
                     description: translate('workspace.sageIntacct.defaultVendor'),
                     onPress: () => {
                         if (!policyID) {

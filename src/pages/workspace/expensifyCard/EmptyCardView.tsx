@@ -1,11 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,13 +18,19 @@ import CONST from '@src/CONST';
 type EmptyCardViewProps = {
     /** Whether the bank account is verified */
     isBankAccountVerified: boolean;
+    /** ID of the current policy */
+    policyID?: string;
+
+    /** Buttons to display */
+    buttons: EmptyStateButton[] | undefined;
 };
 
-function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
+function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
@@ -31,7 +39,7 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
             contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             addBottomSafeAreaPadding
         >
-            <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
+            <View style={[{minHeight: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
@@ -43,7 +51,7 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
                                       overflow: 'hidden',
                                       backgroundColor: colors.green700,
                                   },
-                                  shouldUseNarrowLayout && {maxHeight: 250},
+                                  shouldUseNarrowLayout && {maxHeight: 280},
                               ]
                             : [styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]
                     }
@@ -51,9 +59,12 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
                     headerContentStyles={isBankAccountVerified ? null : styles.pendingStateCardIllustration}
                     minModalHeight={isBankAccountVerified ? 500 : 400}
+                    buttons={buttons}
                 />
             </View>
-            <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+            <Text style={[styles.textMicroSupporting, styles.m5]}>
+                {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+            </Text>
         </ScrollView>
     );
 }

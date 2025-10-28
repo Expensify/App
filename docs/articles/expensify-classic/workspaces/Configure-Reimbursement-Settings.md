@@ -3,7 +3,6 @@ title: Configure Reimbursement Settings
 description: Set up direct or indirect reimbursements for your workspace.
 keywords: [Expensify Classic, workspace reimbursement settings]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify offers flexible reimbursement options to help businesses quickly and efficiently pay employees for approved expenses. This guide walks you through setting up direct, indirect, and global reimbursement methods based on your company's needs.
 
@@ -62,4 +61,3 @@ Yes, you can update the name of a bank account under **Settings > Account > Wall
 
 Having a designated member reimbursing for the Workspace helps to ensure that all outstanding reports are reimbursed. The default reimburser receives notifications alerting them to reports that require their action.
 
-</div>

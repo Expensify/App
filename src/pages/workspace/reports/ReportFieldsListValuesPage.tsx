@@ -11,10 +11,10 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -102,13 +102,17 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled({
+                valueIndexes: [valueIndex],
+                enabled: value,
+                disabledListValues,
+            });
         },
-        [policyID, reportFieldID],
+        [disabledListValues, policy, reportFieldID],
     );
 
     useSearchBackPress({
@@ -126,10 +130,10 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues.at(index) ?? true,
+                enabled: !disabledListValues.at(index),
                 rightElement: (
                     <Switch
-                        isOn={!disabledListValues.at(index) ?? true}
+                        isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                     />
@@ -175,13 +179,18 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: valuesToDelete});
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue({
+                valueIndexes: valuesToDelete,
+                listValues,
+                disabledListValues,
+            });
         }
 
         setDeleteValuesConfirmModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });
@@ -204,6 +213,7 @@ function ReportFieldsListValuesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -242,11 +252,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToDisable, enabled: false});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToDisable,
+                            enabled: false,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -274,11 +288,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToEnable, enabled: true});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToEnable,
+                            enabled: true,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -385,6 +403,7 @@ function ReportFieldsListValuesPage({
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal

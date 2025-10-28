@@ -4,12 +4,12 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
@@ -41,7 +41,7 @@ const renderOnboardingPersonalDetailsPage = (
     initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PERSONAL_DETAILS],
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -99,7 +99,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Submit the form
-        fireEvent.press(screen.getByText(translateLocal('common.continue')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
@@ -130,7 +130,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Submit the form
-        fireEvent.press(screen.getByText(translateLocal('common.continue')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());

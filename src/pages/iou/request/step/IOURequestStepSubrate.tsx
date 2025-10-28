@@ -18,7 +18,6 @@ import ValuePicker from '@components/ValuePicker';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -31,6 +30,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -70,7 +70,6 @@ function IOURequestStepSubrate({
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const customUnit = getPerDiemCustomUnit(policy);
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -115,7 +114,7 @@ function IOURequestStepSubrate({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
         const subrateVal = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityVal, 10);
         if (subrateVal === '' || !validOptions.some(({value}) => value === subrateVal)) {
@@ -133,12 +132,13 @@ function IOURequestStepSubrate({
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>) => {
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
+        const subrateVal = SafeString(values[`subrate${pageIndex}`]);
         const quantityInt = parseInt(quantityVal, 10);
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
+        const transactionReportID = transaction?.participants?.at(0)?.reportID ?? transaction?.reportID ?? reportID;
 
         if (parsedIndex === filledSubrateCount) {
             addSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
@@ -149,7 +149,7 @@ function IOURequestStepSubrate({
         if (backTo) {
             goBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, transactionReportID));
         }
     };
 
@@ -185,7 +185,6 @@ function IOURequestStepSubrate({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
@@ -232,6 +231,7 @@ function IOURequestStepSubrate({
                             items={validOptions}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     textInputRef.current?.focus();
                                 });

@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';

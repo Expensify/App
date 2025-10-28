@@ -47,7 +47,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -85,7 +85,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -297,8 +297,7 @@ const tests = [
         },
     },
     {
-        // cspell:disable-next-line
-        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
+        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 report-id:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
@@ -387,6 +386,16 @@ const tests = [
                     right: ['las', 'vegas'],
                 },
             },
+        },
+    },
+    {
+        query: 'status:all',
+        expected: {
+            type: 'expense',
+            status: '',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: null,
         },
     },
     {
@@ -488,6 +497,20 @@ const tests = [
         },
     },
     {
+        query: 'type:expense withdrawal-id:1234567890',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                right: '1234567890',
+            },
+        },
+    },
+    {
         query: 'type:expense withdrawn:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -498,6 +521,132 @@ const tests = [
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
                 right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:read',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.READ,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.UNREAD,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.PINNED,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned,read,unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
+            },
+        },
+    },
+    {
+        query: 'type:chat has:attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.LINK,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link,attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
+            },
+        },
+    },
+    {
+        query: 'type:chat is:READ',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'READ', // Case is preserved as-is
+            },
+        },
+    },
+    {
+        query: 'type:chat is:PINNED',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'PINNED', // Case is preserved as-is
             },
         },
     },
@@ -613,6 +762,20 @@ const keywordTests = [
                     left: 'to',
                     right: '""Unruly"" “““Glad””” """Dog""',
                 },
+            },
+        },
+    },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'expenseType',
+                right: 'perDiem',
             },
         },
     },

@@ -4,7 +4,6 @@ description: Learn how to configure flight booking rules and cabin class restric
 keywords: [flight policy, cabin class, travel approval, air booking rules, lowest logical fare, booking restrictions, expensify travel]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Set clear, customizable flight rules to control how travelers book airfare in Expensify travel. These settings help your team stay compliant while giving flexibility where needed.
 
@@ -232,4 +231,3 @@ Not necessarily. You must configure which types of refundable and changeable far
 
 The flight will be marked out of policy. Travelers can still book it if allowed, but the policy settings you configure will determine the approval action.
 
-</div>

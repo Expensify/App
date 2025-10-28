@@ -12,8 +12,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
@@ -40,7 +40,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const {isOffline} = useNetwork();
 
     const scrollableRef = useRef<HTMLDivElement>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
 
     const setScale = (newContainerWidth: number, newContainerHeight: number, newImageWidth: number, newImageHeight: number) => {
         if (!newContainerWidth || !newImageWidth || !newContainerHeight || !newImageHeight) {
@@ -198,7 +198,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
-    let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
+    let isLocalToUserDeviceFile = isLocalFile(url);
     if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
         isLocalToUserDeviceFile = false;
     }

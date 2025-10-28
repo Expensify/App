@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,11 +15,23 @@ import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
+function AttachmentCarousel({
+    report,
+    attachmentID,
+    source,
+    onNavigate,
+    setDownloadButtonVisibility,
+    type,
+    accountID,
+    onSwipeDown,
+    attachmentLink,
+    onAttachmentError,
+}: AttachmentCarouselProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
+    const isReportArchived = useReportIsArchived(report.reportID);
 
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -41,11 +54,11 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report, isReportArchived});
         } else if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.ONBOARDING, {parentReportAction, reportActions: reportActions ?? undefined, report});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.ONBOARDING, {parentReportAction, reportActions: reportActions ?? undefined, report, isReportArchived});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report, isReportArchived});
         }
 
         if (deepEqual(attachments, newAttachments)) {
@@ -84,7 +97,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
                 onNavigate(attachment);
             }
         }
-    }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report]);
+    }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report, isReportArchived]);
 
     if (page == null) {
         return (
@@ -103,7 +116,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             autoHideArrows={autoHideArrows}
             cancelAutoHideArrow={cancelAutoHideArrows}
             setShouldShowArrows={setShouldShowArrows}
-            onClose={onClose}
+            onSwipeDown={onSwipeDown}
             onAttachmentError={onAttachmentError}
             report={report}
             attachmentID={attachmentID}

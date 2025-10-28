@@ -3,7 +3,6 @@ title: Enable Report Fields
 description: Enable and create Report Fields for your Workspaces.
 keywords: [New Expensify, report fields, custom report fields, workspace headers, Control plan, project tracking]
 ---
-<div id="new-expensify" markdown="1">
 
 Report Fields let workspace admins collect additional header-level information on reports, such as project names, client codes, or trip types. This feature is only available on the **Control plan**.
 
@@ -15,7 +14,7 @@ Report Fields let workspace admins collect additional header-level information o
 
 To enable Report Fields in a workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Toggle on **Report Fields**.
@@ -49,4 +48,3 @@ To modify or remove an existing Report Field:
 2. Click the field you want to update.
 3. Make your edits in the right-hand panel, or click **Delete** to remove the field entirely.
 
-</div>

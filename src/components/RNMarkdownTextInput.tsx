@@ -1,11 +1,12 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import CONST from '@src/CONST';
@@ -16,11 +17,13 @@ const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextI
 type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & HTMLInputElement;
 
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
-type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
-    parser?: MarkdownTextInputProps['parser'];
-};
+type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> &
+    ForwardedFSClassProps & {
+        parser?: MarkdownTextInputProps['parser'];
+        ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
+    };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -75,6 +78,8 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
             parser={parserWorklet}
             ref={inputRef}
             formatSelection={toggleSelectionFormat}
+            // eslint-disable-next-line react/forbid-component-props
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line
             {...props}
             /**
@@ -87,5 +92,5 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
 
 RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default forwardRef(RNMarkdownTextInputWithRef);
+export default RNMarkdownTextInputWithRef;
 export type {AnimatedMarkdownTextInputRef};

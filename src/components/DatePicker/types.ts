@@ -1,4 +1,4 @@
-import type {PopoverWithMeasuredContentProps} from '@components/PopoverWithMeasuredContent';
+import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 

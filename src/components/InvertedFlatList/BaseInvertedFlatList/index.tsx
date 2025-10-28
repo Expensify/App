@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
@@ -24,11 +24,13 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    ref?: ForwardedRef<RNFlatList>;
+    shouldDisableVisibleContentPosition?: boolean;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
+function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
@@ -41,6 +43,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return null;
     });
     const [isInitialData, setIsInitialData] = useState(true);
+    const [isQueueRendering, setIsQueueRendering] = useState(false);
+
     const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
@@ -54,7 +58,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const dataIndexDifference = data.length - displayedData.length;
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
+    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
     useEffect(() => {
         return () => {
             renderQueue.cancel();
@@ -86,6 +90,10 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     );
 
     const maintainVisibleContentPosition = useMemo(() => {
+        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
+            return undefined;
+        }
+
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
@@ -96,7 +104,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         }
 
         return config;
-    }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {
@@ -141,7 +149,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
-export default forwardRef(BaseInvertedFlatList);
+export default BaseInvertedFlatList;
 
 export {AUTOSCROLL_TO_TOP_THRESHOLD};
 

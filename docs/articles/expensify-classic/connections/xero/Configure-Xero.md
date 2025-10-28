@@ -4,7 +4,6 @@ description: Learn how to configure Xero in Expensify, including best practices,
 keywords: [Expensify Classic, Xero]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 A connection to Xero lets you combine Expensify's expense management features with Xero's accounting capabilities. 
 
@@ -110,4 +109,3 @@ Yes, but each workspace can connect to only one Xero organization at a time. If 
 3. Select your **Company Card**.
 4. Locate the relevant expense.
 
-</div>

@@ -13,13 +13,17 @@ type CountryProps = {
 
     /** ID of current policy */
     policyID: string | undefined;
+
+    /** Whether the user is coming from the expensify card */
+    isComingFromExpensifyCard?: boolean;
 };
 
-function Country({onBackButtonPress, onSubmit, stepNames, policyID}: CountryProps) {
+function Country({onBackButtonPress, onSubmit, stepNames, policyID, isComingFromExpensifyCard}: CountryProps) {
     return (
         <CountryFullStep
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
+            isComingFromExpensifyCard={isComingFromExpensifyCard}
             stepNames={stepNames}
             policyID={policyID}
         />

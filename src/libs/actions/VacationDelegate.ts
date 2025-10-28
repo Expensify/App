@@ -41,7 +41,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+                errors: ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('statusPage.vacationDelegateError'),
             },
         },
     ];
@@ -94,7 +94,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
             value: {
                 creator,
                 delegate,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+                errors: ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('statusPage.vacationDelegateError'),
             },
         },
     ];
