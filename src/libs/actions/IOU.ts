@@ -12756,6 +12756,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
 
     let movedToReport;
     let rejectedToReportID;
@@ -13045,6 +13046,14 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                         [reportPreviewAction.reportActionID]: reportPreviewAction,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                    value: {
+                        parentReportActionID: iouAction.reportActionID,
+                        parentReportID: rejectedToReportID,
+                    },
+                },
             );
             successData.push(
                 {
@@ -13108,6 +13117,14 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                     value: {
                         [reportPreviewAction.reportActionID]: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                    value: {
+                        parentReportActionID: transactionThreadReport?.parentReportActionID,
+                        parentReportID: transactionThreadReport?.parentReportID,
                     },
                 },
             );
