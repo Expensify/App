@@ -26,6 +26,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -70,8 +71,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
             !!availableOptions.userToInvite,
             debouncedSearchTerm.trim(),
+            countryCode,
         );
-    }, [areOptionsInitialized, availableOptions.personalDetails?.length, availableOptions.recentReports?.length, availableOptions.userToInvite, debouncedSearchTerm]);
+    }, [areOptionsInitialized, availableOptions.personalDetails?.length, availableOptions.recentReports?.length, availableOptions.userToInvite, countryCode, debouncedSearchTerm]);
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
             return;
