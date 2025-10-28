@@ -400,15 +400,7 @@ function EmptySearchViewContent({
                                                   }
 
                                                   if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                                      const createdReportID = createNewReport(
-                                                          currentUserPersonalDetails,
-                                                          isASAPSubmitBetaEnabled,
-                                                          hasViolations,
-                                                          workspaceIDForReportCreation,
-                                                      );
-                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                      });
+                                                      handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                                                   }

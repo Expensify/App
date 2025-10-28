@@ -66,7 +66,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
     const handleReportsLinkPress = useCallback(() => {
         onCancel?.();
         setIsVisible(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS})}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     }, [onCancel]);
 
     const openCreateReportConfirmation = useCallback(() => {
