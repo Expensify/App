@@ -321,6 +321,9 @@ function BaseValidateCodeForm({
                     if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
                         clearValidateCodeActionError(validateCodeActionErrorField);
                     }
+                    if (!isEmptyObject(validateCodeAction?.errorFields?.actionVerified)) {
+                        clearValidateCodeActionError('actionVerified');
+                    }
                 }}
                 style={buttonStyles}
             >
