@@ -51,9 +51,7 @@ function BaseSelectionList<TItem extends ListItem>({
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
     selectedItems = CONST.EMPTY_ARRAY,
-    listStyle,
-    listItemTitleStyles,
-    listItemWrapperStyle,
+    style,
     isSelected,
     isSmallScreenWidth,
     isLoadingNewOptions,
@@ -308,11 +306,11 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={!!alternateNumberOfSupportedLines}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
-                wrapperStyle={listItemWrapperStyle}
-                titleStyles={listItemTitleStyles}
+                wrapperStyle={style?.listItemWrapperStyle}
+                titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
             />
         );
@@ -365,7 +363,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()
@@ -391,7 +389,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={listStyle as ViewStyle}
+                        style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
                         ListHeaderComponent={
