@@ -1,16 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-
-// Mock the shared values
-const createMockSharedValue = <T>(value: T): SharedValue<T> => ({
-    get: () => value,
-    set: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    modify: jest.fn(),
-    value,
-});
+import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
     describe('parseForLiveMarkdown', () => {
@@ -24,10 +14,10 @@ describe('SearchAutocompleteUtils', () => {
             'policyID:ABC123': 'Test Policy',
         };
 
-        const mockUserLogins = createMockSharedValue(['john@example.com', 'jane@example.com', 'currentuser@example.com']);
-        const mockCurrencyList = createMockSharedValue(['USD', 'EUR', 'GBP']);
-        const mockCategoryList = createMockSharedValue(['Travel', 'Meals', 'Office Supplies']);
-        const mockTagList = createMockSharedValue(['Project A', 'Project B', 'Urgent']);
+        const mockUserLogins = createSharedValueMock(['john@example.com', 'jane@example.com', 'currentuser@example.com']);
+        const mockCurrencyList = createSharedValueMock(['USD', 'EUR', 'GBP']);
+        const mockCategoryList = createSharedValueMock(['Travel', 'Meals', 'Office Supplies']);
+        const mockTagList = createSharedValueMock(['Project A', 'Project B', 'Urgent']);
 
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';

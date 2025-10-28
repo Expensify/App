@@ -1,98 +1,156 @@
-import React, {useEffect, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
-import BaseInvertedFlatList from './BaseInvertedFlatList';
-import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import FlatList from '@components/FlatList';
+import usePrevious from '@hooks/usePrevious';
 import CellRendererComponent from './CellRendererComponent';
+import getInitialPaginationSize from './getInitialPaginationSize';
+import RenderTaskQueue from './RenderTaskQueue';
+import shouldRemoveClippedSubviews from './shouldRemoveClippedSubviews';
+import type {InvertedFlatListProps} from './types';
 
-// This is adapted from https://codesandbox.io/s/react-native-dsyse
-// It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ref, ...props}: BaseInvertedFlatListProps<T>) {
-    const lastScrollEvent = useRef<number | null>(null);
-    const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
-    const updateInProgress = useRef<boolean>(false);
+// Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
+function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
+    if (item != null) {
+        if (typeof item === 'object' && 'key' in item) {
+            return item.key;
+        }
+        if (typeof item === 'object' && 'id' in item) {
+            return item.id;
+        }
+    }
+    return String(index);
+}
 
-    useEffect(
-        () => () => {
-            if (!scrollEndTimeout.current) {
-                return;
-            }
-            clearTimeout(scrollEndTimeout.current);
+const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
+
+function InvertedFlatList<T>({
+    ref,
+    shouldEnableAutoScrollToTopThreshold,
+    initialScrollKey,
+    data,
+    onStartReached,
+    renderItem,
+    keyExtractor = defaultKeyExtractor,
+    ...restProps
+}: InvertedFlatListProps<T>) {
+    // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
+    // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
+    // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
+    // list to make sure `maintainVisibleContentPosition` works as expected.
+    const [currentDataId, setCurrentDataId] = useState(() => {
+        if (initialScrollKey) {
+            return initialScrollKey;
+        }
+        return null;
+    });
+    const [isInitialData, setIsInitialData] = useState(true);
+    const [isQueueRendering, setIsQueueRendering] = useState(false);
+
+    const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
+    const displayedData = useMemo(() => {
+        if (currentDataIndex <= 0) {
+            return data;
+        }
+        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
+    }, [currentDataIndex, data, isInitialData]);
+
+    const isLoadingData = data.length > displayedData.length;
+    const wasLoadingData = usePrevious(isLoadingData);
+    const dataIndexDifference = data.length - displayedData.length;
+
+    // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
+    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
+    useEffect(() => {
+        return () => {
+            renderQueue.cancel();
+        };
+    }, [renderQueue]);
+
+    renderQueue.setHandler((info) => {
+        if (!isLoadingData) {
+            onStartReached?.(info);
+        }
+        setIsInitialData(false);
+        const firstDisplayedItem = displayedData.at(0);
+        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
+    });
+
+    const handleStartReached = useCallback(
+        (info: {distanceFromStart: number}) => {
+            renderQueue.add(info);
         },
-        [ref],
+        [renderQueue],
     );
 
-    /**
-     * Emits when the scrolling is in progress. Also,
-     * invokes the onScroll callback function from props.
-     *
-     * @param event - The onScroll event from the FlatList
-     */
-    const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScrollProp(event);
+    const handleRenderItem = useCallback(
+        ({item, index, separators}: ListRenderItemInfo<T>) => {
+            // Adjust the index passed here so it matches the original data.
+            return renderItem({item, index: index + dataIndexDifference, separators});
+        },
+        [renderItem, dataIndexDifference],
+    );
 
-        if (!updateInProgress.current) {
-            updateInProgress.current = true;
-            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
-        }
-    };
-
-    /**
-     * Emits when the scrolling has ended.
-     */
-    const onScrollEnd = () => {
-        DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
-        updateInProgress.current = false;
-    };
-
-    /**
-     * Decides whether the scrolling has ended or not. If it has ended,
-     * then it calls the onScrollEnd function. Otherwise, it calls the
-     * onScroll function and pass the event to it.
-     *
-     * This is a temporary work around, since react-native-web doesn't
-     * support onScrollBeginDrag and onScrollEndDrag props for FlatList.
-     * More info:
-     * https://github.com/necolas/react-native-web/pull/1305
-     *
-     * This workaround is taken from below and refactored to fit our needs:
-     * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
-     *
-     */
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScroll(event);
-        const timestamp = Date.now();
-
-        if (scrollEndTimeout.current) {
-            clearTimeout(scrollEndTimeout.current);
+    const maintainVisibleContentPosition = useMemo(() => {
+        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
+            return undefined;
         }
 
-        if (lastScrollEvent.current) {
-            scrollEndTimeout.current = setTimeout(() => {
-                if (lastScrollEvent.current !== timestamp) {
-                    return;
-                }
-                // Scroll has ended
-                lastScrollEvent.current = null;
-                onScrollEnd();
-            }, 250);
+        const config: ScrollViewProps['maintainVisibleContentPosition'] = {
+            // This needs to be 1 to avoid using loading views as anchors.
+            minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
+        };
+
+        if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
+            config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
         }
 
-        lastScrollEvent.current = timestamp;
-    };
+        return config;
+    }, [initialScrollKey, isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+
+    const listRef = useRef<RNFlatList | null>(null);
+    useImperativeHandle(ref, () => {
+        // If we're trying to scroll at the start of the list we need to make sure to
+        // render all items.
+        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
+            if (params.offset === 0) {
+                setCurrentDataId(null);
+            }
+            requestAnimationFrame(() => {
+                listRef.current?.scrollToOffset(params);
+            });
+        };
+
+        return new Proxy(
+            {},
+            {
+                get: (_target, prop) => {
+                    if (prop === 'scrollToOffset') {
+                        return scrollToOffsetFn;
+                    }
+                    return listRef.current?.[prop as keyof RNFlatList];
+                },
+            },
+        ) as RNFlatList;
+    });
 
     return (
-        <BaseInvertedFlatList
+        <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={ref}
-            onScroll={handleScroll}
+            {...restProps}
+            ref={listRef}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
+            inverted
+            data={displayedData}
+            renderItem={handleRenderItem}
+            keyExtractor={keyExtractor}
+            onStartReached={handleStartReached}
             CellRendererComponent={CellRendererComponent}
+            removeClippedSubviews={shouldRemoveClippedSubviews}
         />
     );
 }
 
-InvertedFlatList.displayName = 'InvertedFlatList';
+InvertedFlatList.displayName = 'InvertedFlatListWithRef';
 
 export default InvertedFlatList;
+export {AUTOSCROLL_TO_TOP_THRESHOLD};
