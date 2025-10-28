@@ -10,7 +10,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -18,13 +17,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, validateDomain} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {DomainModalNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
+import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type VerifyDomainPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.DOMAIN.VERIFY_DOMAIN>;
+type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
 
 function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
     const styles = useThemeStyles();
@@ -49,7 +47,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         if (!domain?.validated) {
             return;
         }
-        Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
+        Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
     }, [accountID, domain]);
 
     useEffect(() => {
@@ -102,16 +100,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                             <Text style={styles.webViewStyles.baseFontStyle}>{translate('domain.verifyDomain.saveChanges')}</Text>
                         </OrderedListRow>
 
-                        <Text style={styles.webViewStyles.baseFontStyle}>
-                            {translate('domain.verifyDomain.youMayNeedToConsult')}{' '}
-                            <TextLink
-                                style={styles.link}
-                                href={CONST.DOMAIN_VERIFICATION_HELP_URL}
-                            >
-                                {translate('common.learnMore')}
-                            </TextLink>
-                            .
-                        </Text>
+                        <RenderHTML html={translate('domain.verifyDomain.youMayNeedToConsult')} />
 
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <Icon

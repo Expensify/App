@@ -813,10 +813,8 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
-    DOMAIN: {
-        VERIFY_DOMAIN: 'Domain_Verify_Domain',
-        DOMAIN_VERIFIED: 'Domain_Domain_Verified',
-    },
+    WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
+    WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

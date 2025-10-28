@@ -1717,12 +1717,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {
-                        [SCREENS.DOMAIN.VERIFY_DOMAIN]: {
-                            path: ROUTES.DOMAIN_VERIFY_DOMAIN.route,
+                        [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+                            path: ROUTES.WORKSPACES_VERIFY_DOMAIN.route,
                             exact: true,
                         },
-                        [SCREENS.DOMAIN.DOMAIN_VERIFIED]: {
-                            path: ROUTES.DOMAIN_DOMAIN_VERIFIED.route,
+                        [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
                             exact: true,
                         },
                     },

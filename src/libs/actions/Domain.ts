@@ -16,7 +16,7 @@ function getDomainValidationCode(accountID: number) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidateCodeLoading: undefined},
+            value: {isValidateCodeLoading: false},
         },
     ];
 
@@ -28,14 +28,14 @@ function validateDomain(accountID: number) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: true, validationError: undefined},
+            value: {isValidationPending: true, validationError: null},
         },
     ];
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: undefined},
+            value: {isValidationPending: false},
         },
     ];
 

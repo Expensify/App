@@ -7276,7 +7276,7 @@ const translations = {
             accessYourDNS: ({domainName}: {domainName: string}) => `Access your DNS provider and open DNS settings for <strong>${domainName}</strong>.`,
             addTXTRecord: 'Add the following TXT record:',
             saveChanges: 'Save changes and return here to verify your domain.',
-            youMayNeedToConsult: "You may need to consult your organization's IT department to complete verification.",
+            youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
             warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
         },
         domainVerified: {
