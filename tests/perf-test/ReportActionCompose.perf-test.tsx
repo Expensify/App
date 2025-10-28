@@ -85,6 +85,7 @@ function ReportActionComposeWrapper() {
                 reportID="1"
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
+                onLayout={() => {}}
             />
         </ComposeProviders>
     );

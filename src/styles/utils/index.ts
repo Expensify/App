@@ -2,6 +2,7 @@ import {StyleSheet} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SharedValue} from 'react-native-reanimated';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
@@ -31,6 +32,7 @@ import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperSty
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getReportPaddingBottom from './getReportPaddingBottom';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
@@ -48,6 +50,7 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    ReportFooterStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
 } from './types';
@@ -1324,6 +1327,7 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getReportPaddingBottom,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1883,6 +1887,57 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                   }
                 : {},
             containerStyle: {paddingBottom},
+        };
+    },
+    getReportFooterIosKeyboardHandlingStyles: ({
+        headerHeight,
+        isKeyboardActive,
+        keyboardHeight,
+        windowHeight,
+        isComposerFullSize,
+        paddingBottom = 0,
+        paddingTop = 0,
+        composerHeight,
+    }: ReportFooterStyle): ViewStyle => {
+        'worklet';
+
+        const correctedHeaderHeight = paddingTop + headerHeight;
+
+        const getComposerHeight = (): number => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
+                }
+
+                return windowHeight - correctedHeaderHeight - 24;
+            }
+
+            return composerHeight;
+        };
+
+        const getTransform = () => {
+            if (keyboardHeight.get() > paddingBottom) {
+                return [{translateY: -keyboardHeight.get()}];
+            }
+
+            return [{translateY: -paddingBottom}];
+        };
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            transform: getTransform(),
+            height: getComposerHeight(),
+        };
+    },
+    getOfflineIndicatorKeyboardHandlingStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
+        'worklet';
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
         };
     },
 });
