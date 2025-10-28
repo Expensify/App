@@ -1290,6 +1290,12 @@ type SettingsNavigatorParamList = {
         rateID: string;
         subRateID: string;
     };
+    [SCREENS.DOMAIN.VERIFY]: {
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.VERIFIED]: {
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type TwoFactorAuthNavigatorParamList = {

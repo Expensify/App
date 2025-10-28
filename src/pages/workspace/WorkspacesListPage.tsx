@@ -460,7 +460,7 @@ function WorkspacesListPage() {
         if (isValidated) {
             openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID));
+            Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID));
         }
     }, []);
 
