@@ -273,7 +273,8 @@ function MoneyRequestParticipantsSelector({
             countryCode,
         ],
     );
-    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) && inputHelperText === translate('common.noResultsFound');
+    const showImportContacts =
+        isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) && inputHelperText === translate('common.noResultsFound');
 
     /**
      * Returns the sections needed for the OptionsSelector
