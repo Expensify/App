@@ -64,7 +64,23 @@ const useSearchTypeMenuSections = () => {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
-    const policiesReady = allPolicies !== undefined;
+    const policiesReady = useMemo(() => {
+        if (!allPolicies) {
+            return false;
+        }
+
+        return Object.values(allPolicies).every((policy) => {
+            if (!policy) {
+                return true;
+            }
+
+            const hasEmployeeList = policy.employeeList !== undefined;
+            const hasExporter = policy.exporter !== undefined;
+
+            return hasEmployeeList && hasExporter;
+        });
+    }, [allPolicies]);
+
     const cardFeedsReady = workspaceCardFeeds !== undefined && userCardList !== undefined;
     const sessionReady = !!currentUserLoginAndAccountID?.email && currentUserLoginAndAccountID?.accountID !== undefined;
 

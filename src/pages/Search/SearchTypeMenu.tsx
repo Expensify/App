@@ -235,14 +235,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         clearAllFilters();
         clearSelectedTransactions();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
-    }, [
-        shouldUseDefaultSelection,
-        defaultTodoIndex,
-        flattenedMenuItems,
-        similarSearchHash,
-        disableDefaultSelection,
-        clearSelectedTransactions,
-    ]);
+    }, [shouldUseDefaultSelection, defaultTodoIndex, flattenedMenuItems, similarSearchHash, disableDefaultSelection, clearSelectedTransactions]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
