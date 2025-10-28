@@ -115,7 +115,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const currentKeys = allWideRHPRouteKeys.filter((key) => lastRHPKeys.has(key));
 
         return currentKeys;
-    }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
+        // We intentionally exclude lastVisibleRHPRouteKey from dependencies to prevent immediate
+        // recalculation when RHP closes, allowing smooth closing animations to complete
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allWideRHPRouteKeys]);
 
     /**
      * Determines whether the secondary overlay should be displayed.
