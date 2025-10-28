@@ -5334,7 +5334,6 @@ const staticStyles = (theme: ThemeColors) =>
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
-            flex: 1,
         },
 
         receiptCellLoadingContainer: {
