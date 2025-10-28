@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
+import React from 'react';
+import type {FlatListProps, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 
@@ -28,24 +28,16 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
 
 function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, listRef} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: true,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
+        renderItem,
         ref,
     });
-    const dataIndexDifference = data.length - displayedData.length;
-
-    const handleRenderItem = useCallback(
-        ({item, index, separators}: ListRenderItemInfo<T>) => {
-            // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
-        },
-        [renderItem, dataIndexDifference],
-    );
 
     return (
         <FlatList

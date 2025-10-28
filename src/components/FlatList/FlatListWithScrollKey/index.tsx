@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
+import React, {forwardRef} from 'react';
+import type {FlatListProps, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 import FlatList from '..';
 
@@ -17,24 +17,16 @@ type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScr
  */
 function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, contentContainerStyle, ...rest} = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, listRef} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
+        renderItem,
         ref,
     });
-    const dataIndexDifference = data.length - displayedData.length;
-
-    const handleRenderItem = useCallback(
-        ({item, index, separators}: ListRenderItemInfo<T>) => {
-            // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
-        },
-        [renderItem, dataIndexDifference],
-    );
 
     return (
         <FlatList
