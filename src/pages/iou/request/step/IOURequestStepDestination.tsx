@@ -148,6 +148,7 @@ function IOURequestStepDestination({
             includePaddingTop={false}
             keyboardVerticalOffset={keyboardVerticalOffset}
             testID={`${IOURequestStepDestination.displayName}-container`}
+            shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
                 headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
