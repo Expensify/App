@@ -7281,6 +7281,7 @@ const translations = {
         },
         domainVerified: {
             title: 'Domain verified',
+            // cspell:disable-next-line
             header: 'Wooo! Your domain has been verified',
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
