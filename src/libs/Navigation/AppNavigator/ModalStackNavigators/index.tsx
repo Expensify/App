@@ -37,6 +37,7 @@ import type {
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
+    SetDefaultWorkspaceNavigatorParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
     SignInNavigatorParamList,
@@ -210,6 +211,10 @@ const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorPar
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewReportWorkspaceSelectionPage').default,
+});
+
+const SetDefaultWorkspaceModalStackNavigator = createModalStackNavigator<SetDefaultWorkspaceNavigatorParamList>({
+    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
@@ -873,6 +878,7 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_ID_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalIDPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersActionPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersAttendeePage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersReportFieldPage').default,
 });
 
 const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({
@@ -927,6 +933,7 @@ export {
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
+    SetDefaultWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,

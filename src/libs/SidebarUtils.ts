@@ -621,7 +621,7 @@ function getOptionData({
     card,
     lastAction,
     localeCompare,
-    isReportArchived = false,
+    isReportArchived,
     lastActionReport,
     movedFromReport,
     movedToReport,
@@ -638,7 +638,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
@@ -1041,6 +1041,10 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
+                if (displayNamesWithTooltips.length > 2) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName}, ${translateLocal('common.and')}`;
+                }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return `${displayName} ${translateLocal('common.and')}`;
             }
