@@ -4,7 +4,6 @@
         "moduleResolution": "node",
         "target": "ES2023",
         "types": ["node"],
-        "strict": true,
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "downlevelIteration": true,

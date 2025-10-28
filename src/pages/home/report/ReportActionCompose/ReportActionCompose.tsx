@@ -1,12 +1,11 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
@@ -36,21 +35,24 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
-import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    canEditFieldOfMoneyRequest,
     canShowReportRecipientLocalTime,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
     isGroupChat,
+    isInvoiceReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
@@ -129,7 +131,6 @@ function ReportActionCompose({
     reportTransactions,
     transactionThreadReportID,
 }: ReportActionComposeProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -213,7 +214,10 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && (isManualDistanceRequest(transaction) || !isDistanceRequest(transaction));
+    const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
+    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
@@ -223,7 +227,7 @@ function ReportActionCompose({
         const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
     }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
@@ -395,18 +399,6 @@ function ReportActionCompose({
         clearComposer();
     }, [isSendDisabled, composerRefShared]);
 
-    const measureComposer = useCallback(
-        (e: LayoutChangeEvent) => {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
-                payload: {
-                    composerHeight: e.nativeEvent.layout.height,
-                },
-            });
-        },
-        [actionSheetAwareScrollViewContext],
-    );
-
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
 
@@ -482,10 +474,7 @@ function ReportActionCompose({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View
-                onLayout={measureComposer}
-                style={isComposerFullSize ? styles.flex1 : {}}
-            >
+            <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
                     shouldDisableOpacity
                     pendingAction={pendingAction}
