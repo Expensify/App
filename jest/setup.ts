@@ -107,14 +107,36 @@ jest.mock('@src/libs/actions/Timing', () => ({
     clearData: jest.fn(),
 }));
 
-// jest.mock('@src/setup/telemetry', () => ({
-//     // eslint-disable-next-line @typescript-eslint/naming-convention
-//     __esModule: true,
-//     default: jest.fn(),
-//     navigationIntegration: {
-//         registerNavigationContainer: jest.fn(),
-//     },
-// }));
+jest.mock('@sentry/react-native', () => ({
+    init: jest.fn(),
+    captureMessage: jest.fn(),
+    captureException: jest.fn(),
+    setUser: jest.fn(),
+    setContext: jest.fn(),
+    setTag: jest.fn(),
+    addBreadcrumb: jest.fn(),
+    withScope: jest.fn((callback: (scope: { setTag: jest.Mock; setContext: jest.Mock }) => void) => { 
+        callback({ setTag: jest.fn(), setContext: jest.fn() });
+    }),
+    withProfiler: jest.fn(<T>(component: T): T => component),
+    wrap: jest.fn(<T>(component: T): T => component),
+    configureScope: jest.fn(),
+    reactNavigationIntegration: jest.fn(() => ({
+        registerNavigationContainer: jest.fn(),
+    })),
+    startInactiveSpan: jest.fn(() => ({
+        end: jest.fn(),
+    })),
+}));
+
+jest.mock('@src/setup/telemetry', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+    navigationIntegration: {
+        registerNavigationContainer: jest.fn(),
+    },
+}));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
     defineTask: jest.fn(),
