@@ -303,10 +303,6 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
-    SETTINGS_WALLET_SHARE_BANK_ACCOUNT_SUCCESS: {
-        route: 'settings/wallet/:bankAccountID/share-bank-account-success',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account-success` as const,
-    },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,

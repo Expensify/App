@@ -189,9 +189,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
         bankAccountID: string;
     };
-    [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT_SUCCESS]: {
-        bankAccountID: string;
-    };
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };

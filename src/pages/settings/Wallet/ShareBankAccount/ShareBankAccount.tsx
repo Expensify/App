@@ -1,7 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ShareBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
@@ -17,7 +20,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccount, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +31,10 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
+    const isLoading = sharedBankAccountData?.isLoading ?? false;
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
@@ -64,8 +70,6 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         const emails = selectedOptions.map((member) => member.login).filter(Boolean);
 
         shareBankAccount(Number(bankAccountID), emails);
-
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT_SUCCESS.getRoute(Number(bankAccountID)));
     }, [bankAccountID, selectedOptions]);
 
     const adminsList = useMemo(() => {
@@ -134,48 +138,72 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, false, countryCode);
+        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode, false);
     }, [debouncedSearchTerm, sections, countryCode]);
 
     const footerContent = useMemo(
         () => (
             <FormAlertWithSubmitButton
+                isLoading={isLoading}
                 isDisabled={!selectedOptions.length}
                 buttonText={translate('common.share')}
                 onSubmit={handleConfirm}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             />
         ),
-        [handleConfirm, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [handleConfirm, isLoading, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
+
+    const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+
+    const onButtonPress = () => {
+        clearShareBankAccount();
+        goBack();
+    };
 
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
             <HeaderWithBackButton
                 title={translate('walletPage.shareBankAccount')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={shouldShowSuccess ? onButtonPress : goBack}
             />
-            <SelectionList
-                canSelectMultiple
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                onSelectAll={toggleSelectAll}
-                headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
-                shouldShowTextInputAfterHeader
-                shouldShowListEmptyContent={false}
-                shouldUpdateFocusedIndex
-                shouldShowHeaderMessageAfterHeader
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                shouldUseDefaultRightHandSideCheckmark
-                onSelectRow={toggleOption}
-                onConfirm={handleConfirm}
-                footerContent={footerContent}
-                isConfirmButtonDisabled={selectedOptions.length === 0}
-                addBottomSafeAreaPadding
-            />
+            {shouldShowSuccess ? (
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <ConfirmationPage
+                        heading={translate('walletPage.shareBankAccountSuccess')}
+                        description={translate('walletPage.shareBankAccountSuccessDescription')}
+                        illustration={ShareBank}
+                        shouldShowButton
+                        descriptionStyle={[styles.ph4, styles.textSupporting]}
+                        illustrationStyle={styles.successBankSharedCardIllustration}
+                        onButtonPress={onButtonPress}
+                        buttonText={translate('common.buttonConfirm')}
+                        containerStyle={styles.h100}
+                    />
+                </ScrollView>
+            ) : (
+                <SelectionList
+                    canSelectMultiple
+                    textInputLabel={textInputLabel}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    sections={sections}
+                    onSelectAll={toggleSelectAll}
+                    headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
+                    shouldShowTextInputAfterHeader
+                    shouldShowListEmptyContent={false}
+                    shouldUpdateFocusedIndex
+                    shouldShowHeaderMessageAfterHeader
+                    headerMessage={headerMessage}
+                    ListItem={UserListItem}
+                    shouldUseDefaultRightHandSideCheckmark
+                    onSelectRow={toggleOption}
+                    onConfirm={handleConfirm}
+                    footerContent={footerContent}
+                    isConfirmButtonDisabled={selectedOptions.length === 0}
+                    addBottomSafeAreaPadding
+                />
+            )}
         </ScreenWrapper>
     );
 }
