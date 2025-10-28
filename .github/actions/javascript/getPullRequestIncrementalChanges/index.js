@@ -12859,7 +12859,7 @@ class Git {
             return false;
         }
     }
-    static async getChangedFileNames(fromRef, toRef = 'HEAD') {
+    static async getChangedFileNames(fromRef, toRef) {
         if (IS_CI) {
             const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
                 owner: CONST_1.default.GITHUB_OWNER,
