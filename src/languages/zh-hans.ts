@@ -326,7 +326,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: '计数',
         cancel: '取消',
@@ -661,8 +661,6 @@ const translations = {
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
-        getTheApp: '获取应用程序',
-        scanReceiptsOnTheGo: '从手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -1044,10 +1042,6 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
-        dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptsBeforeEmail: '将收据拖到此页面，转发收据至',
-        dragReceiptAfterEmail: '或者选择下方的文件上传。',
-        dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
         alternativeMethodsTitle: '添加收据的其他方式：',
@@ -2018,8 +2012,6 @@ ${merchant}的${amount} - ${date}`,
     workflowsPage: {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
-        delaySubmissionTitle: '延迟提交',
-        delaySubmissionDescription: '选择一个自定义的报销提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequency: '提交频率',
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
@@ -2074,7 +2066,6 @@ ${merchant}的${amount} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系支持。',
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系客服。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
