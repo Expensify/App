@@ -1349,7 +1349,7 @@ type NewReportWorkspaceSelectionNavigatorParamList = {
 
 type SetDefaultWorkspaceNavigatorParamList = {
     [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: {
-        backTo?: Routes;
+        navigateTo?: Routes;
     };
 };
 

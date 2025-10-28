@@ -5450,6 +5450,18 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         },
+        loadingMessage: {
+            alignItems: 'center',
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
+        domainIcon: {
+            backgroundColor: theme.border,
+            padding: 10,
+            borderRadius: 8,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
