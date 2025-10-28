@@ -3,7 +3,7 @@ import type {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
+import {validateAttachmentFile} from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
