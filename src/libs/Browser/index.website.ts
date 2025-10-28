@@ -1,4 +1,4 @@
-import {UAParser} from 'ua-parser-js';
+import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -83,25 +83,18 @@ const isChromeIOS: IsChromeIOS = () => {
 
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
-function getIOSVersion() {
-    const {browser, os} = UAParser(navigator.userAgent);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (browser.name === 'Mobile Safari' && browser.major === '26' && os.name === 'iOS' && os.version === '18.6') {
-        return 26;
-    }
-
-    return parseFloat(os.version ?? '0');
-}
-
 /**
  * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
  */
 const isModernSafari: IsModernSafari = (): boolean => {
-    return getIOSVersion() >= 18;
+    const version = navigator.userAgent.match(/OS (\d+_\d+)/);
+    const iosVersion = version ? version[1].replace('_', '.') : '';
+
+    return parseFloat(iosVersion) >= 18;
 };
 
 const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
-    return getIOSVersion() === 26;
+    return isMobileSafari() && getOSAndName().osVersion === '26';
 };
 
 /**
