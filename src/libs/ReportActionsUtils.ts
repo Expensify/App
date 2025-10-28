@@ -2722,13 +2722,14 @@ function getWorkspaceCustomUnitRateDeletedMessage(action: ReportAction): string 
 }
 
 function getWorkspaceCustomUnitSubRateUpdatedMessage(action: ReportAction): string {
-    const {customUnitName, customUnitRateName, oldValue, newValue, updatedField} =
+    const {customUnitName, customUnitRateName, oldValue, newValue, updatedField, customUnitSubRateName} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE>) ?? {};
-    if (customUnitName && customUnitRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
+    if (customUnitName && customUnitRateName && customUnitSubRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateCustomUnitSubRate', {
             customUnitName,
             customUnitRateName,
+            customUnitSubRateName,
             oldValue,
             newValue,
             updatedField,
