@@ -3,7 +3,7 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ExpensifyCardContextProviderProps = {
     cardsDetails: Record<number, ExpensifyCardDetails | null>;
