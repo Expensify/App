@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
@@ -330,7 +330,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getCleanCategoryName(category ?? '')}
+                                                        {getDecodedCategoryName(category ?? '')}
                                                     </Text>
                                                 </View>
                                             )}

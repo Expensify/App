@@ -10,7 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -32,7 +32,7 @@ function CategoryDescriptionHintPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const cleanCategoryName = getCleanCategoryName(categoryName);
+    const cleanCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

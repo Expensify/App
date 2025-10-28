@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SpendCategorySelectorListItemProps} from './types';
 
@@ -25,7 +25,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
         >
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={getCleanCategoryName(category ?? '')}
+                title={getDecodedCategoryName(category ?? '')}
                 description={groupID[0].toUpperCase() + groupID.slice(1)}
                 descriptionTextStyle={[styles.textNormal]}
                 wrapperStyle={[styles.ph5]}

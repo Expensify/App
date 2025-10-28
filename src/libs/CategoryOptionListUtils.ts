@@ -7,7 +7,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import {getCleanCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName} from './CategoryUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
@@ -43,7 +43,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
-            const cleanCategoryName = getCleanCategoryName(option.name);
+            const cleanCategoryName = getDecodedCategoryName(option.name);
             optionCollection.set(option.name, {
                 text: cleanCategoryName,
                 keyForList: option.name,
@@ -68,7 +68,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
-            const cleanOptionName = getCleanCategoryName(optionName);
+            const cleanOptionName = getDecodedCategoryName(optionName);
             optionCollection.set(searchText, {
                 text: `${indents}${cleanOptionName}`,
                 keyForList: searchText,

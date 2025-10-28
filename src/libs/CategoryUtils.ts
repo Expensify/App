@@ -103,7 +103,7 @@ function isCategoryMissing(category: string | undefined): boolean {
     return emptyCategories.includes(category ?? '');
 }
 
-function getCleanCategoryName(categoryName: string) {
+function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
@@ -116,5 +116,5 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
-    getCleanCategoryName,
+    getDecodedCategoryName,
 };

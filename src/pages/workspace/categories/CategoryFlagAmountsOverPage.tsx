@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,7 +38,7 @@ function CategoryFlagAmountsOverPage({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
-    const cleanCategoryName = getCleanCategoryName(categoryName);
+    const cleanCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

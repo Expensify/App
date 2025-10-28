@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Log from '@libs/Log';
 import type {Options} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
@@ -360,7 +360,7 @@ function SearchAutocompleteList({
                     .slice(0, 10);
 
                 return filteredCategories.map((categoryName) => {
-                    const cleanCategoryName = getCleanCategoryName(categoryName);
+                    const cleanCategoryName = getDecodedCategoryName(categoryName);
                     return {
                         filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY,
                         text: cleanCategoryName,

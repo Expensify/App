@@ -20,7 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCleanCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -2397,7 +2397,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
-    const cleanCategoryName = getCleanCategoryName(categoryName ?? '');
+    const cleanCategoryName = getDecodedCategoryName(categoryName ?? '');
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2505,8 +2505,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.setCategoryName', {
-            oldName: getCleanCategoryName(oldName),
-            newName: getCleanCategoryName(newName),
+            oldName: getDecodedCategoryName(oldName),
+            newName: getDecodedCategoryName(newName),
         });
     }
 

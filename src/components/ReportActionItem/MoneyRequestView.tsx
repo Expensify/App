@@ -28,7 +28,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {getCleanCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -460,7 +460,7 @@ function MoneyRequestView({
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
-    const cleanCategoryName = getCleanCategoryName(categoryValue);
+    const cleanCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? cleanCategoryName : undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;

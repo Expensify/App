@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import CategorySelectorModal from './CategorySelectorModal';
 
 type CategorySelectorProps = {
@@ -44,7 +44,7 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
         hidePickerModal();
     };
 
-    const title = getCleanCategoryName(defaultValue);
+    const title = getDecodedCategoryName(defaultValue);
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

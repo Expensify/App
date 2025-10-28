@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
@@ -30,7 +30,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
-    const cleanCategoryName = getCleanCategoryName(categoryName);
+    const cleanCategoryName = getDecodedCategoryName(categoryName);
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};

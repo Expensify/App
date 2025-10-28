@@ -8,7 +8,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTrackingCategories, updateXeroImportTrackingCategories} from '@libs/actions/connections/Xero';
-import {getCleanCategoryName} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -34,7 +34,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const menuItems = useMemo(() => {
         const trackingCategories = getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => {
-            const cleanCategoryName = getCleanCategoryName(category.name);
+            const cleanCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
                 description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: cleanCategoryName}) as TranslationPaths,
