@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -190,7 +190,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                     lastName: onboardingPersonalDetails?.lastName ?? '',
                                 });
 
-                                InteractionManager.runAfterInteractions(() => {
+                                Navigation.setNavigationActionToMicrotaskQueue(() => {
                                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
                                 });
 
