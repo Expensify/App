@@ -2721,6 +2721,22 @@ function getWorkspaceCustomUnitRateDeletedMessage(action: ReportAction): string 
     return getReportActionText(action);
 }
 
+function getWorkspaceCustomUnitSubRateUpdatedMessage(action: ReportAction): string {
+    const {customUnitName, customUnitRateName, oldValue, newValue, updatedField} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE>) ?? {};
+    if (customUnitName && customUnitRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateCustomUnitSubRate', {
+            customUnitName,
+            customUnitRateName,
+            oldValue,
+            newValue,
+            updatedField,
+        });
+    }
+    return getReportActionText(action);
+}
+
 function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
     const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -3602,6 +3618,7 @@ export {
     getUpdatedBudgetMessage,
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitSubRateUpdatedMessage,
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,

@@ -108,6 +108,7 @@ import {
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateImportedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitSubRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -1345,6 +1346,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateDeletedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitSubRateUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldAddMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {

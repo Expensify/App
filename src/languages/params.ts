@@ -400,6 +400,8 @@ type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: strin
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
+type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; oldValue: string; newValue: string; updatedField: string};
+
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
@@ -1245,6 +1247,7 @@ export type {
     PolicyDisabledReportFieldAllOptionsParams,
     SubmitsToParams,
     SettlementDateParams,
+    UpdatedPolicyCustomUnitSubRateParams,
     PolicyExpenseChatNameParams,
     ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
