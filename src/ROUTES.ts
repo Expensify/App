@@ -19,8 +19,8 @@ import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
-import type { notificationType } from './pages/MultiFactorAuthenticationNotificationPage';
-import { promptType } from '@pages/MultiFactorAuthenticationPromptPage';
+import type { NotificationType } from './pages/MultiFactorAuthenticationNotificationPage';
+import type { PromptType } from './pages/MultiFactorAuthenticationPromptPage';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -3314,14 +3314,14 @@ const ROUTES = {
 
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
         route: 'multifactorauthentication/notification/:notificationType',
-        getRoute: (notificationType: notificationType) => `multifactorauthentication/notification/${notificationType}` as const,
+        getRoute: (notificationType: NotificationType) => `multifactorauthentication/notification/${notificationType}` as const,
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
 
     MULTIFACTORAUTHENTICATION_PROMPT: {
         route: 'multifactorauthentication/prompt/:promptType',
-        getRoute: (promptType: promptType) => `multifactorauthentication/prompt/${promptType}` as const,
+        getRoute: (promptType: PromptType) => `multifactorauthentication/prompt/${promptType}` as const,
     },
 } as const;
 
