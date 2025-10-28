@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 let personalDetailsByEmail: PersonalDetailsList = {};
@@ -90,9 +91,9 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
+function getUpdateApprovalWorkflowOnyxData(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>): OnyxData {
     if (!policy) {
-        return;
+        return {};
     }
 
     const previousDefaultApprover = getDefaultApprover(policy);
@@ -109,7 +110,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 
     // If there are no changes to the employees list, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
-        return;
+        return {};
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -150,6 +151,33 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         },
     ];
 
+    return {optimisticData, failureData, successData};
+}
+
+function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
+    if (!policy) {
+        return;
+    }
+
+    const previousDefaultApprover = getDefaultApprover(policy);
+    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0)?.email : undefined;
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+        previousEmployeeList,
+        approvalWorkflow,
+        type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
+        membersToRemove,
+        approversToRemove,
+        defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
+    });
+
+    // If there are no changes to the employees list, we can exit early
+    if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
+        return;
+    }
+
+    const {optimisticData, failureData, successData} = getUpdateApprovalWorkflowOnyxData(approvalWorkflow, membersToRemove, approversToRemove, policy);
+
     const parameters: UpdateWorkspaceApprovalParams = {
         policyID: policy.id,
         employees: JSON.stringify(Object.values(updatedEmployees)),
@@ -158,9 +186,9 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+function getRemoveApprocalWorkflowOnyxData(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>): OnyxData {
     if (!policy) {
-        return;
+        return {};
     }
 
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
@@ -207,6 +235,19 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             },
         },
     ];
+
+    return {optimisticData, failureData, successData};
+}
+
+function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
+        return;
+    }
+
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
+
+    const {optimisticData, failureData, successData} = getRemoveApprocalWorkflowOnyxData(approvalWorkflow, policy);
 
     const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
@@ -330,4 +371,6 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
+    getRemoveApprocalWorkflowOnyxData,
+    getUpdateApprovalWorkflowOnyxData,
 };

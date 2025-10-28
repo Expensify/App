@@ -43,7 +43,6 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -55,14 +54,14 @@ import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs}
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MemberRightIcon from './MemberRightIcon';
@@ -146,7 +145,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler'] as const);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -268,37 +266,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
 
-        // Check if any of the account IDs are approvers
-        const hasApprovers = accountIDsToRemove.some((accountID) => isApproverTemp(policy, accountID));
-
-        if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
-            accountIDsToRemove.forEach((accountID) => {
-                const removedApprover = personalDetails?.[accountID];
-                if (!removedApprover?.login || !ownerEmail) {
-                    return;
-                }
-                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-                    approvalWorkflows,
-                    removedApprover,
-                    ownerDetails,
-                });
-                updatedWorkflows.forEach((workflow) => {
-                    if (workflow?.removeApprovalWorkflow) {
-                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                        removeApprovalWorkflowAction(updatedWorkflow, policy);
-                    } else {
-                        updateApprovalWorkflow(workflow, [], [], policy);
-                    }
-                });
-            });
-        }
-
         setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(accountIDsToRemove, route.params.policyID);
+            removeMembers(accountIDsToRemove, route.params.policyID, approvalWorkflows);
         });
     };
 
