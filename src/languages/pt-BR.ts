@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -1056,8 +1055,6 @@ const translations = {
         uploadMultiple: 'Fazer upload de recibos',
         desktopSubtitleSingle: `ou arraste e solte aqui`,
         desktopSubtitleMultiple: `ou arraste e solte aqui`,
-        chooseReceipt: 'Escolha um recibo para enviar ou encaminhe um recibo para',
-        chooseReceipts: 'Escolha recibos para enviar ou encaminhe recibos para',
         alternativeMethodsTitle: 'Outras formas de adicionar recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Baixe o app</a> para escanear pelo celular</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Encaminhe recibos para <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1066,8 +1063,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envie recibos por SMS para ${phoneNumber} (apenas números dos EUA)</label-text>`,
         takePhoto: 'Tire uma foto',
         cameraAccess: 'O acesso à câmera é necessário para tirar fotos dos recibos.',
-        deniedCameraAccess: 'O acesso à câmera ainda não foi concedido, por favor siga',
-        deniedCameraAccessInstructions: 'essas instruções',
+        deniedCameraAccess: `O acesso à câmera ainda não foi concedido, por favor siga <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">essas instruções</a>.`,
         cameraErrorTitle: 'Erro de câmera',
         cameraErrorMessage: 'Ocorreu um erro ao tirar a foto. Por favor, tente novamente.',
         locationAccessTitle: 'Permitir acesso à localização',
@@ -2422,10 +2418,10 @@ ${amount} para ${merchant} - ${date}`,
                     '*Configure categorias* para que sua equipe possa categorizar despesas para relatórios fáceis.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Categorias*.\n' +
-                    '5. Desative quaisquer categorias que você não precise.\n' +
-                    '6. Adicione suas próprias categorias no canto superior direito.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Categorias*.\n' +
+                    '4. Desative quaisquer categorias que você não precise.\n' +
+                    '5. Adicione suas próprias categorias no canto superior direito.\n' +
                     '\n' +
                     `[Leve-me para as configurações de categoria do espaço de trabalho](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2476,12 +2472,11 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' ao seu' : ' ao'} ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
                     '\n' +
-                    '1. Clique em *Configurações*.\n' +
-                    '2. Vá para *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Contabilidade*.\n' +
-                    `5. Encontre ${integrationName}.\n` +
-                    '6. Clique em *Conectar*.\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Contabilidade*.\n' +
+                    `4. Encontre ${integrationName}.\n` +
+                    '5. Clique em *Conectar*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2507,10 +2502,10 @@ ${amount} para ${merchant} - ${date}`,
                     '*Convide sua equipe* para o Expensify para que eles possam começar a rastrear despesas hoje mesmo.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Membros* > *Convidar membro*.\n' +
-                    '5. Insira e-mails ou números de telefone. \n' +
-                    '6. Adicione uma mensagem de convite personalizada, se desejar!\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Membros* > *Convidar membro*.\n' +
+                    '4. Insira e-mails ou números de telefone. \n' +
+                    '5. Adicione uma mensagem de convite personalizada, se desejar!\n' +
                     '\n' +
                     `[Leve-me para os membros do espaço de trabalho](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2529,11 +2524,11 @@ ${amount} para ${merchant} - ${date}`,
                     'Use tags para adicionar detalhes extras de despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, pode fazer upgrade para o plano Control.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Mais recursos*.\n' +
-                    '5. Habilite *Tags*.\n' +
-                    '6. Navegue até *Tags* no editor do espaço de trabalho.\n' +
-                    '7. Clique em *+ Adicionar tag* para criar as suas.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Mais recursos*.\n' +
+                    '4. Habilite *Tags*.\n' +
+                    '5. Navegue até *Tags* no editor do espaço de trabalho.\n' +
+                    '6. Clique em *+ Adicionar tag* para criar as suas.\n' +
                     '\n' +
                     `[Leve-me para mais recursos](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
@@ -2763,6 +2758,7 @@ ${amount} para ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Algo deu errado`,
         subtitle: 'Não foi possível concluir sua solicitação. Por favor, tente novamente mais tarde.',
+        wrongTypeSubtitle: 'Essa pesquisa não é válida. Tente ajustar seus critérios de pesquisa.',
     },
     setPasswordPage: {
         enterPassword: 'Digite uma senha',
@@ -4521,6 +4517,12 @@ ${amount} para ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Por favor, selecione um país antes de continuar.',
                     pleaseSelectFeedType: 'Por favor, selecione um tipo de feed antes de continuar.',
                 },
+                exitModal: {
+                    title: 'Algo não está funcionando?',
+                    prompt: 'Percebemos que você não terminou de adicionar seus cartões. Se encontrou um problema, avise-nos para que possamos ajudar a resolver.',
+                    confirmText: 'Reportar problema',
+                    cancelText: 'Pular',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último dia do mês',
@@ -4535,7 +4537,8 @@ ${amount} para ${merchant} - ${date}`,
             directFeed: 'Feed direto',
             whoNeedsCardAssigned: 'Quem precisa de um cartão atribuído?',
             chooseCard: 'Escolha um cartão',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Escolha um cartão para ${assignee} do feed de cartões ${feed}.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Escolha um cartão para <strong>${assignee}</strong>. Não consegue encontrar o cartão que procura? <concierge-link>Avise-nos.</concierge-link>`,
             noActiveCards: 'Nenhum cartão ativo neste feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Ou algo pode estar quebrado. De qualquer forma, se você tiver alguma dúvida, entre em <concierge-link>contato com a Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4885,9 +4888,11 @@ ${amount} para ${merchant} - ${date}`,
             textType: 'Texto',
             dateType: 'Data',
             dropdownType: 'Lista',
+            formulaType: 'Fórmula',
             textAlternateText: 'Adicione um campo para entrada de texto livre.',
             dateAlternateText: 'Adicione um calendário para seleção de data.',
             dropdownAlternateText: 'Adicione uma lista de opções para escolher.',
+            formulaAlternateText: 'Adicione um campo de fórmula.',
             nameInputSubtitle: 'Escolha um nome para o campo do relatório.',
             typeInputSubtitle: 'Escolha qual tipo de campo de relatório usar.',
             initialValueInputSubtitle: 'Insira um valor inicial para mostrar no campo do relatório.',

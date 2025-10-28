@@ -17,7 +17,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -1047,8 +1046,6 @@ const translations = {
         uploadMultiple: 'Upload receipts',
         desktopSubtitleSingle: `or drag and drop it here`,
         desktopSubtitleMultiple: `or drag and drop them here`,
-        chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseReceipts: 'Choose receipts to upload or forward receipts to ',
         alternativeMethodsTitle: 'Other ways to add receipts:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Download the app</a> to scan from your phone</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Forward receipts to <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1057,8 +1054,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Text receipts to ${phoneNumber} (US numbers only)</label-text>`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
-        deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
-        deniedCameraAccessInstructions: 'these instructions',
+        deniedCameraAccess: `Camera access still hasn't been granted, please follow <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">these instructions</a>.`,
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
@@ -2401,10 +2397,10 @@ const translations = {
                     '*Set up categories* so your team can code expenses for easy reporting.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Categories*.\n' +
-                    "5. Disable any categories you don't need.\n" +
-                    '6. Add your own categories in the top right.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Categories*.\n' +
+                    "4. Disable any categories you don't need.\n" +
+                    '5. Add your own categories in the top right.\n' +
                     '\n' +
                     `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2455,12 +2451,11 @@ const translations = {
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Accounting*.\n' +
-                    `5. Find ${integrationName}.\n` +
-                    '6. Click *Connect*.\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Accounting*.\n' +
+                    `4. Find ${integrationName}.\n` +
+                    '5. Click *Connect*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2487,10 +2482,10 @@ const translations = {
                     '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *Members* > *Invite member*.\n' +
-                    '5. Enter emails or phone numbers. \n' +
-                    '6. Add a custom invite message if you’d like!\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Members* > *Invite member*.\n' +
+                    '4. Enter emails or phone numbers. \n' +
+                    '5. Add a custom invite message if you’d like!\n' +
                     '\n' +
                     `[Take me to workspace members](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2510,11 +2505,11 @@ const translations = {
                     'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                     '\n' +
                     '1. Click *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Tags*.\n' +
-                    '6. Navigate to *Tags* in the workspace editor.\n' +
-                    '7. Click *+ Add tag* to make your own.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *More features*.\n' +
+                    '4. Enable *Tags*.\n' +
+                    '5. Navigate to *Tags* in the workspace editor.\n' +
+                    '6. Click *+ Add tag* to make your own.\n' +
                     '\n' +
                     `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
@@ -2750,6 +2745,7 @@ const translations = {
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',
+        wrongTypeSubtitle: "That search isn't valid. Try adjusting your search criteria.",
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -4498,6 +4494,12 @@ const translations = {
                     pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
+                exitModal: {
+                    title: 'Something not working?',
+                    prompt: "We noticed you didn't finish adding your cards. If you found an issue, let us know so we can help get things back on track.",
+                    confirmText: 'Report issue',
+                    cancelText: 'Skip',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',
@@ -4512,7 +4514,8 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseCard: 'Choose a card',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Choose a card for ${assignee} from the ${feed} cards feed.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4859,9 +4862,11 @@ const translations = {
             textType: 'Text',
             dateType: 'Date',
             dropdownType: 'List',
+            formulaType: 'Formula',
             textAlternateText: 'Add a field for free text input.',
             dateAlternateText: 'Add a calendar for date selection.',
             dropdownAlternateText: 'Add a list of options to choose from.',
+            formulaAlternateText: 'Add a formula field.',
             nameInputSubtitle: 'Choose a name for the report field.',
             typeInputSubtitle: 'Choose what type of report field to use.',
             initialValueInputSubtitle: 'Enter a starting value to show in the report field.',

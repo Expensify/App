@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getContactMethodsOptions, getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -73,7 +73,7 @@ function ProfilePage() {
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
