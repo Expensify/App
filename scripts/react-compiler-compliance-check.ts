@@ -354,8 +354,6 @@ async function filterResultsByDiff(
         }
     }
 
-    // dummy comment to trigger a build
-
     // Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
     function filterFailuresByChangedLines(failures: Map<string, CompilerFailure>) {
         // Filter failures to only include those on changed lines
