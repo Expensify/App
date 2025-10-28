@@ -309,7 +309,7 @@ import type {
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
         cancel: 'Cancelar',
@@ -7809,4 +7809,4 @@ ${amount} para ${merchant} - ${date}`,
     },
 };
 
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
