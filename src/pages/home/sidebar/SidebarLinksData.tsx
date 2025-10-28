@@ -23,7 +23,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
-    const {orderedReports, currentReportID} = useSidebarOrderedReports('SidebarLinksData');
+    const {orderedReports, currentReportID} = useSidebarOrderedReports(SidebarLinksData.displayName);
 
     const currentReportIDRef = useRef(currentReportID);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -48,6 +48,8 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
         </View>
     );
 }
+
+SidebarLinksData.displayName = 'SidebarLinksData';
 
 const WrappedSidebarLinksData = Sentry.withProfiler(SidebarLinksData);
 WrappedSidebarLinksData.displayName = 'SidebarLinksData';

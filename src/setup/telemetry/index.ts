@@ -14,7 +14,7 @@ export default function (): void {
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations: [navigationIntegration],
-        environment: `${CONFIG.ENVIRONMENT}-${CONFIG.IS_HYBRID_APP ? 'hybrid' : 'standalone'}`,
+        environment: `${CONFIG.ENVIRONMENT}}`,
         release: `${pkg.name}@${pkg.version}`,
     });
 
