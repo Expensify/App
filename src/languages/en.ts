@@ -2392,12 +2392,12 @@ const translations = {
                         Here's how:
 
                         1. Go to *Workspaces*.
-                        '2. Select your workspace.
-                        '3. Click *More features*.
-                        '4. Enable *Workflows*.
-                        '5. Navigate to *Workflows* in the workspace editor.
-                        '6. Enable *Add approvals*.
-                        '7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Workflows*.
+                        5. Navigate to *Workflows* in the workspace editor.
+                        6. Enable *Add approvals*.
+                        7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).`,
                     ),
@@ -2410,12 +2410,12 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     dedent(`
-                    *Create a workspace* to track expenses, scan receipts, chat, and more.
+                        *Create a workspace* to track expenses, scan receipts, chat, and more.
 
-                    1. Click *Workspaces* > *New workspace*.
+                        1. Click *Workspaces* > *New workspace*.
 
-                    *Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).
-                `),
+                        *Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).
+                    `),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
@@ -2495,7 +2495,7 @@ const translations = {
                                 ? dedent(
                                       `[Take me to accounting](${workspaceAccountingLink}).
 
-                                       ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
+                                      ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
                                   )
                                 : `[Take me to accounting](${workspaceAccountingLink}).`
                         }
@@ -2547,19 +2547,19 @@ const translations = {
                 title: ({workspaceTagsLink}) => `Set up [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                    Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
+                        Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
 
-                    1. Click *Workspaces*.
-                    3. Select your workspace.
-                    4. Click *More features*.
-                    5. Enable *Tags*.
-                    6. Navigate to *Tags* in the workspace editor.
-                    7. Click *+ Add tag* to make your own.
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *More features*.
+                        5. Enable *Tags*.
+                        6. Navigate to *Tags* in the workspace editor.
+                        7. Click *+ Add tag* to make your own.
 
-                    [Take me to more features](${workspaceMoreFeaturesLink}).
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
 
-                    ![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
-                `),
+                        ![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
+                    `),
             },
 
             inviteAccountantTask: {
