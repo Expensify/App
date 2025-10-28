@@ -1849,10 +1849,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Ze względów bezpieczeństwa Xero wymaga uwierzytelniania dwuskładnikowego do połączenia integracji.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Wymagana dwuskładnikowa autoryzacja',
         twoFactorAuthIsRequiredForAdminsTitle: 'Proszę włączyć uwierzytelnianie dwuskładnikowe',
-        twoFactorAuthIsRequiredXero: 'Twoje połączenie z Xero wymaga użycia uwierzytelniania dwuskładnikowego. Aby kontynuować korzystanie z Expensify, proszę je włączyć.',
+        twoFactorAuthIsRequiredXero: 'Twoje połączenie księgowe z Xero wymaga użycia uwierzytelniania dwuskładnikowego. Aby nadal korzystać z Expensify, prosimy je włączyć.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Do połączenia z Xero wymagana jest uwierzytelnianie dwuskładnikowe (2FA) i nie można go wyłączyć.',
         explainProcessToRemoveWithRecovery: 'Aby wyłączyć uwierzytelnianie dwuskładnikowe (2FA), wprowadź prawidłowy kod odzyskiwania.',
+        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga korzystania z uwierzytelniania dwuskładnikowego. Aby nadal korzystać z Expensify, włącz je.',
     },
     recoveryCodeForm: {
         error: {
