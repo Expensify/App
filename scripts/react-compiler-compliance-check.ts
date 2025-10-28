@@ -47,8 +47,8 @@ type CompilerFailure = {
 };
 
 type DiffFilteringCommits = {
-    from: string;
-    to: string;
+    fromRef: string;
+    toRef?: string;
 };
 
 type PrintResultsOptions = {
@@ -87,7 +87,7 @@ async function check({
 
     if (shouldFilterByDiff) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: 'HEAD'};
+        const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
 
         results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
     }
@@ -279,15 +279,12 @@ async function filterResultsByDiff(
     diffFilteringCommits: DiffFilteringCommits,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
 ): Promise<CompilerResults> {
-    // Check for uncommitted changes and warn if any exist
-    if (await Git.hasUncommittedChanges()) {
-        logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
-    }
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
-    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
+    // Get the diff between the base ref and the working tree
+    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
 
-    // Get the diff between the two commits
-    const diffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
+    console.log(JSON.stringify(diffResult, null, 2));
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
