@@ -63,6 +63,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedProhibitedExpensesMessage,
+    getUpdatedReimbursementChoiceMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
     getUpdateRoomDescriptionMessage,
@@ -952,6 +953,8 @@ function getOptionData({
             result.alternateText = getUpdatedTimeRateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES) {
             result.alternateText = getUpdatedProhibitedExpensesMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
+            result.alternateText = getUpdatedReimbursementChoiceMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

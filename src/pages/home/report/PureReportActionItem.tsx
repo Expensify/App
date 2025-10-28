@@ -100,6 +100,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedProhibitedExpensesMessage,
+    getUpdatedReimbursementChoiceMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
     getWhisperedTo,
@@ -1458,6 +1459,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedTimeRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES)) {
             children = <ReportActionItemBasicMessage message={getUpdatedProhibitedExpensesMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedReimbursementChoiceMessage(action)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

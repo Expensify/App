@@ -3619,6 +3619,11 @@ const translations = {
             memberAlternateText: 'Members can submit and approve reports.',
             adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
             auditorAlternateText: 'Auditors can view and comment on reports.',
+            reimbursementChoice: {
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirect',
+            },
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6179,6 +6184,8 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added ${prohibitedExpense} as prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed ${prohibitedExpense} as prohibited expenses`,
+        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: {newReimbursementChoice: string; oldReimbursementChoice: string}) =>
+            `updated the reimbursement method from ${oldReimbursementChoice} to ${newReimbursementChoice}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

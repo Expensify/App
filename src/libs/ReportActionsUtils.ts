@@ -3277,6 +3277,22 @@ function getUpdatedProhibitedExpensesMessage(reportAction: OnyxEntry<ReportActio
     return translateLocal(wasAdded ? 'workspaceActions.addedProhibitedExpense' : 'workspaceActions.removedProhibitedExpense', {prohibitedExpense});
 }
 
+function getUpdatedReimbursementChoiceMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {newChoice, oldChoice} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE>) ?? {};
+
+    if (!newChoice || !oldChoice) {
+        return getReportActionText(reportAction);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const newReimbursementChoice = translateLocal(`workspace.common.reimbursementChoice.${newChoice}`);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const oldReimbursementChoice = translateLocal(`workspace.common.reimbursementChoice.${oldChoice}`);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedReimbursementChoice', {newReimbursementChoice, oldReimbursementChoice});
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3682,6 +3698,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    getUpdatedReimbursementChoiceMessage,
 };
 
 export type {LastVisibleMessage};

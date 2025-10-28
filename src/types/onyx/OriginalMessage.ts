@@ -604,6 +604,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New prohibited expenses */
     newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** Old reimbursement choice */
+    oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** New reimbursement choice */
+    newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 };
 
 /** Model of `join policy` report action */
