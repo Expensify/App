@@ -9,7 +9,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url) => {
 
     promise
         .then((params) => {
-            Linking.openURL(typeof url === 'string' ? url : url(params));
+            void Linking.openURL(typeof url === 'string' ? url : url(params));
         })
         .catch(() => {
             Log.warn('[asyncOpenURL] error occurred while opening URL', {url});

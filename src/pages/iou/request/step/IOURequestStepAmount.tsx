@@ -252,7 +252,7 @@ function IOURequestStepAmount({
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+            void setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
                 navigateToConfirmationPage();
             });
             return;
@@ -270,7 +270,7 @@ function IOURequestStepAmount({
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+            void setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,

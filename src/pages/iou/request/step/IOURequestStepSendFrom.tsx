@@ -76,7 +76,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             selected: false,
         });
 
-        setMoneyRequestParticipants(transactionID, newParticipants);
+        void setMoneyRequestParticipants(transactionID, newParticipants);
         navigateBack();
     };
 

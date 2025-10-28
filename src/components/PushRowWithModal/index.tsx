@@ -59,7 +59,7 @@ function PushRowWithModal({
         if (shouldBlurOnCloseRef.current) {
             onBlur?.();
         }
-        KeyboardUtils.dismiss().then(() => {
+        void KeyboardUtils.dismiss().then(() => {
             setIsModalVisible(false);
         });
     };

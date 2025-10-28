@@ -210,7 +210,7 @@ function SubmitDetailsPage({
             return;
         }
 
-        readFileAsync(
+        void readFileAsync(
             fileUri,
             fileName,
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),

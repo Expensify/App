@@ -8,7 +8,7 @@ function SaveWithExpensifyButton() {
     const {translate} = useLocalize();
 
     const onLinkPress = () => {
-        Linking.openURL(CONST.SAVE_WITH_EXPENSIFY_URL);
+        void Linking.openURL(CONST.SAVE_WITH_EXPENSIFY_URL);
     };
 
     return (

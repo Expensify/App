@@ -307,7 +307,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
+                    void KeyboardUtils.dismiss().then(() => {
                         navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                     });
                 });
@@ -758,7 +758,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
-            getEnvironmentURL().then((environmentURL) => {
+            void getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
@@ -810,7 +810,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
+                    void KeyboardUtils.dismiss().then(() => {
                         Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
                     });
                 });

@@ -58,7 +58,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
         () => (
             <TextLink
                 onPress={() => {
-                    Linking.openURL(subTitleLink);
+                    void Linking.openURL(subTitleLink);
                 }}
                 numberOfLines={1}
                 style={styles.label}

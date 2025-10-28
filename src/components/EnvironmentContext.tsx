@@ -36,8 +36,8 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
     const [environmentURLWithoutTrailingSlash] = useMemo(() => [environmentURL.replace(/\/+$/, '')], [environmentURL]);
 
     useEffect(() => {
-        getEnvironment().then(setEnvironment);
-        getEnvironmentURL().then(setEnvironmentURL);
+        void getEnvironment().then(setEnvironment);
+        void getEnvironmentURL().then(setEnvironmentURL);
     }, []);
 
     /**

@@ -106,7 +106,7 @@ Onyx.connect({
 });
 
 let environmentURL: string;
-getEnvironmentURL().then((url: string) => (environmentURL = url));
+void getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let oldDotEnvironmentURL: string;
 getOldDotEnvironmentURL().then((url: string) => (oldDotEnvironmentURL = url));

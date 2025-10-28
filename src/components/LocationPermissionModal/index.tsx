@@ -23,7 +23,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const checkPermission = useCallback(() => {
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
                 return;
             }
@@ -57,7 +57,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             return;
         }
 
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
@@ -73,10 +73,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setIsLoading(true);
         if (hasError) {
             if (Linking.openSettings) {
-                Linking.openSettings();
+                void Linking.openSettings();
             } else {
                 // check one more time in case user enabled location before continue
-                getLocationPermission().then((status) => {
+                void getLocationPermission().then((status) => {
                     if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                         onGrant();
                     } else {

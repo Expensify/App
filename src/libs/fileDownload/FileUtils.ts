@@ -60,7 +60,7 @@ function showPermissionErrorAlert() {
         {
             text: translateLocal('common.settings'),
             onPress: () => {
-                Linking.openSettings();
+                void Linking.openSettings();
             },
         },
     ]);
@@ -81,7 +81,7 @@ function showCameraPermissionsAlert() {
             {
                 text: translateLocal('common.settings'),
                 onPress: () => {
-                    Linking.openSettings();
+                    void Linking.openSettings();
                     // In the case of ios, the App reloads when we update camera permission from settings
                     // we are saving last route so we can navigate to it after app reload
                     saveLastRoute();

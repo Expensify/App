@@ -7,7 +7,7 @@ import BaseOpenAppFailureModal from './BaseOpenAppFailureModal';
 /** Triggers OpenApp reconnection */
 const retryOpenApp = () => {
     setIsOpenAppFailureModalOpen(false);
-    openApp();
+    void openApp();
 };
 
 function OpenAppFailureModal() {

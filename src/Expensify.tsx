@@ -231,7 +231,7 @@ function Expensify() {
 
         setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
+        void Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });

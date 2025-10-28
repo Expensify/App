@@ -112,7 +112,7 @@ function ShareDetailsPage({
             return;
         }
 
-        readFileAsync(
+        void readFileAsync(
             fileSource,
             validateFileName,
             (file) => {
@@ -149,7 +149,7 @@ function ShareDetailsPage({
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        KeyboardUtils.dismiss();
+                        void KeyboardUtils.dismiss();
                     }}
                     accessible={false}
                 >
@@ -168,7 +168,7 @@ function ShareDetailsPage({
                                 isFocused={false}
                                 showTooltip={false}
                                 onSelectRow={() => {
-                                    KeyboardUtils.dismiss();
+                                    void KeyboardUtils.dismiss();
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
@@ -194,7 +194,7 @@ function ShareDetailsPage({
                     </View>
                     <PressableWithoutFeedback
                         onPress={() => {
-                            KeyboardUtils.dismiss();
+                            void KeyboardUtils.dismiss();
                         }}
                         accessible={false}
                     >

@@ -49,7 +49,7 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         Firebase.stopTrace(eventName);
     }
 
-    getEnvironment().then((envName) => {
+    void getEnvironment().then((envName) => {
         const baseEventName = `${envName}.new.expensify.${eventName}`;
         const grafanaEventName = secondaryName ? `${baseEventName}.${secondaryName}` : baseEventName;
 

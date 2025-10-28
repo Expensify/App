@@ -374,7 +374,7 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(
+                void setMoneyRequestParticipants(
                     initialTransactionID,
                     [
                         {
@@ -705,7 +705,7 @@ function IOURequestStepScan({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            readFileAsync(
+                            void readFileAsync(
                                 source,
                                 filename,
                                 (file) => {

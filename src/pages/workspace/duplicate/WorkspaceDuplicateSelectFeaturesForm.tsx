@@ -289,7 +289,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!duplicateWorkspace?.fileURI || !policyID) {
             return;
         }
-        readFileAsync(
+        void readFileAsync(
             duplicateWorkspace.fileURI,
             'tmpFile',
             (file) => {

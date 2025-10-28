@@ -300,7 +300,7 @@ function IOURequestStepScan({
             return;
         }
 
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
                 return;
             }
@@ -435,7 +435,7 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(
+                void setMoneyRequestParticipants(
                     initialTransactionID,
                     [
                         {

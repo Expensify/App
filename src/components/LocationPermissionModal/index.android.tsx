@@ -21,7 +21,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             return;
         }
 
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
@@ -36,7 +36,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const handledBlockedPermission = (cb: () => void) => () => {
         setIsLoading(true);
         if (hasError && Linking.openSettings) {
-            Linking.openSettings();
+            void Linking.openSettings();
             setShowModal(false);
             setHasError(false);
             resetPermissionFlow();

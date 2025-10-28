@@ -61,7 +61,7 @@ function IOURequestStepUpgrade({
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
         if (shouldSubmitExpense) {
-            setMoneyRequestParticipants(transactionID, [
+            void setMoneyRequestParticipants(transactionID, [
                 {
                     selected: true,
                     accountID: 0,

@@ -215,7 +215,7 @@ function EmptySearchViewContent({
                         <TextLink
                             onLongPress={onLongPress}
                             onPress={() => {
-                                Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                                void Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                             }}
                             ref={contextMenuAnchor}
                         >

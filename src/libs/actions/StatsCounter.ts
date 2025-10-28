@@ -7,7 +7,7 @@ import getPlatform from '@libs/getPlatform';
 import pkg from '../../../package.json';
 
 const StatsCounter = (eventName: string, value = 1) => {
-    getEnvironment().then((envName) => {
+    void getEnvironment().then((envName) => {
         const platform = getPlatform();
         const version = pkg.version.replace(/\./g, '-');
 

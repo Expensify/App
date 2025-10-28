@@ -33,7 +33,7 @@ function ManageTrips() {
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
     const navigateToBookTravelDemo = () => {
-        Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+        void Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
     const scrollViewRef = useRef<RNScrollView>(null);

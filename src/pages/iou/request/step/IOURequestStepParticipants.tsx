@@ -165,7 +165,7 @@ function IOURequestStepParticipants({
     const waitForKeyboardDismiss = useCallback(
         (callback: () => void) => {
             if (isAndroidNative || isMobileSafari) {
-                KeyboardUtils.dismiss().then(() => {
+                void KeyboardUtils.dismiss().then(() => {
                     callback();
                 });
             } else {
@@ -186,7 +186,7 @@ function IOURequestStepParticipants({
         transactions.forEach((transaction) => {
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
-            setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false);
+            void setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
         });
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
@@ -222,11 +222,11 @@ function IOURequestStepParticipants({
             // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
             if (transactions.length > 0) {
                 transactions.forEach((transaction) => {
-                    setMoneyRequestParticipants(transaction.transactionID, val);
+                    void setMoneyRequestParticipants(transaction.transactionID, val);
                 });
             } else {
                 // Fallback to using initialTransactionID directly when transaction object isn't loaded yet
-                setMoneyRequestParticipants(initialTransactionID, val);
+                void setMoneyRequestParticipants(initialTransactionID, val);
             }
 
             if (!isMovingTransactionFromTrackExpense) {
@@ -307,7 +307,7 @@ function IOURequestStepParticipants({
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction.transactionID, [
+                void setMoneyRequestParticipants(transaction.transactionID, [
                     {
                         selected: true,
                         accountID: 0,
@@ -365,7 +365,7 @@ function IOURequestStepParticipants({
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction.transactionID, []);
+                void setMoneyRequestParticipants(transaction.transactionID, []);
             });
             numberOfParticipants.current = 0;
         }

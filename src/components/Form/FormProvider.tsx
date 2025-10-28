@@ -254,7 +254,7 @@ function FormProvider({
                 return;
             }
 
-            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+            void KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
         }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
         1000,
         {leading: true, trailing: false},

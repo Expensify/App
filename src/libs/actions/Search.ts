@@ -371,9 +371,9 @@ function search({
         allowPostSearchRecount: false,
     });
 
-    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    void waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        void API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
             const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
@@ -569,7 +569,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
+    void API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH,
         {hash, paymentData: JSON.stringify(paymentData)},
         {optimisticData, failureData, successData},

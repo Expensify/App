@@ -117,7 +117,7 @@ function NewChatConfirmPage() {
 
         // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
         // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
-        readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+        void readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted and when the onyx is loaded completely
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

@@ -81,7 +81,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                             text: translate('common.settings'),
                                             onPress: () => {
                                                 onUserExit();
-                                                Linking.openSettings();
+                                                void Linking.openSettings();
                                             },
                                         },
                                     ],

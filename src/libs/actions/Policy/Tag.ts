@@ -834,7 +834,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         ],
     };
 
-    readFileAsync(
+    void readFileAsync(
         spreadsheet?.fileURI ?? '',
         spreadsheet?.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
         (file) => {

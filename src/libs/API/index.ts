@@ -154,7 +154,7 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
-        processWithMiddleware(request);
+        void processWithMiddleware(request);
         return Promise.resolve();
     }
 
@@ -253,11 +253,11 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
     // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
     if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN) {
-        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+        void processRequest(request, CONST.API_REQUEST_TYPE.READ);
         return;
     }
-    waitForWrites(command).then(() => {
-        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+    void waitForWrites(command).then(() => {
+        void processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
 }
 
@@ -302,12 +302,12 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 
     switch (type) {
         case CONST.API_REQUEST_TYPE.WRITE:
-            processRequest(request, type);
+            void processRequest(request, type);
             return;
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
+            void waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
             return;
         default:
             throw new Error('Unknown API request type');

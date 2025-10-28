@@ -131,7 +131,7 @@ function IOURequestStepTaxAmountPage({
         // to the confirm step.
         if (report?.reportID) {
             // TODO: Is this really needed at all?
-            setMoneyRequestParticipantsFromReport(transactionID, report);
+            void setMoneyRequestParticipantsFromReport(transactionID, report);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }

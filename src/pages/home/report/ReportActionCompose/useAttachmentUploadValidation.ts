@@ -104,7 +104,7 @@ function useAttachmentUploadValidation({
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
-            setMoneyRequestParticipantsFromReport(newTransactionID, report);
+            void setMoneyRequestParticipantsFromReport(newTransactionID, report);
         });
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(

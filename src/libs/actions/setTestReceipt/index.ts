@@ -5,7 +5,7 @@ import type {SetTestReceipt} from './types';
 
 const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFileError) => {
     const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.${assetExtension}`;
-    readFileAsync(
+    void readFileAsync(
         asset as string,
         filename,
         (file) => {

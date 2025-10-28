@@ -6,7 +6,7 @@ import type LocationErrorMessageProps from './types';
 
 /** Opens expensify help site in a new browser tab */
 const navigateToExpensifyHelpSite = () => {
-    Linking.openURL(CONST.NEWHELP_URL);
+    void Linking.openURL(CONST.NEWHELP_URL);
 };
 
 function LocationErrorMessage(props: LocationErrorMessageProps) {

@@ -79,7 +79,7 @@ function EmployeeTestDriveModal() {
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
 
-                        setMoneyRequestParticipants(transactionID, [
+                        void setMoneyRequestParticipants(transactionID, [
                             {
                                 accountID: generateAccountID(bossEmail),
                                 login: bossEmail,

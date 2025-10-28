@@ -54,7 +54,7 @@ const FS: Fullstory = {
             return;
         }
         try {
-            getEnvironment().then((envName: string) => {
+            void getEnvironment().then((envName: string) => {
                 const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
                 if (
                     (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) ||
@@ -74,7 +74,7 @@ const FS: Fullstory = {
                     FullStory(CONST.FULLSTORY.OPERATION.RESTART);
                 }
 
-                FS.onReady().then(() => {
+                void FS.onReady().then(() => {
                     FS.consent(true);
                     const localMetadata = userMetadata;
                     localMetadata.environment = envName;

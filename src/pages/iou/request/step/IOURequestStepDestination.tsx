@@ -91,7 +91,7 @@ function IOURequestStepDestination({
                 const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
                 const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                void setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
             }

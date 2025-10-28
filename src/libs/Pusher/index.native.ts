@@ -60,7 +60,7 @@ function init(args: Args): Promise<void> {
             cluster: args.cluster,
             onConnectionStateChange: (currentState: string, previousState: string) => {
                 if (currentState === CONST.PUSHER.STATE.CONNECTED) {
-                    socket?.getSocketId().then((id: string) => {
+                    void socket?.getSocketId().then((id: string) => {
                         pusherSocketID = id;
                         callSocketEventCallbacks('connected');
                         resolve();
@@ -74,7 +74,7 @@ function init(args: Args): Promise<void> {
             onError: (message: string) => callSocketEventCallbacks('error', {data: {message}}),
             onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName) as Promise<PusherAuthorizerResult>,
         });
-        socket.connect();
+        void socket.connect();
     }).then(resolveInitPromise);
 }
 
@@ -217,7 +217,7 @@ function subscribe<EventName extends PusherEventName>(
 
                     if (!channels[channelName]) {
                         channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
-                        socket.subscribe({
+                        void socket.subscribe({
                             channelName,
                             onEvent: (event) => {
                                 const callback = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
@@ -269,13 +269,13 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
             Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
             eventsBoundToChannels.delete(channelName);
             delete channels[channelName];
-            socket?.unsubscribe({channelName});
+            void socket?.unsubscribe({channelName});
         }
     } else {
         Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
         eventsBoundToChannels.delete(channelName);
         delete channels[channelName];
-        socket?.unsubscribe({channelName});
+        void socket?.unsubscribe({channelName});
     }
 }
 
@@ -317,7 +317,7 @@ function sendEvent<EventName extends PusherEventName>(channelName: string, event
         return;
     }
 
-    socket?.trigger({channelName, eventName, data: JSON.stringify(payload)});
+    void socket?.trigger({channelName, eventName, data: JSON.stringify(payload)});
 }
 
 /**
@@ -336,7 +336,7 @@ function disconnect() {
         return;
     }
 
-    socket.disconnect();
+    void socket.disconnect();
     socket = null;
     pusherSocketID = '';
     channels = {};
@@ -356,8 +356,8 @@ function reconnect() {
     }
 
     Log.info('[Pusher] Reconnecting to Pusher');
-    socket.disconnect();
-    socket.connect();
+    void socket.disconnect();
+    void socket.connect();
 }
 
 function getPusherSocketID(): string | undefined {

@@ -143,12 +143,12 @@ Onyx.connectWithoutView({
             return;
         }
 
-        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+        void Onyx.clear(KEYS_TO_PRESERVE).then(() => {
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            openApp();
+            void openApp();
         });
     },
 });
@@ -248,7 +248,7 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
-        isReadyToOpenApp.then(() => {
+        void isReadyToOpenApp.then(() => {
             // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
             // and each time the getPolicyParamsForOpenOrReconnect function is called,
             // connectWithoutView will fetch the latest data from Onyx.
@@ -368,13 +368,13 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
-    hasLoadedAppPromise.then(() => {
+    void hasLoadedAppPromise.then(() => {
         if (!hasLoadedApp) {
-            openApp();
+            void openApp();
             return;
         }
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        void getPolicyParamsForOpenOrReconnect().then((policyParams) => {
             const params: ReconnectAppParams = policyParams;
 
             // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
@@ -472,7 +472,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
-    Navigation.isNavigationReady()
+    void Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
@@ -557,7 +557,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.waitForProtectedRoutes()
+        void Navigation.waitForProtectedRoutes()
             .then(() => {
                 Navigation.navigate(exitTo);
             })
@@ -575,7 +575,7 @@ function redirectThirdPartyDesktopSignIn() {
     const url = new URL(currentUrl);
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
-        Navigation.isNavigationReady().then(() => {
+        void Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
         });
@@ -601,7 +601,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
     const parameters: OpenOldDotLinkParams = {shouldRetry: false};
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
+    void API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
         if (!response) {
             Log.alert(
                 'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
@@ -619,7 +619,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
-    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
+    void waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 function handleRestrictedEvent(eventName: string) {
@@ -651,7 +651,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
 
     rollbackOngoingRequest();
     Navigation.clearPreloadedRoutes();
-    Onyx.clear(KEYS_TO_PRESERVE)
+    void Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
             if (isStateImported) {
@@ -671,7 +671,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
             // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
             // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
-            openApp().then(() => {
+            void openApp().then(() => {
                 if (!sequentialQueue || isStateImported) {
                     return;
                 }

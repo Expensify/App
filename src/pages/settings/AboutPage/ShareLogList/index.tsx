@@ -10,7 +10,7 @@ import type {ShareLogListProps} from './types';
 function ShareLogList({logSource}: ShareLogListProps) {
     const personalDetail = useCurrentUserPersonalDetails();
     const onAttachLogToReport = (reportID: string, filename: string) => {
-        readFileAsync(
+        void readFileAsync(
             logSource,
             filename,
             (file) => {

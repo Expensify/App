@@ -471,7 +471,7 @@ Onyx.connect({
 });
 
 let environment: EnvironmentType;
-getEnvironment().then((env) => {
+void getEnvironment().then((env) => {
     environment = env;
 });
 

@@ -302,7 +302,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     // Hide the keyboard when the user clicks the three-dot menu.
                     // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
                     blurActiveElement();
-                    KeyboardUtils.dismiss();
+                    void KeyboardUtils.dismiss();
                 }}
             />
             <ScrollView

@@ -7,7 +7,7 @@ import * as Session from './actions/Session';
 const interceptAnonymousUser = (callback: () => void) => {
     const isAnonymousUser = Session.isAnonymousUser();
     if (isAnonymousUser) {
-        Session.signOutAndRedirectToSignIn();
+        void Session.signOutAndRedirectToSignIn();
     } else {
         callback();
     }

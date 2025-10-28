@@ -362,7 +362,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
-                                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
+                                    void KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
                                 }}
                                 autoFocus={false}
                                 onFocus={onFocus}

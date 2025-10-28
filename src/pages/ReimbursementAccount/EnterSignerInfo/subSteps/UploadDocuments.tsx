@@ -58,7 +58,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
 
     useEffect(() => {
-        getEnvironmentURL().then(setEnvironmentUrl);
+        void getEnvironmentURL().then(setEnvironmentUrl);
     }, []);
 
     const STEP_FIELDS = useMemo(

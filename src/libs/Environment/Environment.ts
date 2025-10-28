@@ -44,7 +44,7 @@ function isInternalTestBuild(): boolean {
  */
 function getEnvironmentURL(): Promise<string> {
     return new Promise((resolve) => {
-        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
+        void getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
 }
 

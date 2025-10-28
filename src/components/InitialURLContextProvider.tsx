@@ -28,7 +28,7 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        Linking.getInitialURL().then((initURL) => {
+        void Linking.getInitialURL().then((initURL) => {
             if (!initURL) {
                 return;
             }

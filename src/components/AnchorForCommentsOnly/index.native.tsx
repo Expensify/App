@@ -8,7 +8,7 @@ function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForComments
         if (onPress) {
             onPress();
         } else {
-            Linking.openURL(href);
+            void Linking.openURL(href);
         }
     };
 

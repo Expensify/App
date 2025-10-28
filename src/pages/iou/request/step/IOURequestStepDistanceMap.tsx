@@ -373,7 +373,7 @@ function IOURequestStepDistanceMap({
                 });
                 return;
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+            void setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
                 navigateToConfirmationPage();
             });
             return;
@@ -399,7 +399,7 @@ function IOURequestStepDistanceMap({
             });
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+            void setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,

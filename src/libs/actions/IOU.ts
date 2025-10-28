@@ -12037,7 +12037,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    void readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 function checkIfScanFileCanBeRead(

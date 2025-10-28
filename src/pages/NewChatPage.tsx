@@ -306,7 +306,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            KeyboardUtils.dismiss().then(() => {
+            void KeyboardUtils.dismiss().then(() => {
                 singleExecution(() => navigateToAndOpenReport([login]))();
             });
         },

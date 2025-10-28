@@ -11,7 +11,7 @@ import getEnvironment from './Environment/getEnvironment';
 // We use the async environment check because it works on all platforms
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let shouldUseStagingServer = false;
-getEnvironment().then((envName) => {
+void getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs

@@ -285,7 +285,7 @@ function ReportActionItemMessageEdit({
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (index === 0) {
-            KeyboardUtils.dismiss().then(() => {
+            void KeyboardUtils.dismiss().then(() => {
                 reportScrollManager.scrollToIndex(index, false);
             });
         }

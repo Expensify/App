@@ -29,7 +29,7 @@ function ExpenseLimitTypeSelector({defaultValue, wrapperStyle, label, setNewExpe
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
-        KeyboardUtils.dismiss().then(() => {
+        void KeyboardUtils.dismiss().then(() => {
             setIsPickerVisible(true);
         });
     };

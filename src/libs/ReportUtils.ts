@@ -922,9 +922,9 @@ let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
 
 let environmentURL: string;
-getEnvironmentURL().then((url: string) => (environmentURL = url));
+void getEnvironmentURL().then((url: string) => (environmentURL = url));
 let environment: EnvironmentType;
-getEnvironment().then((env) => {
+void getEnvironment().then((env) => {
     environment = env;
 });
 
@@ -10477,7 +10477,7 @@ function getReportActionActorAccountID(
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(currentUserEmail);
-    setMoneyRequestParticipants(transactionID, [
+    void setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
             accountID: 0,
@@ -10553,7 +10553,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 
         if (shouldShowPolicy(activePolicy, false, currentUserEmail)) {
             const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, activePolicyID)?.reportID;
-            setMoneyRequestParticipants(transactionID, [
+            void setMoneyRequestParticipants(transactionID, [
                 {
                     selected: true,
                     accountID: 0,
@@ -10587,7 +10587,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 
         const policyID = filteredPolicies.at(0)?.id;
         const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
-        setMoneyRequestParticipants(transactionID, [
+        void setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
@@ -10616,7 +10616,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport).then(() => {
+                void setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
                 return;

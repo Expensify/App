@@ -17,7 +17,7 @@ function cacheSoundAssets() {
         return;
     }
 
-    caches.open('sound-assets').then((cache) => {
+    void caches.open('sound-assets').then((cache) => {
         const soundFiles = Object.values(SOUNDS).map((sound) => `${config.prefix}${sound}.mp3`);
 
         // Cache each sound file if it's not already cached.
@@ -61,10 +61,10 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
         return;
     }
 
-    caches.open('sound-assets').then((cache) => {
-        cache.match(soundSrc).then((response) => {
+    void caches.open('sound-assets').then((cache) => {
+        void cache.match(soundSrc).then((response) => {
             if (response) {
-                response.blob().then((soundBlob) => {
+                void response.blob().then((soundBlob) => {
                     const soundUrl = URL.createObjectURL(soundBlob);
                     initializeAndPlaySound(soundUrl);
                 });
@@ -95,7 +95,7 @@ function clearSoundAssetsCache() {
 }
 
 // Cache sound assets on load
-cacheSoundAssets();
+void cacheSoundAssets();
 
 export {SOUNDS, clearSoundAssetsCache};
 export default withMinimalExecutionTime(playSound, 300);

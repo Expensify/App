@@ -23,7 +23,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const checkPermission = useCallback(() => {
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
                 return;
             }
@@ -57,7 +57,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             return;
         }
 
-        getLocationPermission().then((status) => {
+        void getLocationPermission().then((status) => {
             onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
@@ -72,14 +72,14 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const handledBlockedPermission = (cb: () => void) => () => {
         setIsLoading(true);
         if (hasError) {
-            window.electron.invoke(ELECTRON_EVENTS.OPEN_LOCATION_SETTING);
+            void window.electron.invoke(ELECTRON_EVENTS.OPEN_LOCATION_SETTING);
             return;
         }
         cb();
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
-        requestLocationPermission()
+        void requestLocationPermission()
             .then((status) => {
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();

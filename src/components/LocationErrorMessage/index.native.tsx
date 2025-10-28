@@ -5,7 +5,7 @@ import type LocationErrorMessageProps from './types';
 
 /** Opens app level settings from the native system settings  */
 const openAppSettings = () => {
-    Linking.openSettings();
+    void Linking.openSettings();
 };
 
 function LocationErrorMessage(props: LocationErrorMessageProps) {

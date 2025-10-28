@@ -79,7 +79,7 @@ function IOURequestStepPerDiemWorkspace({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const selectedPolicy = getPolicy(item.value, allPolicies);
         const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
-        setMoneyRequestParticipants(transactionID, [
+        void setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
