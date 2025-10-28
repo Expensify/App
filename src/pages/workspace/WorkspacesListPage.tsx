@@ -411,7 +411,7 @@ function WorkspacesListPage() {
                           {
                               icon: Expensicons.Globe,
                               text: translate('domain.verifyDomain.title'),
-                              onSelected: () => Navigation.navigate(ROUTES.DOMAIN_VERIFY_DOMAIN.getRoute(item.accountID)),
+                              onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
                           },
                       ]
                     : undefined;
@@ -432,7 +432,7 @@ function WorkspacesListPage() {
                         {({hovered}) => (
                             <DomainsListRow
                                 title={item.title}
-                                badgeText={item.isAdmin && item.isValidated ? translate('domain.notVerified') : undefined}
+                                badgeText={item.isAdmin && !item.isValidated ? translate('domain.notVerified') : undefined}
                                 isHovered={hovered}
                                 menuItems={threeDotsMenuItems}
                             />
@@ -460,7 +460,7 @@ function WorkspacesListPage() {
         if (isValidated) {
             openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
         } else {
-            Navigation.navigate(ROUTES.DOMAIN_VERIFY_DOMAIN.getRoute(accountID));
+            Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
         }
     }, []);
 

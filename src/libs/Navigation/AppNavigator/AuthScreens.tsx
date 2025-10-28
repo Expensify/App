@@ -88,6 +88,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
 function initializePusher() {
@@ -474,6 +475,7 @@ function AuthScreens() {
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
                     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
@@ -500,6 +502,11 @@ function AuthScreens() {
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                     options={getWorkspaceSplitNavigatorOptions}
                     getComponent={loadWorkspaceSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
+                    options={getWorkspaceSplitNavigatorOptions}
+                    getComponent={loadDomainSplitNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}

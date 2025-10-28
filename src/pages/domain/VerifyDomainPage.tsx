@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type VerifyDomainPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.DOMAIN.VERIFY_DOMAIN>;
+type VerifyDomainPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
 
 function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
     const styles = useThemeStyles();
@@ -49,7 +49,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         if (!domain?.validated) {
             return;
         }
-        Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
+        Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
     }, [accountID, domain]);
 
     useEffect(() => {

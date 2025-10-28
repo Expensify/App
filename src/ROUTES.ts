@@ -3303,13 +3303,29 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
-    DOMAIN_VERIFY_DOMAIN: {
+    WORKSPACES_VERIFY_DOMAIN: {
         route: 'workspaces/verify-domain/:accountID',
         getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
     },
-    DOMAIN_DOMAIN_VERIFIED: {
+    WORKSPACES_DOMAIN_VERIFIED: {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
+    DOMAIN_INITIAL: {
+        route: 'domain/:accountID',
+        getRoute: (accountID: number) => `domain/${accountID}` as const,
+    },
+    DOMAIN_SAML: {
+        route: 'domain/:accountID/saml',
+        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+    },
+    DOMAIN_VERIFY: {
+        route: 'domain/:accountID/verify',
+        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+    },
+    DOMAIN_VERIFIED: {
+        route: 'domain/:accountID/verified',
+        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
     },
 } as const;
 

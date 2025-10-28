@@ -1073,6 +1073,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
                         },
+                        [SCREENS.DOMAIN.VERIFY]: {
+                            path: ROUTES.DOMAIN_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.VERIFIED]: {
+                            path: ROUTES.DOMAIN_VERIFIED.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1717,12 +1723,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {
-                        [SCREENS.DOMAIN.VERIFY_DOMAIN]: {
-                            path: ROUTES.DOMAIN_VERIFY_DOMAIN.route,
+                        [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+                            path: ROUTES.WORKSPACES_VERIFY_DOMAIN.route,
                             exact: true,
                         },
-                        [SCREENS.DOMAIN.DOMAIN_VERIFIED]: {
-                            path: ROUTES.DOMAIN_DOMAIN_VERIFIED.route,
+                        [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
                             exact: true,
                         },
                     },
@@ -1837,6 +1843,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+            },
+        },
+
+        [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.DOMAIN.INITIAL]: {
+                    path: ROUTES.DOMAIN_INITIAL.route,
+                },
+                [SCREENS.DOMAIN.SAML]: {
+                    path: ROUTES.DOMAIN_SAML.route,
                 },
             },
         },

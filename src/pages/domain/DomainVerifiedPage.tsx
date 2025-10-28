@@ -15,7 +15,7 @@ import type {DomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type DomainVerifiedPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.DOMAIN.DOMAIN_VERIFIED>;
+type DomainVerifiedPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_VERIFIED>;
 
 function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const {translate} = useLocalize();
