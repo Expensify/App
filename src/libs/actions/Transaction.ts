@@ -400,6 +400,7 @@ function dismissDuplicateTransactionViolation(
     });
 
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
     if (expenseReport) {
@@ -443,12 +444,31 @@ function dismissDuplicateTransactionViolation(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-            value: {nextStep: optimisticNextStep},
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                nextStep: expenseReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
     }
 
@@ -522,7 +542,7 @@ function dismissDuplicateTransactionViolation(
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const successReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -534,6 +554,8 @@ function dismissDuplicateTransactionViolation(
                 : undefined,
         };
     });
+    successData.push(...successReportActions);
+
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
     // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE

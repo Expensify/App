@@ -6613,7 +6613,6 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
           }
         : {};
     optimisticEmptyReport.ownerAccountID = accountID;
-
     return optimisticEmptyReport;
 }
 

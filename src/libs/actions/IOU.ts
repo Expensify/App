@@ -10317,6 +10317,7 @@ function approveMoneyRequest(
             value: {
                 pendingFields: {
                     partial: null,
+                    nextStep: null,
                 },
             },
         },
