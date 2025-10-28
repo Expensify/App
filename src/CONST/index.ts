@@ -1690,6 +1690,7 @@ const CONST = {
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
+        INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
@@ -1729,6 +1730,7 @@ const CONST = {
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
+        INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -1748,6 +1750,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
+        MAX_OPEN_APP_REQUEST_RETRIES: 2,
         NETWORK_STATUS: {
             ONLINE: 'online',
             OFFLINE: 'offline',
@@ -2071,7 +2074,7 @@ const CONST = {
     LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
-    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
+    EXPENSIFY_MERCHANT: 'Expensify',
     EMAIL,
 
     FULLSTORY: {
@@ -6486,6 +6489,7 @@ const CONST = {
         ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
+            EXPENSE_REPORT: 'expense-report',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -6543,7 +6547,6 @@ const CONST = {
             DESC: 'desc',
         },
         GROUP_BY: {
-            REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
@@ -6560,6 +6563,14 @@ const CONST = {
             EXPENSE: {
                 ALL: '',
                 UNREPORTED: 'unreported',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                DONE: 'done',
+                PAID: 'paid',
+            },
+            EXPENSE_REPORT: {
+                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6719,7 +6730,6 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
-                [this.GROUP_BY.REPORTS]: 'report',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
@@ -7005,6 +7015,7 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+        FORMULA: 'formula',
     },
 
     NAVIGATION_ACTIONS: {
@@ -7313,24 +7324,11 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
 
-const FEATURE_IDS = {
-    CATEGORIES: 'categories',
-    ACCOUNTING: 'accounting',
-    COMPANY_CARDS: 'company-cards',
-    TAGS: 'tags',
-    WORKFLOWS: 'workflows',
-    INVOICES: 'invoices',
-    RULES: 'rules',
-    PER_DIEM: 'per-diem',
-    DISTANCE_RATES: 'distance-rates',
-    EXPENSIFY_CARD: 'expensify-card',
-};
-
 const TASK_TO_FEATURE: Record<string, string> = {
-    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: FEATURE_IDS.CATEGORIES,
-    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: FEATURE_IDS.ACCOUNTING,
-    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: FEATURE_IDS.COMPANY_CARDS,
-    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: FEATURE_IDS.TAGS,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
 };
 
 const FRAUD_PROTECTION_EVENT = {
@@ -7366,6 +7364,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS, FRAUD_PROTECTION_EVENT};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT};
 
 export default CONST;
