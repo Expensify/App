@@ -61,8 +61,9 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
-import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {createNewReport, createTransactionThreadReport} from './actions/Report';
+import type {TransactionPreviewData} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -1304,17 +1305,20 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
-    // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
-    const iouReportID = item.report?.reportID ?? item.reportID;
-    if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-        openReport(iouReportID);
-    }
-    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
+function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
+    const previewData = transactionPreviewData
+        ? {...transactionPreviewData, hasTransactionThreadReport: true}
+        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+    setOptimisticDataForTransactionThreadPreview(item, previewData);
+
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
-    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+
+    if (shouldNavigate) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+    }
 }
 
 /**

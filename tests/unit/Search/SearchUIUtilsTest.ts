@@ -15,7 +15,7 @@ import type {
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
-import {createTransactionThreadReport, openReport} from '@userActions/Report';
+import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
@@ -40,7 +40,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
-    openReport: jest.fn(),
 }));
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
@@ -2762,28 +2761,29 @@ describe('SearchUIUtils', () => {
         const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-        const iouReportAction = {reportActionID: 'action-123'} as OnyxTypes.ReportAction;
+        const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
         const hash = 12345;
         const backTo = '/search/all';
 
-        test('Should create transaction thread report and navigate to it', () => {
+        test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
+            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
 
+            expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
             expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+        });
+
+        test('Should not navigate if shouldNavigate = false', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        test('Should handle navigation if shouldNavigate = true', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
-        });
-
-        test('Should not load iou report if iouReportAction was provided', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
-            expect(openReport).not.toHaveBeenCalled();
-        });
-
-        test('Should load iou report if iouReportAction was not provided', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
-            expect(openReport).toHaveBeenCalled();
         });
     });
 

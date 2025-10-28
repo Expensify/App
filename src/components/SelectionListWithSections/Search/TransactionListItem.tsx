@@ -44,6 +44,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLoading,
     areAllOptionalColumnsHidden,
     violations,
+    onDEWModalOpen,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -117,6 +118,7 @@ function TransactionListItem<TItem extends ListItem>({
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
+            onDEWModalOpen,
         );
     }, [
         currentSearchHash,
@@ -130,6 +132,7 @@ function TransactionListItem<TItem extends ListItem>({
         currentSearchKey,
         onSelectRow,
         item,
+        onDEWModalOpen,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

@@ -628,6 +628,13 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
 }
 
 /**
+ * Checks if policy has Dynamic External Workflow enabled
+ */
+function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
  * Whether the policy has active accounting integration connections.
  * `getCurrentConnectionName` only returns connections supported in NewDot.
  * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
@@ -1708,6 +1715,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
+    hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,

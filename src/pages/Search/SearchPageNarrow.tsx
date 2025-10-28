@@ -78,7 +78,7 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -166,7 +166,7 @@ function SearchPageNarrow({
         );
     }
 
-    const shouldShowFooter = !!metadata?.count;
+    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 

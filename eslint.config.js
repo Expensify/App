@@ -396,10 +396,6 @@ const config = defineConfig([
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
-            // These rules could indicate potential bugs in the source code.
-            // After fixing the source code, remove these so they become errors instead of warnings.
-            '@typescript-eslint/no-base-to-string': 'warn',
-
             // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
             'lines-between-class-members': 'error',
             '@typescript-eslint/lines-between-class-members': 'off',
