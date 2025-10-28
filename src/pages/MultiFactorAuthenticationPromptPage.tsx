@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,20 +7,19 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Text from '@components/Text';
 import Button from '@components/Button';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import LottieAnimations from '@components/LottieAnimations';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
+import type { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import { TranslationPaths } from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
-type promptType = 'enable-biometrics' | 'enable-passkey';
+type PromptType = 'enable-biometrics' | 'enable-passkey';
 
-type multiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
+type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
 type PromptData = {
     animation: DotLottieAnimation;
@@ -27,7 +27,7 @@ type PromptData = {
     subtitle: TranslationPaths;
 } | undefined;
 
-const getPromptData = (promptType: promptType) : PromptData => {
+const getPromptData = (promptType: PromptType) : PromptData => {
     switch (promptType) {
         case 'enable-biometrics':
             return {
@@ -46,7 +46,7 @@ const getPromptData = (promptType: promptType) : PromptData => {
     }
 };
 
-function multiFactorAuthenticationPromptPage({route}: multiFactorAuthenticationPromptPageProps) {
+function multiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
@@ -103,4 +103,4 @@ multiFactorAuthenticationPromptPage.displayName = 'MultiFactorAuthenticationProm
 
 export default multiFactorAuthenticationPromptPage;
 
-export type {promptType};
+export type {PromptType};

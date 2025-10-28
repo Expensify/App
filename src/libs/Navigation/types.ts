@@ -27,10 +27,10 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
-import type { notificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
+import type { NotificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type { PromptType } from '@pages/MultiFactorAuthenticationPromptPage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
-import { promptType } from '@pages/MultiFactorAuthenticationPromptPage';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
 
@@ -2685,11 +2685,11 @@ type MultiFactorAuthenticationParamList = {
         reportID: string;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
-        notificationType: notificationType;
+        notificationType: NotificationType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
-        promptType: promptType;
+        promptType: PromptType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: undefined;
 };

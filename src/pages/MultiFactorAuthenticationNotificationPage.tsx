@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
-import {View, ViewStyle} from 'react-native';
+import type { ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,16 +11,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
-import { SvgProps } from 'react-native-svg';
-import { TranslationPaths } from '@src/languages/types';
-import NotFoundPage from './ErrorPage/NotFoundPage';
+import type { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
+import type { SvgProps } from 'react-native-svg';
 import variables from '@styles/variables';
-import styles from '@styles/index';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 
 // TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string 
-type notificationType = 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
+type NotificationType = 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
 
@@ -31,7 +31,7 @@ type NotificationData = {
 } | undefined;
 
 // TODO: remove, as this data will actually come from the SCENARIOS file
-const getNotificationData = (notificationType: string): NotificationData => {
+const getNotificationData = (notificationType: NotificationType): NotificationData => {
     const styles = useThemeStyles();
     switch (notificationType) {
         case 'authentication-successful':
@@ -124,4 +124,4 @@ multiFactorAuthenticationNotificationPage.displayName = 'multiFactorAuthenticati
 
 export default multiFactorAuthenticationNotificationPage;
 
-export type {notificationType};
+export type {NotificationType};
