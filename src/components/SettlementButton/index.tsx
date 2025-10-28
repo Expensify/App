@@ -172,7 +172,7 @@ function SettlementButton({
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
-    const checkForNecessaryAction = () => {
+    const checkForNecessaryAction = useCallback(() => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return true;
@@ -189,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    };
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
