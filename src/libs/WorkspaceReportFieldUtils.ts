@@ -31,6 +31,7 @@ function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyRepo
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
         [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownAlternateText',
+        [CONST.REPORT_FIELD_TYPES.FORMULA]: 'workspace.reportFields.formulaAlternateText',
     };
 
     return typeTranslationKeysStrategy[reportFieldType];

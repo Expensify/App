@@ -66,7 +66,7 @@ function ReportFieldsInitialValuePage({
             const {initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            if (formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
                     length: formInitialValue.length,
                     limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
@@ -86,7 +86,8 @@ function ReportFieldsInitialValuePage({
         return <NotFoundPage />;
     }
 
-    const isEditable = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    const isTextFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
+    const isFormulaFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     return (
@@ -110,8 +111,7 @@ function ReportFieldsInitialValuePage({
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
                     </View>
                 )}
-
-                {isEditable && (
+                {(isTextFieldType || isFormulaFieldType) && (
                     <FormProvider
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
