@@ -8,6 +8,7 @@ import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/util
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 
 type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
 
@@ -19,7 +20,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
     const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
+    const beneficialOwnerCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerCountryInputID]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';

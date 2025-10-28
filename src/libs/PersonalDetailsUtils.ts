@@ -135,12 +135,12 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  * @param logins Array of user logins
  * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins: string[], shouldGenerateAccountID = true): number[] {
+function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
         const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(shouldGenerateAccountID ? generateAccountID(login) : -1);
+            foundAccountIDs.push(generateAccountID(login));
         } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }

@@ -459,8 +459,7 @@ const ROUTES = {
     },
     SET_DEFAULT_WORKSPACE: {
         route: 'set-default-workspace',
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('set-default-workspace', backTo),
+        getRoute: (navigateTo?: string) => (navigateTo ? (`set-default-workspace?navigateTo=${encodeURIComponent(navigateTo)}` as const) : ('set-default-workspace' as const)),
     },
     REPORT: 'r',
     REPORT_WITH_ID: {

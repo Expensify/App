@@ -876,6 +876,7 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_ID_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalIDPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersActionPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersAttendeePage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersReportFieldPage').default,
 });
 
 const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({

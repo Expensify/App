@@ -1,16 +1,5 @@
 import type {SharedValue} from 'react-native-reanimated';
-
-/** Dimensions of the canvas rendered by the MultiGestureCanvas */
-type CanvasSize = {
-    width: number;
-    height: number;
-};
-
-/** Dimensions of the content passed to the MultiGestureCanvas */
-type ContentSize = {
-    width: number;
-    height: number;
-};
+import type {Dimensions} from '@src/types/utils/Layout';
 
 /** Range of zoom that can be applied to the content by pinching or double tapping. */
 type ZoomRange = {
@@ -29,8 +18,8 @@ type OnSwipeDownCallback = () => void;
 
 /** Types used of variables used within the MultiGestureCanvas component and it's hooks */
 type MultiGestureCanvasVariables = {
-    canvasSize: CanvasSize;
-    contentSize: ContentSize;
+    canvasSize: Dimensions;
+    contentSize: Dimensions;
     zoomRange: ZoomRange;
     minContentScale: number;
     maxContentScale: number;
@@ -52,4 +41,4 @@ type MultiGestureCanvasVariables = {
     onSwipeDown: OnSwipeDownCallback | undefined;
 };
 
-export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables, OnSwipeDownCallback};
+export type {ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables, OnSwipeDownCallback};

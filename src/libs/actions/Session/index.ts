@@ -31,8 +31,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -1348,8 +1346,8 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: '',
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1364,8 +1362,8 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: '',
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1408,8 +1406,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
             // If the error other than invalid code, we show a blocking screen
             if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR || response?.title === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'contacts.genericFailureMessages.validateSecondaryLogin');
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }

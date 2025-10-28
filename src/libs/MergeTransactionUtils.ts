@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
@@ -365,19 +366,19 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
     }
     if (field === 'description') {
-        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(fieldValue.toString()));
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
     }
     if (field === 'tag') {
-        return getCommaSeparatedTagNameWithSanitizedColons(fieldValue.toString());
+        return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(fieldValue.toString()));
+        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
     }
 
-    return String(fieldValue);
+    return SafeString(fieldValue);
 }
 /**
  * Build merge fields data array from conflict fields for UI display

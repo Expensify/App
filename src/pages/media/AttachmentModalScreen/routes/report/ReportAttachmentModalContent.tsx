@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
@@ -74,7 +75,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
                 reportID,
                 attachmentID: attachment.attachmentID,
                 type,
-                source: String(attachment.source),
+                source: SafeString(attachment.source),
                 accountID,
                 isAuthTokenRequired: attachment?.isAuthTokenRequired,
                 originalFileName: attachment?.file?.name,

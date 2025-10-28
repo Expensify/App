@@ -20,7 +20,7 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
 
     const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
-    const goToSubscriptions = useCallback(() => {
+    const goToSubscription = useCallback(() => {
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
     }, [activeRoute]);
@@ -52,8 +52,8 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.goToSubscriptions')}
-                        onPress={goToSubscriptions}
+                        text={translate('workspace.restrictedAction.goToSubscription')}
+                        onPress={goToSubscription}
                         success
                         large
                     />

@@ -8,16 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {BaseListItemProps, ListItem} from './types';
+import type {ListItem, TravelDomainListItemProps} from './types';
 
-type AdditionalDomainItemProps = {
-    value?: string;
-    isRecommended?: boolean;
-};
-
-type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps>;
-
-function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus}: DomainItemProps<TItem>) {
+function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus}: TravelDomainListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

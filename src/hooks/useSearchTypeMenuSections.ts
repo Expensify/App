@@ -1,8 +1,6 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import memoize from '@libs/memoize';
-import Permissions from '@libs/Permissions';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {createTypeMenuSections, getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
@@ -14,6 +12,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -42,9 +41,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const memoizedCreateTypeMenuSections = memoize(createTypeMenuSections, {maxSize: 5, monitoringName: 'useSearchTypeMenuSections.createTypeMenuSections'});
-
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
@@ -60,8 +56,8 @@ const useSearchTypeMenuSections = () => {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const policiesReady = useMemo(() => {
@@ -104,12 +100,12 @@ const useSearchTypeMenuSections = () => {
         return getSuggestedSearchesVisibility(currentUserLoginAndAccountID?.email, cardFeedsByPolicy, allPolicies, defaultExpensifyCard, reports, currentUserLoginAndAccountID?.accountID);
     }, [allPolicies, cardFeedsByPolicy, currentUserLoginAndAccountID?.accountID, currentUserLoginAndAccountID?.email, defaultExpensifyCard, reports, suggestedSearchesReady]);
 
-    const typeMenuSections = useMemo((): SearchTypeMenuSection[] => {
+    const typeMenuSections = useMemo(() => {
         if (!suggestedSearchesReady) {
             return getEmptyArray();
         }
 
-        return memoizedCreateTypeMenuSections(
+        return createTypeMenuSections(
             currentUserLoginAndAccountID?.email,
             currentUserLoginAndAccountID?.accountID,
             cardFeedsByPolicy,

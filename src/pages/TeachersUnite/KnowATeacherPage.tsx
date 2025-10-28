@@ -26,12 +26,12 @@ function KnowATeacherPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-        const phoneLogin = getPhoneLogin(values.partnerUserID);
+        const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
         const validateIfNumber = validateNumber(phoneLogin);
         const contactMethod = (validateIfNumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
@@ -48,7 +48,7 @@ function KnowATeacherPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
             const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME]);
-            const phoneLogin = getPhoneLogin(values.partnerUserID);
+            const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
             if (!isValidDisplayName(values.firstName)) {

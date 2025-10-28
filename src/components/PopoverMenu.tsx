@@ -526,7 +526,10 @@ function BasePopoverMenu({
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
-            <FocusTrapForModal active={isVisible}>
+            <FocusTrapForModal
+                active={isVisible}
+                shouldReturnFocus={!shouldEnableNewFocusManagement}
+            >
                 <View
                     onLayout={onLayout}
                     style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}

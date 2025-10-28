@@ -8,12 +8,12 @@ import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionL
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addReportApprover} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {
     getDisplayNameForParticipant,
@@ -36,9 +36,9 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {translate} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     const currentUserDetails = useCurrentUserPersonalDetails();

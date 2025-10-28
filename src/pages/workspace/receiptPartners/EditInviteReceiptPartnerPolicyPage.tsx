@@ -46,7 +46,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -306,7 +306,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, false, countryCode);
+                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, countryCode, false);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');

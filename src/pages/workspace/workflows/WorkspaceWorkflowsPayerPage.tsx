@@ -45,7 +45,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [searchTerm, setSearchTerm] = useState('');
 
