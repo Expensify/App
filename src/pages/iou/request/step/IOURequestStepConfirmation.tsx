@@ -264,8 +264,8 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
-        if (isCreatingTrackExpense && realPolicyID !== undefined && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(realPolicyID);
+        if (isCreatingTrackExpense && policyForMovingExpensesID !== undefined && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(policyForMovingExpensesID);
         }
 
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -276,7 +276,7 @@ function IOURequestStepConfirmation({
         if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
         }
-    }, [isCreatingTrackExpense, isOffline, participants, policy?.pendingAction, realPolicyID]);
+    }, [isCreatingTrackExpense, isOffline, participants, policy?.pendingAction, policyForMovingExpensesID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
