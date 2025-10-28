@@ -2484,6 +2484,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.never');
                 }
                 if (!value) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3149,6 +3150,7 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
     if (newValue && value?.frequency && categoryName && entityType) {
         const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.addBudget', {

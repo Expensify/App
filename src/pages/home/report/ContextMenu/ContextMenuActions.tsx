@@ -592,8 +592,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('workspaceActions.importTags'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('workspaceActions.deletedAllTags'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
                     Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(reportAction)));
