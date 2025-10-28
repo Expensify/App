@@ -934,137 +934,94 @@ class TranslationGenerator {
      * have the correct indentation structure.
      */
     private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            return (sourceFile: ts.SourceFile) => {
-                const visit = (node: ts.Node): ts.Node => {
-                    // Check if this is a call to dedent()
-                    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'dedent' && node.arguments.length > 0) {
-                        const argument = node.arguments[0];
-
-                        // Get the indentation of the template argument itself (not the dedent call)
-                        // This handles cases where dedent( and the template are on separate lines
-                        const templateIndentation = TSCompilerUtils.getIndentationOfNode(argument, sourceFile);
-
-                        // The content inside dedent should be indented by templateIndentation + 4
-                        const targetIndentation = templateIndentation + 4;
-
-                        if (ts.isNoSubstitutionTemplateLiteral(argument)) {
-                            // Format the template literal content (complete template)
-                            const formattedText = this.formatDedentTemplateContent(argument.text, targetIndentation, templateIndentation, false, true);
-
-                            // Create a new template literal with the formatted text
-                            const newArgument = ts.factory.createNoSubstitutionTemplateLiteral(formattedText);
-
-                            // Create a new call expression with the formatted argument
-                            return ts.factory.createCallExpression(node.expression, node.typeArguments, [newArgument]);
-                        }
-
-                        if (ts.isTemplateExpression(argument)) {
-                            // Format head (it's a fragment before a substitution)
-                            const formattedHead = this.formatDedentTemplateContent(argument.head.text, targetIndentation, templateIndentation, true, false);
-                            const newHead = ts.factory.createTemplateHead(formattedHead);
-
-                            const newSpans: ts.TemplateSpan[] = [];
-                            for (let i = 0; i < argument.templateSpans.length; i++) {
-                                const span = argument.templateSpans[i];
-                                const isLastSpan = i === argument.templateSpans.length - 1;
-                                // Middle spans are before substitutions, tail is complete
-                                const isBeforeSubst = !isLastSpan;
-                                const isCompleteTemplate = isLastSpan;
-                                const formattedLiteral = this.formatDedentTemplateContent(span.literal.text, targetIndentation, templateIndentation, isBeforeSubst, isCompleteTemplate);
-
-                                const newLiteral =
-                                    span.literal.kind === ts.SyntaxKind.TemplateTail ? ts.factory.createTemplateTail(formattedLiteral) : ts.factory.createTemplateMiddle(formattedLiteral);
-
-                                newSpans.push(ts.factory.createTemplateSpan(span.expression, newLiteral));
-                            }
-
-                            const newArgument = ts.factory.createTemplateExpression(newHead, newSpans);
-                            return ts.factory.createCallExpression(node.expression, node.typeArguments, [newArgument]);
-                        }
-                    }
-
+        return (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+            const visit = (node: ts.Node): ts.Node => {
+                if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression) || node.expression.text !== 'dedent' || !node.arguments[0]) {
                     return ts.visitEachChild(node, visit, context);
-                };
+                }
 
-                return ts.visitNode(sourceFile, visit) as ts.SourceFile;
+                const argument = node.arguments[0];
+                const templateIndentation = TSCompilerUtils.getIndentationOfNode(argument, sourceFile);
+                const contentIndentation = templateIndentation + 4;
+
+                // isTail = true for complete templates or final fragment before closing backtick
+                const formatFragment = (text: string, isTail: boolean) => this.formatDedentTemplateContent(text, contentIndentation, templateIndentation, isTail);
+
+                if (ts.isNoSubstitutionTemplateLiteral(argument)) {
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createNoSubstitutionTemplateLiteral(formatFragment(argument.text, true))]);
+                }
+
+                if (ts.isTemplateExpression(argument)) {
+                    const newHead = ts.factory.createTemplateHead(formatFragment(argument.head.text, false));
+                    const newSpans = argument.templateSpans.map((span, i) => {
+                        const isTail = i === argument.templateSpans.length - 1;
+                        const formattedText = formatFragment(span.literal.text, isTail);
+                        const newLiteral = isTail ? ts.factory.createTemplateTail(formattedText) : ts.factory.createTemplateMiddle(formattedText);
+                        return ts.factory.createTemplateSpan(span.expression, newLiteral);
+                    });
+
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createTemplateExpression(newHead, newSpans)]);
+                }
+
+                return node;
             };
+
+            return ts.visitNode(sourceFile, visit) as ts.SourceFile;
         };
     }
 
     /**
      * Format the content of a template literal inside a dedent() call.
-     * Adds the specified base indentation to each line while preserving relative indentation.
+     * Adds proper indentation while preserving relative indentation (e.g., bullet points with extra spaces).
+     *
+     * @param isTail - True if this is the last fragment before closing backtick (adds trailing newline if needed)
      */
-    private formatDedentTemplateContent(text: string, contentIndentation: number, closingIndentation: number, isBeforeSubstitution = false, isCompleteTemplate = false): string {
-        // If there's no newline in the text, don't modify it
-        // (this is a fragment between template substitutions)
+    private formatDedentTemplateContent(text: string, contentIndentation: number, closingIndentation: number, isTail: boolean): string {
         if (!text.includes('\n')) {
             return text;
         }
 
-        const hasLeadingNewline = text.startsWith('\n');
-        const hasTrailingNewline = text.endsWith('\n');
-
         const lines = text.split('\n');
+        const hasLeadingNewline = text.startsWith('\n');
 
-        // Find the minimum indentation of non-empty lines (excluding first line if no leading newline)
+        // Find minimum indentation (skip first line since it may be on same line as opening backtick)
         let minIndent = Number.MAX_SAFE_INTEGER;
-        const startIndex = hasLeadingNewline ? 1 : 1; // Skip first line if it's on same line as backtick
-        for (let i = startIndex; i < lines.length; i++) {
+        for (let i = 1; i < lines.length; i++) {
             const line = lines.at(i);
-            if (line && line.trim().length > 0) {
+            if (line?.trim()) {
                 const indent = line.match(/^ */)?.[0].length ?? 0;
-                if (indent < minIndent) {
-                    minIndent = indent;
-                }
+                minIndent = Math.min(minIndent, indent);
             }
         }
+        minIndent = minIndent === Number.MAX_SAFE_INTEGER ? 0 : minIndent;
 
-        // If no content lines found, use 0
-        if (minIndent === Number.MAX_SAFE_INTEGER) {
-            minIndent = 0;
-        }
+        // Apply base indentation while preserving extra indentation beyond the minimum
+        const getIndentedLine = (line: string) => {
+            const currentIndent = line.match(/^ */)?.[0].length ?? 0;
+            const relativeIndent = currentIndent - minIndent;
+            return `${' '.repeat(contentIndentation + relativeIndent)}${line.replace(/^ */, '')}`;
+        };
 
-        const formattedLines: string[] = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines.at(i);
+        const formattedLines = lines.map((line, i) => {
             const isFirstLine = i === 0;
             const isLastLine = i === lines.length - 1;
 
             if (isFirstLine && hasLeadingNewline) {
-                // Empty first line (leading newline) - keep it empty
-                formattedLines.push('');
-            } else if (isFirstLine && !hasLeadingNewline) {
-                // First line without leading newline - it continues from a template substitution
-                // Don't add indentation, preserve as-is
-                formattedLines.push(line ?? '');
-            } else if (isLastLine && isBeforeSubstitution) {
-                // Last line before a substitution: need to preserve relative indentation
-                const currentIndent = line?.match(/^ */)?.[0].length ?? 0;
-                const relativeIndent = currentIndent - minIndent;
-                const formattedLine = `${' '.repeat(contentIndentation + relativeIndent)}${line?.replace(/^ */, '') ?? ''}`;
-                formattedLines.push(formattedLine);
-            } else if (isLastLine && line?.trim().length === 0 && hasTrailingNewline) {
-                // The last empty line (before closing backtick) should be indented at the template's level
-                formattedLines.push(' '.repeat(closingIndentation));
-            } else if (line?.trim().length === 0) {
-                // Empty lines in the middle stay empty (no trailing spaces)
-                formattedLines.push('');
-            } else {
-                // Add indentation to content lines, preserving relative indentation
-                const currentIndent = line?.match(/^ */)?.[0].length ?? 0;
-                const relativeIndent = currentIndent - minIndent;
-                const strippedLine = line?.replace(/^ */, '') ?? '';
-                const formattedLine = `${' '.repeat(contentIndentation + relativeIndent)}${strippedLine}`;
-                // Trim trailing whitespace from content lines
-                formattedLines.push(formattedLine.trimEnd());
+                return '';
             }
-        }
+            if (isFirstLine) {
+                return line ?? '';
+            }
+            if (!line?.trim()) {
+                return isLastLine && isTail && text.endsWith('\n') ? ' '.repeat(closingIndentation) : '';
+            }
 
-        // If the text didn't end with a newline but this is a complete template, add a closing line with proper indentation
-        if (!hasTrailingNewline && isCompleteTemplate) {
+            // Preserve trailing spaces for template middles (before substitutions)
+            return isLastLine && !isTail ? getIndentedLine(line) : getIndentedLine(line).trimEnd();
+        });
+
+        // Add closing line with proper indentation for pretty formatting
+        if (!text.endsWith('\n') && isTail) {
             formattedLines.push(' '.repeat(closingIndentation));
         }
 
