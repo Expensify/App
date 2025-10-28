@@ -19,7 +19,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         return <FullScreenLoadingIndicator />;
