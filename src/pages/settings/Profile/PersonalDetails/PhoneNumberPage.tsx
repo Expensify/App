@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
-import {appendCountryCodeWithCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
@@ -42,7 +42,7 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (values?.phoneNumber && phoneNumber !== values.phoneNumber) {
-            updatePhone(formatE164PhoneNumber(values.phoneNumber) ?? '', currenPhoneNumber);
+            updatePhone(formatE164PhoneNumber(values.phoneNumber, countryCode) ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -58,7 +58,7 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(phoneNumberValue, countryCode);
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue, countryCode);
 
             if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');

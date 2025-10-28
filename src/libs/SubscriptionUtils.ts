@@ -114,12 +114,6 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let firstDayFreeTrial: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
-    callback: (value) => (firstDayFreeTrial = value),
-});
-
 let lastDayFreeTrial: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
@@ -209,12 +203,12 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
-function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>): boolean {
+function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): boolean {
     // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
     // with the promo code.
     const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
 
-    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
+    return !isUserOnFreeTrial(firstDayFreeTrial) && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.
@@ -248,12 +242,12 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null): boolean {
+function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null, firstDayFreeTrial: string | undefined): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
 
-    if (!isUserOnFreeTrial()) {
+    if (!isUserOnFreeTrial(firstDayFreeTrial)) {
         return false;
     }
 
@@ -275,7 +269,7 @@ function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan:
     return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
 }
 
-function getEarlyDiscountInfo(): DiscountInfo | null {
+function getEarlyDiscountInfo(firstDayFreeTrial: string | undefined): DiscountInfo | null {
     if (!firstDayFreeTrial) {
         return null;
     }
@@ -453,17 +447,17 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>): string | undefined {
+function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
-    if (shouldShowPreTrialBillingBanner(introSelected)) {
+    if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
-    if (isUserOnFreeTrial()) {
+    if (isUserOnFreeTrial(firstDayFreeTrial)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
@@ -474,7 +468,7 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected
 /**
  * Whether the workspace's owner is on its free trial period.
  */
-function isUserOnFreeTrial(): boolean {
+function isUserOnFreeTrial(firstDayFreeTrial: string | undefined): boolean {
     if (!firstDayFreeTrial || !lastDayFreeTrial) {
         return false;
     }

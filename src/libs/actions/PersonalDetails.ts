@@ -504,7 +504,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCodeWithCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',
