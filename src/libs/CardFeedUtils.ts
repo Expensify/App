@@ -227,7 +227,7 @@ function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsL
     const domainFeedData = getDomainFeedData(workspaceCardFeeds);
     return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
         const domainFeed = Object.values(workspaceFeed ?? {}).at(0) ?? {};
-        if (Object.keys(domainFeedData).includes(`${domainFeed.fundID}_${domainFeed.bank}`)) {
+        if (`${domainFeed.fundID}_${domainFeed.bank}` in domainFeedData) {
             return false;
         }
         return !isEmptyObject(workspaceFeed);
