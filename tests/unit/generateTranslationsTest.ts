@@ -2098,5 +2098,122 @@ describe('generateTranslations', () => {
             We're excited to have you here.
         \`),`);
         });
+
+        it('does not retranslate unchanged nested properties when nearby properties are modified', async () => {
+            // This test reproduces a bug where unchanged properties get incorrectly
+            // flagged as changed when nearby properties are modified and cause line number shifts
+
+            // OLD file (before changes) - line numbers after dedent():
+            // 1: const strings = {
+            // 2:     prop1: 'First property',
+            // 3:     prop2: 'Second property',
+            // 4:     prop3: 'Third property',
+            // 5: };
+            // 6: export default strings;
+            const oldEnContent = dedent(`
+                const strings = {
+                    prop1: 'First property',
+                    prop2: 'Second property',
+                    prop3: 'Third property',
+                };
+                export default strings;
+            `);
+
+            // NEW file (after changes) - line numbers after dedent():
+            // 1: import dedent from '@libs/StringUtils/dedent';
+            // 2: (empty line)
+            // 3: const strings = {
+            // 4:     prop1: dedent(`
+            // 5:         First property
+            // 6:     `),
+            // 7:     prop2: 'Second property',
+            // 8:     prop3: 'Third property',
+            // 9: };
+            // 10: export default strings;
+            //
+            // Only prop1 was actually changed (single-line -> dedent multi-line)
+            // prop2 and prop3 are unchanged, just shifted to new line numbers
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+
+                    const strings = {
+                        prop1: dedent(\`
+                            First property
+                        \`),
+                        prop2: 'Second property',
+                        prop3: 'Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            // Existing Italian translation (all properties already translated)
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+                    import type en from './en';
+
+                    const strings = {
+                        prop1: '[it] First property',
+                        prop2: '[it] Second property',
+                        prop3: '[it] Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+
+            // Simulating git diff that causes the bug:
+            // Git.parseDiff() pairs removed line 2 (OLD) with added line 4 (NEW), making line 4 "modified"
+            //
+            // THE BUG (before fix):
+            // - extractRemovedPaths() receives modifiedLines [4] (NEW file line number!)
+            // - It searches OLD file at line 4
+            // - Line 4 in OLD = 'Third property' (prop3!)
+            // - Marks prop3 as "removed"
+            // - Cleanup sees prop3 still exists in NEW en.ts -> moves to pathsToModify
+            // - Result: prop3 gets incorrectly retranslated!
+            //
+            // With the fix:
+            // - extractRemovedPaths() only receives removedLines [2] (OLD file line numbers)
+            // - Correctly identifies only prop1 as removed
+            // - prop3 is NOT retranslated
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([1, 2, 5, 6]), // Import, empty, dedent middle/end
+                        removedLines: new Set([2]), // Old line 2: prop1: 'First property',
+                        modifiedLines: new Set([4]), // NEW line 4 (dedent opening) paired with OLD line 2
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(oldEnContent);
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+
+            // Only prop1 should be translated (it actually changed)
+            expect(translateSpy).toHaveBeenCalledWith('it', 'First property\n', undefined);
+
+            // prop2 and prop3 should NOT be translated (they didn't change, just moved line numbers)
+            // BUG: Due to the bug, these WILL be called, causing this test to FAIL
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Second property', undefined);
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Third property', undefined);
+
+            // Verify only 1 translation was requested
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 });

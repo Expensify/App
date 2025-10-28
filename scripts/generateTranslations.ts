@@ -674,8 +674,8 @@ class TranslationGenerator {
             this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
-            if (changedLines.removedLines.size > 0 || changedLines.modifiedLines.size > 0) {
-                this.extractRemovedPaths(new Set([...changedLines.removedLines, ...changedLines.modifiedLines]));
+            if (changedLines.removedLines.size > 0) {
+                this.extractRemovedPaths(changedLines.removedLines);
             }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
