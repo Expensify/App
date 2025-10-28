@@ -192,29 +192,22 @@ function SettlementButton({
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
-            const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
-
-            return formattedPaymentMethods
-                .filter((method) => {
-                    const accountData = method?.accountData as AccountData;
-                    return accountData?.type === requiredAccountType;
-                })
-                .map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    shouldUpdateSelectedIndex: true,
-                    onSelected: () => {
-                        if (checkForNecessaryAction()) {
-                            return;
-                        }
-                        onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
-                    },
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                    value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                }));
+            return formattedPaymentMethods.map((formattedPaymentMethod) => ({
+                text: formattedPaymentMethod?.title ?? '',
+                description: formattedPaymentMethod?.description ?? '',
+                icon: formattedPaymentMethod?.icon,
+                shouldUpdateSelectedIndex: true,
+                onSelected: () => {
+                    if (checkForNecessaryAction()) {
+                        return;
+                    }
+                    onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
+                },
+                iconStyles: formattedPaymentMethod?.iconStyles,
+                iconHeight: formattedPaymentMethod?.iconSize,
+                iconWidth: formattedPaymentMethod?.iconSize,
+                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            }));
         },
         [formattedPaymentMethods, onPress, checkForNecessaryAction],
     );
