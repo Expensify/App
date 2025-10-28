@@ -42,11 +42,11 @@ describe('WorkspaceListPage', () => {
         Onyx.clear();
     });
 
-    it('should not show new workspace button when the restrict creation policy in the group doamin is enabled', async () => {
-        const TEST_DOMAIN = 'testdomain.com';
+    it('should not show new workspace button when the restrict creation policy in the group domain is enabled', async () => {
+        const TEST_DOMAIN = 'domain.com';
         const TEST_SECURITY_GROUP_ID = 'test-id';
         const TEST_POLICY_ID = 'test-policy-id';
-        const TEST_EMAIL = 'test@testdomain.com';
+        const TEST_EMAIL = 'test@domain.com';
         const TEST_ACCOUNT_ID = 1;
 
         await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {
