@@ -49,7 +49,7 @@ import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getRemoveApprocalWorkflowOnyxData, getUpdateApprovalWorkflowOnyxData} from '../Workflow';
+import {getRemoveApprovalWorkflowOnyxData, getUpdateApprovalWorkflowOnyxData} from '../Workflow';
 import {createPolicyExpenseChats, getSetPolicyPreventSelfApprovalOnyxData} from './Policy';
 
 type OnyxDataReturnType = {
@@ -474,7 +474,7 @@ function removeMembers(accountIDs: number[], policyID: string, approvalWorkflows
             updatedWorkflows.forEach((workflow) => {
                 if (workflow?.removeApprovalWorkflow) {
                     const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                    const onyxDataForRemoveApprovalWorkflow = getRemoveApprocalWorkflowOnyxData(updatedWorkflow, policy);
+                    const onyxDataForRemoveApprovalWorkflow = getRemoveApprovalWorkflowOnyxData(updatedWorkflow, policy);
                     optimisticData.push(...(onyxDataForRemoveApprovalWorkflow.optimisticData ?? []));
                     successData.push(...(onyxDataForRemoveApprovalWorkflow.successData ?? []));
                     failureData.push(...(onyxDataForRemoveApprovalWorkflow.failureData ?? []));
