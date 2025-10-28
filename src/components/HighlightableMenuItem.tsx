@@ -5,6 +5,7 @@ import {StyleSheet} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
 
@@ -23,6 +24,8 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Prop
         height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem.height,
         borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem.borderRadius,
         highlightColor: theme.messageHighlightBG,
+        highlightEndDelay: CONST.ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DELAY,
+        highlightEndDuration: CONST.ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION,
     });
 
     return (
