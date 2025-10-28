@@ -172,7 +172,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 },
             };
 
-            const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount: EXPENSE_AMOUNT};
+            const moneyRequestTransaction = {
+                ...createRandomTransaction(Number(IOUTransactionID)),
+                reportID: IOUReportID,
+                managedCard: false,
+                transactionID: IOUTransactionID,
+                amount: EXPENSE_AMOUNT,
+            };
 
             const expenseReport = {
                 ...createExpenseReport(Number(IOUReportID)),
