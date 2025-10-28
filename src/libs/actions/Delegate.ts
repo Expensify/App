@@ -20,14 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
-    },
-});
-
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
@@ -89,6 +81,10 @@ type WithStashedSession = {
     stashedSession: Session | undefined;
 };
 
+type WithActivePolicyID = {
+    activePolicyID: OnyxEntry<string>;
+};
+
 type DisconnectParams = WithStashedCredentials & WithStashedSession;
 
 // Clear delegator-level errors
@@ -110,7 +106,7 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
 
 // Clear pending action for role update
 type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
@@ -119,7 +115,7 @@ type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, isFromOldDot = false}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }

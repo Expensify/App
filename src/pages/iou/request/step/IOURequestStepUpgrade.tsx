@@ -29,7 +29,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -90,11 +90,11 @@ function IOURequestStepUpgrade({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             default:
         }
-    }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
@@ -123,6 +123,7 @@ function IOURequestStepUpgrade({
                 },
             ],
             adminParticipant,
+            hasOutstandingChildRequest: false,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -151,6 +152,7 @@ function IOURequestStepUpgrade({
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton

@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -38,6 +39,7 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
+import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -125,6 +127,7 @@ function App() {
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
                                         KYCWallContextProvider,
+                                        WideRHPContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
@@ -146,4 +149,6 @@ function App() {
 
 App.displayName = 'App';
 
-export default App;
+const WrappedApp = Sentry.wrap(App);
+WrappedApp.displayName = 'App';
+export default WrappedApp;
