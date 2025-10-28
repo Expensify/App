@@ -75,6 +75,18 @@ describe('FileUtils', () => {
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
+        it('should prioritize WRONG_FILE_TYPE over FILE_TOO_LARGE for receipts', () => {
+            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
+            const error = FileUtils.validateAttachment(file, false, true);
+            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+        });
+
+        it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
+            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
+            const error = FileUtils.validateAttachment(file, true, true);
+            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE);
+        });
+
         it('should return empty string for valid image receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
             const error = FileUtils.validateAttachment(file, false, true);

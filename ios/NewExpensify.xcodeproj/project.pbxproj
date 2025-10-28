@@ -35,6 +35,9 @@
 		7FB680AF2CC94EDA006693CF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */; };
 		7FD73C9E2B23CE9500420AF3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */; };
 		7FD73CA22B23CE9500420AF3 /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		908CB7012E82941300FBE286 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 908CB6FE2E82941300FBE286 /* AppIcon.icon */; };
+		908CB7022E82941300FBE286 /* AppIcon-adhoc.icon in Resources */ = {isa = PBXBuildFile; fileRef = 908CB6FF2E82941300FBE286 /* AppIcon-adhoc.icon */; };
+		908CB7032E82941300FBE286 /* AppIcon-dev.icon in Resources */ = {isa = PBXBuildFile; fileRef = 908CB7002E82941300FBE286 /* AppIcon-dev.icon */; };
 		AC131FBB2CF634F20010CE80 /* BackgroundTasks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC131FBA2CF634F20010CE80 /* BackgroundTasks.framework */; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */; };
@@ -132,13 +135,16 @@
 		7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		7FD73C9F2B23CE9500420AF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
+		908CB6FE2E82941300FBE286 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		908CB6FF2E82941300FBE286 /* AppIcon-adhoc.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "AppIcon-adhoc.icon"; sourceTree = "<group>"; };
+		908CB7002E82941300FBE286 /* AppIcon-dev.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "AppIcon-dev.icon"; sourceTree = "<group>"; };
 		955646B08BB776347851A5C2 /* Pods-NewExpensify.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseproduction.xcconfig"; sourceTree = "<group>"; };
 		A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyMono-BoldItalic.otf"; sourceTree = "<group>"; };
 		AC131FBA2CF634F20010CE80 /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		AFCFBB84F5C2C2B61BCF3DDF /* Pods-NewExpensify.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		B044C64C0BB85C28BF5B01BA /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		B198C1B8869E27161EB83E88 /* Pods-NewExpensify.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugproduction.xcconfig"; sourceTree = "<group>"; };
-		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = CustomEmojiNativeFont.ttf; path = ../assets/fonts/native/CustomEmojiNativeFont.ttf; sourceTree = "<group>"; };
+		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = CustomEmojiNativeFont.ttf; path = ../assets/fonts/native/CustomEmojiNativeFont.ttf; sourceTree = "<group>"; };
 		B733BD649E4A3CD0FF43A007 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
@@ -286,6 +292,9 @@
 				EC29677F0A49C2946A495A33 /* Pods */,
 				A9EA265D209D4558995C9BD4 /* Resources */,
 				4FE6CFCE5D64D3182AE71756 /* ExpoModulesProviders */,
+				908CB6FE2E82941300FBE286 /* AppIcon.icon */,
+				908CB6FF2E82941300FBE286 /* AppIcon-adhoc.icon */,
+				908CB7002E82941300FBE286 /* AppIcon-dev.icon */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -486,6 +495,9 @@
 				083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */,
 				083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */,
 				ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */,
+				908CB7012E82941300FBE286 /* AppIcon.icon in Resources */,
+				908CB7022E82941300FBE286 /* AppIcon-adhoc.icon in Resources */,
+				908CB7032E82941300FBE286 /* AppIcon-dev.icon in Resources */,
 				30581EA8AAFD4FCE88C5D191 /* ExpensifyNeue-Italic.otf in Resources */,
 				1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */,
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
@@ -712,6 +724,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/nanopb/nanopb_Privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/react-native-blob-util/ReactNativeBlobUtilPrivacyInfo.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -744,6 +757,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/nanopb_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ReactNativeBlobUtilPrivacyInfo.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -928,7 +942,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B733BD649E4A3CD0FF43A007 /* Pods-NewExpensify.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
@@ -1056,7 +1070,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 6FFAB4E4A2A56FFA9B6357B3 /* Pods-NewExpensify.debugdevelopment.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
@@ -1098,7 +1112,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B044C64C0BB85C28BF5B01BA /* Pods-NewExpensify.releasedevelopment.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
@@ -2035,7 +2049,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1DBCEBFB324A784D74DCC642 /* Pods-NewExpensify.debugadhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-adhoc";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
@@ -2283,7 +2297,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AFCFBB84F5C2C2B61BCF3DDF /* Pods-NewExpensify.releaseadhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-adhoc";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;

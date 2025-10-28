@@ -5,12 +5,13 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+// import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -76,6 +77,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
@@ -160,12 +162,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
             return;
         }
         interceptAnonymousUser(() => {
+            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+
             if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
                 // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
                 return;
             }
-            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
             navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
         });
     }, [selectedTab, subscriptionPlan]);
@@ -202,7 +205,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                src={Expensicons.ExpensifyAppIcon}
+                                src={expensifyIcons.ExpensifyAppIcon}
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
@@ -215,7 +218,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                                 <>
                                     <View>
                                         <Icon
-                                            src={Expensicons.Inbox}
+                                            src={expensifyIcons.Inbox}
                                             fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
@@ -255,7 +258,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                                 <>
                                     <View>
                                         <Icon
-                                            src={Expensicons.MoneySearch}
+                                            src={expensifyIcons.MoneySearch}
                                             fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
@@ -286,7 +289,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                                 <>
                                     <View>
                                         <Icon
-                                            src={Expensicons.Buildings}
+                                            src={expensifyIcons.Buildings}
                                             fill={getIconFill(selectedTab === NAVIGATION_TABS.WORKSPACES, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
@@ -322,7 +325,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarItem}>
+                    <View style={styles.leftNavigationTabBarFAB}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                 </View>
@@ -348,7 +351,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 >
                     <View>
                         <Icon
-                            src={Expensicons.Inbox}
+                            src={expensifyIcons.Inbox}
                             fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
@@ -384,7 +387,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 >
                     <View>
                         <Icon
-                            src={Expensicons.MoneySearch}
+                            src={expensifyIcons.MoneySearch}
                             fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
@@ -415,7 +418,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 >
                     <View>
                         <Icon
-                            src={Expensicons.Buildings}
+                            src={expensifyIcons.Buildings}
                             fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}

@@ -2,6 +2,7 @@ import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, St
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
@@ -33,9 +34,12 @@ type AdaptStateIfNecessaryArgs = {
  * @param options - Configuration options including sidebarScreen, defaultCentralScreen, and parentRoute
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
-    const isNarrowLayout = getIsNarrowLayout();
-    const rootState = navigationRef.getRootState();
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
+    }
 
+    const isNarrowLayout = getIsNarrowLayout();
+    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
 
     const routes = [...state.routes];
@@ -96,7 +100,13 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1;
+    const isSidebarAction = (action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) && action.payload.name === options.sidebarScreen;
+    if (!isSidebarAction) {
+        return false;
+    }
+
+    const sidebarExists = state.routes.some((route) => route.name === options.sidebarScreen);
+    return sidebarExists;
 }
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
