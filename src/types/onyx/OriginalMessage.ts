@@ -491,6 +491,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of the custom unit sub rate */
     customUnitSubRateName?: string;
 
+    /** Name of the removed sub rate */
+    removedSubRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
 
