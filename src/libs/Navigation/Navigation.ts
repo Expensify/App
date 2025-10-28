@@ -550,7 +550,7 @@ const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
         // Let React Navigation finish modal transition
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fireModalDismissed();
         });
@@ -577,7 +577,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             return;
         }
         dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });

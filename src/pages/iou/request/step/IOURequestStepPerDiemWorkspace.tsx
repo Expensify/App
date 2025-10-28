@@ -1,11 +1,14 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -31,6 +34,7 @@ function IOURequestStepPerDiemWorkspace({
     },
     transaction,
 }: IOURequestStepPerDiemWorkspaceProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -72,7 +76,7 @@ function IOURequestStepPerDiemWorkspace({
             return;
         }
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const selectedPolicy = getPolicy(item.value, allPolicies);
         const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
         setMoneyRequestParticipants(transactionID, [
@@ -90,14 +94,19 @@ function IOURequestStepPerDiemWorkspace({
     };
 
     return (
-        <SelectionList
-            key={selectedWorkspace?.policyID}
-            sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
-            onSelectRow={selectWorkspace}
-            shouldSingleExecuteRowSelect
-            ListItem={UserListItem}
-            initiallyFocusedOptionKey={selectedWorkspace?.policyID}
-        />
+        <>
+            <View style={[styles.optionsListSectionHeader]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.chooseWorkspace')}</Text>
+            </View>
+            <SelectionList
+                key={selectedWorkspace?.policyID}
+                data={workspaceOptions}
+                onSelectRow={selectWorkspace}
+                shouldSingleExecuteRowSelect
+                ListItem={UserListItem}
+                initiallyFocusedItemKey={selectedWorkspace?.policyID}
+            />
+        </>
     );
 }
 

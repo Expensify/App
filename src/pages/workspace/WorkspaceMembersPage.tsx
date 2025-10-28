@@ -45,6 +45,7 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,7 +54,7 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -285,16 +286,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 updatedWorkflows.forEach((workflow) => {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                        removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                        removeApprovalWorkflowAction(updatedWorkflow, policy);
                     } else {
-                        updateApprovalWorkflow(policyID, workflow, [], []);
+                        updateApprovalWorkflow(workflow, [], [], policy);
                     }
                 });
             });
         }
 
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
             removeMembers(accountIDsToRemove, route.params.policyID);
@@ -381,7 +382,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
+            });
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
@@ -454,7 +457,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         id: accountID,
                     },
                 ],
-                errors: policyEmployee.errors,
+                errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
@@ -478,10 +481,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
-        const memberText = StringUtils.normalize(memberOption.text?.toLowerCase() ?? '');
-        const alternateText = StringUtils.normalize(memberOption.alternateText?.toLowerCase() ?? '');
-        const normalizedSearchQuery = StringUtils.normalize(searchQuery);
-        return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
+        const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
     }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
@@ -778,7 +779,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         confirmText={translate('common.remove')}
                         cancelText={translate('common.cancel')}
                         onModalHide={() => {
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 if (!textInputRef.current) {
                                     return;

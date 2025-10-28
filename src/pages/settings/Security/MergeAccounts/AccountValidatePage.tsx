@@ -135,7 +135,7 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
@@ -177,6 +177,7 @@ function AccountValidatePage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountValidatePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}

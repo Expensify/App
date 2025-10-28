@@ -23,6 +23,7 @@ import {
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getCreated} from '@libs/TransactionUtils';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,16 +66,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const sections = useMemo(() => {
         return [
             {
-                data: (eligibleTransactions ?? []).map((eligibleTransaction) => ({
-                    ...fillMissingReceiptSource(eligibleTransaction),
-                    keyForList: eligibleTransaction.transactionID,
-                    isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
-                    errors: eligibleTransaction.errors as Errors | undefined,
-                })),
+                data: (eligibleTransactions ?? [])
+                    .map((eligibleTransaction) => ({
+                        ...fillMissingReceiptSource(eligibleTransaction),
+                        keyForList: eligibleTransaction.transactionID,
+                        isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                        errors: eligibleTransaction.errors as Errors | undefined,
+                    }))
+                    .sort((a, b) => localeCompare(getCreated(b), getCreated(a))),
                 shouldShow: true,
             },
         ];
-    }, [eligibleTransactions, mergeTransaction]);
+    }, [eligibleTransactions, mergeTransaction, localeCompare]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
