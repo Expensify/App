@@ -2386,8 +2386,8 @@ const translations = {
             addExpenseApprovalsTask: {
                 title: 'Add expense approvals',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(
-                        `*Add expense approvals* to review your team's spend and keep it under control.
+                    dedent(`
+                        *Add expense approvals* to review your team's spend and keep it under control.
 
                         Here's how:
 
@@ -2399,8 +2399,8 @@ const translations = {
                         6. Enable *Add approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
-                        [Take me to more features](${workspaceMoreFeaturesLink}).`,
-                    ),
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
+                    `),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
