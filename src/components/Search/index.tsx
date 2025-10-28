@@ -475,6 +475,7 @@ function Search({
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
+                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                     };
                 });
             });
@@ -511,6 +512,7 @@ function Search({
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
+                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                 };
             });
         }
