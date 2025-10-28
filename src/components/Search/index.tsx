@@ -669,7 +669,6 @@ function Search({
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -702,11 +701,7 @@ function Search({
                 return;
             }
 
-            const isInvoice = item?.report?.type === CONST.REPORT.TYPE.INVOICE;
-
-            if (!isTask && !isInvoice) {
-                markReportIDAsExpense(reportID);
-            }
+            markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
