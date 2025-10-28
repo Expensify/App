@@ -1002,7 +1002,7 @@ class TranslationGenerator {
 
         const lines = text.split('\n');
         const formattedLines: string[] = [];
-        const isCompleteTemplate = text.endsWith('\n');
+        const hasTrailingNewline = text.endsWith('\n');
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines.at(i);
@@ -1017,8 +1017,8 @@ class TranslationGenerator {
                 // Last line before a substitution: preserve spacing as-is (important for template fragments)
                 const formattedLine = `${' '.repeat(baseIndentation)}${line ?? ''}`;
                 formattedLines.push(formattedLine);
-            } else if (isLastLine && line?.trim().length === 0 && isCompleteTemplate) {
-                // The last empty line of a complete template (before closing backtick) should be indented at the dedent call's level
+            } else if (isLastLine && line?.trim().length === 0 && hasTrailingNewline) {
+                // The last empty line (before closing backtick) should be indented at the dedent call's level
                 const closingIndent = baseIndentation - 4;
                 formattedLines.push(' '.repeat(Math.max(0, closingIndent)));
             } else if (line?.trim().length === 0) {
@@ -1030,6 +1030,13 @@ class TranslationGenerator {
                 // Trim trailing whitespace from content lines
                 formattedLines.push(formattedLine.trimEnd());
             }
+        }
+
+        // If the text didn't end with a newline but this is a complete template (not before substitution),
+        // add a closing line with proper indentation
+        if (!hasTrailingNewline && !isBeforeSubstitution) {
+            const closingIndent = baseIndentation - 4;
+            formattedLines.push(' '.repeat(Math.max(0, closingIndent)));
         }
 
         return formattedLines.join('\n');
