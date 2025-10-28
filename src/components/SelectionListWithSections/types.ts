@@ -16,7 +16,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';

@@ -243,7 +243,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const selectedOptions: TItem[] = [];
 
         baseSections.forEach((section, sectionIndex) => {
-            const hasHeader = ('title' in section && !!section.title) || ('CustomSectionHeader' in section && !!(section as any).CustomSectionHeader);
+            const hasHeader = !!section.title || !!section.CustomSectionHeader;
             const sectionHeaderHeight = hasHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
@@ -257,9 +257,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 } as TItem);
 
                 // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || ((item as TItem).isDisabled && !isItemSelected(item));
+                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (isItemDisabled || (item as TItem).isDisabledCheckbox) {
+                if (isItemDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                     if (isItemDisabled) {
                         disabledArrowKeyOptionsIndexes.push(disabledIndex);
@@ -268,12 +268,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const keyForList = (item as TItem)?.keyForList;
+                const keyForList = item?.keyForList;
                 const fullItemHeight = keyForList && itemHeights.current[keyForList] ? itemHeights.current[keyForList] : getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === (item as TItem).keyForList)) {
+                if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
                     selectedOptions.push(item);
                 }
             });
