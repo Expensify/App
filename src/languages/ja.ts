@@ -326,7 +326,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'カウント',
         cancel: 'キャンセル',
@@ -1052,10 +1052,6 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
-        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
-        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
-        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         alternativeMethodsTitle: '領収書を追加する別の方法:',
@@ -1258,7 +1254,6 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
-        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -2092,7 +2087,6 @@ ${date} - ${merchant}に${amount}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
