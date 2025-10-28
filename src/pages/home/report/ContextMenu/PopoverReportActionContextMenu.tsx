@@ -1,6 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
@@ -304,8 +304,17 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
         canBeMissing: true,
     });
-    const ancestors = useAncestors(report);
 
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+        canBeMissing: true,
+    });
+    const ancestorsRef = useRef<typeof ancestors>([]);
+    const ancestors = useAncestors(originalReport);
+    useEffect(() => {
+        if (originalReport) {
+            ancestorsRef.current = ancestors;
+        }
+    }, [originalReport, ancestors]);
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -344,7 +353,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestors, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
             });
         }
 
