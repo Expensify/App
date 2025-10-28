@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -2394,10 +2393,10 @@ ${merchant}的${amount} - ${date}`,
                     '*设置分类*，以便您的团队可以对支出进行编码，以便于报告。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *分类*。\n' +
-                    '5. 禁用所有不需要的分类。\n' +
-                    '6. 在右上角添加自己的分类。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *分类*。\n' +
+                    '4. 禁用所有不需要的分类。\n' +
+                    '5. 在右上角添加自己的分类。\n' +
                     '\n' +
                     `[带我到工作区分类设置](${workspaceCategoriesLink})。\n` +
                     '\n' +
@@ -2479,10 +2478,10 @@ ${merchant}的${amount} - ${date}`,
                     '*邀请您的团队*到 Expensify，使他们可以从今天开始跟踪支出。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *成员* > *邀请成员*。\n' +
-                    '5. 输入电子邮件或电话号码。 \n' +
-                    '6. 如有需要，可添加自定义邀请信息！\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *成员* > *邀请成员*。\n' +
+                    '4. 输入电子邮件或电话号码。 \n' +
+                    '5. 如有需要，可添加自定义邀请信息！\n' +
                     '\n' +
                     `[带我到工作区成员](${workspaceMembersLink})。\n` +
                     '\n' +
@@ -2501,11 +2500,11 @@ ${merchant}的${amount} - ${date}`,
                     '使用标签添加额外的支出详情，例如项目、客户、地点和部门。如果您需要多级标签，可以升级到 Control 计划。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *更多功能*。\n' +
-                    '5. 启用 *标签*。\n' +
-                    '6. 导航到工作区编辑器中的 *标签*。\n' +
-                    '7. 点击 *+添加标签*以创建自己的标签。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *标签*。\n' +
+                    '5. 导航到工作区编辑器中的 *标签*。\n' +
+                    '6. 点击 *+添加标签*以创建自己的标签。\n' +
                     '\n' +
                     `[带我到更多功能](${workspaceMoreFeaturesLink})。\n` +
                     '\n' +
@@ -4443,6 +4442,12 @@ ${merchant}的${amount} - ${date}`,
                     pleaseSelectCountry: '请在继续之前选择一个国家',
                     pleaseSelectFeedType: '请在继续之前选择一个订阅类型',
                 },
+                exitModal: {
+                    title: '出现问题了吗？',
+                    prompt: '我们注意到您尚未完成添加卡片。如果遇到问题，请告诉我们，我们会帮您解决。',
+                    confirmText: '报告问题',
+                    cancelText: '跳过',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '本月最后一天',
@@ -4457,7 +4462,7 @@ ${merchant}的${amount} - ${date}`,
             directFeed: '直接馈送',
             whoNeedsCardAssigned: '谁需要分配卡片？',
             chooseCard: '选择一张卡片',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `从${feed}卡片源中为${assignee}选择一张卡片。`,
+            chooseCardFor: ({assignee}: AssigneeParams) => `为<strong>${assignee}</strong>选择一张卡。找不到您要找的卡吗？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息流中没有活跃的卡片',
             somethingMightBeBroken:
                 '<muted-text><centered-text>或者有什么东西坏了。无论如何，如果您有任何问题，请<concierge-link>联系 Concierge</concierge-link>。</centered-text></muted-text>',
