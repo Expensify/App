@@ -7270,6 +7270,7 @@ const translations = {
     },
     domain: {
         notVerified: 'Not verified',
+        retry: 'Retry',
         verifyDomain: {
             title: 'Verify domain',
             beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
@@ -7278,6 +7279,7 @@ const translations = {
             saveChanges: 'Save changes and return here to verify your domain.',
             youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
             warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+            codeFetchError: 'Couldn’t fetch verification code',
         },
         domainVerified: {
             title: 'Domain verified',

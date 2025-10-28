@@ -1,8 +1,11 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Exclamation} from '@components/Icon/Expensicons';
@@ -21,8 +24,7 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-
-type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
+import type {Domain} from '@src/types/onyx';
 
 function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
     const styles = useThemeStyles();
@@ -33,6 +35,30 @@ function OrderedListRow({index, children}: {index: number; children: React.React
         </View>
     );
 }
+
+function ValidateCodeRow({code: validateCode, retryAction, status: validateCodeLoadingStatus}: {code?: string; status: Domain['validateCodeLoadingStatus']; retryAction: () => void}) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+
+    switch (validateCodeLoadingStatus) {
+        case 'error':
+            return (
+                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                    <FormHelpMessage message={translate('domain.verifyDomain.codeFetchError')} />
+                    <Button onPress={retryAction}>{translate('domain.retry')}</Button>
+                </View>
+            );
+
+        case 'loading':
+            return <ActivityIndicator color={theme.text} />;
+
+        default:
+            return <CopyableTextField value={validateCode} />;
+    }
+}
+
+type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
 
 function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const styles = useThemeStyles();
@@ -55,7 +81,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
             return;
         }
         getDomainValidationCode(accountID);
-    });
+    }, [accountID]);
 
     return (
         <ScreenWrapper
@@ -88,10 +114,10 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                         <OrderedListRow index={2}>
                             <View>
                                 <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
-
-                                <CopyableTextField
-                                    value={domain?.validateCode}
-                                    isLoading={domain?.isValidateCodeLoading}
+                                <ValidateCodeRow
+                                    code={domain?.validateCode}
+                                    status={domain?.validateCodeLoadingStatus}
+                                    retryAction={() => getDomainValidationCode(accountID)}
                                 />
                             </View>
                         </OrderedListRow>
@@ -116,7 +142,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(accountID)}
-                    message={domain?.validationError}
+                    message={domain?.validationError ?? undefined}
                     isAlertVisible={!!domain?.validationError}
                     containerStyles={styles.mb5}
                     isLoading={domain?.isValidationPending}
