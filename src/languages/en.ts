@@ -6177,6 +6177,8 @@ const translations = {
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
             return `changed the Default Hourly Rate from ${oldRate} to ${newRate}`;
         },
+        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added ${prohibitedExpense} as prohibited expenses`,
+        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed ${prohibitedExpense} as prohibited expenses`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

@@ -3256,6 +3256,27 @@ function getUpdatedTimeRateMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
+function getUpdatedProhibitedExpensesMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {newProhibitedExpenses, oldProhibitedExpenses} =
+        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
+
+    if (!newProhibitedExpenses || !oldProhibitedExpenses) {
+        return getReportActionText(reportAction);
+    }
+
+    const keys = Object.values(CONST.POLICY.PROHIBITED_EXPENSES) as Array<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>>;
+    const changedKey = keys.find((k) => newProhibitedExpenses?.[k] !== oldProhibitedExpenses?.[k]);
+
+    if (!changedKey) {
+        return getReportActionText(reportAction);
+    }
+
+    const wasAdded = newProhibitedExpenses?.[changedKey];
+    const prohibitedExpense = translateLocal(`workspace.rules.individualExpenseRules.${changedKey}` as TranslationPaths).toLowerCase();
+
+    return translateLocal(wasAdded ? 'workspaceActions.addedProhibitedExpense' : 'workspaceActions.removedProhibitedExpense', {prohibitedExpense});
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3625,6 +3646,7 @@ export {
     getWorkspaceCustomUnitRateImportedMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getSendMoneyFlowAction,
+    getUpdatedProhibitedExpensesMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

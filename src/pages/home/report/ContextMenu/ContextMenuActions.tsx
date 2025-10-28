@@ -61,6 +61,7 @@ import {
     getUpdatedAuditRateMessage,
     getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedProhibitedExpensesMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
     getUpdateRoomDescriptionMessage,
@@ -765,6 +766,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedTimeEnabledMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
                     setClipboardMessage(getUpdatedTimeRateMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES)) {
+                    setClipboardMessage(getUpdatedProhibitedExpensesMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {

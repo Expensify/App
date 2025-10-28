@@ -598,6 +598,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New rate of the time enabled */
     newRate?: number;
+
+    /** Old prohibited expenses */
+    oldProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** New prohibited expenses */
+    newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
 };
 
 /** Model of `join policy` report action */
