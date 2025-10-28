@@ -917,7 +917,7 @@ const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiF
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationApproveTransactionPage').default,
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationNotificationPage').default,
     [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationRevokePage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationPrompt').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationPromptPage').default,
 });
 
 export {

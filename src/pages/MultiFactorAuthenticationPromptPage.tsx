@@ -19,7 +19,7 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type promptType = 'enable-biometrics' | 'enable-passkey';
 
-type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
+type multiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
 type PromptData = {
     animation: DotLottieAnimation;
@@ -46,7 +46,7 @@ const getPromptData = (promptType: promptType) : PromptData => {
     }
 };
 
-function multiFactorAuthenticationPrompt({route}: MultiFactorAuthenticationPromptPageProps) {
+function multiFactorAuthenticationPromptPage({route}: multiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
@@ -62,7 +62,7 @@ function multiFactorAuthenticationPrompt({route}: MultiFactorAuthenticationPromp
     };
 
     return (
-        <ScreenWrapper testID={multiFactorAuthenticationPrompt.displayName}>
+        <ScreenWrapper testID={multiFactorAuthenticationPromptPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
                 onBackButtonPress={onGoBackPress}
@@ -72,12 +72,13 @@ function multiFactorAuthenticationPrompt({route}: MultiFactorAuthenticationPromp
                 <View style={[styles.flex1]}>
                     <BlockingView
                         animation={data.animation}
-                        contentFitImage="fill"
+                        animationStyles={styles.emptyLHNAnimation}
+                        animationWebStyle={styles.emptyLHNAnimation}
                         title={translate(data.title)}
                         subtitle={translate(data.subtitle)}
                         subtitleStyle={styles.textSupporting}
                         containerStyle={styles.p0}
-                        testID={multiFactorAuthenticationPrompt.displayName}
+                        testID={multiFactorAuthenticationPromptPage.displayName}
                     />
                 </View>
                 <View style={[styles.flexColumn, styles.gap3, styles.m5]}>
@@ -98,8 +99,8 @@ function multiFactorAuthenticationPrompt({route}: MultiFactorAuthenticationPromp
     );
 }
 
-multiFactorAuthenticationPrompt.displayName = 'MultiFactorAuthenticationPrompt';
+multiFactorAuthenticationPromptPage.displayName = 'MultiFactorAuthenticationPromptPage';
 
-export default multiFactorAuthenticationPrompt;
+export default multiFactorAuthenticationPromptPage;
 
 export type {promptType};

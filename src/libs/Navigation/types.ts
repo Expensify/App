@@ -30,7 +30,7 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type { notificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
-import { promptType } from '@pages/MultiFactorAuthenticationPrompt';
+import { promptType } from '@pages/MultiFactorAuthenticationPromptPage';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
 

@@ -43,7 +43,7 @@ function ApproveTransactionPage() {
     // TODO: replace with the correct logic
     const approveTransaction = useCallback(() => {
         if (!isBiometryAvailable) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_ENABLE_BIOMETRICS_PROMPT);
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-passkey'));
         }
         fakeBiometryCall();
     }, [isBiometryAvailable]);
