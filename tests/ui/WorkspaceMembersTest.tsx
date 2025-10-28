@@ -82,7 +82,7 @@ describe('WorkspaceMembers', () => {
     });
 
     beforeEach(async () => {
-        await TestHelper.signInWithTestUser(selfAccountID, selfEmail, 'asdfqwerty', 'Self');
+        await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
