@@ -11,11 +11,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {DomainModalNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type DomainVerifiedPageProps = PlatformStackScreenProps<DomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_VERIFIED>;
+type DomainVerifiedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_VERIFIED>;
 
 function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const {translate} = useLocalize();
@@ -42,7 +42,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={Navigation.dismissModal}
+                onButtonPress={() => Navigation.dismissModal()}
             />
         </ScreenWrapper>
     );
