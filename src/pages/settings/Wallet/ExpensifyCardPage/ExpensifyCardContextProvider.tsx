@@ -1,5 +1,5 @@
-import {PropsWithChildren, useEffect} from 'react';
-import React, {createContext, useMemo, useState} from 'react';
+import type {PropsWithChildren} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
@@ -36,9 +36,10 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
         setCardsDetailsErrors((prevErrors) => {
             const clearedErrors = {...prevErrors};
             Object.keys(clearedErrors).forEach((cardID) => {
-                if (!cardList?.[cardID]?.errors || Object.keys(cardList[cardID].errors).length === 0) {
-                    delete clearedErrors[Number(cardID)];
+                if (cardList?.[cardID]?.errors && Object.keys(cardList[cardID].errors).length > 0) {
+                    return;
                 }
+                delete clearedErrors[Number(cardID)];
             });
             return clearedErrors;
         });
