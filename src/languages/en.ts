@@ -2421,18 +2421,18 @@ const translations = {
                 title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
                     dedent(`
-                    *Set up categories* so your team can code expenses for easy reporting.
+                        *Set up categories* so your team can code expenses for easy reporting.
 
-                    1. Click *Workspaces*.
-                    3. Select your workspace.
-                    4. Click *Categories*.
-                    5. Disable any categories you don't need.
-                    6. Add your own categories in the top right.
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *Categories*.
+                        5. Disable any categories you don't need.
+                        6. Add your own categories in the top right.
 
-                    [Take me to workspace category settings](${workspaceCategoriesLink}).
+                        [Take me to workspace category settings](${workspaceCategoriesLink}).
 
-                    ![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
-                `),
+                        ![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Submit an expense',
@@ -2520,18 +2520,18 @@ const translations = {
                 title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
                     dedent(`
-                    *Invite your team* to Expensify so they can start tracking expenses today.
+                        *Invite your team* to Expensify so they can start tracking expenses today.
 
-                    1. Click *Workspaces*.
-                    3. Select your workspace.
-                    4. Click *Members* > *Invite member*.
-                    5. Enter emails or phone numbers.
-                    6. Add a custom invite message if you'd like!
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *Members* > *Invite member*.
+                        5. Enter emails or phone numbers.
+                        6. Add a custom invite message if you'd like!
 
-                    [Take me to workspace members](${workspaceMembersLink}).
+                        [Take me to workspace members](${workspaceMembersLink}).
 
-                    ![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
-                `),
+                        ![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
+                    `),
             },
 
             setupCategoriesAndTags: {
