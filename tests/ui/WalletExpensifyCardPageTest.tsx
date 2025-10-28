@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
@@ -102,12 +101,12 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -150,12 +149,12 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -192,7 +191,7 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "PIN" option is not displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -229,7 +228,7 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "PIN" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
