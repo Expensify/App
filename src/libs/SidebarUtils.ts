@@ -54,6 +54,7 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRetractedMessage,
+    getSetAutoJoinMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -955,6 +956,8 @@ function getOptionData({
             result.alternateText = getUpdatedProhibitedExpensesMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
             result.alternateText = getUpdatedReimbursementChoiceMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN) {
+            result.alternateText = getSetAutoJoinMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

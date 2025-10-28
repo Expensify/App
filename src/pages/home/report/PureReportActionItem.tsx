@@ -91,6 +91,7 @@ import {
     getReopenedMessage,
     getReportActionMessage,
     getReportActionText,
+    getSetAutoJoinMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -1461,6 +1462,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedProhibitedExpensesMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedReimbursementChoiceMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN)) {
+            children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(action)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

@@ -3293,6 +3293,17 @@ function getUpdatedReimbursementChoiceMessage(reportAction: OnyxEntry<ReportActi
     return translateLocal('workspaceActions.updatedReimbursementChoice', {newReimbursementChoice, oldReimbursementChoice});
 }
 
+function getSetAutoJoinMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN>) ?? {};
+
+    if (typeof enabled === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.setAutoJoin', {enabled});
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3699,6 +3710,7 @@ export {
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
     getUpdatedReimbursementChoiceMessage,
+    getSetAutoJoinMessage,
 };
 
 export type {LastVisibleMessage};

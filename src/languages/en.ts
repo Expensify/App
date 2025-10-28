@@ -6186,6 +6186,7 @@ const translations = {
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed ${prohibitedExpense} as prohibited expenses`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: {newReimbursementChoice: string; oldReimbursementChoice: string}) =>
             `updated the reimbursement method from ${oldReimbursementChoice} to ${newReimbursementChoice}`,
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `set the pre-approval of workspace join requests to ${enabled ? 'Enabled' : 'Disabled'}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

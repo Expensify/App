@@ -53,6 +53,7 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportActionMessageText,
+    getSetAutoJoinMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -771,6 +772,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedProhibitedExpensesMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE)) {
                     setClipboardMessage(getUpdatedReimbursementChoiceMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN)) {
+                    setClipboardMessage(getSetAutoJoinMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {
