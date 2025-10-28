@@ -2578,13 +2578,13 @@ ${amount} voor ${merchant} - ${date}`,
             splitExpenseTask: {
                 title: 'Splits een uitgave',
                 description:
-                '*Uitgaven splitsen* met één of meer personen.' +
-                '\n' +
-                `1. Klik op de <strong>+</strong>-knop.\n` +
-                '2. Kies *Start chat*.\n' +
-                '3. Voer e-mailadressen of telefoonnummers in.\n' +
-                '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
-                '5. Maak de uitgave aan door *Handmatig*, *Scannen* of *Afstand* te selecteren.\n' +
+                    '*Uitgaven splitsen* met één of meer personen.' +
+                    '\n' +
+                    `1. Klik op de <strong>+</strong>-knop.\n` +
+                    '2. Kies *Start chat*.\n' +
+                    '3. Voer e-mailadressen of telefoonnummers in.\n' +
+                    '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
+                    '5. Maak de uitgave aan door *Handmatig*, *Scannen* of *Afstand* te selecteren.\n' +
                     '\n' +
                     'Voeg gerust meer details toe als u wilt, of stuur het gewoon op. Laten we ervoor zorgen dat u wordt terugbetaald!',
             },
@@ -2638,10 +2638,10 @@ ${amount} voor ${merchant} - ${date}`,
             explanationModal: {
                 descriptionOne: 'Volg en organiseer bonnen',
                 descriptionTwo: 'Categoriseer en label uitgaven',
-            descriptionThree: 'Rapporten maken en delen',
-        },
-        price: 'Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>$5/gebruiker/maand</strong>.',
-        createWorkspace: 'Werkruimte maken',
+                descriptionThree: 'Rapporten maken en delen',
+            },
+            price: 'Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>$5/gebruiker/maand</strong>.',
+            createWorkspace: 'Werkruimte maken',
         },
         confirmWorkspace: {
             title: 'Bevestig werkruimte',

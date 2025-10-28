@@ -2570,12 +2570,12 @@ ${amount} para ${merchant} - ${date}`,
             splitExpenseTask: {
                 title: 'Dividir uma despesa',
                 description:
-                '*Divida despesas* com uma ou mais pessoas.\n\n' +
-                `1. Clique no botão <strong>+</strong>.\n` +
-                '2. Escolha *Iniciar bate-papo*.\n' +
-                '3. Insira e-mails ou números de telefone.\n' +
-                '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
-                '5. Crie a despesa selecionando *Manual*, *Digitalizar* ou *Distância*.\n' +
+                    '*Divida despesas* com uma ou mais pessoas.\n\n' +
+                    `1. Clique no botão <strong>+</strong>.\n` +
+                    '2. Escolha *Iniciar bate-papo*.\n' +
+                    '3. Insira e-mails ou números de telefone.\n' +
+                    '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
+                    '5. Crie a despesa selecionando *Manual*, *Digitalizar* ou *Distância*.\n' +
                     '\n' +
                     'Sinta-se à vontade para adicionar mais detalhes, se quiser, ou apenas envie. Vamos te reembolsar!',
             },
@@ -2629,10 +2629,10 @@ ${amount} para ${merchant} - ${date}`,
             explanationModal: {
                 descriptionOne: 'Acompanhe e organize recibos',
                 descriptionTwo: 'Categorizar e etiquetar despesas',
-            descriptionThree: 'Criar e compartilhar relatórios',
-        },
-        price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/usuário/mês</strong>.',
-        createWorkspace: 'Criar espaço de trabalho',
+                descriptionThree: 'Criar e compartilhar relatórios',
+            },
+            price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/usuário/mês</strong>.',
+            createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {
             title: 'Confirmar espaço de trabalho',
@@ -4627,10 +4627,10 @@ ${amount} para ${merchant} - ${date}`,
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `Se você mudar o tipo de limite deste cartão para Mensal, novas transações serão recusadas porque o limite mensal de ${limit} já foi atingido.`,
             addShippingDetails: 'Adicionar detalhes de envio',
-        issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
-        issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-            `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
-        issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
+            issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
+                `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
             bankAccountVerifiedHeader: 'Conta bancária verificada',

@@ -1,8 +1,8 @@
 import {PropsWithChildren, useEffect} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import React, {createContext, useMemo, useState} from 'react';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
-import ONYXKEYS from "@src/ONYXKEYS";
 
 type ExpensifyCardContextProviderProps = {
     cardsDetails: Record<number, ExpensifyCardDetails | null>;
