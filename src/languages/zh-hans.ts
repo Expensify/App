@@ -677,6 +677,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
     },
     supportalNoAccess: {

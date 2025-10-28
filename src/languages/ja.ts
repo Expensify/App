@@ -676,6 +676,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
     },
     supportalNoAccess: {

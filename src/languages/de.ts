@@ -678,6 +678,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
     },
     supportalNoAccess: {
