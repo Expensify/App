@@ -1,14 +1,13 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, getCurrentUserAccountID, getCurrentUserEmail, updatePolicyRoomAvatar} from '@libs/actions/Report';
-import {isAnonymousUser} from '@libs/actions/Session';
+import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyMember} from '@libs/PolicyUtils';
-import {getParticipantsAccountIDsForDisplay, isAuditor, isReportParticipant, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isAuditor, isReportParticipant, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
