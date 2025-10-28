@@ -24,12 +24,10 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type PlaidConnectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION>;
-
-function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
+function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; policyID?: string; onExit?: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -43,8 +41,6 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const {isOffline} = useNetwork();
-    const feed = route.params?.feed;
-    const policyID = route.params?.policyID;
     const domain = getDomainNameForPolicy(policyID);
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
@@ -136,6 +132,7 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                                     JSON.stringify(metadata?.accounts),
                                     addNewCard.data.statementPeriodEnd,
                                     addNewCard.data.statementPeriodEndDay,
+                                    '',
                                 );
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
@@ -183,7 +180,10 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                     }}
                     // User prematurely exited the Plaid flow
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onExit={handleBackButtonPress}
+                    onExit={() => {
+                        onExit?.();
+                        handleBackButtonPress();
+                    }}
                 />
             );
         }

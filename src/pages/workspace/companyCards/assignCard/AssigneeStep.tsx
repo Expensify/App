@@ -40,12 +40,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
-    const [list] = useCardsList(policyID, feed);
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [list] = useCardsList(policy?.id, feed);
+    const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
@@ -171,7 +171,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue, false, countryCode);
+        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue, countryCode, false);
     }, [debouncedSearchTerm, sections, countryCode]);
 
     return (

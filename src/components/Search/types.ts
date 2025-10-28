@@ -49,6 +49,9 @@ type SelectedTransactionInfo = {
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
 };
 
 /** Model of selected transactions */
@@ -73,9 +76,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;

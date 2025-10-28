@@ -52,7 +52,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards, true);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -78,11 +78,14 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, item.bank));
                         }}
                     >
-                        <WorkspaceCompanyCardsListRow
-                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                            cardNumber={item.lastFourPAN ?? ''}
-                            name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
-                        />
+                        {({hovered}) => (
+                            <WorkspaceCompanyCardsListRow
+                                cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                cardNumber={item.lastFourPAN ?? ''}
+                                name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
+                                isHovered={hovered}
+                            />
+                        )}
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
