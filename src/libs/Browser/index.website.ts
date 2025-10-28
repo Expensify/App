@@ -83,9 +83,9 @@ const isChromeIOS: IsChromeIOS = () => {
 
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
-function getiOSVersion() {
+function getIOSVersion() {
     const {browser, os} = UAParser(navigator.userAgent);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (browser.name === 'Mobile Safari' && browser.major === '26' && os.name === 'iOS' && os.version === '18.6') {
         return 26;
     }
@@ -97,11 +97,11 @@ function getiOSVersion() {
  * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
  */
 const isModernSafari: IsModernSafari = (): boolean => {
-    return getiOSVersion() >= 18;
+    return getIOSVersion() >= 18;
 };
 
 const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
-    return getiOSVersion() === 26;
+    return getIOSVersion() === 26;
 };
 
 /**

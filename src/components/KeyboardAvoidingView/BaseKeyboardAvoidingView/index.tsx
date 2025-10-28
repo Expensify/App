@@ -25,10 +25,13 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
         }
 
         let isTiming = false;
+        let prevIsActive = false;
         const handler = (isActive: boolean) => {
-            if (isTiming) {
+            if (isTiming && prevIsActive === isActive) {
                 return;
             }
+            isTiming = true;
+            prevIsActive = isActive;
             sharedValue.set(
                 withTiming(
                     isActive ? 1 : 0,
