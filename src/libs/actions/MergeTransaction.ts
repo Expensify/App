@@ -18,7 +18,7 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isPerDiemRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -51,12 +51,17 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
 
 function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
     // Do not allow merging two card transactions
-    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
+    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
     }
 
     // Do not allow merging two $0 transactions
     if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
         return false;
     }
 

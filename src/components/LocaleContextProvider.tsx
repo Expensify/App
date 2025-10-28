@@ -64,6 +64,8 @@ type LocaleContextProps = {
     preferredLocale: Locale | undefined;
 };
 
+type LocalizedTranslate = LocaleContextProps['translate'];
+
 const LocaleContext = createContext<LocaleContextProps>({
     translate: () => '',
     numberFormat: () => '',
@@ -224,4 +226,4 @@ LocaleContextProvider.displayName = 'LocaleContextProvider';
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps};
+export type {Locale, LocaleContextProps, LocalizedTranslate};

@@ -24,6 +24,7 @@ import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
+import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
@@ -37,6 +38,8 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -110,6 +113,7 @@ function Expensify() {
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -234,7 +238,8 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            const isCurrentlyAuthenticated = hasAuthToken();
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
@@ -281,8 +286,8 @@ function Expensify() {
         if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
             return;
         }
-        disconnect({stashedCredentials});
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials]);
+        disconnect({stashedCredentials, stashedSession});
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {

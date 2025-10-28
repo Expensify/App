@@ -16,6 +16,7 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
@@ -597,6 +598,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
@@ -614,24 +616,31 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     const harvesting = !isMarkAsClosedAction(reportAction) ? (getOriginalMessage(reportAction)?.harvesting ?? false) : false;
                     if (harvesting) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         Clipboard.setString(translateLocal('iou.submitted', {memo: getOriginalMessage(reportAction)?.message}));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         setClipboardMessage(translateLocal('iou.automaticallyApproved'));
                     } else {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         Clipboard.setString(translateLocal('iou.approvedMessage'));
                     }
                 } else if (isUnapprovedAction(reportAction)) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.unapproved'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         setClipboardMessage(translateLocal('iou.automaticallyForwarded'));
                     } else {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         Clipboard.setString(translateLocal('iou.forwarded'));
                     }
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
@@ -644,14 +653,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getDowngradeWorkspaceMessage();
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.unheldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.reject.reportActions.markedAsResolved'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
                     const oldDotActionMessage = getMessageOfOldDotReportAction(reportAction);
@@ -660,8 +674,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     const reason = originalMessage?.reason;
                     const violationName = originalMessage?.violationName;
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('violations.resolvedDuplicates'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
                     setClipboardMessage(getExportIntegrationMessageHTML(reportAction));

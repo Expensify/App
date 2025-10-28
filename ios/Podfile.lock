@@ -244,7 +244,7 @@ PODS:
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.2)
-  - fullstory_react-native (1.7.6):
+  - fullstory_react-native (1.7.8):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -2120,7 +2120,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (7.0.1):
+  - react-native-pdf (7.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2736,7 +2736,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.11.2):
+  - RNCPicker (2.11.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2830,7 +2830,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.307):
+  - RNLiveMarkdown (0.1.308):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2857,8 +2857,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - RNReanimated/worklets
     - Yoga
-  - RNLocalize (2.2.6):
+  - RNLocalize (3.5.4):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - rnmapbox-maps (10.1.44):
     - MapboxMaps (~> 10.19.0)
     - React
@@ -3748,7 +3770,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
-  fullstory_react-native: eea992f5f335d6b73cb5c3cc06942660388ef92f
+  fullstory_react-native: 5b94e0ee51a46073bb2c88836708f734ac6807a1
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -3825,7 +3847,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
-  react-native-pdf: 95ac830ccce8e03bf499248b85b7e8fc4459ab40
+  react-native-pdf: 6523dab10d5948360c6e55a7a606decb9cda6de3
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: a04b78ac9bf24beff9785eaacf9af297644f2103
@@ -3867,7 +3889,7 @@ SPEC CHECKSUMS:
   ReactNativeHybridApp: 47a9e32fe897d22240b69714a25da8b0dcdf53b4
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: cc758c52da06b146344ceff63b4dfcf255a693c0
-  RNCPicker: c4e7ce9d70bfffb1f4b9e210af64af9160c571bb
+  RNCPicker: 4fc9bd350c1fa6c254c586b535d7179c46488ac6
   RNDeviceInfo: f649855d9132da878fa8b9d4b04ec30de85f5b54
   RNFBAnalytics: 921718282c3326adb23f1eb732898e31804be5a3
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
@@ -3876,8 +3898,8 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: ba5e9bd83b82d3994fb67608c7840a60ecc6e4fe
-  RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
+  RNLiveMarkdown: 6a36c82776afa8fd2c41c2c6e299c6dd77f249ce
+  RNLocalize: e3a384870bd61fccfcc46de28089371907ed2e14
   rnmapbox-maps: f3875edd847c82d770d1b57852b36d45b3ea8a01
   RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
