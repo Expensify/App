@@ -50,6 +50,7 @@ import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
+import type SplitListItem from './SplitListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
@@ -594,7 +595,8 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof UnreportedExpenseListItem;
+    | typeof UnreportedExpenseListItem
+    | typeof SplitListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -621,9 +623,21 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
+type EnhancedSectionListItem = ListItem & {
+    /** Key to identify the type of enhanced section */
+    key: (typeof CONST.ENHANCED_SECTIONS)[keyof typeof CONST.ENHANCED_SECTIONS];
+    /** The component to render for this enhanced section */
+    component: React.JSX.Element;
+};
+
+type EnhancedSectionListType = {
+    /** Enhanced type for sections data used for adding items at the bottom of the list sections (e.g. action buttons).*/
+    data: EnhancedSectionListItem[];
+};
+
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+    sections: Array<SectionListDataType<TItem>> | Array<SectionListDataType<TItem> | EnhancedSectionListType> | typeof CONST.EMPTY_ARRAY;
 
     /** List of selected items */
     selectedItems?: string[];
@@ -997,6 +1011,7 @@ type SearchListItem = TransactionListItemType | TransactionGroupListItemType | R
 
 export type {
     BaseListItemProps,
+    EnhancedSectionListItem,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
     ExtendedTargetedEvent,

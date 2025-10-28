@@ -7317,6 +7317,9 @@ const CONST = {
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
     },
+    ENHANCED_SECTIONS: {
+        SPLIT_EXPENSE_ACTIONS: 'splitExpenseActions',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

@@ -13,7 +13,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
+import type {EnhancedSectionListItem, ListItem, SplitListItemProps, SplitListItemType} from './types';
 
 function SplitListItem<TItem extends ListItem>({
     item,
@@ -55,6 +55,11 @@ function SplitListItem<TItem extends ListItem>({
         }
         onInputFocus(index);
     }, [onInputFocus, index]);
+
+    const enhancedItem = item as Partial<EnhancedSectionListItem>;
+    if (enhancedItem.key === CONST.ENHANCED_SECTIONS.SPLIT_EXPENSE_ACTIONS && enhancedItem.component) {
+        return enhancedItem.component;
+    }
 
     return (
         <BaseListItem

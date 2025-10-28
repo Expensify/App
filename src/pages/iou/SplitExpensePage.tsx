@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
@@ -119,7 +120,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction, transactionID]);
 
-    const onSplitEvenly = useCallback(() => {
+    const onMakeSplitsEven = useCallback(() => {
         if (!draftTransaction) {
             return;
         }
@@ -288,29 +289,43 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
-    const shouldShowSplitEvenly = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
+    const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
 
-    const headerContent = useMemo(
+    const ActionButtons = useMemo(
         () => (
-            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    success
+            <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
+                <MenuItem
                     onPress={onAddSplitExpense}
+                    title={translate('iou.addSplit')}
                     icon={Expensicons.Plus}
-                    text={translate('iou.addSplit')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={[styles.ph4]}
                 />
-                {shouldShowSplitEvenly && (
-                    <Button
-                        onPress={onSplitEvenly}
+                {shouldShowMakeSplitsEven && (
+                    <MenuItem
+                        onPress={onMakeSplitsEven}
+                        title={translate('iou.makeSplitsEven')}
                         icon={Expensicons.ArrowsLeftRight}
-                        text={translate('iou.splitEvenly')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        style={[styles.ph4]}
                     />
                 )}
             </View>
         ),
-        [onAddSplitExpense, onSplitEvenly, shouldShowSplitEvenly, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
+        [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1],
+    );
+
+    const enhancedSections = useMemo(
+        () => [
+            ...sections,
+            {
+                data: [
+                    {
+                        key: CONST.ENHANCED_SECTIONS.SPLIT_EXPENSE_ACTIONS,
+                        component: ActionButtons,
+                    },
+                ],
+            },
+        ],
+        [sections, ActionButtons],
     );
 
     const footerContent = useMemo(() => {
@@ -393,8 +408,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
-                        headerContent={headerContent}
-                        sections={sections}
+                        sections={enhancedSections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto, styles.pt1]}
