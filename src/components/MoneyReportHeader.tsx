@@ -1475,10 +1475,7 @@ function MoneyReportHeader({
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
-                                <Header
-                                    title={translate('reportDetailsPage.generatingPDF')}
-                                    containerStyles={[styles.alignItemsCenter]}
-                                />
+                                <Header title={translate('reportDetailsPage.generatingPDF')} />
                             </View>
                             <Text style={[styles.mt3]}>{messagePDF}</Text>
                         </View>
