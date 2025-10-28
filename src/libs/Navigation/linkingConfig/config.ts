@@ -24,7 +24,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: ROUTES.GOOGLE_SIGN_IN,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
-        [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
+        [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
@@ -775,6 +775,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
                         },
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.route,
+                        },
 
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
@@ -1109,6 +1112,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
                         [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: {
+                    screens: {
+                        [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: ROUTES.SET_DEFAULT_WORKSPACE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {

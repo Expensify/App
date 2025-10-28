@@ -279,7 +279,7 @@ function ReportActionItemMessageEdit({
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -309,7 +309,7 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
+        editReportComment(originalReport, action, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
@@ -510,7 +510,7 @@ function ReportActionItemMessageEdit({
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
-                                // eslint-disable-next-line deprecation/deprecation
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);

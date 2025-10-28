@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -19,6 +18,7 @@ import {
 } from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -90,7 +90,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTr
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -306,7 +306,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTr
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     proceedWithFilesAction(sortedFiles, dataTransferItemList.current);

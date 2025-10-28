@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import type NativeNavigation from '@react-navigation/native';
+import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';

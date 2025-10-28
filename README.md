@@ -14,7 +14,6 @@
 * [Platform-Specific Setup](#platform-specific-setup)
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
-* [Debugging](#debugging)
 
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
@@ -74,6 +73,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `NGROK_URL` - URL used for `ngrok` when testing
 - `USE_NGROK` - Flag to turn `ngrok` testing on or off
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
+- `USE_REDUX_DEVTOOLS` - Flag to enable [Redux DevTools](https://github.com/reduxjs/redux-devtools) for Onyx state debugging
 - `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`

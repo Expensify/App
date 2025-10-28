@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -71,7 +71,7 @@ function ProfilePage() {
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
@@ -79,6 +79,7 @@ function ProfilePage() {
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
         },
         {
             description: translate('statusPage.status'),
@@ -215,6 +216,7 @@ function ProfilePage() {
                                                         avatar: currentUserPersonalDetails?.avatar,
                                                         fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
                                                         accountID: currentUserPersonalDetails?.accountID,
+                                                        email: currentUserPersonalDetails?.email,
                                                     });
                                                 }}
                                                 size={CONST.AVATAR_SIZE.X_LARGE}
@@ -244,6 +246,7 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
                                 />
                             ))}
                             <Button
