@@ -240,10 +240,7 @@ class TranslationGenerator {
 
             // Enforce that the type of translated files matches en.ts
             let finalFileContent = fs.readFileSync(outputPath, 'utf8');
-            finalFileContent = finalFileContent.replace(
-                'export default translations satisfies TranslationDeepObject<typeof translations>;',
-                'export default translations satisfies TranslationDeepObject<typeof en>;',
-            );
+            finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
 
             // Add a fun ascii art touch with a helpful message
             if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
