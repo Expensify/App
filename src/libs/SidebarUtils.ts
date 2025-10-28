@@ -241,7 +241,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 
@@ -295,7 +295,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 

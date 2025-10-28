@@ -46,6 +46,7 @@ function ReanimatedModal({
     shouldPreventScrollOnFocus,
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
+    shouldEnableNewFocusManagement,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -239,6 +240,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
+                        shouldReturnFocus={!shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}

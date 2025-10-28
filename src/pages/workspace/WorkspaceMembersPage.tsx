@@ -45,6 +45,7 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -456,7 +457,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         id: accountID,
                     },
                 ],
-                errors: policyEmployee.errors,
+                errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',

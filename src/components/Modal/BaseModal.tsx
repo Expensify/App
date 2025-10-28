@@ -354,6 +354,7 @@ function BaseModal({
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

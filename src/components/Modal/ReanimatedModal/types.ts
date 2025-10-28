@@ -137,6 +137,12 @@ type ReanimatedModalProps = ViewProps &
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
+        /**
+         * Whether the modal should enable the new focus manager.
+         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+         * */
+        shouldEnableNewFocusManagement?: boolean;
+
         /** Whether to ignore the back handler during transition */
         shouldIgnoreBackHandlerDuringTransition?: boolean;
     };

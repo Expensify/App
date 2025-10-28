@@ -100,7 +100,13 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1;
+    const isSidebarAction = (action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) && action.payload.name === options.sidebarScreen;
+    if (!isSidebarAction) {
+        return false;
+    }
+
+    const sidebarExists = state.routes.some((route) => route.name === options.sidebarScreen);
+    return sidebarExists;
 }
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
