@@ -4,9 +4,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -53,7 +53,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Pla
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -196,11 +196,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
+                    data={feeds}
                     ListItem={RadioListItem}
                     onSelectRow={handleSelectFeed}
-                    sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
+                    alternateNumberOfSupportedLines={2}
                 />
                 <FormAlertWithSubmitButton
                     containerStyles={styles.p5}
