@@ -2,7 +2,7 @@ import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
+import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
@@ -26,8 +26,8 @@ const navigateAfterOnboarding = (
     } else {
         const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
-        // we don't want to navigate to newly created workspaces after onboarding is completed.
-        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
+        // we don't want to navigate to newly created workspaces/selfDM after onboarding is completed.
+        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
             reportID = lastAccessedReportID;
         }
     }
