@@ -1,5 +1,5 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
