@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -2418,10 +2417,10 @@ ${date} - ${merchant}に${amount}`,
                     '*カテゴリーを設定します* と、チームは簡単な報告のために経費をコード化できます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *カテゴリー*をクリックします。\n' +
-                    '5. 不要なカテゴリーを無効にします。\n' +
-                    '6. 右上に自分のカテゴリーを追加します。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *カテゴリー*をクリックします。\n' +
+                    '4. 不要なカテゴリーを無効にします。\n' +
+                    '5. 右上に自分のカテゴリーを追加します。\n' +
                     '\n' +
                     `[ワークスペースカテゴリー設定へ](${workspaceCategoriesLink})。\n` +
                     '\n' +
@@ -2503,10 +2502,10 @@ ${date} - ${merchant}に${amount}`,
                     '*あなたのチームを招待します* と、彼らは今日から経費の追跡を開始できます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *メンバー* > *メンバーを招待*をクリックします。\n' +
-                    '5. メールアドレスまたは電話番号を入力します。\n' +
-                    '6. 必要に応じてカスタム招待メッセージを追加します！\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *メンバー* > *メンバーを招待*をクリックします。\n' +
+                    '4. メールアドレスまたは電話番号を入力します。\n' +
+                    '5. 必要に応じてカスタム招待メッセージを追加します！\n' +
                     '\n' +
                     `[ワークスペースメンバーへ](${workspaceMembersLink})。\n` +
                     '\n' +
@@ -2525,11 +2524,11 @@ ${date} - ${merchant}に${amount}`,
                     'タグを使用して、プロジェクト、クライアント、場所、部署などの追加の経費詳細を追加します。複数のレベルのタグが必要な場合は、Controlプランにアップグレードできます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *その他の機能*をクリックします。\n' +
-                    '5. *タグ*を有効にします。\n' +
-                    '6. ワークスペースエディターで*タグ*に移動します。\n' +
-                    '7. *+タグを追加*をクリックして、自分のタグを作成します。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *その他の機能*をクリックします。\n' +
+                    '4. *タグ*を有効にします。\n' +
+                    '5. ワークスペースエディターで*タグ*に移動します。\n' +
+                    '6. *+タグを追加*をクリックして、自分のタグを作成します。\n' +
                     '\n' +
                     `[その他の機能へ](${workspaceMoreFeaturesLink})。\n` +
                     '\n' +
@@ -4497,6 +4496,12 @@ ${date} - ${merchant}に${amount}`,
                     pleaseSelectCountry: '続行する前に国を選択してください',
                     pleaseSelectFeedType: '続行する前にフィードタイプを選択してください',
                 },
+                exitModal: {
+                    title: 'うまく動作していませんか？',
+                    prompt: 'カードの追加を完了していないようです。問題が発生した場合はお知らせください。解決のお手伝いをいたします。',
+                    confirmText: '問題を報告する',
+                    cancelText: 'スキップ',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月の最終日',
@@ -4511,7 +4516,8 @@ ${date} - ${merchant}に${amount}`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseCard: 'カードを選んでください',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `${feed}カードフィードから${assignee}のためにカードを選択してください。`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `<strong>${assignee}</strong>のカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
             noActiveCards: 'このフィードにはアクティブなカードがありません',
             somethingMightBeBroken:
                 '<muted-text><centered-text>あるいは、何かが壊れているかもしれません。いずれにせよ、ご不明な点があれば、<concierge-link>Concierge までお問い合わせ</concierge-link>ください。</centered-text></muted-text>',
