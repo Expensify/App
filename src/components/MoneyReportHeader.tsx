@@ -1473,11 +1473,13 @@ function MoneyReportHeader({
             >
                 <View style={[styles.m5]}>
                     <View style={[styles.flexRow, styles.mb4]}>
-                        <View style={[styles.dFlex, styles.flex1]}>
-                            <Header
-                                title={translate('reportDetailsPage.generatingPDF')}
-                                containerStyles={[styles.alignItemsCenter]}
-                            />
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.flexRow]}>
+                                <Header
+                                    title={translate('reportDetailsPage.generatingPDF')}
+                                    containerStyles={[styles.alignItemsCenter]}
+                                />
+                            </View>
                             <Text style={[styles.mt3]}>{messagePDF}</Text>
                         </View>
                         <View style={[styles.dFlex, styles.justifyContentCenter]}>
