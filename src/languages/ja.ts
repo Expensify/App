@@ -192,6 +192,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +677,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
     },
     supportalNoAccess: {
@@ -1059,8 +1061,6 @@ const translations = {
         dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
-        chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
-        chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
         alternativeMethodsTitle: '領収書を追加する別の方法:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">アプリをダウンロード</a>して携帯からスキャン</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>領収書を <a href="mailto:${email}">${email}</a> に転送</label-text>`,
@@ -1069,8 +1069,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>領収書を ${phoneNumber} にテキスト送信（米国の番号のみ）</label-text>`,
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
-        deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。',
-        deniedCameraAccessInstructions: 'これらの手順',
+        deniedCameraAccess: `カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">これらの手順</a>.`,
         cameraErrorTitle: 'カメラエラー',
         cameraErrorMessage: '写真を撮る際にエラーが発生しました。もう一度お試しください。',
         locationAccessTitle: '位置情報へのアクセスを許可',
@@ -2472,12 +2471,11 @@ ${date} - ${merchant}に${amount}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}と接続すると、経費の自動コーディングと同期が可能になり、月末の結算が容易になります。\n` +
                     '\n' +
-                    '1. *設定*をクリックします。\n' +
-                    '2. *ワークスペース*に移動します。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *会計*をクリックします。\n' +
-                    `5. ${integrationName}を探します。\n` +
-                    '6. *接続*をクリックします。\n' +
+                    '1. *ワークスペース*をクリックします。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *会計*をクリックします。\n' +
+                    `4. ${integrationName}を探します。\n` +
+                    '5. *接続*をクリックします。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -6261,6 +6259,7 @@ ${date} - ${merchant}に${amount}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name}は${value}です`,
         },
         has: '含む',
         groupBy: 'グループ',
