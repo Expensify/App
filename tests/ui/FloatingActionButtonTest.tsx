@@ -32,10 +32,13 @@ jest.mock('react-native-reanimated', () => {
     return {
         ...require('react-native-reanimated/mock'),
         interpolateColor: (value: number, input: number[], output: string[]) => {
-            const [inputMin, inputMax] = input;
+            const [, inputMax] = input;
             const [colorMin, colorMax] = output;
-            // eslint-disable-next-line no-nested-ternary
-            return value <= inputMin ? colorMin : value >= inputMax ? colorMax : colorMin;
+
+            if (value >= inputMax) {
+                return colorMax;
+            }
+            return colorMin;
         },
         useAnimatedStyle: (updater: () => Record<string, unknown>) => {
             mockUseAnimatedStyleUpdater = updater;
