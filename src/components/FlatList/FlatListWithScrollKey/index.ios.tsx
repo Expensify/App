@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
-import type {FlatListProps, LayoutChangeEvent, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
+import type {FlatListProps, LayoutChangeEvent, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import {InteractionManager} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 import FlatList from '..';
@@ -30,24 +30,17 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         contentContainerStyle,
         ...rest
     } = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, listRef} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
         onStartReached,
+        renderItem,
         shouldEnableAutoScrollToTopThreshold,
         ref,
     });
-    const dataIndexDifference = data.length - displayedData.length;
 
-    const handleRenderItem = useCallback(
-        ({item, index, separators}: ListRenderItemInfo<T>) => {
-            // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
-        },
-        [renderItem, dataIndexDifference],
-    );
     const flatListHeight = useRef(0);
     const shouldScrollToEndRef = useRef(false);
 
