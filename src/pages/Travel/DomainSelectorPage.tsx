@@ -1,11 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import TravelDomainListItem from '@components/SelectionListWithSections/TravelDomainListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -81,10 +82,12 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
                 onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
             />
             <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
+            <View style={[styles.optionsListSectionHeader]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('travel.domainSelector.title')}</Text>
+            </View>
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}
-                sections={[{title: translate('travel.domainSelector.title'), data}]}
-                canSelectMultiple
+                data={data}
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
                 footerContent={
