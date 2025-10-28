@@ -121,7 +121,7 @@ GEM
     faraday_middleware (1.2.1)
       faraday (~> 1.0)
     fastimage (2.4.0)
-    fastlane (2.227.1)
+    fastlane (2.228.0)
       CFPropertyList (>= 2.3, < 4.0.0)
       addressable (>= 2.8, < 3.0.0)
       artifactory (~> 3.0)
@@ -242,14 +242,15 @@ GEM
     mutex_m (0.2.0)
     nanaimo (0.3.0)
     nap (1.1.0)
-    naturally (2.2.1)
+    naturally (2.3.0)
     netrc (0.11.0)
     nkf (0.2.0)
+    openssl (3.3.1)
     optparse (0.6.0)
     os (1.1.4)
     plist (3.7.2)
     public_suffix (4.0.7)
-    rake (13.2.1)
+    rake (13.3.0)
     representable (3.2.0)
       declarative (< 0.1.0)
       trailblazer-option (>= 0.1.1, < 0.2.0)
@@ -309,11 +310,12 @@ DEPENDENCIES
   benchmark
   bigdecimal
   cocoapods (= 1.15.2)
-  fastlane (~> 2, >= 2.227.1)
+  fastlane (~> 2, >= 2.228.0)
   fastlane-plugin-aws_s3
   fastlane-plugin-firebase_app_distribution
   logger
   mutex_m
+  openssl (>= 3.3.1)
   xcodeproj (< 1.26.0)
   xcpretty (~> 0)
 
