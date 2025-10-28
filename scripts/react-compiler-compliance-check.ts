@@ -294,8 +294,6 @@ async function filterResultsByDiff(
     // Get the diff between the base ref and the working tree
     const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
 
-    console.log(JSON.stringify(diffResult, null, 2));
-
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
         return {
@@ -355,9 +353,6 @@ async function filterResultsByDiff(
             }
         }
     }
-
-    console.log(filesWithEslintDisable);
-    console.log(linesWithEslintDisableNextLine);
 
     // Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
     function filterFailuresByChangedLines(failures: Map<string, CompilerFailure>) {
