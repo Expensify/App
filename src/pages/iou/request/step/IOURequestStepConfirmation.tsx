@@ -264,6 +264,10 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
+        if (isCreatingTrackExpense && policyForMovingExpensesID !== undefined && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(policyForMovingExpensesID);
+        }
+
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -272,7 +276,7 @@ function IOURequestStepConfirmation({
         if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
         }
-    }, [isOffline, participants, policy?.pendingAction]);
+    }, [isCreatingTrackExpense, isOffline, participants, policy?.pendingAction, policyForMovingExpensesID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -322,7 +326,9 @@ function IOURequestStepConfirmation({
             if (!item.category) {
                 return;
             }
-            if (policyCategories?.[item.category] && !policyCategories[item.category].enabled) {
+
+            // Clear category field when the category doesn't exist for selected policy, or it's disabled
+            if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
                 setMoneyRequestCategory(item.transactionID, '', policy?.id);
             }
         });
@@ -415,7 +421,6 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
-            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
                 const itemReceiptPath = item.receipt?.source;
@@ -426,7 +431,7 @@ function IOURequestStepConfirmation({
                     if (item.receipt) {
                         newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
                     }
-                    return;
+                    return Promise.resolve();
                 }
 
                 const onSuccess = (file: File) => {
@@ -719,6 +724,7 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 },
                 backToReport,
             });
@@ -737,6 +743,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            receiptFiles,
             backToReport,
         ],
     );
@@ -1144,7 +1151,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
@@ -1223,7 +1230,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
                         iouMerchant={transaction?.merchant}
