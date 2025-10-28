@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import SafeString from '@src/utils/SafeString';
 
 type BeneficialOwnerValues = {
     firstName: string;
@@ -41,14 +42,14 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
     } as const;
 
     return {
-        firstName: String(reimbursementAccountDraft[INPUT_KEYS.firstName] ?? ''),
-        lastName: String(reimbursementAccountDraft[INPUT_KEYS.lastName] ?? ''),
-        dob: String(reimbursementAccountDraft[INPUT_KEYS.dob] ?? ''),
-        ssnLast4: String(reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? ''),
-        street: String(reimbursementAccountDraft[INPUT_KEYS.street] ?? ''),
-        city: String(reimbursementAccountDraft[INPUT_KEYS.city] ?? ''),
-        state: String(reimbursementAccountDraft[INPUT_KEYS.state] ?? ''),
-        zipCode: String(reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? ''),
+        firstName: SafeString(reimbursementAccountDraft[INPUT_KEYS.firstName]),
+        lastName: SafeString(reimbursementAccountDraft[INPUT_KEYS.lastName]),
+        dob: SafeString(reimbursementAccountDraft[INPUT_KEYS.dob]),
+        ssnLast4: SafeString(reimbursementAccountDraft[INPUT_KEYS.ssnLast4]),
+        street: SafeString(reimbursementAccountDraft[INPUT_KEYS.street]),
+        city: SafeString(reimbursementAccountDraft[INPUT_KEYS.city]),
+        state: SafeString(reimbursementAccountDraft[INPUT_KEYS.state]),
+        zipCode: SafeString(reimbursementAccountDraft[INPUT_KEYS.zipCode]),
     };
 }
 

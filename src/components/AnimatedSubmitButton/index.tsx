@@ -22,9 +22,12 @@ type AnimatedSubmitButtonProps = {
 
     // Function to call when the animation finishes
     onAnimationFinish: () => void;
+
+    // Whether the button should be disabled
+    isDisabled?: boolean;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -128,6 +131,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                     text={text}
                     onPress={onPress}
                     icon={icon}
+                    isDisabled={isDisabled}
                 />
             )}
         </Animated.View>
