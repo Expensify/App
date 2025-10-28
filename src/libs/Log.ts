@@ -85,6 +85,7 @@ const Log = new Logger({
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
+// eslint-disable-next-line no-restricted-properties
 const appGroupName = HybridAppModule.isHybridApp() ? 'group.com.expensify' : 'group.com.expensify.new';
 AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
