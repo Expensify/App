@@ -85,6 +85,7 @@ const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
 function getiOSVersion() {
     const {browser, os} = UAParser(navigator.userAgent);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (browser.name === 'Mobile Safari' && browser.major === '26' && os.name === 'iOS' && os.version === '18.6') {
         return 26;
     }

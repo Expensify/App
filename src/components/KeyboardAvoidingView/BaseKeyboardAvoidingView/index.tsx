@@ -5,18 +5,18 @@ import React, {useEffect} from 'react';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {KeyboardAvoidingViewProps} from '@components/KeyboardAvoidingView/types';
 import {isMobileSafariOnIos26} from '@libs/Browser';
-import CONST from '@src/CONST';
+import KeyboardUtil from '@src/utils/keyboard';
 
 const isMobileSafariIos26 = isMobileSafariOnIos26();
 
-const initialViewportHeight = window?.visualViewport?.height;
+const BUBBLE_DOMAIN_HEIGHT_SAFARI_26 = 15;
 
 function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
     const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, style, ...rest} = props;
     const sharedValue = useSharedValue(0);
 
     const animatedStyle = useAnimatedStyle(() => {
-        return {paddingBottom: sharedValue.get() * 30}; //testing
+        return {paddingBottom: sharedValue.get() * BUBBLE_DOMAIN_HEIGHT_SAFARI_26};
     });
 
     useEffect(() => {
@@ -42,22 +42,8 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
                 ),
             );
         };
-        const handleResize = () => {
-            const viewportHeight = window?.visualViewport?.height;
 
-            if (!viewportHeight || !initialViewportHeight) {
-                return;
-            }
-
-            const isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
-            handler(isVisible);
-        };
-
-        window.visualViewport?.addEventListener('resize', handleResize);
-
-        return () => {
-            window.visualViewport?.removeEventListener('resize', handleResize);
-        };
+        return KeyboardUtil.subscribeKeyboardVisibilityChange(handler);
     }, [sharedValue]);
 
     return (
