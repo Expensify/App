@@ -56,11 +56,9 @@ describe('WorkspaceMembers', () => {
     const userEmail = 'user@example.com';
     const selfAccountID = 1206;
     const selfEmail = 'test@example.com';
-    // const OWNER_OPTION = 'Owner User';
     const ADMIN_OPTION = 'Admin User';
     const AUDITOR_OPTION = 'Auditor User';
     const USER_OPTION = 'Member User';
-    // const SELF_OPTION = 'Self User';
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
         role: CONST.POLICY.ROLE.ADMIN,
@@ -111,17 +109,21 @@ describe('WorkspaceMembers', () => {
         it('should show Make member/auditor when admin is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
+
             // Wait for initial render and verify members are visible
             await waitFor(() => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
+
             // Select admin option by clicking their checkboxes
             fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
+
             // Wait for selection mode to be active and click the dropdown menu button
             await waitFor(() => {
                 expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
             });
+
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
             fireEvent.press(dropdownButton);
@@ -153,17 +155,21 @@ describe('WorkspaceMembers', () => {
         it('should show Make admin/auditor when member is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
+
             // Wait for initial render and verify members are visible
             await waitFor(() => {
                 expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
             });
+
             // Select member option by clicking their checkboxes
             fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${USER_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
+
             // Wait for selection mode to be active and click the dropdown menu button
             await waitFor(() => {
                 expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
             });
+
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
             fireEvent.press(dropdownButton);
@@ -195,17 +201,21 @@ describe('WorkspaceMembers', () => {
         it('should show Make member/admin when auditor is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
+
             // Wait for initial render and verify members are visible
             await waitFor(() => {
                 expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
             });
+
             // Select auditor option by clicking their checkboxes
             fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
+
             // Wait for selection mode to be active and click the dropdown menu button
             await waitFor(() => {
                 expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
             });
+
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
             fireEvent.press(dropdownButton);
@@ -237,6 +247,7 @@ describe('WorkspaceMembers', () => {
         it('should show Make member/admin/auditor when mix is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
+
             // Wait for initial render and verify members are visible
             await waitFor(() => {
                 expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
@@ -244,15 +255,17 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
+
             // Select options by clicking their checkboxes
             fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
             fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
-
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
+
             // Wait for selection mode to be active and click the dropdown menu button
             await waitFor(() => {
                 expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
             });
+
             // Click the "2 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
             fireEvent.press(dropdownButton);
