@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SelectionListProps, SectionListDataType} from '@components/SelectionListWithSections/types';
+import type {ListItem, SectionListDataType, SelectionListProps} from '@components/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
