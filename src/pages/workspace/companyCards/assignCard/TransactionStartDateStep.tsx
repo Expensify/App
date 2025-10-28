@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,14 +24,40 @@ import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
 
-function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
+type TransactionStartDateSelectionListFooterProps = TransactionStartDateStepProps & {
+    dateOptionSelected: string;
+    startDate: string;
+};
+
+function TransactionStartDateSelectionListFooter({dateOptionSelected, startDate, policyID, feed, backTo}: TransactionStartDateSelectionListFooterProps) {
+    const {translate} = useLocalize();
+
+    if (dateOptionSelected !== CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM) {
+        return null;
+    }
+
+    const onPress = () => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo));
+    };
+
+    return (
+        <MenuItemWithTopDescription
+            description={translate('common.date')}
+            title={startDate}
+            shouldShowRightIcon
+            onPress={onPress}
+        />
+    );
+}
+
+function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
-    const policyID = route.params?.policyID;
-    const backTo = route.params?.backTo;
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -103,9 +129,9 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
-                    sections={[{data: dateOptions}]}
+                    data={dateOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={dateOptionSelected}
+                    initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
                     footerContent={
@@ -118,19 +144,13 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                         />
                     }
                     listFooterContent={
-                        dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                            <MenuItemWithTopDescription
-                                description={translate('common.date')}
-                                title={startDate}
-                                shouldShowRightIcon
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo));
-                                }}
-                            />
-                        ) : null
+                        <TransactionStartDateSelectionListFooter
+                            dateOptionSelected={dateOptionSelected}
+                            startDate={startDate}
+                            policyID={policyID}
+                            feed={feed}
+                            backTo={backTo}
+                        />
                     }
                 />
             </View>
