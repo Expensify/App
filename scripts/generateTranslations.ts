@@ -252,11 +252,6 @@ class TranslationGenerator {
                 result.dispose();
             }
 
-            // Apply dedent formatting to ensure proper indentation
-            const dedentResult = ts.transform(transformedSourceFile, [this.createDedentFormattingTransformer()]);
-            transformedSourceFile = dedentResult.transformed.at(0) ?? transformedSourceFile;
-            dedentResult.dispose();
-
             // Import en.ts (addImport will check if it already exists)
             transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
 
@@ -282,6 +277,12 @@ class TranslationGenerator {
             fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
             // Format the file with prettier
+            await Prettier.format(outputPath);
+
+            // Apply dedent formatting after Prettier so we have accurate source positions
+            this.formatDedentCallsInFile(outputPath);
+
+            // Format again with Prettier to ensure consistent formatting after dedent transformation
             await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
@@ -906,6 +907,25 @@ class TranslationGenerator {
             }
             return {action: TransformerAction.Continue};
         });
+    }
+
+    /**
+     * Format all dedent() calls in a file to ensure proper indentation.
+     * This should be called after Prettier has formatted the file.
+     */
+    private formatDedentCallsInFile(filePath: string): void {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
+
+        const result = ts.transform(sourceFile, [this.createDedentFormattingTransformer()]);
+        const transformedFile = result.transformed.at(0);
+
+        if (transformedFile) {
+            const formattedCode = decodeUnicode(tsPrinter.printFile(transformedFile));
+            fs.writeFileSync(filePath, formattedCode, 'utf8');
+        }
+
+        result.dispose();
     }
 
     /**
