@@ -21,7 +21,6 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
-// jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: false}));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 

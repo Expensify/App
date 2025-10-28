@@ -26,6 +26,8 @@ describe('FloatingReceiptButton hover', () => {
 
     it('changes background color on hover', () => {
         renderFAB();
+
+        // Get the receipt button by testID
         const frb = screen.getByTestId('floating-receipt-button');
 
         // Get the container by testID
