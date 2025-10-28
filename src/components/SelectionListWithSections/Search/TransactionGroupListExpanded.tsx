@@ -94,7 +94,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -207,7 +207,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
                     {!isLastTransaction(index) && !isLargeScreenWidth && (
                         <View style={[styles.ph3]}>
-                            <View style={[transaction.isSelected ? styles.borderBottomHovered : styles.borderBottom]} />
+                            <View style={styles.borderBottom} />
                         </View>
                     )}
                 </OfflineWithFeedback>
