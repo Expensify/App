@@ -12977,7 +12977,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             const newExpenseReport = buildOptimisticExpenseReport(
                 report.chatReportID,
                 report?.policyID,
-                userAccountID,
+                report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
                 transactionAmount,
                 getCurrency(transaction),
                 transactionAmount,
