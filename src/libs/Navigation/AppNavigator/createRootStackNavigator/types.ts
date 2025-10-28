@@ -1,4 +1,5 @@
 import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
 
@@ -48,7 +49,7 @@ type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
 
-type RootStackNavigatorRouterOptions = StackRouterOptions;
+type RootStackNavigatorRouterOptions = StackRouterOptions & {translate: LocalizedTranslate};
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 

@@ -73,8 +73,7 @@ describe('AvatarSelector', () => {
         });
     });
 
-    // TODO uncomment when we add ALL_CUSTOM_AVATARS https://github.com/Expensify/App/pull/72542
-    xdescribe('CUSTOM_AVATAR_CATALOG avatars', () => {
+    describe('CUSTOM_AVATAR_CATALOG avatars', () => {
         it('renders all avatars from custom catalog', async () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
@@ -181,8 +180,7 @@ describe('AvatarSelector', () => {
             expect(selectedAvatar).toBeOnTheScreen();
         });
 
-        // TODO uncomment when we add ALL_CUSTOM_AVATARS https://github.com/Expensify/App/pull/72542
-        xit('renders both custom and letter avatars when firstName is provided', async () => {
+        it('renders both custom and letter avatars when firstName is provided', async () => {
             renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 

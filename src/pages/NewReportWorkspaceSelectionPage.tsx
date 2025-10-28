@@ -13,17 +13,18 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {changeTransactionsReport} from '@userActions/Transaction';
@@ -53,12 +54,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -133,13 +135,30 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         ],
     );
 
+    const hasPerDiemTransactions = useMemo(() => {
+        if (selectedTransactionIDs && selectedTransactionIDs.length > 0 && allTransactions) {
+            return selectedTransactionIDs.some((transactionID) => {
+                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return transaction && isPerDiemRequest(transaction);
+            });
+        }
+
+        return false;
+    }, [selectedTransactionIDs, allTransactions]);
+
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
         }
 
         return Object.values(policies)
-            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
+            .filter(
+                (policy) =>
+                    shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) &&
+                    !policy?.isJoinRequestPending &&
+                    policy?.isPolicyExpenseChatEnabled &&
+                    (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),
+            )
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
@@ -157,7 +176,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 shouldSyncFocus: true,
             }))
             .sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, isOffline, currentUserPersonalDetails?.login, localeCompare]);
+    }, [policies, isOffline, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),

@@ -49,15 +49,15 @@ function ReportFieldsInitialValuePage({
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (currentInitialValue !== values.initialValue) {
-                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+                updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue});
             }
             Navigation.goBack();
         },
-        [policyID, reportFieldID, currentInitialValue],
+        [currentInitialValue, policy, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
-        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
+        updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: currentInitialValue === value ? '' : value});
         Navigation.goBack();
     };
 
@@ -87,6 +87,7 @@ function ReportFieldsInitialValuePage({
     }
 
     const isTextFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
+    const isFormulaFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     return (
@@ -111,7 +112,7 @@ function ReportFieldsInitialValuePage({
                     </View>
                 )}
 
-                {isTextFieldType && (
+                {(isTextFieldType || isFormulaFieldType) && (
                     <FormProvider
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
@@ -120,7 +121,7 @@ function ReportFieldsInitialValuePage({
                         validate={validateForm}
                         style={styles.flex1}
                         enabledWhenOffline
-                        isSubmitButtonVisible={isTextFieldType}
+                        isSubmitButtonVisible
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >
