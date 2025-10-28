@@ -7,13 +7,13 @@ import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
-import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -5324,12 +5324,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        wideRHPExtendedCardInterpolatorStyles: {
+        wideRHPExtendedCardInterpolatorStyles: (windowWidth: number) => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
-        },
+            width: Animated.add(variables.sideBarWidth, calculateReceiptPaneRHPWidth(windowWidth)),
+        }),
+
+        superWideRHPExtendedCardInterpolatorStyles: (windowWidth: number) => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            height: '100%',
+            right: 0,
+            width: Animated.subtract(windowWidth, variables.navigationTabBarSize + variables.sideBarWithLHBWidth),
+        }),
 
         flexibleHeight: {
             height: 'auto',

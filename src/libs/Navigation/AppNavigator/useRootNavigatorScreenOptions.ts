@@ -1,9 +1,10 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
+import {useContext} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import {expandedRHPProgress} from '@components/WideRHPContextProvider';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ const useRootNavigatorScreenOptions = () => {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
+    const {expandedRHPProgress} = useContext(WideRHPContext);
 
     return {
         rightModalNavigator: {
@@ -54,7 +56,7 @@ const useRootNavigatorScreenOptions = () => {
                         // Adjust output range to match the wide RHP size
                         outputRangeMultiplier: isSmallScreenWidth
                             ? undefined
-                            : Animated.add(Animated.multiply(expandedRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
+                            : Animated.add(Animated.multiply(expandedRHPProgress.get(), variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
                     }),
             },
         },

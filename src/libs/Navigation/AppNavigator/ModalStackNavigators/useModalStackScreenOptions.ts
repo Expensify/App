@@ -4,6 +4,7 @@ import {useCallback, useContext} from 'react';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,17 +17,22 @@ function useModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const {windowWidth} = useWindowDimensions();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
             let cardStyleInterpolator;
 
-            if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+            if (superWideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles(windowWidth),
+                });
+            } else if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
                 // We need to use interpolator styles instead of regular card styles so we can use animated value for width.
                 // It is necessary to have responsive width of the wide RHP for range 800px to 840px.
                 cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
-                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles(windowWidth),
                 });
             } else {
                 cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
@@ -45,7 +51,7 @@ function useModalStackScreenOptions() {
                 },
             };
         },
-        [isSmallScreenWidth, styles.navigationScreenCardStyle, styles.wideRHPExtendedCardInterpolatorStyles, wideRHPRouteKeys],
+        [isSmallScreenWidth, styles, superWideRHPRouteKeys, wideRHPRouteKeys, windowWidth],
     );
 }
 

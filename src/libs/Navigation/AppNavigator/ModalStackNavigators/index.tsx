@@ -35,6 +35,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
+    SearchMoneyRequestReportParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
     SetDefaultWorkspaceNavigatorParamList,
@@ -833,6 +834,9 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
+});
+
+const SearchMoneyRequestReportNavigator = createModalStackNavigator<SearchMoneyRequestReportParamList>({
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
 });
 
@@ -963,4 +967,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    SearchMoneyRequestReportNavigator,
 };

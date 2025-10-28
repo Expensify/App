@@ -1,13 +1,14 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
@@ -16,6 +17,7 @@ import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptio
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -27,11 +29,27 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {shouldRenderSecondaryOverlay, secondOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, shouldRenderThirdOverlay, thirdOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
+    const {windowWidth} = useWindowDimensions();
+
+    const animatedStyle = useAnimatedStyle(() => {
+        const width = interpolate(
+            expandedRHPProgress.get(),
+            [0, 1, 2],
+            [variables.sideBarWidth, variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth), windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth],
+        );
+
+        return {
+            height: '100%',
+            right: 0,
+            position: 'absolute',
+            overflow: 'hidden',
+            width: shouldUseNarrowLayout ? '100%' : width,
+        };
+    });
 
     const screenListeners = useMemo(
         () => ({
@@ -71,7 +89,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View style={[styles.animatedRHPNavigatorContainer, styles.animatedRHPNavigatorContainerWidth(shouldUseNarrowLayout, expandedRHPProgress)]}>
+                <Animated.View style={[animatedStyle]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}
@@ -231,6 +249,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             component={ModalStackNavigators.SearchReportModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
+                            component={ModalStackNavigators.SearchMoneyRequestReportNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}

@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useShowSuperWideRHPVersion} from '@components/WideRHPContextProvider';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -77,6 +78,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
+
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
+    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+
+    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
