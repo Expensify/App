@@ -1,8 +1,12 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,19 +66,26 @@ function ProcessMoneyReportHoldMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations);
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(moneyRequestReport, full);
+            approveMoneyRequest(moneyRequestReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, full);
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy);
         }
         onClose();
     };

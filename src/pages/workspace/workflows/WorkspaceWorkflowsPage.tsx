@@ -7,7 +7,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {Plus} from '@components/Icon/Expensicons';
-import {Workflows} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -16,6 +15,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +64,7 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-
+    const illustrations = useMemoizedLazyIllustrations(['Workflows'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -78,6 +78,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [isDisableApprovalsConfirmModalOpen, setIsDisableApprovalsConfirmModalOpen] = useState(false);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -140,13 +141,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const confirmDisableApprovals = useCallback(() => {
+        setIsDisableApprovalsConfirmModalOpen(false);
+        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+    }, [route.params.policyID, policy?.owner]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -219,6 +225,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (!isEnabled) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
@@ -407,7 +417,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={Workflows}
+                icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
@@ -441,6 +451,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     )}
                 </View>
+                <ConfirmModal
+                    title={translate('workspace.bankAccount.areYouSure')}
+                    isVisible={isDisableApprovalsConfirmModalOpen}
+                    onConfirm={confirmDisableApprovals}
+                    onCancel={() => setIsDisableApprovalsConfirmModalOpen(false)}
+                    prompt={translate('workflowsPage.disableApprovalPromptDescription')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
