@@ -2234,6 +2234,30 @@ describe('ReportUtils', () => {
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
+
+        it('returns true for expense report awaiting submission with manual submit', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                policyID: '1',
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(100, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            // The GBR should appear on the policy expense chat but not on the report itself
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
@@ -3420,7 +3444,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, invoiceReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -3460,7 +3484,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, expenseReport, undefined, transaction);
 
             expect(canEditRequest).toEqual(true);
         });

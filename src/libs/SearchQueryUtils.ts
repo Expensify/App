@@ -375,22 +375,6 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Normalizes the value into a single string.
- * - If it's an array, returns the first element.
- * - Otherwise, returns the value as is.
-
- * @param value - The raw field value from SearchQueryJSON
- * @returns The normalized field value
- */
-function normalizeValue<T>(value: T | T[]): T {
-    if (Array.isArray(value)) {
-        return value.at(0) as T;
-    }
-
-    return value;
-}
-
-/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -412,14 +396,6 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
-        }
-
-        if (result.groupBy) {
-            result.groupBy = normalizeValue(result.groupBy);
-        }
-
-        if (result.type) {
-            result.type = normalizeValue(result.type);
         }
 
         return result;
