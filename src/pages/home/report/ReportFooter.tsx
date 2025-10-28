@@ -25,7 +25,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -121,7 +120,7 @@ function ReportFooter({
 
     const allPersonalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = getCurrentUserEmail();
+    const currentUserEmail = personalDetail.email ?? '';
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -146,7 +145,7 @@ function ReportFooter({
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
                         const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID, personalDetail.accountID);
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
@@ -156,10 +155,22 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
+            createTaskAndNavigate({
+                parentReportID: report.reportID,
+                title,
+                description: '',
+                assigneeEmail: assignee?.login ?? '',
+                currentUserAccountID: personalDetail.accountID,
+                currentUserEmail,
+                assigneeAccountID: assignee?.accountID,
+                assigneeChatReport,
+                policyID: report.policyID,
+                isCreatedUsingMarkdown: true,
+                quickAction,
+            });
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
