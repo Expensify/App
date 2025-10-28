@@ -315,7 +315,7 @@ type PureReportActionItemProps = {
         reportAction: OnyxTypes.ReportAction,
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number | undefined,
+        paramSkinTone: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
