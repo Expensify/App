@@ -125,6 +125,12 @@ class TranslationGenerator {
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
+    /**
+     * Set of translation keys for strings that are arguments to dedent() calls.
+     * These need special handling to preserve whitespace structure.
+     */
+    private readonly dedentStringKeys = new Set<number>();
+
     constructor(config: {
         targetLanguages: TranslationTargetLocale[];
         languagesDir: string;
@@ -180,7 +186,25 @@ class TranslationGenerator {
                     // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                     continue;
                 }
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
+
+                // Special handling for dedent strings - preserve leading newline
+                let textToTranslate = text;
+                let hadLeadingNewline = false;
+                if (this.dedentStringKeys.has(key)) {
+                    hadLeadingNewline = text.startsWith('\n');
+                    textToTranslate = dedent(text);
+                }
+
+                const translationPromise = promisePool.add(async () => {
+                    let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+
+                    // Special handling for dedent strings - add back leading newline if it was removed
+                    if (hadLeadingNewline) {
+                        result = `\n${result}`;
+                    }
+
+                    translationsForLocale.set(key, result);
+                });
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
@@ -227,6 +251,11 @@ class TranslationGenerator {
                 transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
                 result.dispose();
             }
+
+            // Apply dedent formatting to ensure proper indentation
+            const dedentResult = ts.transform(transformedSourceFile, [this.createDedentFormattingTransformer()]);
+            transformedSourceFile = dedentResult.transformed.at(0) ?? transformedSourceFile;
+            dedentResult.dispose();
 
             // Import en.ts (addImport will check if it already exists)
             transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
@@ -375,6 +404,18 @@ class TranslationGenerator {
     }
 
     /**
+     * Check if a node is a direct argument to a dedent() call.
+     */
+    private isArgumentToDedent(node: ts.Node): boolean {
+        if (!node.parent || !ts.isCallExpression(node.parent)) {
+            return false;
+        }
+
+        const callExpression = node.parent;
+        return ts.isIdentifier(callExpression.expression) && callExpression.expression.text === 'dedent' && callExpression.arguments.includes(node as ts.Expression);
+    }
+
+    /**
      * Is a given expression (i.e: template placeholder) "simple"?
      * We define an expression as "simple" if it is an identifier or property access expression. Anything else is complex.
      *
@@ -492,6 +533,11 @@ class TranslationGenerator {
 
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
+
+            // Track if this node is an argument to dedent()
+            if (this.isArgumentToDedent(node)) {
+                this.dedentStringKeys.add(translationKey);
+            }
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
@@ -856,6 +902,75 @@ class TranslationGenerator {
             }
             return {action: TransformerAction.Continue};
         });
+    }
+
+    /**
+     * Create a transformer that formats dedent() call arguments with proper indentation.
+     * This runs after translation to ensure that template strings inside dedent() calls
+     * have the correct indentation structure.
+     */
+    private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            return (sourceFile: ts.SourceFile) => {
+                const visit = (node: ts.Node): ts.Node => {
+                    // Check if this is a call to dedent()
+                    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'dedent' && node.arguments.length > 0) {
+                        const argument = node.arguments[0];
+
+                        // Get the indentation of the line containing the dedent call
+                        const dedentIndentation = TSCompilerUtils.getIndentationOfNode(node, sourceFile);
+
+                        // The content inside dedent should be indented by dedentIndentation + 4
+                        const targetIndentation = dedentIndentation + 4;
+
+                        if (ts.isNoSubstitutionTemplateLiteral(argument)) {
+                            // Format the template literal content
+                            const formattedText = this.formatDedentTemplateContent(argument.text, targetIndentation);
+
+                            // Create a new template literal with the formatted text
+                            const newArgument = ts.factory.createNoSubstitutionTemplateLiteral(formattedText);
+
+                            // Create a new call expression with the formatted argument
+                            return ts.factory.createCallExpression(node.expression, node.typeArguments, [newArgument]);
+                        }
+
+                        if (ts.isTemplateExpression(argument)) {
+                            // TODO: Handle template expressions with substitutions
+                            // Format head and each template span's literal part
+                            return node;
+                        }
+                    }
+
+                    return ts.visitEachChild(node, visit, context);
+                };
+
+                return ts.visitNode(sourceFile, visit) as ts.SourceFile;
+            };
+        };
+    }
+
+    /**
+     * Format the content of a template literal inside a dedent() call.
+     * Adds the specified base indentation to each line while preserving relative indentation.
+     */
+    private formatDedentTemplateContent(text: string, baseIndentation: number): string {
+        const lines = text.split('\n');
+        const formattedLines: string[] = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines.at(i);
+            const isLastLine = i === lines.length - 1;
+
+            if (isLastLine && line?.trim().length === 0) {
+                // The last line (before closing backtick) should be indented at the dedent call's level
+                const closingIndent = baseIndentation - 4;
+                formattedLines.push(' '.repeat(Math.max(0, closingIndent)));
+            } else {
+                formattedLines.push(`${' '.repeat(baseIndentation)}${line ?? ''}`.trimEnd());
+            }
+        }
+
+        return formattedLines.join('\n');
     }
 
     /**
