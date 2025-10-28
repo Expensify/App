@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
-const cachedImageDimensions = new Map<string, ContentSize | undefined>();
+const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
 type LightboxProps = {
     /** Whether source url requires authentication */
