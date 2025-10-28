@@ -968,5 +968,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
-    WorkspacesDomainModalStackNavigator as DomainModalStackNavigator,
+    WorkspacesDomainModalStackNavigator,
 };

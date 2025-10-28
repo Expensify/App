@@ -258,7 +258,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.DOMAIN}
-                            component={ModalStackNavigators.DomainModalStackNavigator}
+                            component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
                         />
                     </Stack.Navigator>
                 </Animated.View>
