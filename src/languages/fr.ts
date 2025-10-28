@@ -1060,8 +1060,6 @@ const translations = {
         dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
-        chooseReceipt: 'Choisissez un reçu à télécharger ou transférez un reçu à',
-        chooseReceipts: 'Choisissez des reçus à télécharger ou transférez des reçus à',
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Télécharger l’application</a> pour scanner depuis votre téléphone</label-text>`,
@@ -1071,8 +1069,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envoyez des reçus par SMS au ${phoneNumber} (numéros US uniquement)</label-text>`,
         takePhoto: 'Prendre une photo',
         cameraAccess: "L'accès à la caméra est requis pour prendre des photos des reçus.",
-        deniedCameraAccess: "L'accès à la caméra n'a toujours pas été accordé, veuillez suivre",
-        deniedCameraAccessInstructions: 'ces instructions',
+        deniedCameraAccess: `L'accès à la caméra n'a toujours pas été accordé, veuillez suivre <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">ces instructions</a>.`,
         cameraErrorTitle: 'Erreur de caméra',
         cameraErrorMessage: "Une erreur s'est produite lors de la prise de la photo. Veuillez réessayer.",
         locationAccessTitle: "Autoriser l'accès à la localisation",
@@ -2484,12 +2481,11 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connectez${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '-vous à votre' : '-vous à'} ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n` +
                     '\n' +
-                    '1. Cliquez sur *Paramètres*.\n' +
-                    '2. Accédez à *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Comptabilité*.\n' +
-                    `5. Trouvez ${integrationName}.\n` +
-                    '6. Cliquez sur *Connecter*.\n\n' +
+                    '1. Cliquez sur *Espaces de travail*.\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Comptabilité*.\n' +
+                    `4. Trouvez ${integrationName}.\n` +
+                    '5. Cliquez sur *Connecter*.\n\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
                             ? `[Accéder à la comptabilité](${workspaceAccountingLink}).\n\n![Connecter ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`

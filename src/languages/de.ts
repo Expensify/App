@@ -1064,8 +1064,6 @@ const translations = {
         dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
         desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
         desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
-        chooseReceipt: 'Wählen Sie eine Quittung zum Hochladen aus oder leiten Sie eine Quittung weiter an',
-        chooseReceipts: 'Wählen Sie Quittungen zum Hochladen aus oder leiten Sie Quittungen weiter an ',
         alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">App herunterladen</a>, um mit Ihrem Telefon zu scannen</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Leiten Sie Belege an <a href="mailto:${email}">${email}</a> weiter</label-text>`,
@@ -1074,8 +1072,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Senden Sie Belege per SMS an ${phoneNumber} (nur US-Nummern)</label-text>`,
         takePhoto: 'Ein Foto machen',
         cameraAccess: 'Der Kamerazugriff ist erforderlich, um Fotos von Belegen zu machen.',
-        deniedCameraAccess: 'Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie',
-        deniedCameraAccessInstructions: 'diese Anweisungen',
+        deniedCameraAccess: `Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">diese Anweisungen</a>.`,
         cameraErrorTitle: 'Kamerafehler',
         cameraErrorMessage: 'Beim Aufnehmen eines Fotos ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         locationAccessTitle: 'Standortzugriff erlauben',
@@ -2487,12 +2484,11 @@ ${amount} für ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
                     '\n' +
-                    '1. Klicke auf *Einstellungen*.\n' +
-                    '2. Gehe zu *Workspaces*.\n' +
-                    '3. Wähle deinen Workspace.\n' +
-                    '4. Klicke auf *Buchhaltung*.\n' +
-                    `5. Finde ${integrationName}.\n` +
-                    '6. Klicke auf *Verbinden*.\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Buchhaltung*.\n' +
+                    `4. Finde ${integrationName}.\n` +
+                    '5. Klicke auf *Verbinden*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
