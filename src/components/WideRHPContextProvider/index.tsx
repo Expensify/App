@@ -5,13 +5,18 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
@@ -74,12 +79,25 @@ const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dime
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
+const expenseReportSelector = (reports: OnyxCollection<Report>) => {
+    return Object.fromEntries(
+        Object.entries(reports ?? {}).map(([key, report]) => [
+            key,
+            {
+                reportID: report?.reportID,
+                type: report?.type,
+            },
+        ]),
+    );
+};
+
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
     // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     // Return undefined if RHP is not the last route
     const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
@@ -205,13 +223,22 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * This enables optimistic wide RHP display for expense reports.
      * It helps us open expense as wide, before it fully loads.
      */
-    const markReportIDAsExpense = useCallback((reportID: string) => {
-        setExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(reportID);
-            return newSet;
-        });
-    }, []);
+    const markReportIDAsExpense = useCallback(
+        (reportID: string) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
+            const isTask = report?.type === CONST.REPORT.TYPE.TASK;
+            if (isInvoice || isTask) {
+                return;
+            }
+            setExpenseReportIDs((prev) => {
+                const newSet = new Set(prev);
+                newSet.add(reportID);
+                return newSet;
+            });
+        },
+        [allReports],
+    );
 
     /**
      * Checks if a report ID is marked as an expense report.
@@ -317,7 +344,7 @@ function useShowWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 cleanWideRHPRouteKey(route);
             });

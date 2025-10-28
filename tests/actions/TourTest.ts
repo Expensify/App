@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {startTestDrive} from '@libs/actions/Tour';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -39,14 +38,14 @@ describe('actions/Tour', () => {
     describe('startTestDrive', () => {
         describe('migrated users', () => {
             it('should show the Test Drive demo if user has been nudged to migrate', async () => {
-                startTestDrive(undefined, false, true, false, undefined, undefined, false);
+                startTestDrive(undefined, false, true, false, undefined, undefined, false, 2);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it("should show the Test Drive demo if user doesn't have the nudge flag but is member of a paid policy", async () => {
-                startTestDrive(undefined, false, false, true, undefined, undefined, false);
+                startTestDrive(undefined, false, false, true, undefined, undefined, false, 2);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -64,7 +63,9 @@ describe('actions/Tour', () => {
                 const testDriveTaskAction: ReportAction = {
                     ...LHNTestUtils.getFakeReportAction(),
                     childType: CONST.REPORT.TYPE.TASK,
-                    childReportName: Parser.replace(translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`})),
+                    childReportName: Parser.replace(
+                        TestHelper.translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`}),
+                    ),
                     childReportID: testDriveTaskReport.reportID,
                 };
 
@@ -85,14 +86,14 @@ describe('actions/Tour', () => {
             it.each(onboardingChoices.filter((choice) => onboardingDemoChoices.includes(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
                 await setTestDriveTaskData();
 
-                startTestDrive({choice}, false, false, false, testDriveTaskReport, conciergeChatReport, false);
+                startTestDrive({choice}, false, false, false, testDriveTaskReport, conciergeChatReport, false, accountID);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
-                startTestDrive({choice}, false, false, false, undefined, undefined, false);
+                startTestDrive({choice}, false, false, false, undefined, undefined, false, accountID);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -109,6 +110,7 @@ describe('actions/Tour', () => {
                     testDriveTaskReport,
                     conciergeChatReport,
                     false,
+                    accountID,
                 );
                 await waitForBatchedUpdates();
 
@@ -116,7 +118,7 @@ describe('actions/Tour', () => {
             });
 
             it('should show the Test Drive demo if user is member of a paid policy', async () => {
-                startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true, testDriveTaskReport, conciergeChatReport, false);
+                startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true, testDriveTaskReport, conciergeChatReport, false, accountID);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);

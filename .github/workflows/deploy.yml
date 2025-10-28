@@ -298,6 +298,18 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+        # v6.0.0
+      - name: Setup Python for node-gyp
+        id: setup-python
+        uses: actions/setup-python@18566f86b301499665bd3eb1a2247e0849c64fa5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: desktop/requirements.txt
+
+      - name: Ensure setuptools for node-gyp
+        run: pip install --upgrade -r desktop/requirements.txt
+
       - name: Load Desktop credentials from 1Password
         id: load-credentials
         # v2
