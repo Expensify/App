@@ -326,7 +326,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contagem',
         cancel: 'Cancelar',
@@ -595,7 +595,6 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -662,8 +661,6 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Obtenha o aplicativo',
-        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
