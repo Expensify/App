@@ -156,6 +156,7 @@ async function getGitHubData() {
             const type = getIssueTypeFromLabels(labels);
             let capSWProjects = '';
             if (type === 'feature') {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 capSWProjects = await getProjectsForIssue(issueNumber);
             }
             gitHubData.push({
