@@ -166,6 +166,11 @@ jobs:
             GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ steps.pr-data.outputs.PR_NUMBER }}" --filename "translations.patch")
             GIST_ID="${GIST_URL##*/}"
             PARROT_FOOTER_WITH_CMD="${PARROT_FOOTER}, or directly by running \`gh gist view --raw ${GIST_ID} | git apply\`"
+            DISCLAIMER="$(cat <<'EOF'
+            > [!WARNING]
+            > For very large diffs, `gh gist view --raw` may not work as expected due to https://github.com/cli/cli/issues/11739. If you encuonter that, just copy the raw diff in your web browser and run `pbpaste | git apply`.
+            EOF
+            )"
             {
               echo "$PARROT_HEADER"
               echo
@@ -176,6 +181,7 @@ jobs:
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo
               echo "$PARROT_FOOTER_WITH_CMD 😉"
+              echo "$DISCLAIMER"
             } > "$TEMP_COMMENT_FILE"
           fi
 
