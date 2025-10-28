@@ -12796,7 +12796,7 @@ class Git {
         }
     }
     static async getMainBranchCommitHash(remote) {
-        const baseRefName = GITHUB_BASE_REF ?? CONST_1.default.DEFAULT_BASE_REF;
+        const baseRefName = GITHUB_BASE_REF ?? 'main';
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
             await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
