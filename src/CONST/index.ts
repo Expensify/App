@@ -6666,6 +6666,16 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'reportField',
+        },
+        REPORT_FIELD: {
+            // All report fields start with this, so use this to check if a search key is a report field
+            GLOBAL_PREFIX: 'reportField',
+            DEFAULT_PREFIX: 'reportField-',
+            NOT_PREFIX: 'reportFieldNot-',
+            ON_PREFIX: 'reportFieldOn-',
+            AFTER_PREFIX: 'reportFieldAfter-',
+            BEFORE_PREFIX: 'reportFieldBefore-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6719,6 +6729,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawal-id',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'report-field',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
