@@ -27,9 +27,6 @@ function MultiFactorAuthentication2FAPage() {
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
 
-    /**
-     * Handle text input and clear formError upon text change
-     */
     const clearAccountErrorsIfPresent = useCallback(() => {
         if (!account?.errors) {
             return;
