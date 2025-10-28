@@ -549,6 +549,8 @@ const SCREENS = {
             SAGE_INTACCT_ACCOUNTING_METHOD: 'Policy_Accounting_Sage_Intacct_Accounting_Method',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
+            CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Quickbooks_Desktop_Auto_Sync',
+            CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
         INITIAL: 'Workspace_Initial',

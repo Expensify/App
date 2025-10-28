@@ -1439,13 +1439,32 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync',
-        getRoute: (policyID?: string, backTo?: string) => {
+        getRoute: (policyID?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
             }
 
-            // eslint-disable-next-line no-restricted-syntax
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const, backTo);
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/card-reconciliation/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/card-reconciliation/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/card-reconciliation/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/sage-intacct/card-reconciliation/autosync` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
@@ -1736,7 +1755,13 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const,
+        getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_CARD_RECONCILIATION route');
+            }
+
+            return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',

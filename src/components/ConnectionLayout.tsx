@@ -130,7 +130,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
