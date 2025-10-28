@@ -1319,6 +1319,7 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: undefined,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -1330,6 +1331,7 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: activeExpensifyCard,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe(

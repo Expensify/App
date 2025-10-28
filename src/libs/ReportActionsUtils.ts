@@ -3132,12 +3132,14 @@ function getCardIssuedMessage({
     policyID = '-1',
     expensifyCard,
     companyCard,
+    translate,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
+    translate: LocaleContextProps['translate'];
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -3150,38 +3152,29 @@ function getCardIssuedMessage({
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
-            ? // eslint-disable-next-line @typescript-eslint/no-deprecated
-              `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
-            : // eslint-disable-next-line @typescript-eslint/no-deprecated
-              translateLocal('workspace.companyCards.companyCard');
+            ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
+            : translate('workspace.companyCards.companyCard');
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED: {
             if (cardIssuedActionOriginalMessage?.hadMissingAddress) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
+                return translate('workspace.expensifyCard.addedShippingDetails', {assignee});
             }
-            return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
+            return translate('workspace.expensifyCard.issuedCard', {assignee});
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.card'))});
+            return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
+            return translate('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
+            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.replacementCard'))});
+            return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
+            return translate('workspace.expensifyCard.replacedCard', {assignee});
         default:
             return '';
     }
