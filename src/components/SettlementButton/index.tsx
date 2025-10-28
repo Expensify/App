@@ -189,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID]);
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
