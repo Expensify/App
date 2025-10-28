@@ -21,7 +21,7 @@ function AddDelegatePage() {
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(
@@ -48,8 +48,13 @@ function AddDelegatePage() {
     });
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, debouncedSearchTerm);
-    }, [availableOptions, debouncedSearchTerm]);
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm,
+            countryCode,
+        );
+    }, [availableOptions, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];

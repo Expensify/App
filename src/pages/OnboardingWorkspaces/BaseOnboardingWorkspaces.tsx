@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -133,6 +133,19 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         Navigation.goBack();
     }, []);
 
+    const skipJoiningWorkspaces = () => {
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            return;
+        }
+
+        if (isSmb) {
+            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -147,14 +160,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
-                sections={[{data: policyIDItems}]}
+                data={policyIDItems}
                 onSelectRow={() => {}}
                 ListItem={UserListItem}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
                 showLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
-                headerContent={
+                customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
                         <Text style={[styles.textSupporting, styles.mt3]}>
@@ -183,16 +196,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
                                 return;
                             }
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                            skipJoiningWorkspaces();
                         }}
                         style={[styles.mt5]}
                     />
