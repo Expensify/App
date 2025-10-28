@@ -72,7 +72,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErro
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
-import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -4544,9 +4543,7 @@ function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean | undefined,
-    policy?: OnyxEntry<Policy>,
 ) {
     if (!reportAction || !reportID) {
         return;
@@ -4634,7 +4631,7 @@ function resolveActionableMentionConfirmWhisper(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, isReportArchived, undefined);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, isReportArchived);
 }
 
 function resolveActionableReportMentionWhisper(
