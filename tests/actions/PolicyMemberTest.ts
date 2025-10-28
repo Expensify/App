@@ -458,7 +458,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing am admin, auditor, and user members
             mockFetch?.pause?.();
-            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
+            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID, []);
 
             await waitForBatchedUpdates();
 
@@ -517,7 +517,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers([userAccountID], policyID);
+            Member.removeMembers([userAccountID], policyID, []);
 
             await waitForBatchedUpdates();
 
