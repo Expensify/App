@@ -7263,17 +7263,19 @@ ${amount} para ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Detalles del recibo y del gasto añadidos manualmente.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Recibo obligatorio';
-            if (formattedLimit ?? category) {
-                message += ' para importes sobre';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += ' el límite de la categoría';
-                }
+            if (formattedLimit && category) {
+                return `Recibo obligatorio para importes sobre ${formattedLimit} el límite de la categoría`;
             }
-            return message;
+
+            if (formattedLimit) {
+                return `Recibo obligatorio para importes sobre ${formattedLimit}`;
+            }
+
+            if (category) {
+                return 'Recibo obligatorio para importes sobre el límite de la categoría';
+            }
+
+            return 'Recibo obligatorio';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Gasto prohibido:';
