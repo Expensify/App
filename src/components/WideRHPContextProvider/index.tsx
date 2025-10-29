@@ -80,6 +80,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
+    const [navigationUpdateTrigger, setNavigationUpdateTrigger] = useState(false);
 
     // Return undefined if RHP is not the last route
     const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
@@ -95,6 +96,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return undefined;
         }
 
+        // Trigger recalculation of wideRHPRouteKeys after navigation initialization
+        // This ensures proper wide RHP display on page reload or deep links when lastVisibleRHPRouteKey becomes available
+        setNavigationUpdateTrigger(true);
         return state?.routes.at(lastRHPRouteIndex)?.key;
     });
 
@@ -119,7 +123,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         // recalculation when RHP closes, allowing smooth closing animations to complete
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allWideRHPRouteKeys]);
+    }, [allWideRHPRouteKeys, navigationUpdateTrigger]);
 
     /**
      * Determines whether the secondary overlay should be displayed.
