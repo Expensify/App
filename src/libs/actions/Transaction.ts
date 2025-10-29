@@ -117,10 +117,10 @@ type SaveWaypointProps = {
     index: string;
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
-    recentWaypointsList: RecentWaypoint[];
+    recentWaypointsList?: RecentWaypoint[];
 };
 
-function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList}: SaveWaypointProps) {
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = []}: SaveWaypointProps) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {

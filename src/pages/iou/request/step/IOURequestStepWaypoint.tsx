@@ -126,9 +126,6 @@ function IOURequestStepWaypoint({
     };
 
     const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
-        if (!allRecentWaypoints) {
-            return;
-        }
         saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
     };
 
@@ -164,10 +161,6 @@ function IOURequestStepWaypoint({
     };
 
     const selectWaypoint = (values: Waypoint) => {
-        if (!allRecentWaypoints) {
-            return;
-        }
-
         const waypoint = {
             lat: values.lat ?? 0,
             lng: values.lng ?? 0,
