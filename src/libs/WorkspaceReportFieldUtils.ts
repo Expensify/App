@@ -5,6 +5,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
+import {FORMULA_PART_TYPES, parse} from './Formula';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {isRequiredFulfilled} from './ValidationUtils';
@@ -89,4 +90,22 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null): stri
     return reportField.value ?? reportField.defaultValue;
 }
 
-export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName, generateFieldID, getReportFieldInitialValue};
+/**
+ * Determine if a string contains any recognized formula parts (e.g., {report:id}).
+ * Only returns true when at least one parsed part is not free text.
+ */
+function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
+    if (!initialValue || typeof initialValue !== 'string') {
+        return false;
+    }
+    return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
+}
+
+export {
+    getReportFieldTypeTranslationKey,
+    getReportFieldAlternativeTextTranslationKey,
+    validateReportFieldListValueName,
+    generateFieldID,
+    getReportFieldInitialValue,
+    hasFormulaPartsInInitialValue,
+};

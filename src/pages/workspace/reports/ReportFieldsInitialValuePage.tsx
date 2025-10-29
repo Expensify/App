@@ -111,6 +111,7 @@ function ReportFieldsInitialValuePage({
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
                     </View>
                 )}
+
                 {(isTextFieldType || isFormulaFieldType) && (
                     <FormProvider
                         addBottomSafeAreaPadding
