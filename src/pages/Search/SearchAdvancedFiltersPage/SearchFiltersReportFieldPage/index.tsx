@@ -96,7 +96,7 @@ function SearchFiltersReportFieldPage() {
 
     if (selectedField) {
         // We only support list, date, & text for report fields, no other types
-        const fieldType = selectedField.type as ValueOf<typeof CONST.REPORT_FIELD_TYPES>;
+        const fieldType = selectedField.type as Exclude<ValueOf<typeof CONST.REPORT_FIELD_TYPES>, typeof CONST.REPORT_FIELD_TYPES.FORMULA>;
 
         const UpdateReportFieldComponent = {
             [CONST.REPORT_FIELD_TYPES.LIST]: ReportFieldList,
