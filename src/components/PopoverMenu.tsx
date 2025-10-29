@@ -274,7 +274,7 @@ function BasePopoverMenu({
     headerStyles,
     innerContainerStyle,
     scrollContainerStyle,
-    shouldUseScrollView = true,
+    shouldUseScrollView = false,
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
@@ -502,7 +502,12 @@ function BasePopoverMenu({
     }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
-    const {paddingVertical: menuContainerPaddingVertical, ...restMenuContainerStyle} = StyleSheet.flatten(menuContainerStyle) ?? {};
+    const {
+        paddingVertical: menuContainerPaddingVertical,
+        paddingTop: menuContainerPaddingTop,
+        paddingBottom: menuContainerPaddingBottom,
+        ...restMenuContainerStyle
+    } = StyleSheet.flatten(menuContainerStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -542,7 +547,14 @@ function BasePopoverMenu({
                 >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
-                        [{paddingTop, paddingBottom, paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0}, restScrollContainerStyle],
+                        [
+                            {
+                                paddingTop: menuContainerPaddingTop ?? paddingTop,
+                                paddingBottom: menuContainerPaddingBottom ?? paddingBottom,
+                                paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0,
+                            },
+                            restScrollContainerStyle,
+                        ],
                         [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
                     )}
                 </View>
