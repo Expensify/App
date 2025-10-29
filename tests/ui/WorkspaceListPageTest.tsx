@@ -83,4 +83,46 @@ describe('WorkspaceListPage', () => {
         const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
+
+    it('should show new workspace button when the restrict creation policy in the group domain is disabled', async () => {
+        const TEST_DOMAIN = 'domain.com';
+        const TEST_SECURITY_GROUP_ID = 'test-id';
+        const TEST_POLICY_ID = 'test-policy-id';
+        const TEST_EMAIL = 'test@domain.com';
+        const TEST_ACCOUNT_ID = 1;
+
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {
+            [TEST_DOMAIN]: TEST_SECURITY_GROUP_ID,
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${TEST_SECURITY_GROUP_ID}`, {
+            enableRestrictedPolicyCreation: false,
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Test Policy',
+            role: 'admin',
+        });
+
+        await Onyx.set(`${ONYXKEYS.SESSION}`, {
+            email: TEST_EMAIL,
+            accountID: TEST_ACCOUNT_ID,
+        });
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [TEST_ACCOUNT_ID]: {
+                login: TEST_EMAIL,
+                accountID: TEST_ACCOUNT_ID,
+                displayName: TEST_EMAIL,
+            },
+        });
+
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        expect(newWorkspaceButton).toBeOnTheScreen();
+    });
 });
