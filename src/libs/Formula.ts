@@ -211,7 +211,6 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                value = value === '' ? part.definition : value;
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
@@ -251,24 +250,43 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
 
     switch (field.toLowerCase()) {
         case 'type':
-            return formatType(report.type);
+            return formatType(report.type) || part.definition;
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context), format) || part.definition;
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format);
+            return formatDate(getNewestTransactionDate(report.reportID, context), format) || part.definition;
         case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency) || part.definition;
         case 'currency':
-            return report.currency ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
+            return report.currency || part.definition;
         case 'policyname':
         case 'workspacename':
-            return policy?.name ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
+            return policy?.name || part.definition;
         case 'created':
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
-            return formatDate(getOldestReportActionDate(report.reportID), format);
-        case 'submit':
-            return computeSubmitPart(additionalPath, context);
+            return formatDate(getOldestReportActionDate(report.reportID), format) || part.definition;
+        case 'submit': {
+            // Submission info parts return empty strings when data is missing (matches backend behavior)
+            const submitValue = computeSubmitPart(additionalPath, context);
+            // If submission info returns empty AND the relevant personal details are missing from context,
+            // fall back to formula definition (this handles edge cases where context is incomplete)
+            const [direction] = additionalPath;
+            const isFromPart = direction?.toLowerCase() === 'from';
+            const isToPart = direction?.toLowerCase() === 'to';
+
+            if (submitValue === '') {
+                if (isFromPart && !context.submitterPersonalDetails) {
+                    return part.definition;
+                }
+                if (isToPart && !context.managerPersonalDetails) {
+                    return part.definition;
+                }
+            }
+            return submitValue;
+        }
         default:
             return part.definition;
     }

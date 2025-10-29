@@ -778,7 +778,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:fullname}', contextWithPartialDetails)).toBe('fallback@email.com');
             });
 
-            test('firstname - show formula definition when personal details missing', () => {
+            test('firstname - show formula when personal details missing from context', () => {
                 const contextWithoutSubmitter: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -788,7 +788,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:firstname}', contextWithoutSubmitter)).toBe('{report:submit:from:firstname}');
             });
 
-            test('email - show formula definition when personal details missing', () => {
+            test('email - show formula when personal details missing from context', () => {
                 const contextWithoutSubmitter: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -798,7 +798,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:email}', contextWithoutSubmitter)).toBe('{report:submit:from:email}');
             });
 
-            test('customfield1 - show formula definition when employeeList missing', () => {
+            test('customfield1 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: {
@@ -807,10 +807,10 @@ describe('CustomFormula', () => {
                     submitterPersonalDetails: mockSubmitter,
                 };
 
-                expect(compute('{report:submit:from:customfield1}', contextWithoutEmployeeList)).toBe('{report:submit:from:customfield1}');
+                expect(compute('{report:submit:from:customfield1}', contextWithoutEmployeeList)).toBe('');
             });
 
-            test('customfield2 - show formula definition when employeeList missing', () => {
+            test('customfield2 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: {
@@ -819,10 +819,10 @@ describe('CustomFormula', () => {
                     submitterPersonalDetails: mockSubmitter,
                 };
 
-                expect(compute('{report:submit:from:customfield2}', contextWithoutEmployeeList)).toBe('{report:submit:from:customfield2}');
+                expect(compute('{report:submit:from:customfield2}', contextWithoutEmployeeList)).toBe('');
             });
 
-            test('customfield1 - show formula definition when user not in employeeList', () => {
+            test('customfield1 - return empty when user not in employeeList', () => {
                 const contextWithDifferentEmployee: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: {
@@ -838,7 +838,7 @@ describe('CustomFormula', () => {
                     submitterPersonalDetails: mockSubmitter,
                 };
 
-                expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('{report:submit:from:customfield1}');
+                expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('');
             });
         });
 
@@ -897,7 +897,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:to:fullname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
             });
 
-            test('firstname - show formula definition when manager personal details missing', () => {
+            test('firstname - show formula when manager personal details missing from context', () => {
                 const contextWithoutManager: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -907,7 +907,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:to:firstname}', contextWithoutManager)).toBe('{report:submit:to:firstname}');
             });
 
-            test('email - show formula definition when manager personal details missing', () => {
+            test('email - show formula when manager personal details missing from context', () => {
                 const contextWithoutManager: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -948,7 +948,7 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-20');
             });
 
-            test('unsubmitted report - show formula definition when no SUBMITTED action', () => {
+            test('unsubmitted report - return empty when no SUBMITTED action', () => {
                 mockReportActionsUtils.getAllReportActions.mockReturnValue({
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {
@@ -958,7 +958,7 @@ describe('CustomFormula', () => {
                     },
                 } as unknown as ReportActions);
 
-                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('{report:submit:date}');
+                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('');
             });
         });
 
@@ -1020,7 +1020,7 @@ describe('CustomFormula', () => {
         });
 
         describe('Edge cases', () => {
-            test('empty email - show formula definition when email empty', () => {
+            test('empty email - return empty when email empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -1030,10 +1030,10 @@ describe('CustomFormula', () => {
                     } as PersonalDetails,
                 };
 
-                expect(compute('{report:submit:from:email}', contextWithEmptyEmail)).toBe('{report:submit:from:email}');
+                expect(compute('{report:submit:from:email}', contextWithEmptyEmail)).toBe('');
             });
 
-            test('empty email with name - show formula definition when name also empty', () => {
+            test('empty email with name - return empty when name also empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -1043,10 +1043,10 @@ describe('CustomFormula', () => {
                     } as PersonalDetails,
                 };
 
-                expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('{report:submit:from:firstname}');
+                expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('');
             });
 
-            test('empty email with frontpart - show formula definition for empty email modifier', () => {
+            test('empty email with frontpart - return empty for empty email modifier', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -1056,7 +1056,7 @@ describe('CustomFormula', () => {
                     } as PersonalDetails,
                 };
 
-                expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('{report:submit:from:email|frontpart}');
+                expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('');
             });
 
             test('accountID zero - allow 0 as valid account ID', () => {
@@ -1071,12 +1071,12 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:userid}', contextWithZeroAccountID)).toBe('0');
             });
 
-            test('unknown field - show formula definition for invalid field name', () => {
-                expect(compute('{report:submit:from:unknown}', mockContextWithSubmissionInfo)).toBe('{report:submit:from:unknown}');
+            test('unknown field - return empty for invalid field name', () => {
+                expect(compute('{report:submit:from:unknown}', mockContextWithSubmissionInfo)).toBe('');
             });
 
-            test('invalid direction - show formula definition for invalid from/to', () => {
-                expect(compute('{report:submit:invalid:email}', mockContextWithSubmissionInfo)).toBe('{report:submit:invalid:email}');
+            test('invalid direction - return empty for invalid from/to', () => {
+                expect(compute('{report:submit:invalid:email}', mockContextWithSubmissionInfo)).toBe('');
             });
         });
     });
