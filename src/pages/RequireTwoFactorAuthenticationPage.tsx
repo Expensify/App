@@ -1,7 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {Encryption} from '@components/Icon/Illustrations';
