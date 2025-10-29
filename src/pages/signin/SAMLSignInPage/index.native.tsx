@@ -1,6 +1,6 @@
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import React, {useCallback, useEffect, useState} from 'react';
+import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
@@ -29,11 +29,11 @@ function SAMLSignInPage() {
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
+    const hasOpenedAuthSession = useRef(false);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
      */
-
     const handleNavigationStateChange = useCallback(
         (url: string) => {
             // If we've gotten a callback then remove the option to navigate back to the sign-in page
@@ -42,16 +42,36 @@ function SAMLSignInPage() {
             }
 
             const searchParams = new URLSearchParams(new URL(url).search);
-            const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
+            const jsonParam = searchParams.get('json');
+
+            if (!jsonParam) {
+                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
+                return;
+            }
+
+            let shortLivedAuthToken: string | null = null;
+            let error: string | null = null;
+
+            try {
+                const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
+                shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
+                error = decodedData.error ?? null;
+                Log.info('SAMLSignInPage - Parsed data from JSON parameter');
+            } catch {
+                // We need to come generate translation for message indicating parsing error
+                Log.hmmm(`SAMLSignInPage - Failed to parse JSON parameter`);
+                error = 'Failed to parse JSON';
+            }
+
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 signInWithShortLivedAuthToken(shortLivedAuthToken, true);
+                return;
             }
 
-            // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
-            if (searchParams.has('error')) {
+            if (error) {
                 clearSignInData();
-                setAccountError(searchParams.get('error') ?? '');
+                setAccountError(error);
 
                 Navigation.isNavigationReady().then(() => {
                     // We must call goBack() to remove the /transition route from history
@@ -64,13 +84,15 @@ function SAMLSignInPage() {
     );
 
     useEffect(() => {
-        if (!SAMLUrl) {
+        // Don't open auth session more than once. If user cancels it we should navigate back to ROUTES.HOME
+        if (!SAMLUrl || hasOpenedAuthSession.current) {
             return;
         }
         // const subscription = Linking.addEventListener('url', (url) => {
         //     console.log('triggered', url);
         //     // dismissBrowser();
         // });
+        hasOpenedAuthSession.current = true
         openAuthSessionAsync(SAMLUrl, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
             if (response.type !== 'success') {
                 return;
