@@ -2871,7 +2871,7 @@ function buildNewReportOptimisticData(
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && currentSearchQueryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
