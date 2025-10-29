@@ -51,16 +51,14 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        showEmojiPicker(
-            onEmojiPickerClosed,
-            (emojiCode, emojiObject, skinTone) => {
+        showEmojiPicker({
+            onModalHide: onEmojiPickerClosed,
+            onEmojiSelected: (_emojiCode, emojiObject, skinTone) => {
                 onEmojiSelectedWithReactions(emojiObject, skinTone);
             },
-            ref,
-            undefined,
-            () => {},
-            reportAction.reportActionID,
-        );
+            emojiPopoverAnchor: ref,
+            id: reportAction.reportActionID,
+        });
     };
 
     return (
