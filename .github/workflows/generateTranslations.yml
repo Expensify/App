@@ -145,7 +145,7 @@ jobs:
 
           DISCLAIMER="$(cat <<'EOF'
           > [!WARNING]
-          > For very large diffs, `gh gist view --raw` may not work as expected due to https://github.com/cli/cli/issues/11739. If you encuonter that, just copy the raw diff in your web browser and run `pbpaste | git apply`.
+          > For very large diffs, `gh gist view --raw` may not work as expected due to https://github.com/cli/cli/issues/11739. If you encounter that, just copy the raw diff in your web browser and run `pbpaste | git apply`.
           EOF
           )"
           readonly DISCLAIMER
@@ -185,6 +185,7 @@ jobs:
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo
               echo "$PARROT_FOOTER_WITH_CMD 😉"
+              echo
               echo "$DISCLAIMER"
             } > "$TEMP_COMMENT_FILE"
           fi
