@@ -250,7 +250,7 @@ describe('ErrorUtils', () => {
 
         test('should return original error when current locale is English', () => {
             (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.EN);
-            const errorMessage = 'The deposit and withdrawal accounts are the same.';
+            const errorMessage = CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR;
 
             const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
 
@@ -260,7 +260,7 @@ describe('ErrorUtils', () => {
         test('should return translated message for specific error in non-English locale', () => {
             (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
             (Localize.translate as jest.Mock).mockReturnValue('Las cuentas de depósito y retiro son las mismas.');
-            const errorMessage = 'The deposit and withdrawal accounts are the same.';
+            const errorMessage = CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR;
 
             const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
 

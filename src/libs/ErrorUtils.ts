@@ -79,10 +79,9 @@ function getErrorMessageWithTranslationData(error: string | null): string {
     }
 
     const currentLocale = IntlStore.getCurrentLocale();
-    if (currentLocale && currentLocale !== CONST.LOCALES.EN) {
-        if (error === 'The deposit and withdrawal accounts are the same.') {
-            return translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount');
-        }
+
+    if (error === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        return translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount');
     }
 
     return error;
