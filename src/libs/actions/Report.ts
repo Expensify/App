@@ -209,6 +209,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -235,12 +236,10 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
-type Video = {
+type Video = Dimensions & {
     url: string;
     thumbnailUrl: string;
     duration: number;
-    width: number;
-    height: number;
 };
 
 type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
@@ -3555,7 +3554,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                setOnboardingErrorMessage(translate('onboarding.purpose.errorBackButton'));
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 
