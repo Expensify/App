@@ -6,6 +6,8 @@ import type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawQueryFilter,
+    RawQueryFilters,
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     ReportFieldTextKey,
@@ -47,6 +49,10 @@ import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
+type BuildSearchQueryJSONOptions = {
+    preserveRawFilterList?: boolean;
+};
+
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
@@ -57,6 +63,8 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+
+const manualQueryRawFilterStore = new Map<string, RawQueryFilters>();
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -398,7 +406,8 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  *
  * In a way this is the reverse of buildSearchQueryString()
  */
-function buildSearchQueryJSON(query: SearchQueryString) {
+function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQueryJSONOptions = {}) {
+    const {preserveRawFilterList = false} = options;
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
@@ -410,6 +419,17 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
+
+        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? (result.rawFilterList as RawQueryFilters) : [];
+        const storedRawFilters = manualQueryRawFilterStore.get(query);
+        if (storedRawFilters && storedRawFilters.length > 0) {
+            result.rawFilterList = storedRawFilters;
+            manualQueryRawFilterStore.delete(query);
+        } else if (preserveRawFilterList && parsedRawFilterList.length > 0) {
+            result.rawFilterList = parsedRawFilterList;
+        } else {
+            delete result.rawFilterList;
+        }
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -461,6 +481,59 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     }
 
     return queryParts.join(' ');
+}
+
+function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilters | undefined {
+    if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
+        return undefined;
+    }
+
+    const sanitizedFilters = queryJSON.rawFilterList.map((rawFilter) => {
+        if (!rawFilter) {
+            return rawFilter;
+        }
+
+        if (rawFilter.isDefault) {
+            return rawFilter;
+        }
+
+        const rawValue = rawFilter.value;
+        const filterKey = rawFilter.key;
+        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>);
+        let updatedValue: string | string[] = Array.isArray(rawValue) ? rawValue.map((value) => value?.toString() ?? '') : (rawValue?.toString() ?? '');
+
+        if (isRecognizedFilterKey) {
+            updatedValue = getUpdatedFilterValue(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, Array.isArray(updatedValue) ? updatedValue : updatedValue) as
+                | string
+                | string[];
+        }
+
+        return {
+            ...rawFilter,
+            value: updatedValue,
+        };
+    }) as RawQueryFilters;
+
+    const seenKeys = new Set<string>();
+
+    for (let index = sanitizedFilters.length - 1; index >= 0; index -= 1) {
+        const filter = sanitizedFilters[index];
+
+        if (!filter) {
+            continue;
+        }
+
+        const filterKey = filter.key;
+
+        if (seenKeys.has(filterKey) && filter.isDefault) {
+            sanitizedFilters.splice(index, 1);
+            continue;
+        }
+
+        seenKeys.add(filterKey);
+    }
+
+    return sanitizedFilters;
 }
 
 /**
@@ -945,6 +1018,129 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
+function getDisplayQueryFiltersForKey(
+    key: string,
+    queryFilter: QueryFilter[],
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    taxRates: Record<string, string[]>,
+    cardList: OnyxTypes.CardList,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+) {
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
+        const taxRateNames = taxRateIDs
+            .map((id) => {
+                const taxRate = Object.entries(taxRates)
+                    .filter(([, IDs]) => IDs.includes(id))
+                    .map(([name]) => name);
+                return taxRate.length > 0 ? taxRate : id;
+            })
+            .flat();
+
+        const uniqueTaxRateNames = [...new Set(taxRateNames)];
+
+        return uniqueTaxRateNames.map((taxRate) => ({
+            operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            value: taxRate,
+        }));
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        return queryFilter.reduce((acc, filter) => {
+            const feedKey = filter.value.toString();
+            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+            const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
+            const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
+            const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
+            const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
+            if (plaidFeedName) {
+                if (plaidValue) {
+                    acc.push({operator: filter.operator, value: plaidValue});
+                }
+                return acc;
+            }
+            const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
+            acc.push({operator: filter.operator, value});
+
+            return acc;
+        }, [] as QueryFilter[]);
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return queryFilter.reduce((acc, filter) => {
+            const cardValue = filter.value.toString();
+            const cardID = parseInt(cardValue, 10);
+
+            if (cardList?.[cardID]) {
+                if (Number.isNaN(cardID)) {
+                    acc.push({operator: filter.operator, value: cardID});
+                } else {
+                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
+                }
+            }
+            return acc;
+        }, [] as QueryFilter[]);
+    }
+
+    return queryFilter.map((filter) => ({
+        operator: filter.operator,
+        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+    }));
+}
+
+function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>) {
+    const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
+    const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
+
+    if (cleanedValues.length === 0) {
+        return;
+    }
+
+    if (rawFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+        const workspaceValues = cleanedValues.map((id) => {
+            const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id;
+            return sanitizeSearchValue(policyName);
+        });
+
+        if (workspaceValues.length === 0) {
+            return;
+        }
+
+        return `${getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)}:${workspaceValues.join(',')}`;
+    }
+
+    if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY || rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) {
+        return;
+    }
+
+    let userFriendlyKey: UserFriendlyKey;
+    switch (rawFilter.key) {
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS);
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
+            break;
+        default:
+            userFriendlyKey = getUserFriendlyKey(rawFilter.key as SearchFilterKey);
+            break;
+    }
+
+    const formattedValues = cleanedValues.map((val) => sanitizeSearchValue(getUserFriendlyValue(val)));
+
+    if (!formattedValues.length) {
+        return;
+    }
+
+    return `${userFriendlyKey}:${formattedValues.join(',')}`;
+}
+
 /**
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
@@ -961,8 +1157,54 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {
-    const {type, status, groupBy, policyID} = queryJSON;
-    const filters = queryJSON.flatFilters;
+    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters} = queryJSON;
+
+    if (rawFilterList && rawFilterList.length > 0) {
+        const segments: string[] = [];
+
+        rawFilterList.forEach((rawFilter) => {
+            if (!rawFilter) {
+                return;
+            }
+
+            if (rawFilter.isDefault) {
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies);
+                if (defaultSegment) {
+                    segments.push(defaultSegment);
+                }
+                return;
+            }
+
+            const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
+            const queryFilters = rawValues
+                .map((val) => (val ?? '').toString())
+                .filter((val) => val.length > 0)
+                .map((val) => ({
+                    operator: rawFilter.operator,
+                    value: val,
+                }));
+
+            if (!queryFilters.length) {
+                return;
+            }
+
+            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+
+            if (!displayQueryFilters.length) {
+                return;
+            }
+
+            const segment = buildFilterValuesString(getUserFriendlyKey(rawFilter.key as SearchFilterKey), displayQueryFilters).trim();
+
+            if (segment) {
+                segments.push(segment);
+            }
+        });
+
+        if (segments.length > 0) {
+            return segments.join(' ');
+        }
+    }
 
     let title = status
         ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
@@ -978,65 +1220,12 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const queryFilter = filterObject.filters;
+        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
 
-        let displayQueryFilters: QueryFilter[] = [];
-        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
-            const taxRateNames = taxRateIDs
-                .map((id) => {
-                    const taxRate = Object.entries(taxRates)
-                        .filter(([, IDs]) => IDs.includes(id))
-                        .map(([name]) => name);
-                    return taxRate.length > 0 ? taxRate : id;
-                })
-                .flat();
-
-            const uniqueTaxRateNames = [...new Set(taxRateNames)];
-
-            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
-                operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                value: taxRate,
-            }));
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            displayQueryFilters = queryFilter.reduce((acc, filter) => {
-                const feedKey = filter.value.toString();
-                const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
-                const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
-                const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
-                const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-                const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
-                if (plaidFeedName) {
-                    if (plaidValue) {
-                        acc.push({operator: filter.operator, value: plaidValue});
-                    }
-                    return acc;
-                }
-                const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
-                acc.push({operator: filter.operator, value});
-
-                return acc;
-            }, [] as QueryFilter[]);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            displayQueryFilters = queryFilter.reduce((acc, filter) => {
-                const cardValue = filter.value.toString();
-                const cardID = parseInt(cardValue, 10);
-
-                if (cardList?.[cardID]) {
-                    if (Number.isNaN(cardID)) {
-                        acc.push({operator: filter.operator, value: cardID});
-                    } else {
-                        acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
-                    }
-                }
-                return acc;
-            }, [] as QueryFilter[]);
-        } else {
-            displayQueryFilters = queryFilter.map((filter) => ({
-                operator: filter.operator,
-                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
-            }));
+        if (!displayQueryFilters.length) {
+            continue;
         }
+
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 
@@ -1142,7 +1331,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
 function getQueryWithUpdatedValues(query: string) {
-    const queryJSON = buildSearchQueryJSON(query);
+    const queryJSON = buildSearchQueryJSON(query, {preserveRawFilterList: true});
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
@@ -1150,7 +1339,14 @@ function getQueryWithUpdatedValues(query: string) {
     }
 
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
-    return buildSearchQueryString(standardizedQuery);
+    const sanitizedRawFilters = getSanitizedRawFilters(standardizedQuery);
+    const canonicalQueryString = buildSearchQueryString(standardizedQuery);
+
+    if (sanitizedRawFilters) {
+        manualQueryRawFilterStore.set(canonicalQueryString, sanitizedRawFilters);
+    }
+
+    return canonicalQueryString;
 }
 
 function getCurrentSearchQueryJSON() {

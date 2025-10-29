@@ -6,6 +6,7 @@ import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
+    buildUserReadableQueryString,
     getQueryWithUpdatedValues,
     shouldHighlight,
     sortOptionsWithEmptyValue,
@@ -245,6 +246,102 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawn:last-month');
+        });
+    });
+
+    describe('buildUserReadableQueryString', () => {
+        const emptyReports = {} as any;
+        const emptyCardList = {} as any;
+        const emptyCardFeeds = {} as any;
+        const emptyPolicies = {} as any;
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 0;
+
+        test('preserves manual filter order for raw queries', () => {
+            const queryString = 'type:expense date:this-month groupBy:from tag:travel';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(
+                queryJSON,
+                undefined,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
+        });
+
+        test('preserves status all default value from manual query', () => {
+            const queryString = 'type:expense status:all merchant:Uber';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(
+                queryJSON,
+                undefined,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('type:expense status:all merchant:Uber');
+        });
+
+        test('maps workspace names and maintains manual order', () => {
+            const queryString = 'policyID:123 type:expense merchant:Starbucks';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {name: 'Team Space'},
+            } as any;
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(
+                queryJSON,
+                undefined,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                policies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });
     });
 
