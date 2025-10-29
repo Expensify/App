@@ -129,6 +129,15 @@ function BaseValidateCodeForm({
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+    const clearDefaultValidationCodeError = useCallback(() => {
+        // Clear "Failed to send magic code" error
+
+        if (isEmptyObject(defaultValidateCodeError)) {
+            return;
+        }
+        clearValidateCodeActionError('actionVerified');
+    }, [defaultValidateCodeError]);
+
     useImperativeHandle(innerRef, () => ({
         focus() {
             inputValidateCodeRef.current?.focus();
@@ -228,6 +237,8 @@ function BaseValidateCodeForm({
 
         // Clear "incorrect magic" code error
         clearValidateCodeActionError(validateCodeActionErrorField);
+
+        clearDefaultValidationCodeError();
         setCanShowError(true);
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
@@ -241,7 +252,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError, clearDefaultValidationCodeError]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
@@ -321,6 +332,7 @@ function BaseValidateCodeForm({
                     if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
                         clearValidateCodeActionError(validateCodeActionErrorField);
                     }
+                    clearDefaultValidationCodeError();
                 }}
                 style={buttonStyles}
             >
