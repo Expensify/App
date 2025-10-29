@@ -1360,7 +1360,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
         newReport: 'Novo relatório',
-        explainHold: 'Explique por que você está retendo esta despesa.',
+        explainHold: () => ({
+            one: 'Explique por que você está retendo esta despesa.',
+            other: 'Explique por que você está retendo estas despesas.',
+        }),
         retracted: 'retraído',
         retract: 'Retrair',
         reopened: 'reaberto',

@@ -1363,7 +1363,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         newReport: 'Nowy raport',
-        explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+        explainHold: () => ({
+            one: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+            other: 'Wyjaśnij, dlaczego wstrzymujesz te wydatki.',
+        }),
         retracted: 'wycofany',
         retract: 'Wycofać',
         reopened: 'ponownie otwarty',
