@@ -49,9 +49,7 @@ function TestDriveDemo() {
         if (hasSeenTour) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
-        });
+        completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
     }, [hasSeenTour]);
 
     useEffect(() => {
