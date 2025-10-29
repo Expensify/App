@@ -106,7 +106,6 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPolicy,
     iouReport,
     transactions,
-    violations,
     policy,
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
@@ -479,7 +478,6 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
-            violations,
             isIouReportArchived || isChatReportArchived,
             iouReport,
             policy,
@@ -489,18 +487,7 @@ function MoneyRequestReportPreviewContent({
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         );
-    }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
-        violations,
-        iouReport,
-        policy,
-        transactions,
-        isIouReportArchived,
-        invoiceReceiverPolicy,
-        isChatReportArchived,
-    ]);
+    }, [isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
