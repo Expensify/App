@@ -180,6 +180,7 @@ function SearchAutocompleteList({
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const taxRates = getAllTaxRates();
@@ -192,6 +193,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             options,
             draftComments,
+            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
@@ -203,7 +205,7 @@ function SearchAutocompleteList({
             countryCode,
             shouldShowGBR: false,
         });
-    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -399,6 +401,7 @@ function SearchAutocompleteList({
                 const participants = getSearchOptions({
                     options,
                     draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -422,6 +425,7 @@ function SearchAutocompleteList({
                 const filteredReports = getSearchOptions({
                     options,
                     draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -590,6 +594,7 @@ function SearchAutocompleteList({
         taxAutocompleteList,
         options,
         draftComments,
+        nvpDismissedProductTraining,
         betas,
         countryCode,
         currentUserLogin,
@@ -602,8 +607,8 @@ function SearchAutocompleteList({
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        isAutocompleteList,
         hasAutocompleteList,
+        isAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
