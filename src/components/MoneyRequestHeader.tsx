@@ -135,8 +135,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
     const markAsCash = useCallback(() => {
-        markAsCashAction(transaction?.transactionID, reportID);
-    }, [reportID, transaction?.transactionID]);
+        markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
+    }, [reportID, transaction?.transactionID, transactionViolations]);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
