@@ -17,7 +17,7 @@ import type { SvgProps } from 'react-native-svg';
 import variables from '@styles/variables';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
-// TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string 
+// TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
 type NotificationType = 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
@@ -89,6 +89,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
     }
     
     return (
+        // No FullPageOfflineBlockingView here as there is no more cominication through network at this point
         <ScreenWrapper testID={MFANotificationPage.displayName}>
             <HeaderWithBackButton
                 title={headerTitle}

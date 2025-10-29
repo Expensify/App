@@ -20,13 +20,13 @@ type PromptType = 'enable-biometrics' | 'enable-passkey';
 
 type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
-type PromptData = {
+type PromptcontentData = {
     animation: DotLottieAnimation;
     title: TranslationPaths;
     subtitle: TranslationPaths;
 } | undefined;
 
-const getPromptData = (promptType: PromptType) : PromptData => {
+const getPromptContentData = (promptType: PromptType) : PromptcontentData => {
     switch (promptType) {
         case 'enable-biometrics':
             return {
@@ -50,9 +50,9 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
 
-    const data = getPromptData(route.params.promptType);
+    const contentData = getPromptContentData(route.params.promptType);
 
-    if (!data) {
+    if (!contentData) {
         return <NotFoundPage/>
     }
 
@@ -70,11 +70,11 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1]}>
                     <BlockingView
-                        animation={data.animation}
+                        animation={contentData.animation}
                         animationStyles={styles.emptyLHNAnimation}
                         animationWebStyle={styles.emptyLHNAnimation}
-                        title={translate(data.title)}
-                        subtitle={translate(data.subtitle)}
+                        title={translate(contentData.title)}
+                        subtitle={translate(contentData.subtitle)}
                         subtitleStyle={styles.textSupporting}
                         containerStyle={styles.p0}
                         testID={MultiFactorAuthenticationPromptPage.displayName}

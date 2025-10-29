@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ScrollView from '@components/ScrollView';
 import { View } from 'react-native';
 import Text from '@components/Text';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 
 function MFAFactor2FAPage() {
     const themeStyles = useThemeStyles();
@@ -61,7 +62,7 @@ function MFAFactor2FAPage() {
         setFormError({});
 
         validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData); // TODO: zweryfikowac czy jest to odpowiedni endpoint i czy powinien byc handlowany w taki sposob
-        Navigation.dismissModal(); // TODO: Jakies szmery bajery tutaj nie wiem co w sumie?
+        Navigation.dismissModal(); // TODO: Jakies szmery bajery tutaj - wiemy ze jesli tutaj jestesmy to jest to nasz drugi factor czyli pewnie jakies handlowanie contextu i nawigacja do powiadomienia
     }, [translate, twoFactorAuthCode, shouldClearData]);
 
     useFocusEffect(
@@ -95,27 +96,28 @@ function MFAFactor2FAPage() {
                 title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
-
-            <ScrollView
-                style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
-                contentContainerStyle={themeStyles.flexGrow1}
-                keyboardShouldPersistTaps="handled"
-            >
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                    <Text style={themeStyles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
-                    <MagicCodeInput
-                        autoComplete='one-time-code'
-                        name="twoFactorAuthCode"
-                        value={twoFactorAuthCode}
-                        onChangeText={onCodeInput}
-                        onFulfill={validateAndSubmitForm}
-                        errorText={formError.twoFactorAuthCode ?? errorMessage}
-                        ref={inputRef}
-                        autoFocus={false}
-                        testID="twoFactorAuthCodeInput"
-                    />
-                </View>
-            </ScrollView>
+            <FullPageOfflineBlockingView>
+                <ScrollView
+                    style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
+                    contentContainerStyle={themeStyles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
+                        <Text style={themeStyles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
+                        <MagicCodeInput
+                            autoComplete='one-time-code'
+                            name="twoFactorAuthCode"
+                            value={twoFactorAuthCode}
+                            onChangeText={onCodeInput}
+                            onFulfill={validateAndSubmitForm}
+                            errorText={formError.twoFactorAuthCode ?? errorMessage}
+                            ref={inputRef}
+                            autoFocus={false}
+                            testID="twoFactorAuthCodeInput"
+                        />
+                    </View>
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
