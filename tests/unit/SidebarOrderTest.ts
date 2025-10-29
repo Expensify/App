@@ -3,8 +3,6 @@ import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -85,8 +83,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Then it should render with the empty state message and not show the reports list
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
             expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
 
@@ -171,8 +168,7 @@ describe('Sidebar', () => {
 
                     // Then the component should be rendered with the mostly recently updated report first
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
 
@@ -225,8 +221,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const pencilIcon = screen.queryAllByTestId('Pencil Icon');
                         expect(pencilIcon).toHaveLength(1);
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Two'); // this has `hasDraft` flag enabled so it will be on top
@@ -332,8 +327,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent(taskReportName);
@@ -407,8 +401,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -488,8 +481,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
@@ -549,8 +541,7 @@ describe('Sidebar', () => {
                     // Then the order of the reports should be 2 > 3 > 1
                     //                                         ^--- (2 goes to the front and pushes 3 down)
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Three');
@@ -716,8 +707,7 @@ describe('Sidebar', () => {
                     // there is a pencil icon
                     // there is a pinned icon
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
@@ -772,8 +762,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -836,8 +825,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -909,8 +897,7 @@ describe('Sidebar', () => {
 
                     // Then the first report is in last position
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -953,8 +940,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -994,8 +980,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
@@ -1059,8 +1044,7 @@ describe('Sidebar', () => {
 
                     // Then the first report is in last position
                     .then(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
