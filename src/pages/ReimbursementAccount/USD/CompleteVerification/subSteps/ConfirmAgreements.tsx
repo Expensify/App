@@ -34,7 +34,7 @@ function CertifyTrueAndAccurateLabel() {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.iAcceptTheConfirmAgreements')} />;
+    return <RenderHTML html={translate('common.acceptTermsAndConditions')} />;
 }
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {

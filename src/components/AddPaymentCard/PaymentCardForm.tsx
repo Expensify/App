@@ -45,7 +45,7 @@ type PaymentCardFormProps = {
 function IAcceptTheLabel() {
     const {translate} = useLocalize();
 
-    return <RenderHTML html={translate('common.iAcceptTheFull')} />;
+    return <RenderHTML html={translate('common.acceptTermsAndPrivacy')} />;
 }
 
 const REQUIRED_FIELDS = [

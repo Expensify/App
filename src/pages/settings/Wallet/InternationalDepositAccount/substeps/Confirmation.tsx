@@ -34,7 +34,7 @@ type MenuItemProps = {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.iAcceptTheConfirmation')} />;
+    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
 }
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
