@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} f
 import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
+import type {SearchDatePreset} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
@@ -11,11 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {SearchDatePreset} from './types';
 
 type SearchDateValues = Record<SearchDateModifier, string | undefined>;
 
-type SearchDatePresetFilterBaseHandle = {
+type DatePresetFilterBaseHandle = {
     /** Gets date values */
     getDateValues: () => SearchDateValues;
 
@@ -29,7 +29,7 @@ type SearchDatePresetFilterBaseHandle = {
     clearDateValueOfSelectedDateModifier: () => void;
 };
 
-type SearchDatePresetFilterBaseProps = {
+type DatePresetFilterBaseProps = {
     /** Default date values */
     defaultDateValues: SearchDateValues;
 
@@ -46,7 +46,7 @@ type SearchDatePresetFilterBaseProps = {
     isSearchAdvancedFiltersFormLoading?: boolean;
 
     /** The ref handle */
-    ref: Ref<SearchDatePresetFilterBaseHandle>;
+    ref: Ref<DatePresetFilterBaseHandle>;
 };
 
 /**
@@ -59,7 +59,7 @@ type SearchDatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: SearchDatePresetFilterBaseProps) {
+function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -209,7 +209,7 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
     );
 }
 
-SearchDatePresetFilterBase.displayName = 'SearchDatePresetFilterBase';
+DatePresetFilterBase.displayName = 'DatePresetFilterBase';
 
-export type {SearchDateValues, SearchDatePresetFilterBaseHandle};
-export default SearchDatePresetFilterBase;
+export type {SearchDateValues, DatePresetFilterBaseHandle as SearchDatePresetFilterBaseHandle};
+export default DatePresetFilterBase;
