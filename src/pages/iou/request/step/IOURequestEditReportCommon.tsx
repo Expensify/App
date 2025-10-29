@@ -88,7 +88,10 @@ function IOURequestEditReportCommon({
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
-    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
+    const isOwner = useMemo(
+        () => resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported,
+        [resolvedReportOwnerAccountID, currentUserPersonalDetails.accountID, isSelectedReportUnreported],
+    );
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -102,7 +105,8 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isSelectedReportUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport =
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop

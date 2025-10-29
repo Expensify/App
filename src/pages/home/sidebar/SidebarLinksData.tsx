@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -50,4 +51,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
 
 SidebarLinksData.displayName = 'SidebarLinksData';
 
-export default SidebarLinksData;
+const WrappedSidebarLinksData = Sentry.withProfiler(SidebarLinksData);
+WrappedSidebarLinksData.displayName = 'SidebarLinksData';
+export default WrappedSidebarLinksData;
