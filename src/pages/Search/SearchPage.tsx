@@ -430,10 +430,7 @@ function SearchPage({route}: SearchPageProps) {
                             submitMoneyRequestOnSearch(hash, [item], [searchPolicy], reportTransactionIDs);
                         }
                     });
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
-                    });
+                    clearSelectedTransactions();
                 },
             });
         }
