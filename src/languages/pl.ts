@@ -7355,6 +7355,7 @@ ${amount} dla ${merchant} - ${date}`,
                         return `Oczekiwanie na dodanie wydatków przez administratora.`;
                 }
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nie są wymagane żadne dalsze działania!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case

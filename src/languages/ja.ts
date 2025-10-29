@@ -7319,6 +7319,7 @@ ${date} - ${merchant}に${amount}`,
                         return `管理者が経費を追加するのを待っています。`;
                 }
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の操作は必要ありません！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case

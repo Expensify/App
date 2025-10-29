@@ -7387,6 +7387,7 @@ ${amount} pour ${merchant} - ${date}`,
                         return `En attente qu'un administrateur ajoute des dépenses.`;
                 }
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
