@@ -205,6 +205,4 @@ function getReportPreviewAction(
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-// we can export other functions in the further
-// eslint-disable-next-line import/prefer-default-export
-export {getReportPreviewAction};
+export default getReportPreviewAction;
