@@ -2681,16 +2681,16 @@ type TestToolsModalModalNavigatorParamList = {
 };
 
 type MultiFactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.TWO_FACTOR]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
+        notificationType: NotificationType;
+    };
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
-        notificationType: NotificationType;
-    };
-    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
-    [SCREENS.MULTIFACTORAUTHENTICATION.TWO_FACTOR]: undefined;
-    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
         promptType: PromptType;
     };
