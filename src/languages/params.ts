@@ -189,6 +189,8 @@ type WorkspaceRouteParams = {
 
 type RequestAmountParams = {amount: string};
 
+type ReportFieldParams = {name: string; value: string};
+
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
 type SplitAmountParams = {amount: string};
@@ -606,11 +608,6 @@ type VacationDelegateParams = {nameOrEmail: string};
 type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
 
 type RoleNamesParams = {role: string};
-
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
 
 type SpreadSheetColumnParams = {
     name: string;
@@ -1174,7 +1171,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
@@ -1269,5 +1265,6 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    ReportFieldParams,
     FocusModeUpdateParams,
 };

@@ -139,6 +139,8 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens() {
+    console.count('AuthScreens re-renders');
+
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -615,7 +617,7 @@ function AuthScreens() {
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {isOnboardingCompleted === false && (
+                {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}

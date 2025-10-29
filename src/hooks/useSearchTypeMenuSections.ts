@@ -1,7 +1,6 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import memoize from '@libs/memoize';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -39,9 +38,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const memoizedCreateTypeMenuSections = memoize(createTypeMenuSections, {maxSize: 5, monitoringName: 'useSearchTypeMenuSections.createTypeMenuSections'});
-
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
@@ -54,7 +50,6 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -62,7 +57,7 @@ const useSearchTypeMenuSections = () => {
 
     const typeMenuSections = useMemo(
         () =>
-            memoizedCreateTypeMenuSections(
+            createTypeMenuSections(
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
@@ -74,7 +69,6 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 isASAPSubmitBetaEnabled,
                 hasViolations,
-                reports,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -88,7 +82,6 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            reports,
         ],
     );
 
