@@ -3,6 +3,7 @@ import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPerDiemCustomUnit, isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -52,11 +53,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         [featureNameAlias],
     );
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], [policies, policyID]);
+    const {accountID} = useCurrentUserPersonalDetails();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = useMemo(() => isPolicyAdmin(policy), [policy]);
+    const canPerformUpgrade = useMemo(() => canModifyPlan(policies, accountID, policyID), [accountID, policies, policyID]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);

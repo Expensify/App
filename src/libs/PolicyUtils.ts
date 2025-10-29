@@ -1439,6 +1439,23 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
     return otherControlWorkspaces.length > 0;
 }
 
+// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
+// is being accessed from the Subscriptions page without a specific policyID.
+// In this case, check if the user is an admin on more than one policy.
+// If the user is an admin for multiple policies, we can render the page as it contains a condition
+// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
+// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
+function canModifyPlan(policies: OnyxCollection<Policy>, currentUserAccountID: number, policyID?: string) {
+    if (!policyID) {
+        const ownerPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        return ownerPolicies.length > 1;
+    }
+
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    return !!policy && isPolicyAdmin(policy);
+}
+
 function getAdminsPrivateEmailDomains(policy?: Policy) {
     if (!policy) {
         return [];
@@ -1678,6 +1695,7 @@ export {
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
+    canModifyPlan,
     getAdminsPrivateEmailDomains,
     getPolicyNameByID,
     getMostFrequentEmailDomain,
