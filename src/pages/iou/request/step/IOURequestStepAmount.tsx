@@ -278,14 +278,13 @@ function IOURequestStepAmount({
             const hasManuallySelectedParticipant = hasDifferentWorkspace || isP2PChat;
 
             if (hasManuallySelectedParticipant) {
-                const participantReportID = firstParticipant?.reportID || undefined;
+                const participantReportID = firstParticipant?.reportID ? firstParticipant.reportID : undefined;
                 const targetReportID = participantReportID ?? transaction?.reportID ?? reportID;
 
                 if (targetReportID && targetReportID !== transaction?.reportID) {
                     setTransactionReport(transactionID, {reportID: targetReportID}, true);
                 }
 
-                // Self DM uses TRACK, all others use SUBMIT
                 const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
