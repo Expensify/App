@@ -27,12 +27,9 @@ type AddressPageProps = {
     title: string;
 
     defaultCountry?: Country;
-
-    /** Function to clear address street error */
-    onClearAddressStreetError?: () => void;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, onClearAddressStreetError}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -111,7 +108,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street1={street1}
                         street2={street2}
                         zip={zipcode}
-                        onClearAddressStreetError={onClearAddressStreetError}
                     />
                 )}
             </DelegateNoAccessWrapper>

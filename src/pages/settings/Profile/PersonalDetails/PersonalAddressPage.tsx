@@ -7,7 +7,7 @@ import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
-import {clearAddressStreetError, updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
+import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -38,7 +38,6 @@ function PersonalAddressPage() {
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
-
     return (
         <AddressPage
             defaultCountry={defaultCountry as Country}
@@ -46,7 +45,6 @@ function PersonalAddressPage() {
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
             title={translate('privatePersonalDetails.address')}
-            onClearAddressStreetError={clearAddressStreetError}
         />
     );
 }

@@ -113,6 +113,12 @@ function PhoneNumberPage() {
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
                                 inputMode={CONST.INPUT_MODE.TEL}
+                                onBlur={() => {
+                                    if (!validateLoginError) {
+                                        return;
+                                    }
+                                    clearPhoneNumberError();
+                                }}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

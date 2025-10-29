@@ -57,9 +57,6 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
-
-    /** Function to clear address street error */
-    onClearAddressStreetError?: () => void;
 };
 
 function AddressForm({
@@ -74,7 +71,6 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
-    onClearAddressStreetError = () => {},
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -84,10 +80,6 @@ function AddressForm({
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const isUSAForm = country === CONST.COUNTRY.US;
-
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const isPersonalDetailsForm = !!onClearAddressStreetError;
-    const addressStreetError = isPersonalDetailsForm ? privatePersonalDetails?.errorFields?.addressStreet : undefined;
 
     /**
      * @param translate - translate function
@@ -174,32 +166,25 @@ function AddressForm({
             addBottomSafeAreaPadding
         >
             <View>
-                <OfflineWithFeedback
-                    errors={addressStreetError}
-                    errorRowStyles={[styles.mt2]}
-                    onClose={onClearAddressStreetError}
-                >
-                    <InputWrapper
-                        InputComponent={AddressSearch}
-                        inputID={INPUT_IDS.ADDRESS_LINE_1}
-                        label={translate('common.addressLine', {lineNumber: 1})}
-                        onValueChange={(data: unknown, key: unknown) => {
-                            onAddressChanged(data, key);
-                            onClearAddressStreetError();
-                        }}
-                        defaultValue={street1}
-                        renamedInputKeys={{
-                            street: INPUT_IDS.ADDRESS_LINE_1,
-                            street2: INPUT_IDS.ADDRESS_LINE_2,
-                            city: INPUT_IDS.CITY,
-                            state: INPUT_IDS.STATE,
-                            zipCode: INPUT_IDS.ZIP_POST_CODE,
-                            country: INPUT_IDS.COUNTRY as Country,
-                        }}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        shouldSaveDraft={shouldSaveDraft}
-                    />
-                </OfflineWithFeedback>
+                <InputWrapper
+                    InputComponent={AddressSearch}
+                    inputID={INPUT_IDS.ADDRESS_LINE_1}
+                    label={translate('common.addressLine', {lineNumber: 1})}
+                    onValueChange={(data: unknown, key: unknown) => {
+                        onAddressChanged(data, key);
+                    }}
+                    defaultValue={street1}
+                    renamedInputKeys={{
+                        street: INPUT_IDS.ADDRESS_LINE_1,
+                        street2: INPUT_IDS.ADDRESS_LINE_2,
+                        city: INPUT_IDS.CITY,
+                        state: INPUT_IDS.STATE,
+                        zipCode: INPUT_IDS.ZIP_POST_CODE,
+                        country: INPUT_IDS.COUNTRY as Country,
+                    }}
+                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    shouldSaveDraft={shouldSaveDraft}
+                />
             </View>
             <View style={styles.formSpaceVertical} />
             <InputWrapper
