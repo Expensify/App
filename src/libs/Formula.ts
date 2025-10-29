@@ -595,8 +595,9 @@ function computeSubmitFromPart(path: string[], context: FormulaContext): string 
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            const employeeUserID = policy.employeeList[email]?.employeeUserID;
-            return employeeUserID ?? '';
+            // Note: employeeUserID is a custom text field (not a database ID), so returning empty string is valid
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeeUserID ?? '';
         }
         case 'customfield2': {
             // Get custom field from policy employeeList using the user's email
@@ -604,8 +605,9 @@ function computeSubmitFromPart(path: string[], context: FormulaContext): string 
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            const employeePayrollID = policy.employeeList[email]?.employeePayrollID;
-            return employeePayrollID ?? '';
+            // Note: employeePayrollID is a custom text field (not a database ID), so returning empty string is valid
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeePayrollID ?? '';
         }
         default:
             return '';
@@ -640,8 +642,9 @@ function computeSubmitToPart(path: string[], context: FormulaContext): string {
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            const employeeUserID = policy.employeeList[email]?.employeeUserID;
-            return employeeUserID ?? '';
+            // Note: employeeUserID is a custom text field (not a database ID), so returning empty string is valid
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeeUserID ?? '';
         }
         case 'customfield2': {
             // Get custom field from policy employeeList using the user's email
@@ -649,8 +652,9 @@ function computeSubmitToPart(path: string[], context: FormulaContext): string {
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            const employeePayrollID = policy.employeeList[email]?.employeePayrollID;
-            return employeePayrollID ?? '';
+            // Note: employeePayrollID is a custom text field (not a database ID), so returning empty string is valid
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeePayrollID ?? '';
         }
         default:
             return '';

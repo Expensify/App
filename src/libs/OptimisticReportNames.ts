@@ -277,8 +277,11 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
     // Get personal details for submitter and manager
-    const submitterAccountID = updatedReport.ownerAccountID ? String(updatedReport.ownerAccountID) : undefined;
-    const managerAccountID = updatedReport.managerID ? String(updatedReport.managerID) : undefined;
+    // Convert number IDs to strings for allPersonalDetails lookup (which is indexed by strings)
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const submitterAccountID = updatedReport.ownerAccountID !== undefined && updatedReport.ownerAccountID !== null ? String(updatedReport.ownerAccountID) : undefined;
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const managerAccountID = updatedReport.managerID !== undefined && updatedReport.managerID !== null ? String(updatedReport.managerID) : undefined;
 
     // Note: allPersonalDetails[accountID] can be null, but FormulaContext expects undefined, so we use ?? undefined
     const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;
