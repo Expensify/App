@@ -753,6 +753,22 @@ function changeTransactionsReport(
 
     let transactionsMoved = false;
     let shouldFixViolations = false;
+    const getReportByID = (reportIDParam: string | undefined): OnyxEntry<Report> | undefined => {
+        if (!reportIDParam) {
+            return undefined;
+        }
+
+        if (reportIDParam === newReport?.reportID) {
+            return newReport;
+        }
+
+        if (reportIDParam === selfDMReport?.reportID) {
+            return selfDMReport;
+        }
+
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDParam}`];
+    };
+    const reopenedReports: Record<string, {stateNum?: number; statusNum?: number; unheldTotal?: number}> = {};
 
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -1162,16 +1178,39 @@ function changeTransactionsReport(
 
     // 8. Update the report totals
     Object.entries(updatedReportTotals).forEach(([reportIDToUpdate, total]) => {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}` as const;
+        const existingReport = getReportByID(reportIDToUpdate);
+        const shouldReopenReport = total === 0 && existingReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+        const optimisticReportUpdate: Partial<Report> = {total};
+
+        if (shouldReopenReport) {
+            optimisticReportUpdate.stateNum = CONST.REPORT.STATE_NUM.OPEN;
+            optimisticReportUpdate.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
+            optimisticReportUpdate.unheldTotal = 0;
+            reopenedReports[reportIDToUpdate] = {
+                stateNum: existingReport?.stateNum,
+                statusNum: existingReport?.statusNum,
+                unheldTotal: existingReport?.unheldTotal,
+            };
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {total},
+            key: reportKey,
+            value: optimisticReportUpdate,
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+            key: reportKey,
+            value: {
+                total: existingReport?.total,
+                ...(shouldReopenReport && {
+                    stateNum: existingReport?.stateNum,
+                    statusNum: existingReport?.statusNum,
+                    unheldTotal: existingReport?.unheldTotal,
+                }),
+            },
         });
     });
 
@@ -1241,10 +1280,7 @@ function changeTransactionsReport(
     }
 
     allAffectedReportIDs.forEach((affectedReportID) => {
-        let affectedReport =
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
-            (affectedReportID === newReport?.reportID ? newReport : undefined) ??
-            (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+        let affectedReport = getReportByID(affectedReportID);
 
         if (!affectedReport) {
             affectedReport = {
@@ -1260,10 +1296,17 @@ function changeTransactionsReport(
             affectedReportID === reportID && reportNextStep !== undefined ? reportNextStep : nextStepsCollection?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`];
         const oldNextStepValue = oldNextStepEntry ? {...oldNextStepEntry} : null;
 
+        const total = updatedReportTotals[affectedReportID] ?? affectedReport.total;
+        const reopenInfo = reopenedReports[affectedReportID];
         const updatedReport = {
             ...affectedReport,
-            total: updatedReportTotals[affectedReportID] ?? affectedReport.total,
+            total,
             reportID: affectedReport.reportID ?? affectedReportID,
+            ...(reopenInfo && {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                unheldTotal: 0,
+            }),
         };
 
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
