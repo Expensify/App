@@ -112,6 +112,14 @@ type ThemeColors = {
     todoBG: Color;
     trialTimer: Color;
 
+    reportStatusBadge: Record<
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed',
+        {
+            backgroundColor: Color;
+            textColor: Color;
+        }
+    >;
+
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 
     // Status bar and scroll bars need to adapt their theme based on the active user theme for good contrast

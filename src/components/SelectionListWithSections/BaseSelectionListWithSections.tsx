@@ -149,6 +149,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
+    shouldShowRightCaret,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -657,6 +658,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     }}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
+                    sectionIndex={section?.indexOffset}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
                     showTooltip={shouldShowTooltips}
@@ -680,6 +682,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
@@ -723,7 +726,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign
+                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -743,7 +746,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
@@ -781,11 +784,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
-        (newFocusedIndex: number) => {
+        (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
+            if (shouldSkipWhenIndexNonZero && focusedIndex > 0) {
+                return;
+            }
             setFocusedIndex(newFocusedIndex);
             scrollToIndex(newFocusedIndex, true);
         },
-        [scrollToIndex, setFocusedIndex],
+        [focusedIndex, scrollToIndex, setFocusedIndex],
     );
 
     /** Function to focus text input */

@@ -94,7 +94,7 @@ const isQuickActionAllowed = (
     quickAction: QuickAction,
     quickActionReport: Report | undefined,
     quickActionPolicy: Policy | undefined,
-    isReportArchived = false,
+    isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ) => {
     const iouType = getIOUType(quickAction?.action);

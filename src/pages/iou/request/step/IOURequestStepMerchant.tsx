@@ -8,6 +8,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +45,8 @@ function IOURequestStepMerchant({
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -91,7 +94,7 @@ function IOURequestStepMerchant({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             navigateBack();
             return;
         }
@@ -145,7 +148,7 @@ function IOURequestStepMerchant({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });

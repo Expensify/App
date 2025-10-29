@@ -1,3 +1,4 @@
+import {differenceInDays} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -27,11 +28,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,6 +66,15 @@ function TroubleshootPage() {
         });
     }, [shouldMaskOnyxState]);
 
+    const surveyCompletedWithinLastMonth = useMemo(() => {
+        const surveyThresholdInDays = 30;
+        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+            return false;
+        }
+        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+        return daysSinceLastSurvey < surveyThresholdInDays;
+    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
@@ -77,6 +89,11 @@ function TroubleshootPage() {
                   }
                 : {
                       action() {
+                          if (surveyCompletedWithinLastMonth) {
+                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              return;
+                          }
+
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
                                   Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
