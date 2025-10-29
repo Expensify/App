@@ -19,9 +19,9 @@ import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
-import type { NotificationType } from './pages/MultiFactorAuthenticationNotificationPage';
-import type { PromptType } from './pages/MultiFactorAuthenticationPromptPage';
-import type { FallbackFactorType } from './pages/MultiFactorAuthenticationFallbackFactorPage';
+import type { NotificationType } from './pages/MFANotificationPage';
+import type { PromptType } from './pages/MFAPromptPage';
+import type { FallbackFactorType } from './pages/MFAFactorMagicCodePage';
 
 // This is a file containing constants for all the routes we want to be able to go to
 

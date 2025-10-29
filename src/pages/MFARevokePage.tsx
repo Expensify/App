@@ -8,11 +8,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Text from '@components/Text';
 import ConfirmModal from '@components/ConfirmModal';
-import ONYXKEYS from '@src/ONYXKEYS';
 import Button from '@components/Button';
 
 
-function multiFactorAuthenticationRevokePage() {
+function MFARevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
@@ -35,7 +34,7 @@ function multiFactorAuthenticationRevokePage() {
         onGoBackPress();
     };
     return (
-        <ScreenWrapper testID={multiFactorAuthenticationRevokePage.displayName}>
+        <ScreenWrapper testID={MFARevokePage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.revokePage.headerTitle')}
                 onBackButtonPress={onGoBackPress}
@@ -92,6 +91,6 @@ function multiFactorAuthenticationRevokePage() {
     );
 }
 
-multiFactorAuthenticationRevokePage.displayName = 'multiFactorAuthenticationRevokePage';
+MFARevokePage.displayName = 'MFARevokePage';
 
-export default multiFactorAuthenticationRevokePage;
+export default MFARevokePage;

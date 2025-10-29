@@ -6,10 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {
     validateMagicCode, // TODO: ni mo
     validateSmsOtp, // TODO: ni mo
@@ -20,11 +17,9 @@ import type {TranslationPaths} from '@src/languages/types';
 
 type FallbackFactorType = 'magic-code' | 'sms-otp';
 
-type ValidateSecurityFactorPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK>;
 
-function ValidateSecurityFactorPage({route}: ValidateSecurityFactorPageProps) {
+function MFAFactorMagicCodePage() {
     const {translate} = useLocalize();
-    const factorType = route.params.factorType;
 
     const [validateMagicCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const prevValidateMagicCodeAction = usePrevious(validateMagicCodeAction);
@@ -58,18 +53,18 @@ function ValidateSecurityFactorPage({route}: ValidateSecurityFactorPageProps) {
         requestValidateCodeAction();
     }, []);
 
-    const {description} = useMemo(() => {
-        switch (factorType) {
-            case 'magic-code':
-                return {
-                    description: 'multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent',
-                };
-            case 'sms-otp':
-                return {
-                    description: 'multiFactorAuthentication.biometrics.fallbackPageSMSotpContent',
-                };
-        }
-    }, [factorType]);
+    // const {description} = useMemo(() => {
+    //     switch (factorType) {
+    //         case 'magic-code':
+    //             return {
+    //                 description: 'multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent',
+    //             };
+    //         case 'sms-otp':
+    //             return {
+    //                 description: 'multiFactorAuthentication.biometrics.fallbackPageSMSotpContent',
+    //             };
+    //     }
+    // }, [factorType]);
 
     useEffect(() => {
         const isVerified = validateMagicCodeAction?.pendingFields?.actionVerified === null;
@@ -79,7 +74,7 @@ function ValidateSecurityFactorPage({route}: ValidateSecurityFactorPageProps) {
             return;
         }
 
-        clearValidateCodeActionError(errorField);
+        clearValidateCodeActionError('validateMagicCode');
 
         // TODO: jakas nawigacja w zaleznosci od tego co sie tutaj wydarzy albo nawigacja w samym handleSubmiteForm po poprawnej walidacji ale sam nie wiem - musze zobaczy context i backendowe endpointy
         // if (mfaContext?.nextFactor) {
@@ -101,15 +96,15 @@ function ValidateSecurityFactorPage({route}: ValidateSecurityFactorPageProps) {
         <ValidateCodeActionContent
             title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
             sendValidateCode={sendCode}
-            descriptionPrimary={translate(description as TranslationPaths)}
-            validateCodeActionErrorField={errorField}
+            descriptionPrimary={translate('multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent')}
+            validateCodeActionErrorField='validateMagicCode'
             validateError={validateError}
             handleSubmitForm={handleValidate}
             clearError={() => {
-                clearValidateCodeActionError(errorField);
+                clearValidateCodeActionError('validateMagicCode');
             }}
             onClose={() => {
-                clearValidateCodeActionError(errorField);
+                clearValidateCodeActionError('validateMagicCode');
                 // TODO: jakies info zwrotne do contextu
                 Navigation.dismissModal();
             }}
@@ -117,8 +112,8 @@ function ValidateSecurityFactorPage({route}: ValidateSecurityFactorPageProps) {
     );
 }
 
-ValidateSecurityFactorPage.displayName = 'ValidateSecurityFactorPage';
+MFAFactorMagicCodePage.displayName = 'MFAFactorMagicCodePage';
 
-export default ValidateSecurityFactorPage;
+export default MFAFactorMagicCodePage;
 
 export type {FallbackFactorType};

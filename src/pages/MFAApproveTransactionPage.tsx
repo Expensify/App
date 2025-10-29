@@ -23,7 +23,7 @@ import Text from '@components/Text';
 import {contextMenuRef} from './home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from './home/report/ContextMenu/ReportActionContextMenu';
 
-function ApproveTransactionPage() {
+function MFAScenarioApproveTransactionPage() {
     // FAKE DATA 
     const transactionID = "9084365218195969699"; // TODO: replace with actual transactionID
     const chatReportID = "1995450016258047"; // TODO: replace with actual chatReportID
@@ -82,7 +82,7 @@ function ApproveTransactionPage() {
     }, [iouReportID]);
 
     return (
-        <ScreenWrapper testID={ApproveTransactionPage.displayName}>
+        <ScreenWrapper testID={MFAScenarioApproveTransactionPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.approveTransaction.headerButtonTitle')}
                 onBackButtonPress={onGoBackPress}
@@ -147,6 +147,6 @@ function ApproveTransactionPage() {
     );
 }
 
-ApproveTransactionPage.displayName = 'ApproveTransactionPage';
+MFAScenarioApproveTransactionPage.displayName = 'MFAScenarioApproveTransactionPage';
 
-export default ApproveTransactionPage;
+export default MFAScenarioApproveTransactionPage;

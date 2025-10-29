@@ -18,7 +18,7 @@ import ScrollView from '@components/ScrollView';
 import { View } from 'react-native';
 import Text from '@components/Text';
 
-function MultiFactorAuthentication2FAPage() {
+function MFAFactor2FAPage() {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
@@ -87,7 +87,7 @@ function MultiFactorAuthentication2FAPage() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={MultiFactorAuthentication2FAPage.displayName}
+            testID={MFAFactor2FAPage.displayName}
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -120,6 +120,6 @@ function MultiFactorAuthentication2FAPage() {
     );
 }
 
-MultiFactorAuthentication2FAPage.displayName = 'MultiFactorAuthentication2FAPage'
+MFAFactor2FAPage.displayName = 'MFAFactor2FAPage'
 
-export default MultiFactorAuthentication2FAPage;
+export default MFAFactor2FAPage;

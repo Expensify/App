@@ -73,7 +73,7 @@ const getNotificationData = (notificationType: NotificationType): NotificationDa
             return undefined;
     }
 };
-function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthenticationNotificationPageProps) {
+function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
@@ -89,7 +89,7 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
     }
     
     return (
-        <ScreenWrapper testID={multiFactorAuthenticationNotificationPage.displayName}>
+        <ScreenWrapper testID={MFANotificationPage.displayName}>
             <HeaderWithBackButton
                 title={headerTitle}
                 onBackButtonPress={onGoBackPress}
@@ -105,7 +105,7 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
                     subtitle={content}
                     subtitleStyle={styles.textSupporting}
                     containerStyle={styles.p1} // "sometimes maybe good sometimes maybe bad" - we can either decide on one padding for all those screens or get that from MFAcontext which is jsut plain stupid
-                    testID={multiFactorAuthenticationNotificationPage.displayName}
+                    testID={MFANotificationPage.displayName}
                 />
             </View>
             <View style={[styles.flexRow, styles.m5]}>
@@ -120,8 +120,8 @@ function multiFactorAuthenticationNotificationPage({route}: MultiFactorAuthentic
     );
 }
 
-multiFactorAuthenticationNotificationPage.displayName = 'multiFactorAuthenticationNotificationPage';
+MFANotificationPage.displayName = 'multiFactorAuthenticationNotificationPage';
 
-export default multiFactorAuthenticationNotificationPage;
+export default MFANotificationPage;
 
 export type {NotificationType};

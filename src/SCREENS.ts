@@ -817,9 +817,11 @@ const SCREENS = {
     MULTIFACTORAUTHENTICATION: {
         APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
         NOTIFICATION: 'MultifactorAuthentication_Notification',
-        FALLBACK: 'MultifactorAuthentication_Fallback',
         REVOKE: 'MultifactorAuthentication_Revoke',
         PROMPT: 'MultifactorAuthentication_Prompt',
+        MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
+        TWO_FACTOR: 'MultifactorAuthentication_Two_Factor',
+        SMS_OTP: 'MultifactorAuthentication_Sms_Top',
     }
 } as const;
 

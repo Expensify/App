@@ -27,10 +27,10 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
-import type { NotificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
+import type { NotificationType } from '@pages/MFANotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type { PromptType } from '@pages/MultiFactorAuthenticationPromptPage';
-import type { FallbackFactorType } from '@pages/MultiFactorAuthenticationFallbackFactorPage';
+import type { PromptType } from '@pages/MFAPromptPage';
+import type { FallbackFactorType } from '@pages/MFAFactorMagicCodePage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -2688,9 +2688,9 @@ type MultiFactorAuthenticationParamList = {
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
         notificationType: NotificationType;
     };
-    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: {
-        factorType: FallbackFactorType;
-    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.TWO_FACTOR]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
         promptType: PromptType;
     };
