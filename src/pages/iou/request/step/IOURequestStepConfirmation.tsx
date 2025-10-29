@@ -324,6 +324,15 @@ function IOURequestStepConfirmation({
     useEffect(() => {
         transactions.forEach((item) => {
             if (!item.category) {
+                // If the expense had his category cleared due to unsaved changes (i.e. changing to recipient to one that does not have category)
+                // then we should reset the category to it's last saved value
+                const existingCategory = existingTransaction?.category;
+                if (existingCategory) {
+                    const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
+                    if (isExistingCategoryEnabled) {
+                        setMoneyRequestCategory(item.transactionID, existingCategory, policy?.id);
+                    }
+                }
                 return;
             }
 
