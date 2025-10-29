@@ -8,13 +8,13 @@ type PathsStartingWith<TPrefix extends string> = Extract<TranslationPaths, `${TP
 /** Texts to display depending on request success/failure */
 type ImportFinalModal<TPath extends PathsStartingWith<'spreadsheet'>> = {
     /** Title of the modal */
-    title: PathsStartingWith<'spreadsheet'>;
+    titleKey: PathsStartingWith<'spreadsheet'>;
 
     /** Message to display */
-    prompt: TPath;
+    promptKey: TPath;
 
     /** Parameters for the translation */
-    params: TranslationParameters<TPath>[0];
+    promptKeyParams: TranslationParameters<TPath>[0];
 };
 
 /**

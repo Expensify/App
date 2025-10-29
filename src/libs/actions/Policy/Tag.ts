@@ -95,9 +95,9 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importSuccessfulTitle',
-                        prompt: 'spreadsheet.importTagsSuccessfulDescription',
-                        params: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importTagsSuccessfulDescription',
+                        promptKeyParams: {
                             tags: tagsLength,
                         },
                     },
@@ -112,8 +112,8 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importFailedTitle',
-                        prompt: 'spreadsheet.importFailedDescription',
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
                     },
                 },
             },
@@ -811,8 +811,8 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importSuccessfulTitle',
-                        prompt: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
                     },
                 },
             },
@@ -831,8 +831,8 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importFailedTitle',
-                        prompt: 'spreadsheet.importFailedDescription',
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
                     },
                 },
             },

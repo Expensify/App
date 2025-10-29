@@ -229,9 +229,9 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importSuccessfulTitle',
-                        prompt: 'spreadsheet.importMembersSuccessfulDescription',
-                        params: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+                        promptKeyParams: {
                             added: addedMembersLength,
                             updated: updatedMembersLength,
                         },
@@ -247,8 +247,8 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importFailedTitle',
-                        prompt: 'spreadsheet.importFailedDescription',
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
                     },
                 },
             },

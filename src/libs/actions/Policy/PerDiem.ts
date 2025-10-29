@@ -110,9 +110,9 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importSuccessfulTitle',
-                        prompt: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
-                        params: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
+                        promptKeyParams: {
                             rates: ratesLength,
                         },
                     },
@@ -127,8 +127,8 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importFailedTitle',
-                        prompt: 'spreadsheet.importFailedDescription',
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
                     },
                 },
             },

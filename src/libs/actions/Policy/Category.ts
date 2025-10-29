@@ -258,9 +258,9 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importSuccessfulTitle',
-                        prompt: 'spreadsheet.importCategoriesSuccessfulDescription',
-                        params: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
+                        promptKeyParams: {
                             categories: categoriesLength,
                         },
                     },
@@ -275,8 +275,8 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: 'spreadsheet.importFailedTitle',
-                        prompt: 'spreadsheet.importFailedDescription',
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
                     },
                 },
             },
