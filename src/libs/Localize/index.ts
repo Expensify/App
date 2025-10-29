@@ -197,7 +197,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
  * Returns the user device's preferred language.
  */
 function getDevicePreferredLocale(): Locale {
-    return RNLocalize.findBestAvailableLanguage(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
+    return RNLocalize.findBestLanguageTag(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated

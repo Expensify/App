@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
@@ -77,7 +78,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         return;
                     }
 
-                    if (new RegExp(rule.regEx).test(values[fieldID] ? String(values[fieldID]) : '')) {
+                    if (new RegExp(rule.regEx).test(values[fieldID] ? SafeString(values[fieldID]) : '')) {
                         return;
                     }
 
@@ -93,7 +94,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     const inputs = useMemo(() => {
         return accountHolderDetailsFields?.map((field) => {
             if (field.valueSet !== undefined) {
-                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+                return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
             }
 
             if (field.id === ACCOUNT_HOLDER_COUNTRY) {
@@ -127,7 +128,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         label={field.label}
                         aria-label={field.label}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                        defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
                         shouldSaveDraft={!isEditing}
                         limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
                         renamedInputKeys={{
