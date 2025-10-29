@@ -12759,7 +12759,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const childReportID = reportAction?.childReportID;
 
     let movedToReport;
-    let rejectedToReportID;
+    let rejectedToReportID = options?.sharedRejectedToReportID;
     let urlToNavigateBack;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -12969,7 +12969,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             // When no existing open report is found, use the sharedRejectedToReportID
             // so multiple sequential rejections land in the same destination report
             // Fallback to generating a fresh ID if not provided
-            rejectedToReportID = options?.sharedRejectedToReportID ?? generateReportID();
+            rejectedToReportID = rejectedToReportID ?? generateReportID();
         }
         optimisticData.push(
             {
