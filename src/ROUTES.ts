@@ -3306,27 +3306,26 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
 
-    MULTIFACTORAUTHENTICATION_FALLBACK: {
-        route: 'multifactor-authentication/factor/:factorType',
-        getRoute: (factorType: FallbackFactorType) => `multifactor-authentication/factor/${factorType}` as const
-    },
-
-    MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
-        route: 'multifactor-authentication/approve-transaction/:transactionID/:reportID',
-        getRoute: (transactionID: string, reportID: string) => `multifactor-authentication/approve-transaction/${transactionID}/${reportID}` as const,        
-    },
-
+    MULTIFACTORAUTHENTICATION_MAGIC_CODE: 'multifactor-authentication/factor/magic-code',
+    MULTIFACTORAUTHENTICATION_AUTHENTICATOR: 'multifactor-authentication/factor/authenticator',
+    MULTIFACTORAUTHENTICATION_SMS_OTP: 'multifactor-authentication/factor/sms-otp',
+    
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
         route: 'multifactor-authentication/notification/:notificationType',
         getRoute: (notificationType: NotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
     },
-
-    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
-
+    
+    MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
+        route: 'multifactor-authentication/approve-transaction/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `multifactor-authentication/approve-transaction/${transactionID}/${reportID}` as const,        
+    },
+    
     MULTIFACTORAUTHENTICATION_PROMPT: {
         route: 'multifactor-authentication/prompt/:promptType',
         getRoute: (promptType: PromptType) => `multifactorauthentication/prompt/${promptType}` as const,
     },
+    
+    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
 } as const;
 
 /**

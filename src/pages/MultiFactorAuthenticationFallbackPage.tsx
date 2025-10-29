@@ -41,7 +41,6 @@ function MultiFactorAuthenticationFallbackPage() {
     const StyleUtils = useStyleUtils();
     
     // Onyx data
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     

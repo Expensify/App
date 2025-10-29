@@ -19,7 +19,7 @@ import { View } from 'react-native';
 import Text from '@components/Text';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 
-function MFAFactor2FAPage() {
+function MFAFactorAuthenticatorPage() {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
@@ -88,7 +88,7 @@ function MFAFactor2FAPage() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={MFAFactor2FAPage.displayName}
+            testID={MFAFactorAuthenticatorPage.displayName}
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -122,6 +122,6 @@ function MFAFactor2FAPage() {
     );
 }
 
-MFAFactor2FAPage.displayName = 'MFAFactor2FAPage'
+MFAFactorAuthenticatorPage.displayName = 'MFAFactorAuthenticatorPage'
 
-export default MFAFactor2FAPage;
+export default MFAFactorAuthenticatorPage;

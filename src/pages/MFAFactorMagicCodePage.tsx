@@ -4,26 +4,28 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {
     validateMagicCode, // TODO: ni mo
-    requestValidateCodeAction,
-    clearValidateCodeActionError
+    resendValidateCode,
+    // clearValidateCodeActionError
 } from '@libs/actions/User';
-
+import { clearAccountMessages } from '@libs/actions/Session';
 function MFAFactorMagicCodePage() {
     const {translate} = useLocalize();
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const [validateMagicCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const prevValidateMagicCodeAction = usePrevious(validateMagicCodeAction);
 
-    const validateError = getLatestErrorField(validateMagicCodeAction, 'validateMagicCode');
-
-    const sendCode = useCallback(() => {
-        requestValidateCodeAction();
-    }, []);
+    const clearError = useCallback(() => {
+        if (!account?.errors) {
+            return;
+        }
+        clearAccountMessages();
+    }, [account?.errors]);
 
     useEffect(() => {
         const isVerified = validateMagicCodeAction?.pendingFields?.actionVerified === null;
@@ -33,7 +35,7 @@ function MFAFactorMagicCodePage() {
             return;
         }
 
-        clearValidateCodeActionError('validateMagicCode');
+        // clearValidateCodeActionError('validateMagicCode');
 
         // TODO: jakas nawigacja w zaleznosci od tego co sie tutaj wydarzy albo nawigacja w samym handleSubmiteForm po poprawnej walidacji ale sam nie wiem - musze zobaczyc context
         // if (mfaContext?.nextFactor) {
@@ -53,16 +55,13 @@ function MFAFactorMagicCodePage() {
     return (
         <ValidateCodeActionContent
             title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
-            sendValidateCode={sendCode}
+            sendValidateCode={() => resendValidateCode('jakub.kalinski+1@smwansion.com')}
             descriptionPrimary={translate('multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent')}
             validateCodeActionErrorField='validateMagicCode'
-            validateError={validateError}
-            handleSubmitForm={() => validateMagicCode()} // TODO: ni mo
-            clearError={() => {
-                clearValidateCodeActionError('validateMagicCode');
-            }}
+            handleSubmitForm={() => validateMagicCode()} // TODO: ni mom pojencia co robia - jakies wysylanie info do contextu
+            clearError={clearError}
             onClose={() => {
-                clearValidateCodeActionError('validateMagicCode');
+                clearAccountMessages();
                 // TODO: jakies info zwrotne do contextu
                 Navigation.dismissModal();
             }}

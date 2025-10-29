@@ -2682,7 +2682,7 @@ type TestToolsModalModalNavigatorParamList = {
 
 type MultiFactorAuthenticationParamList = {
     [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
-    [SCREENS.MULTIFACTORAUTHENTICATION.TWO_FACTOR]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
         notificationType: NotificationType;

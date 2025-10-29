@@ -815,13 +815,13 @@ const SCREENS = {
         ROOT: 'TestToolsModal_Root',
     },
     MULTIFACTORAUTHENTICATION: {
-        APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
-        NOTIFICATION: 'MultifactorAuthentication_Notification',
-        REVOKE: 'MultifactorAuthentication_Revoke',
-        PROMPT: 'MultifactorAuthentication_Prompt',
         MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
-        TWO_FACTOR: 'MultifactorAuthentication_Two_Factor',
+        AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',
         SMS_OTP: 'MultifactorAuthentication_Sms_Top',
+        NOTIFICATION: 'MultifactorAuthentication_Notification',
+        APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
+        PROMPT: 'MultifactorAuthentication_Prompt',
+        REVOKE: 'MultifactorAuthentication_Revoke',
     }
 } as const;
 
