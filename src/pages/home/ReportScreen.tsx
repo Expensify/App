@@ -504,7 +504,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(report, iouAction);
+        createTransactionThreadReport(report, iouAction, currentReportTransaction.at(0));
     }, [report, reportID]);
 
     const fetchReport = useCallback(() => {
@@ -517,7 +517,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+        if ((transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) || (visibleTransactions.length === 1 && !transactionThreadReportID)) {
             createOneTransactionThreadReport();
             return;
         }
@@ -529,6 +529,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         isOffline,
         transactionThreadReportID,
         transactionThreadReport,
+        visibleTransactions.length,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,

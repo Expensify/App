@@ -14,7 +14,6 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {createTransactionThreadReport} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,24 +104,10 @@ function MoneyRequestReportPreview({
             return;
         }
 
-        // For single transaction reports with orphaned transactions, create the thread
-        const isSingleTransaction = transactions.length === 1;
-
-        if (isSingleTransaction) {
-            const transaction = transactions.at(0);
-            const iouAction = getIOUActionForReportID(iouReportID, transaction?.transactionID);
-
-            // If single transaction and no IOU action exists (orphaned), create the thread
-            if (!iouAction && transaction) {
-                createTransactionThreadReport(iouReport, undefined, transaction);
-            }
-        }
-
-        // For multi-transaction reports or single transaction with IOU action, just open the expense report
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID, iouReport, transactions]);
+    }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
