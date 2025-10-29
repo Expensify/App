@@ -1,6 +1,6 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +23,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {navigationIntegration} from '@src/setup/telemetry';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
@@ -259,16 +258,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         cleanPreservedNavigatorStates(state);
     };
 
-    const onReadyWithSentry = useCallback(() => {
-        onReady();
-        navigationIntegration.registerNavigationContainer(navigationRef);
-    }, [onReady]);
-
     return (
         <NavigationContainer
             initialState={initialState}
             onStateChange={handleStateChange}
-            onReady={onReadyWithSentry}
+            onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}

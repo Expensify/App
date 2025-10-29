@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
@@ -37,11 +36,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
-
-        Sentry.setUser({
-            id: value?.accountID,
-            email: value?.email,
-        });
     },
 });
 
