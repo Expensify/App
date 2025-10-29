@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -675,6 +676,7 @@ const translations = {
         pinned: 'Przypięte',
         read: 'Przeczytane',
         copyToClipboard: 'Skopiuj do schowka',
+        thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
     },
     supportalNoAccess: {
@@ -1056,8 +1058,6 @@ const translations = {
         dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
         desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
-        chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
-        chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Pobierz aplikację</a>, aby skanować z telefonu</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Przekazuj paragony na <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1066,8 +1066,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Wysyłaj paragony SMS-em na ${phoneNumber} (tylko numery w USA)</label-text>`,
         takePhoto: 'Zrób zdjęcie',
         cameraAccess: 'Dostęp do aparatu jest wymagany, aby robić zdjęcia paragonów.',
-        deniedCameraAccess: 'Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z',
-        deniedCameraAccessInstructions: 'te instrukcje',
+        deniedCameraAccess: `Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">te instrukcje</a>.`,
         cameraErrorTitle: 'Błąd aparatu',
         cameraErrorMessage: 'Wystąpił błąd podczas robienia zdjęcia. Spróbuj ponownie.',
         locationAccessTitle: 'Zezwól na dostęp do lokalizacji',
@@ -2478,12 +2477,11 @@ ${amount} dla ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' swój' : ' z'} ${integrationName}, aby automatycznie kategoryzować wydatki i synchronizować dane, co ułatwi zamknięcie miesiąca.\n` +
                     '\n' +
-                    '1. Kliknij *Ustawienia*.\n' +
-                    '2. Przejdź do *Przestrzenie robocze*.\n' +
-                    '3. Wybierz swoją przestrzeń roboczą.\n' +
-                    '4. Kliknij *Księgowość*.\n' +
-                    `5. Znajdź ${integrationName}.\n` +
-                    '6. Kliknij *Połącz*.\n' +
+                    '1. Kliknij *Przestrzenie robocze*.\n' +
+                    '2. Wybierz swoją przestrzeń roboczą.\n' +
+                    '3. Kliknij *Księgowość*.\n' +
+                    `4. Znajdź ${integrationName}.\n` +
+                    '5. Kliknij *Połącz*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -6297,6 +6295,7 @@ ${amount} dla ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} jest ${value}`,
         },
         has: 'Ma',
         groupBy: 'Grupa według',
