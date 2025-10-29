@@ -1,12 +1,15 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -47,7 +50,10 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const typeMenuSections = useMemo(
         () =>
@@ -61,7 +67,8 @@ const useSearchTypeMenuSections = () => {
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                reports,
+                isASAPSubmitBetaEnabled,
+                hasViolations,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -73,7 +80,8 @@ const useSearchTypeMenuSections = () => {
             activePolicyID,
             savedSearches,
             isOffline,
-            reports,
+            isASAPSubmitBetaEnabled,
+            hasViolations,
         ],
     );
 

@@ -11,9 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,7 @@ function CategorySettingsPage({
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -68,7 +70,11 @@ function CategorySettingsPage({
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
-    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -135,6 +141,9 @@ function CategorySettingsPage({
             policyID,
             {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
             isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyCategories,
             policyTagLists,
             allTransactionViolations,
@@ -148,7 +157,17 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, policyTagLists, policyCategories, allTransactionViolations);
+        deleteWorkspaceCategories(
+            policyID,
+            [categoryName],
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyTagLists,
+            policyCategories,
+            allTransactionViolations,
+        );
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

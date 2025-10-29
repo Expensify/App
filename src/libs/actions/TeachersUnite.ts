@@ -72,6 +72,7 @@ function addSchoolPrincipal(
     localCurrencyCode: string | undefined,
     sessionEmail: string,
     sessionAccountID: number,
+    optimisticReportID: string,
 ) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
     const loggedInEmail = addSMSDomainIfPhoneNumber(sessionEmail);
@@ -85,6 +86,7 @@ function addSchoolPrincipal(
         ownerAccountID: sessionAccountID,
         isOwnPolicyExpenseChat: true,
         oldPolicyName: policyName,
+        optimisticReportID,
     });
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);
@@ -117,7 +119,7 @@ function addSchoolPrincipal(
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 outputCurrency: getPolicy(policyID)?.outputCurrency ?? localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {

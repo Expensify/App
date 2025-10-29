@@ -152,7 +152,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
+    }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -198,7 +198,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
                 onModalHide={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

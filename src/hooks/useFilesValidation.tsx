@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -19,6 +18,7 @@ import {
 } from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -31,7 +31,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
+function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -90,7 +90,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -170,7 +170,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
-            proceedWithFilesAction(sortedFiles);
+            proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
             resetValidationState();
         }
     }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
@@ -258,7 +258,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         }
                     } else if (processedFiles.length > 0) {
                         const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
-                        proceedWithFilesAction(sortedFiles);
+                        proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
                         resetValidationState();
                     }
                 }
@@ -306,16 +306,16 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
-                    proceedWithFilesAction(sortedFiles);
+                    proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
                 }
                 resetValidationState();
             });
         } else {
             if (sortedFiles.length !== 0) {
-                proceedWithFilesAction(sortedFiles);
+                proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
             }
             hideModalAndReset();
         }
