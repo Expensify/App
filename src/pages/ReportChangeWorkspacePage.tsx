@@ -39,7 +39,8 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
 
-const changePolicyTrainingModalDismissedSelector = (nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean => !!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL];
+const changePolicyTrainingModalDismissedSelector = (nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean =>
+    !!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL];
 
 function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
