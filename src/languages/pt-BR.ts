@@ -2586,9 +2586,7 @@ ${
                 description: dedent(`
                     *Iniciar um chat* com qualquer pessoa usando o e-mail ou número de telefone dela.
 
-                    1. Clique no botão ${
-                        CONST.CUSTOM_EMOJIS.GLOBAL_CREATE //_/\__/_/  \_,_/\__/\__/\_,_/
-                    }.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
                     2. Escolha *Iniciar chat*.
                     3. Digite um e-mail ou número de telefone.
 

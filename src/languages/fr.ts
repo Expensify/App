@@ -2518,9 +2518,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
                         Connectez ${
-                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
-                                ? 'votre' //_/\__/_/  \_,_/\__/\__/\_,_/
-                                : 'à'
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'
                         } ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
 
                         1. Cliquez sur *Workspaces*.
