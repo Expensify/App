@@ -1,9 +1,23 @@
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
+import * as Localize from '@src/libs/Localize';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 // Mock DateUtils
 jest.mock('@src/libs/DateUtils');
+
+// Mock IntlStore
+jest.mock('@src/languages/IntlStore', () => ({
+    getCurrentLocale: jest.fn(),
+}));
+
+// Mock Localize
+jest.mock('@src/libs/Localize', () => ({
+    translate: jest.fn(),
+    translateLocal: jest.fn(),
+}));
 
 describe('ErrorUtils', () => {
     test('should add a new error message for a given inputID', () => {
@@ -221,6 +235,46 @@ describe('ErrorUtils', () => {
             expect(Object.keys(errorValue)).toHaveLength(1);
             expect(errorValue.translationKey).toBeDefined();
             expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
+        });
+    });
+
+    describe('getErrorMessageWithTranslationData', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('should return empty string for null or empty error', () => {
+            expect(ErrorUtils.getErrorMessageWithTranslationData(null)).toBe('');
+            expect(ErrorUtils.getErrorMessageWithTranslationData('')).toBe('');
+        });
+
+        test('should return original error when current locale is English', () => {
+            (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.EN);
+            const errorMessage = 'The deposit and withdrawal accounts are the same.';
+
+            const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
+
+            expect(result).toBe(errorMessage);
+        });
+
+        test('should return translated message for specific error in non-English locale', () => {
+            (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
+            (Localize.translate as jest.Mock).mockReturnValue('Las cuentas de depósito y retiro son las mismas.');
+            const errorMessage = 'The deposit and withdrawal accounts are the same.';
+
+            const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
+
+            expect(result).toBe('Las cuentas de depósito y retiro son las mismas.');
+            expect(Localize.translate).toHaveBeenCalledWith(CONST.LOCALES.ES, 'bankAccount.error.sameDepositAndWithdrawalAccount');
+        });
+
+        test('should return original error for non-matching error message in non-English locale', () => {
+            (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
+            const errorMessage = 'Some other error message';
+
+            const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
+
+            expect(result).toBe(errorMessage);
         });
     });
 });
