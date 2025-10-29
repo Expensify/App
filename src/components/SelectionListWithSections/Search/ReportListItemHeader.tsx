@@ -115,7 +115,7 @@ function HeaderFirstRow<TItem extends ListItem>({
         const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
 
         return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
+    }, [reportItem.total, reportItem.transactions, reportItem.currency, reportItem.type]);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
