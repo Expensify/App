@@ -19,7 +19,6 @@ type SearchRejectReasonPageProps =
 
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {translate} = useLocalize();
-    const {backTo = ''} = route.params ?? {};
     const context = useSearchContext();
 
     const onSubmit = useCallback(
@@ -48,7 +47,6 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         <RejectReasonFormView
             onSubmit={onSubmit}
             validate={validate}
-            backTo={backTo}
         />
     );
 }

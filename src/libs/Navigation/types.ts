@@ -2558,13 +2558,8 @@ type SearchReportParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
-        /** Link to previous page */
-        backTo?: Routes;
-    };
+    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: Record<string, never>;
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
-        /** Link to previous page */
-        backTo: Routes;
         /** Selected transactions' report ID  */
         reportID: string;
     };
