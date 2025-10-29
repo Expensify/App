@@ -15,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -45,7 +46,6 @@ import {
     canSendInvoice as canSendInvoicePolicyUtils,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     isPaidGroupPolicy,
-    isPolicyMember,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
@@ -158,17 +158,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
-    const isUserPaidPolicyMemberSelector = useCallback(
-        (policies: OnyxCollection<OnyxTypes.Policy>) => {
-            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
-        },
-        [currentUserPersonalDetails.login],
-    );
-
-    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: isUserPaidPolicyMemberSelector,
-    });
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const reportID = useMemo(() => generateReportID(), []);
 
     const {

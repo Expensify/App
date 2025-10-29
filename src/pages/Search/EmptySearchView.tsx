@@ -1,5 +1,5 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -20,6 +20,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -105,21 +106,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
         canBeMissing: true,
     });
 
-    const isUserPaidPolicyMemberSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
-        },
-        [currentUserPersonalDetails.login],
-    );
-
-    const [isUserPaidPolicyMember = false] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY,
-        {
-            canBeMissing: true,
-            selector: isUserPaidPolicyMemberSelector,
-        },
-        [isUserPaidPolicyMemberSelector],
-    );
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
 
     return (
         <SearchScopeProvider>
