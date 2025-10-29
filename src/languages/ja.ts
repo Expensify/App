@@ -5637,7 +5637,8 @@ ${date} - ${merchant}に${amount}`,
             auditor: {
                 title: '監査人',
                 description: '監査人はすべてのレポートに対して読み取り専用アクセスが可能で、完全な可視性とコンプライアンス監視を提供します。',
-                onlyAvailableOnPlan: '監査人は Control プランでのみ利用可能、開始価格は ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>監査人は Control プランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額です。` : `アクティブメンバー1人あたり月額です。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',

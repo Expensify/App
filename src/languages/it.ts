@@ -5689,7 +5689,8 @@ ${amount} per ${merchant} - ${date}`,
             auditor: {
                 title: 'Revisore',
                 description: 'I revisori hanno accesso in sola lettura a tutti i report per piena visibilità e monitoraggio della conformità.',
-                onlyAvailableOnPlan: 'I revisori sono disponibili solo con il piano Control, a partire da ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>I revisori sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',

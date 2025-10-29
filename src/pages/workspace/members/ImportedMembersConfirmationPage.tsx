@@ -52,6 +52,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     useEffect(() => {
         return () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearImportedSpreadsheetMemberData();
             });

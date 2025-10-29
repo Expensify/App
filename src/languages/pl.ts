@@ -5668,7 +5668,8 @@ ${amount} dla ${merchant} - ${date}`,
             auditor: {
                 title: 'Audytor',
                 description: 'Audytorzy mają dostęp tylko do odczytu wszystkich raportów, zapewniając pełną przejrzystość i monitorowanie zgodności.',
-                onlyAvailableOnPlan: 'Audytorzy są dostępni tylko w planie Control, od ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Audytorzy są dostępni tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',

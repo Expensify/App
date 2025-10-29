@@ -5572,7 +5572,8 @@ ${merchant}的${amount} - ${date}`,
             auditor: {
                 title: '审计员',
                 description: '审计员可对所有报告进行只读访问，以实现全面可见性和合规监控。',
-                onlyAvailableOnPlan: '审计员仅在 Control 计划中提供，起价为 ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>审计员仅在 Control 计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
