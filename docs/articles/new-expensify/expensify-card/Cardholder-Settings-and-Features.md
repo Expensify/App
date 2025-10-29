@@ -10,7 +10,7 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 # Activate your Expensify Card
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Tasks**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
 2. Complete the task labeled **Activate your Expensify Card**.
 3. Enter the last 4 digits of your physical card to activate it.
 
