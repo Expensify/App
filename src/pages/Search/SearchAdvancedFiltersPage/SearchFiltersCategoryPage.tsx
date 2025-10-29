@@ -63,8 +63,8 @@ function SearchFiltersCategoryPage() {
             ...Array.from(uniqueCategoryNames)
                 .filter(Boolean)
                 .map((categoryName) => {
-                    const cleanCategoryName = getDecodedCategoryName(categoryName);
-                    return {name: cleanCategoryName, value: categoryName};
+                    const decodedCategoryName = getDecodedCategoryName(categoryName);
+                    return {name: decodedCategoryName, value: categoryName};
                 }),
         );
         return items;

@@ -30,7 +30,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
-    const cleanCategoryName = getDecodedCategoryName(categoryName);
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
@@ -56,10 +56,10 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: cleanCategoryName})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: decodedCategoryName})}</Text>
             </View>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, cleanCategoryName],
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, decodedCategoryName],
     );
 
     const updateMapping = useCallback(

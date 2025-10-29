@@ -38,7 +38,7 @@ function CategoryFlagAmountsOverPage({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
-    const cleanCategoryName = getDecodedCategoryName(categoryName);
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -79,7 +79,7 @@ function CategoryFlagAmountsOverPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={[styles.mb4, styles.pt3, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName: cleanCategoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName: decodedCategoryName})}</Text>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}

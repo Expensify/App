@@ -360,10 +360,10 @@ function SearchAutocompleteList({
                     .slice(0, 10);
 
                 return filteredCategories.map((categoryName) => {
-                    const cleanCategoryName = getDecodedCategoryName(categoryName);
+                    const decodedCategoryName = getDecodedCategoryName(categoryName);
                     return {
                         filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY,
-                        text: cleanCategoryName,
+                        text: decodedCategoryName,
                     };
                 });
             }

@@ -2397,19 +2397,19 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
-    const cleanCategoryName = getDecodedCategoryName(categoryName ?? '');
+    const decodedOptionName = getDecodedCategoryName(categoryName ?? '');
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.addCategory', {
-            categoryName: cleanCategoryName,
+            categoryName: decodedOptionName,
         });
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.deleteCategory', {
-            categoryName: cleanCategoryName,
+            categoryName: decodedOptionName,
         });
     }
 
@@ -2419,7 +2419,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             return translateLocal('workspaceActions.updatedDescriptionHint', {
                 oldValue: oldValue as string | undefined,
                 newValue: newValue as string | undefined,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
             });
         }
 
@@ -2427,7 +2427,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategory', {
                 oldValue: !!oldValue,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
             });
         }
 
@@ -2435,7 +2435,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateAreCommentsRequired', {
                 oldValue,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
             });
         }
 
@@ -2443,7 +2443,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryPayrollCode', {
                 oldValue,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
                 newValue,
             });
         }
@@ -2452,7 +2452,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryGLCode', {
                 oldValue,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
                 newValue,
             });
         }
@@ -2462,14 +2462,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             return translateLocal('workspaceActions.updateCategoryMaxExpenseAmount', {
                 oldAmount: Number(oldValue) ? convertAmountToDisplayString(Number(oldValue), currency) : undefined,
                 newAmount: Number(newValue ?? 0) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
             });
         }
 
         if (updatedField === 'expenseLimitType' && typeof newValue === 'string' && typeof oldValue === 'string') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryExpenseLimitType', {
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 oldValue: oldValue ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue}` as TranslationPaths) : undefined,
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2495,7 +2495,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
             };
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
-                categoryName: cleanCategoryName,
+                categoryName: decodedOptionName,
                 oldValue: getTranslation(oldValue),
                 newValue: getTranslation(newValue),
             });

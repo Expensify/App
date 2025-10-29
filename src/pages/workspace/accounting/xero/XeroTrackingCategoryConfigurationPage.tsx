@@ -34,10 +34,10 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const menuItems = useMemo(() => {
         const trackingCategories = getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => {
-            const cleanCategoryName = getDecodedCategoryName(category.name);
+            const decodedCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
-                description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: cleanCategoryName}) as TranslationPaths,
+                description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: decodedCategoryName}) as TranslationPaths,
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
                 title: translate(
                     `workspace.xero.trackingCategoriesOptions.${

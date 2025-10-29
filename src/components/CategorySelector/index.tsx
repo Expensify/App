@@ -44,14 +44,14 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
         hidePickerModal();
     };
 
-    const title = getDecodedCategoryName(defaultValue);
-    const descStyle = title.length === 0 ? styles.textNormal : null;
+    const decodedCategoryName = getDecodedCategoryName(defaultValue);
+    const descStyle = decodedCategoryName.length === 0 ? styles.textNormal : null;
 
     return (
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={title}
+                title={decodedCategoryName}
                 description={label}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}

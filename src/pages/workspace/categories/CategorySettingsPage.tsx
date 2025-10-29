@@ -63,7 +63,7 @@ function CategorySettingsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
-    const cleanCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
+    const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
@@ -189,7 +189,7 @@ function CategorySettingsPage({
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={cleanCategoryName}
+                    title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -235,7 +235,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={cleanCategoryName}
+                            title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon

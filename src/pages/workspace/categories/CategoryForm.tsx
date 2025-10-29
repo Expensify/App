@@ -35,7 +35,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const cleanCategoryName = getDecodedCategoryName(categoryName ?? '');
+    const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -85,7 +85,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                defaultValue={cleanCategoryName}
+                defaultValue={decodedCategoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}
