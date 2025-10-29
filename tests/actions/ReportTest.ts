@@ -1681,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2069,7 +2069,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -2112,7 +2112,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
@@ -2158,6 +2158,7 @@ describe('actions/Report', () => {
                 1,
                 '',
                 true,
+                false,
                 false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -2238,7 +2239,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call changeReportPolicyAndInviteSubmitter
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, false, employeeList, TestHelper.formatPhoneNumber, false);
             await waitForBatchedUpdates();
 
             // Simulate network failure
