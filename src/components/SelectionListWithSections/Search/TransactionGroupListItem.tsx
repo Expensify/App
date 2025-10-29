@@ -304,7 +304,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, styles.mv1]}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
@@ -315,7 +315,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
             </View>
         );
-    }, [hasViolations, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.textDanger, styles.textMicro, theme.danger, translate]);
+    }, [hasViolations, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.mv1, styles.textDanger, styles.textMicro, theme.danger, translate]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
