@@ -1206,6 +1206,7 @@ function MoneyReportHeader({
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
+                openParentReportInCurrentTab
             >
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
