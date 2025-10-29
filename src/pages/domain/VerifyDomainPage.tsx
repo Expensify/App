@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -24,38 +23,15 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Domain} from '@src/types/onyx';
 
 function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
     const styles = useThemeStyles();
     return (
-        <View style={styles.flexRow}>
+        <View style={[styles.flexRow, styles.pl1]}>
             <Text>{index}. </Text>
             <View style={styles.flex1}>{children}</View>
         </View>
     );
-}
-
-function ValidateCodeRow({code: validateCode, retryAction, status: validateCodeLoadingStatus}: {code?: string; status: Domain['validateCodeLoadingStatus']; retryAction: () => void}) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-
-    switch (validateCodeLoadingStatus) {
-        case 'error':
-            return (
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    <FormHelpMessage message={translate('domain.verifyDomain.codeFetchError')} />
-                    <Button onPress={retryAction}>{translate('domain.retry')}</Button>
-                </View>
-            );
-
-        case 'loading':
-            return <ActivityIndicator color={theme.text} />;
-
-        default:
-            return <CopyableTextField value={validateCode} />;
-    }
 }
 
 type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
@@ -111,16 +87,32 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                             </OrderedListRow>
                         </Text>
 
-                        <OrderedListRow index={2}>
-                            <View>
+                        <View>
+                            <OrderedListRow index={2}>
                                 <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
-                                <ValidateCodeRow
-                                    code={domain?.validateCode}
-                                    status={domain?.validateCodeLoadingStatus}
-                                    retryAction={() => getDomainValidationCode(accountID)}
-                                />
-                            </View>
-                        </OrderedListRow>
+
+                                {domain?.validateCodeLoadingStatus !== 'error' && (
+                                    <CopyableTextField
+                                        value={domain?.validateCode}
+                                        isLoading={domain?.validateCodeLoadingStatus === 'loading'}
+                                    />
+                                )}
+                            </OrderedListRow>
+
+                            {domain?.validateCodeLoadingStatus === 'error' && (
+                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                                    <FormHelpMessage
+                                        message={translate('domain.verifyDomain.codeFetchError')}
+                                        style={[styles.mt0, styles.mb0]}
+                                    />
+                                    <Button
+                                        small
+                                        text={translate('domain.retry')}
+                                        onPress={() => getDomainValidationCode(accountID)}
+                                    />
+                                </View>
+                            )}
+                        </View>
 
                         <OrderedListRow index={3}>
                             <Text style={styles.webViewStyles.baseFontStyle}>{translate('domain.verifyDomain.saveChanges')}</Text>
