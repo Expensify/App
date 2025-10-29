@@ -1681,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
