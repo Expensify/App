@@ -11,7 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
+      - name: Filter paths
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            should_run:
+              - '!docs/**/*.md'
+              - '!docs/**/*.csv'
+              - '**'
+
       - name: reviewerChecklist.js
+        if: steps.filter.outputs.should_run == 'true'
         uses: ./.github/actions/javascript/reviewerChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -196,6 +196,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
      * Mode to use when converting the approval workflow
      */
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
+
+    /**
+     * The email of the default approver
+     */
+    defaultApprover?: string;
 };
 
 type UpdateWorkflowDataOnApproverRemovalParams = {
@@ -234,6 +239,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     membersToRemove,
     approversToRemove,
     type,
+    defaultApprover,
 }: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
@@ -288,7 +294,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     membersToRemove?.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: '',
+            submitsTo: defaultApprover,
             pendingAction,
         };
     });

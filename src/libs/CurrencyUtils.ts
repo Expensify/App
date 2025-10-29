@@ -105,7 +105,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
@@ -114,6 +114,20 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
+
+    if (shouldUseLocalCurrencySymbol) {
+        const currencySymbol = getCurrencySymbol(currencyWithFallback);
+
+        if (currencySymbol) {
+            const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
+                style: 'decimal',
+                minimumFractionDigits: getCurrencyDecimals(currency),
+                maximumFractionDigits: 2,
+            });
+            return `${currencySymbol}${formattedNumber}`;
+        }
+    }
+
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,

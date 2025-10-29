@@ -28,4 +28,4 @@ Onyx.connectWithoutView({
     },
 });
 
-export default {init, sendEvent};
+export default {init, sendEvent, setAttribute};

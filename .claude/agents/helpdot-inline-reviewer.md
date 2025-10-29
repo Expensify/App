@@ -44,9 +44,7 @@ keywords: [feature name, related terms, navigation path, etc.]
 - Button label violations:
   - "Continue" instead of "Next"
   - "Save" instead of "Confirm" at end of flows
-- Markdown formatting violations:
-  - Bullet phrases with periods (should have no period)
-  - Bullet sentences without periods (should have period)
+- Markdown formatting violations
 - FAQ structure violations:
   - Not using "# FAQ" as heading
   - Questions not using ## subheadings

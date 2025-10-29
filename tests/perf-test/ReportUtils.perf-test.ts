@@ -94,7 +94,7 @@ describe('ReportUtils', () => {
         const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -165,7 +165,19 @@ describe('ReportUtils', () => {
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         await waitForBatchedUpdates();
-        await measureFunction(() => shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false}));
+        await measureFunction(() =>
+            shouldReportBeInOptionList({
+                report,
+                chatReport,
+                currentReportId,
+                isInFocusMode,
+                betas,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: false,
+            }),
+        );
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {

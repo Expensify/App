@@ -1,15 +1,22 @@
 import {findFocusedRoute, StackActions, useNavigation, useRoute} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
@@ -18,6 +25,41 @@ const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + variables.sideBarWidth;
+
+/**
+ * Utility function that extracts all unique navigation keys from a React Navigation state.
+ * Recursively traverses the navigation state tree and collects all route keys.
+ *
+ * @param state - The React Navigation state (can be partial or complete)
+ * @returns Set of unique route keys found in the navigation state
+ */
+function extractNavigationKeys(state: NavigationState | PartialState<NavigationState> | undefined): Set<string> {
+    if (!state || !state.routes) {
+        return new Set();
+    }
+
+    const keys = new Set<string>();
+    const routesToProcess = [...state.routes];
+
+    while (routesToProcess.length > 0) {
+        const route = routesToProcess.pop();
+        if (!route) {
+            continue;
+        }
+
+        // Add the current route key to the set
+        if (route.key) {
+            keys.add(route.key);
+        }
+
+        // If the route has a nested state, add its routes to the processing queue
+        if (route.state && 'routes' in route.state && Array.isArray(route.state.routes)) {
+            routesToProcess.push(...route.state.routes);
+        }
+    }
+
+    return keys;
+}
 
 /**
  * Calculates the optimal width for the receipt pane RHP based on window width.
@@ -37,16 +79,72 @@ const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dime
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
+const expenseReportSelector = (reports: OnyxCollection<Report>) => {
+    return Object.fromEntries(
+        Object.entries(reports ?? {}).map(([key, report]) => [
+            key,
+            {
+                reportID: report?.reportID,
+                type: report?.type,
+            },
+        ]),
+    );
+};
+
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
-    const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);
+    // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
+    // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
+    const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
+
+    // Return undefined if RHP is not the last route
+    const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
+        const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
+        const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
+        if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
+            return undefined;
+        }
+
+        return state?.routes.at(lastRHPRouteIndex)?.key;
+    });
+
+    const wideRHPRouteKeys = useMemo(() => {
+        const rootState = navigationRef.getRootState();
+
+        if (!rootState) {
+            return [];
+        }
+
+        const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
+
+        if (!lastRHPRoute) {
+            return [];
+        }
+
+        const lastRHPKeys = extractNavigationKeys(lastRHPRoute.state);
+        const currentKeys = allWideRHPRouteKeys.filter((key) => lastRHPKeys.has(key));
+
+        return currentKeys;
+    }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
     /**
      * Determines whether the secondary overlay should be displayed.
      * Shows second overlay when RHP is open and there is a wide RHP route open but there is another regular route on the top.
      */
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return false;
+        }
+
         const focusedRoute = findFocusedRoute(state);
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
@@ -75,7 +173,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const newKey = route.key;
 
         // If the key is in the array, don't add it.
-        setWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
+        setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
     /**
@@ -91,13 +189,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             const keyToRemove = route.key;
 
             // Do nothing, the key is not here
-            if (!wideRHPRouteKeys.includes(keyToRemove)) {
+            if (!allWideRHPRouteKeys.includes(keyToRemove)) {
                 return;
             }
 
-            setWideRHPRouteKeys((prev) => prev.filter((key) => key !== keyToRemove));
+            setAllWideRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
         },
-        [wideRHPRouteKeys],
+        [allWideRHPRouteKeys],
     );
 
     /**
@@ -125,13 +223,22 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * This enables optimistic wide RHP display for expense reports.
      * It helps us open expense as wide, before it fully loads.
      */
-    const markReportIDAsExpense = useCallback((reportID: string) => {
-        setExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(reportID);
-            return newSet;
-        });
-    }, []);
+    const markReportIDAsExpense = useCallback(
+        (reportID: string) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
+            const isTask = report?.type === CONST.REPORT.TYPE.TASK;
+            if (isInvoice || isTask) {
+                return;
+            }
+            setExpenseReportIDs((prev) => {
+                const newSet = new Set(prev);
+                newSet.add(reportID);
+                return newSet;
+            });
+        },
+        [allReports],
+    );
 
     /**
      * Checks if a report ID is marked as an expense report.
@@ -237,6 +344,7 @@ function useShowWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 cleanWideRHPRouteKey(route);
             });
@@ -262,4 +370,4 @@ WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
 
-export {expandedRHPProgress, receiptPaneRHPWidth, secondOverlayProgress, useShowWideRHPVersion, WideRHPContext};
+export {expandedRHPProgress, receiptPaneRHPWidth, secondOverlayProgress, useShowWideRHPVersion, WideRHPContext, extractNavigationKeys};

@@ -33,7 +33,7 @@ You can update the following profile settings:
    - Polish (Polski)
    - Portuguese (Português – Brasil)
    - Japanese (日本語)
-   - Chinese (中文（简体）)
+   - Chinese (中文 (简体))
 
 ---
 
@@ -65,7 +65,7 @@ To change your language:
 ## Notifications
 
 To manage notification settings:
-1. Go to **Account > Preferences**.
+1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
