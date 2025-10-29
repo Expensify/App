@@ -423,7 +423,17 @@ describe('actions/IOU', () => {
             const fakeTransaction = {
                 ...createRandomTransaction(1),
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                    waypoints: fakeWayPoints,
+                },
             };
+
+            // When the transaction is saved to draft before being submitted
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`, fakeTransaction);
             mockFetch?.pause?.();
 
