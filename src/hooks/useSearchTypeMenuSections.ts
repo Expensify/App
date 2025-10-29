@@ -88,7 +88,7 @@ const useSearchTypeMenuSections = () => {
             }
 
             const executeCreate = () => {
-                const createdReportID = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
+                const {reportID: createdReportID} = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
                 onSuccess(createdReportID);
             };
 
@@ -127,7 +127,6 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 isASAPSubmitBetaEnabled,
                 hasViolations,
-                reports,
                 createReportWithConfirmation,
             ),
         [
@@ -142,7 +141,6 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            reports,
             createReportWithConfirmation,
         ],
     );
