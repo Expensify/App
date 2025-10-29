@@ -24,6 +24,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -88,6 +89,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
@@ -155,12 +157,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
                 policyCategories,
                 policyTagLists,
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, policyCategories, policyTagLists, allTransactionViolations],
+        [
+            policyId,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -276,6 +288,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyTagLists,
             policyCategories,
             allTransactionViolations,
@@ -390,6 +403,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
@@ -421,6 +435,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
+                            currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
