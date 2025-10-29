@@ -107,11 +107,11 @@ function MoneyRequestReportPreview({
 
         // For single transaction reports with orphaned transactions, create the thread
         const isSingleTransaction = transactions.length === 1;
-        
+
         if (isSingleTransaction) {
             const transaction = transactions.at(0);
             const iouAction = getIOUActionForReportID(iouReportID, transaction?.transactionID);
-            
+
             // If single transaction and no IOU action exists (orphaned), create the thread
             if (!iouAction && transaction) {
                 createTransactionThreadReport(iouReport, undefined, transaction);
