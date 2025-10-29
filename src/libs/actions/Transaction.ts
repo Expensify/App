@@ -560,7 +560,7 @@ function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: Original
     });
 }
 
-function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined, transactionViolations: TransactionViolation[] = []) {
+function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined, transactionViolations: TransactionViolations = []) {
     if (!transactionID || !transactionThreadReportID) {
         return;
     }
