@@ -529,7 +529,6 @@ const translations = {
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
         showMore: 'Show more',
-        showLess: 'Show less',
         merchant: 'Merchant',
         category: 'Category',
         report: 'Report',
