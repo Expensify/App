@@ -208,8 +208,6 @@ type RawQueryFilter = {
     isDefault?: boolean;
 };
 
-type RawQueryFilters = RawQueryFilter[];
-
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -220,7 +218,7 @@ type SearchQueryAST = {
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
-    rawFilterList?: RawQueryFilters;
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -283,7 +281,6 @@ export type {
     QueryFilters,
     RawFilterKey,
     RawQueryFilter,
-    RawQueryFilters,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,

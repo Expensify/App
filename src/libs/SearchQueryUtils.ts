@@ -7,7 +7,6 @@ import type {
     QueryFilter,
     QueryFilters,
     RawQueryFilter,
-    RawQueryFilters,
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     ReportFieldTextKey,
@@ -64,7 +63,7 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
-const manualQueryRawFilterStore = new Map<string, RawQueryFilters>();
+const manualQueryRawFilterStore = new Map<string, RawQueryFilter[]>();
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -420,7 +419,7 @@ function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQuer
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
-        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? (result.rawFilterList as RawQueryFilters) : [];
+        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? (result.rawFilterList as RawQueryFilter[]) : [];
         const storedRawFilters = manualQueryRawFilterStore.get(query);
         if (storedRawFilters && storedRawFilters.length > 0) {
             result.rawFilterList = storedRawFilters;
@@ -483,7 +482,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     return queryParts.join(' ');
 }
 
-function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilters | undefined {
+function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
     if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
         return undefined;
     }
@@ -512,7 +511,7 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilters | u
             ...rawFilter,
             value: updatedValue,
         };
-    }) as RawQueryFilters;
+    }) as RawQueryFilter[];
 
     const seenKeys = new Set<string>();
 
