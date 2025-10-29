@@ -1,14 +1,14 @@
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 
 /**
- * Filter translation paths that start with a specific prefix
+ * Filter translation paths that start with spreadsheet prefix
  */
-type PathsStartingWith<TPrefix extends string> = Extract<TranslationPaths, `${TPrefix}${string}`>;
+type SpreadsheetTranslationPaths = Extract<TranslationPaths, `spreadsheet${string}`>;
 
 /** Texts to display depending on request success/failure */
-type ImportFinalModal<TPath extends PathsStartingWith<'spreadsheet'>> = {
+type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     /** Title of the modal */
-    titleKey: PathsStartingWith<'spreadsheet'>;
+    titleKey: SpreadsheetTranslationPaths;
 
     /** Message to display */
     promptKey: TPath;
@@ -22,8 +22,8 @@ type ImportFinalModal<TPath extends PathsStartingWith<'spreadsheet'>> = {
  * Each translation path gets its own properly typed variant
  */
 type ImportFinalModalUnion = {
-    [K in PathsStartingWith<'spreadsheet'>]: ImportFinalModal<K>;
-}[PathsStartingWith<'spreadsheet'>];
+    [K in SpreadsheetTranslationPaths]: ImportFinalModal<K>;
+}[SpreadsheetTranslationPaths];
 
 /** Model of imported spreadsheet data */
 type ImportedSpreadsheet = {
