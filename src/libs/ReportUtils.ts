@@ -4195,6 +4195,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
+ * @deprecated
  */
 function getMoneyRequestReportName({
     report,
@@ -5250,6 +5251,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * Get the invoice payer name based on its type:
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
+ * @reprectaed
  */
 function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
     const invoiceReceiver = report?.invoiceReceiver;
@@ -5414,6 +5416,7 @@ function getInvoicesChatName({
  * Generates a report title using the names of participants, excluding the current user.
  * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
  * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
+ * @deprecated
  */
 const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
     Object.keys(report?.participants ?? {})
@@ -5442,6 +5445,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
 
 /**
  * Get the title for a report.
+ * @deprecated use getReportName from src/libs/ReportNameUtils.ts
  */
 function getReportName(
     report: OnyxEntry<Report>,
@@ -5771,6 +5775,10 @@ function getReportName(
     return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
 
+/**
+ * @deprecated
+ * @param props
+ */
 function getSearchReportName(props: GetReportNameParams): string {
     const {report, policy} = props;
     if (isChatThread(report) && policy?.name) {
@@ -5790,12 +5798,19 @@ function getSearchReportName(props: GetReportNameParams): string {
     );
 }
 
+/**
+ * @deprecated
+ */
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
     const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
 
+/**
+ * @deprecated
+ * @param reportName
+ */
 function generateArchivedReportName(reportName: string): string {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${reportName} (${translateLocal('common.archived')}) `;
@@ -12514,6 +12529,7 @@ export {
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
+    getMoneyRequestReportName,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
