@@ -16,7 +16,6 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -51,7 +50,6 @@ import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
-import type SplitListItem from './SplitListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
@@ -596,8 +594,7 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof UnreportedExpenseListItem
-    | typeof SplitListItem;
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -624,21 +621,9 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
-type EnhancedSectionListItem = ListItem & {
-    /** Key to identify the type of enhanced section. */
-    key: ValueOf<typeof CONST.ENHANCED_SECTIONS>;
-    /** The component to render for this section. */
-    component: React.JSX.Element;
-};
-
-type EnhancedSectionListType = {
-    /** Enhanced type for sections data used to add items at the bottom of the list (e.g. action buttons). */
-    data: EnhancedSectionListItem[];
-};
-
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListDataType<TItem>> | Array<SectionListDataType<TItem> | EnhancedSectionListType> | typeof CONST.EMPTY_ARRAY;
+    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** List of selected items */
     selectedItems?: string[];
@@ -1012,7 +997,6 @@ type SearchListItem = TransactionListItemType | TransactionGroupListItemType | R
 
 export type {
     BaseListItemProps,
-    EnhancedSectionListItem,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
     ExtendedTargetedEvent,

@@ -291,7 +291,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
 
-    const ActionButtons = useMemo(
+    const listFooterContent = useMemo(
         () => (
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem
@@ -313,31 +313,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3],
     );
 
-    const enhancedSections = useMemo(
-        () => [
-            ...sections,
-            {
-                data: [
-                    {
-                        key: CONST.ENHANCED_SECTIONS.SPLIT_EXPENSE_ACTIONS,
-                        component: ActionButtons,
-                    },
-                ],
-            },
-        ],
-        [sections, ActionButtons],
-    );
-
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
         const warningMessage = shouldShowWarningMessage
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View
-                ref={footerRef}
-                style={styles.pt3}
-            >
+            <View ref={footerRef}>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -408,11 +390,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
-                        sections={enhancedSections}
+                        sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto, styles.pt1]}
+                        containerStyle={[styles.flexBasisAuto]}
                         footerContent={footerContent}
+                        listFooterContent={listFooterContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}

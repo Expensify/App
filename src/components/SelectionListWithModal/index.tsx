@@ -51,14 +51,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems =
             selectedItemsProp ??
-            ((sections?.[0]?.data ?? []) as unknown[]).filter((item): item is TItem => {
-                // Exclude enhanced section items which have a `component` prop
-                const isEnhanced = typeof item === 'object' && item !== null && 'component' in (item as Record<string, unknown>);
-                if (isEnhanced) {
-                    return false;
+            sections[0].data.filter((item) => {
+                if (isSelected) {
+                    return isSelected(item);
                 }
-                const typedItem = item as TItem;
-                return isSelected ? isSelected(typedItem) : !!typedItem?.isSelected;
+                return !!item.isSelected;
             });
         selectionRef.current = selectedItems.length;
 

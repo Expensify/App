@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SectionListDataType, SelectionListProps} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
@@ -74,8 +74,8 @@ const SECTIONS = [
 function Default(props: SelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section) => {
-        const data = (section.data ?? []).map((item, index) => {
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
             const isSelected = selectedIndex === index;
             return {...item, isSelected};
         });
@@ -114,8 +114,8 @@ function WithTextInput(props: SelectionListProps<ListItem>) {
     const [searchText, setSearchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section) => {
-        const data = (section.data ?? []).reduce<ListItem[]>((memo, item, index) => {
+    const sections = props.sections.map((section) => {
+        const data = section.data.reduce<ListItem[]>((memo, item, index) => {
             if (!item.text?.toLowerCase().includes(searchText.trim().toLowerCase())) {
                 return memo;
             }
@@ -180,8 +180,8 @@ WithHeaderMessage.args = {
 function WithAlternateText(props: SelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section) => {
-        const data = (section.data ?? []).map((item, index) => {
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
             const isSelected = selectedIndex === index;
 
             return {
@@ -224,8 +224,8 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
     const memo = useMemo(() => {
         const allIds: string[] = [];
 
-        const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section) => {
-            const data = (section.data ?? []).map((item, index) => {
+        const sections = props.sections.map((section) => {
+            const data = section.data.map((item, index) => {
                 if (item.keyForList) {
                     allIds.push(item.keyForList);
                 }
@@ -294,8 +294,8 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
     const memo = useMemo(() => {
         const allIds: string[] = [];
 
-        const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section, sectionIndex) => {
-            const data = (section.data ?? []).map((item, itemIndex) => {
+        const sections = props.sections.map((section, sectionIndex) => {
+            const data = section.data.map((item, itemIndex) => {
                 if (item.keyForList) {
                     allIds.push(item.keyForList);
                 }
@@ -362,8 +362,8 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
     const memo = useMemo(() => {
         const allIds: string[] = [];
 
-        const sections = (props.sections as Array<SectionListDataType<ListItem>>).map((section, sectionIndex) => {
-            const data = (section.data ?? []).map((item, itemIndex) => {
+        const sections = props.sections.map((section, sectionIndex) => {
+            const data = section.data.map((item, itemIndex) => {
                 if (item.keyForList) {
                     allIds.push(item.keyForList);
                 }

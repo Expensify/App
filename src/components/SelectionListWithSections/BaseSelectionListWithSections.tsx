@@ -158,15 +158,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-
-    // Filter out enhanced sections (those whose items contain a `component` prop)
-    const baseSections = useMemo(() => {
-        const secs = Array.isArray(sections) ? sections : [];
-        return (secs as Array<SectionListDataType<TItem> | {data?: unknown[]}>).filter((section): section is SectionListDataType<TItem> => {
-            const data = (section as {data?: unknown[]}).data ?? [];
-            return !data.some((item) => typeof item === 'object' && item !== null && 'component' in (item as Record<string, unknown>));
-        });
-    }, [sections]);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
@@ -174,12 +165,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
     /** Calculates on which page is selected item so we can scroll to it on first render  */
     const calculateInitialCurrentPage = useCallback(() => {
-        if (canSelectMultiple || baseSections.length === 0) {
+        if (canSelectMultiple || sections.length === 0) {
             return 1;
         }
 
         let currentIndex = 0;
-        for (const section of baseSections) {
+        for (const section of sections) {
             if (section.data) {
                 for (const item of section.data) {
                     if (isItemSelected(item)) {
@@ -190,7 +181,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         return 1;
-    }, [canSelectMultiple, isItemSelected, baseSections]);
+    }, [canSelectMultiple, isItemSelected, sections]);
     const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
@@ -234,19 +225,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         const selectedOptions: TItem[] = [];
 
-        baseSections.forEach((section, sectionIndex) => {
-            const hasHeader = !!section.title || !!section.CustomSectionHeader;
-            const sectionHeaderHeight = hasHeader ? variables.optionsListSectionHeaderHeight : 0;
+        sections.forEach((section, sectionIndex) => {
+            const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            (section.data ?? []).forEach((item, optionIndex) => {
+            section.data?.forEach((item, optionIndex) => {
                 // Add item to the general flattened array
                 allOptions.push({
                     ...item,
                     sectionIndex,
                     index: optionIndex,
-                } as TItem);
+                });
 
                 // If disabled, add to the disabled indexes array
                 const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
@@ -260,8 +250,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const keyForList = item?.keyForList;
-                const fullItemHeight = keyForList && itemHeights.current[keyForList] ? itemHeights.current[keyForList] : getItemHeight(item);
+                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -294,7 +283,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
-    }, [customListHeader, customListHeaderHeight, baseSections, canSelectMultiple, isItemSelected, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
@@ -306,17 +295,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         return getSectionsWithIndexOffset(
-            baseSections.map((section) => {
+            sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
                 remainingOptionsLimit -= data.length;
 
                 return {
                     ...section,
                     data,
-                } as SectionListDataType<TItem>;
+                };
             }),
         );
-    }, [baseSections, currentPage]);
+    }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -486,7 +475,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (baseSections.length > 1 && !isItemSelected(item)) {
+                if (sections.length > 1 && !isItemSelected(item)) {
                     // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
@@ -519,7 +508,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             onSelectRow,
             shouldShowTextInput,
             shouldPreventDefaultFocusOnSelectRow,
-            baseSections.length,
+            sections.length,
             isItemSelected,
             isSmallScreenWidth,
             scrollToIndex,
