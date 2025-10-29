@@ -62,6 +62,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
             });
@@ -74,6 +75,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         }
 
         setIsDowngradeWarningModalOpen(false);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
