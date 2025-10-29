@@ -6,11 +6,11 @@ const getNavigationBarType: GetNavigationBarType = (insets) => {
 
     // If there is no bottom safe area inset, the device uses a physical navigation button.
     if (bottomInset === 0) {
-        return Promise.resolve(CONST.NAVIGATION_BAR_TYPE.NONE);
+        return CONST.NAVIGATION_BAR_TYPE.NONE;
     }
 
     // On iOS, if there is a bottom safe area inset, it means the device uses a gesture bar.
-    return Promise.resolve(CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR);
+    return CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR;
 };
 
 export default getNavigationBarType;

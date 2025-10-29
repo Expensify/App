@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -9,7 +9,6 @@ import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {NavigationBarType} from '@libs/NavBarManager/types';
 import CONST from '@src/CONST';
 
 type ScreenWrapperOfflineIndicatorsProps = {
@@ -48,18 +47,12 @@ function ScreenWrapperOfflineIndicators({
     addBottomSafeAreaPadding = true,
     addWideScreenBottomSafeAreaPadding = !!extraContent,
 }: ScreenWrapperOfflineIndicatorsProps) {
-    const [navigationBarType, setNavigationBarType] = useState<NavigationBarType>(CONST.NAVIGATION_BAR_TYPE.NONE);
-
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
     const {insets} = useSafeAreaPaddings(true);
-    useEffect(() => {
-        StyleUtils.getNavigationBarType(insets).then((type) => {
-            setNavigationBarType(type);
-        });
-    }, [StyleUtils, insets]);
+    const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
     /**

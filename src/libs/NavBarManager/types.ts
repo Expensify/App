@@ -7,7 +7,7 @@ type NavigationBarType = ValueOf<typeof CONST.NAVIGATION_BAR_TYPE>;
 
 type NavBarManager = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
-    getType: () => Promise<NavigationBarType>;
+    getType: () => NavigationBarType;
 };
 
 export default NavBarManager;

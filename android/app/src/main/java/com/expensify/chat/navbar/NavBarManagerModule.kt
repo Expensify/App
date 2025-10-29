@@ -28,17 +28,17 @@ class NavBarManagerModule(
         }
     }
 
-    @ReactMethod
-    fun getType(promise: Promise) {
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getType(): String {
         val resources = mReactContext.resources
         val resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
         if (resourceId > 0) {
             val navBarInteractionMode = resources.getInteger(resourceId)
             when (navBarInteractionMode) {
-                0, 1 -> promise.resolve("soft-keys")
-                2 -> promise.resolve("gesture-bar")
+                0, 1 -> return "soft-keys"
+                2 -> return "gesture-bar"
             }
         }
-        promise.resolve("soft-keys")
+        return "soft-keys"
     }
 }
