@@ -61,6 +61,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -1943,13 +1944,23 @@ function pushTransactionViolationsOnyxData(
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
-    if (!policyData.policy || isEmptyObject(policyData.transactionsAndViolations)) {
+    if (!policyData.policy || !policyData.reports || isEmptyObject(policyData.transactionsAndViolations)) {
         return;
     }
 
-    // Skipping invoice reports since they should not have any category or tag violations
-    const nonInvoiceReports = policyData.reports.filter((report) => !isInvoiceReport(report));
-    if (nonInvoiceReports.length === 0) {
+    const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
+        // Skipping invoice reports since they should not have any category or tag violations
+        if (isInvoiceReport(report)) {
+            return acc;
+        }
+        const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
+        if (reportTransactionsAndViolations) {
+            acc.push(reportTransactionsAndViolations);
+        }
+        return acc;
+    }, []);
+
+    if (nonInvoiceReportTransactionsAndViolations.length === 0) {
         return;
     }
 
@@ -2006,12 +2017,7 @@ function pushTransactionViolationsOnyxData(
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
     // Iterate through all policy reports to find transactions that need optimistic violations
-    for (const report of nonInvoiceReports) {
-        const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
-        if (isEmptyObject(reportTransactionsAndViolations)) {
-            continue;
-        }
-        const {transactions, violations} = reportTransactionsAndViolations;
+    for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
         for (const transaction of Object.values(transactions)) {
             const existingViolations = violations[transaction.transactionID];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
