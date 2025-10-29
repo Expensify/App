@@ -101,7 +101,11 @@ function handleActionButtonPress(
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey, onDEWModalOpen);
+            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+                onDEWModalOpen?.();
+                return;
+            }
+            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -373,9 +377,9 @@ function search({
         allowPostSearchRecount: false,
     });
 
-    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
             const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
@@ -402,6 +406,8 @@ function search({
                     allowPostSearchRecount: true,
                 });
             }
+
+            return result?.jsonCode;
         });
     });
 }
@@ -443,20 +449,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: SearchReport[],
-    policy: SearchPolicy[],
-    transactionIDList?: string[],
-    currentSearchKey?: SearchKey,
-    onDEWModalOpen?: () => void,
-) {
-    const policyData = policy.at(0);
-    if (policyData && hasDynamicExternalWorkflow(policyData)) {
-        onDEWModalOpen?.();
-        return;
-    }
-
+function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
