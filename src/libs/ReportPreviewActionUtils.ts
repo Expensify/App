@@ -11,8 +11,6 @@ import {
     getReportTransactions,
     hasAnyViolations as hasAnyViolationsUtil,
     hasMissingSmartscanFields,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -41,7 +39,6 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -56,14 +53,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
-
-    // If a report has been retracted, we allow submission regardless of the auto reporting frequency.
-    if (baseCanSubmit && hasBeenRetracted) {
-        return true;
-    }
-
-    return baseCanSubmit;
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
