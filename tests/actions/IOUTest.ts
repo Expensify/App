@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import useOnyx from '@hooks/useOnyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -213,11 +214,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -231,7 +231,7 @@ describe('actions/IOU', () => {
                         right: '20671314',
                     },
                 },
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:submit from:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:submit from:20671314',
                 flatFilters: [
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
@@ -254,7 +254,7 @@ describe('actions/IOU', () => {
                 ],
                 hash: 1920151829,
                 recentSearchHash: 2100977843,
-                similarSearchHash: 1476388677,
+                similarSearchHash: 1855682507,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -272,11 +272,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -312,9 +311,9 @@ describe('actions/IOU', () => {
                 ],
 
                 hash: 1510971479,
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:approve to:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
                 recentSearchHash: 967911777,
-                similarSearchHash: 601088623,
+                similarSearchHash: 1539858783,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -333,11 +332,10 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                     left: 'reimbursable',
@@ -7194,6 +7192,75 @@ describe('actions/IOU', () => {
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
         });
+
+        it('should preserve reimbursable field when adding new split to card transaction', async () => {
+            // Setup: Card transaction (reimbursable: false)
+            const cardTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Card transaction',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+                reimbursable: false, // Card transaction - not reimbursable
+            };
+
+            const draftTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Card transaction',
+                    splitExpenses: [
+                        {
+                            transactionID: '789',
+                            amount: 50,
+                            description: 'Card transaction',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                            reimbursable: false, // Existing split - not reimbursable
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+                reimbursable: false,
+            };
+
+            // Action: Add a new split expense field
+            addSplitExpenseField(cardTransaction, draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${cardTransaction.transactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+
+            // Verify: The new split should have reimbursable: false (not counted as out-of-pocket)
+            expect(splitExpenses?.[1].reimbursable).toBe(false);
+            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].description).toBe('Card transaction');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+
+            // Verify: The existing split should still have reimbursable: false
+            expect(splitExpenses?.[0].reimbursable).toBe(false);
+        });
     });
 
     describe('updateSplitExpenseAmountField', () => {
@@ -7440,7 +7507,16 @@ describe('actions/IOU', () => {
                 return;
             }
 
-            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID, false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL);
+            const {result} = renderHook(() => {
+                const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`, {canBeMissing: true});
+                return {report};
+            });
+
+            await waitFor(() => {
+                expect(result.current.report).toBeDefined();
+            });
+
+            changeTransactionsReport([transaction?.transactionID], false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, result.current.report);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
@@ -9202,6 +9278,7 @@ describe('actions/IOU', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 iouReportID: undefined,
             };
+            const policy: OnyxEntry<Policy> = createRandomPolicy(1);
 
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -9210,7 +9287,7 @@ describe('actions/IOU', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
