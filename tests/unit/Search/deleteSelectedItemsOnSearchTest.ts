@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import type {SelectedTransactionInfo} from '@components/Search/types';
-import {deleteSelectedItemsOnSearch} from '@libs/actions/Search';
+import {bulkDeleteReports} from '@libs/actions/Search';
 import {deleteAppReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -13,7 +13,7 @@ jest.mock('@libs/API', () => ({
     write: jest.fn(),
 }));
 
-describe('deleteSelectedItemsOnSearch', () => {
+describe('bulkDeleteReports', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear();
@@ -59,7 +59,7 @@ describe('deleteSelectedItemsOnSearch', () => {
                 },
             };
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
@@ -117,7 +117,7 @@ describe('deleteSelectedItemsOnSearch', () => {
                 },
             };
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
@@ -159,7 +159,7 @@ describe('deleteSelectedItemsOnSearch', () => {
                 },
             };
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe('deleteSelectedItemsOnSearch', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should not call any deletion functions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -210,7 +210,7 @@ describe('deleteSelectedItemsOnSearch', () => {
                 },
             };
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
@@ -255,7 +255,7 @@ describe('deleteSelectedItemsOnSearch', () => {
                 },
             };
 
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();

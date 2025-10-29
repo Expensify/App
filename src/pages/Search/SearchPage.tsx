@@ -38,7 +38,7 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
-    deleteSelectedItemsOnSearch,
+    bulkDeleteReports,
     exportSearchItemsToCSV,
     getExportTemplates,
     getLastPolicyPaymentMethod,
@@ -581,7 +581,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteSelectedItemsOnSearch(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions);
             clearSelectedTransactions();
         });
     };

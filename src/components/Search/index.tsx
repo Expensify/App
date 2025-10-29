@@ -122,7 +122,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             convertedCurrency: item.convertedCurrency,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: Math.abs(item.modifiedAmount ?? item.amount),
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
@@ -195,41 +195,17 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
+function toggleTransactionInList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
 
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(item, outstandingReportsByPolicyID);
     return {
         ...selectedTransactions,
-        [item.keyForList]: {
-            isSelected: true,
-            canDelete: item.canDelete,
-            canHold: item.canHold,
-            isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
-            canChangeReport: canEditFieldOfMoneyRequest(
-                item.reportAction,
-                CONST.EDIT_REQUEST_FIELD.REPORT,
-                undefined,
-                undefined,
-                outstandingReportsByPolicyID,
-                item,
-                item.report,
-                item.policy,
-            ),
-            action: item.action,
-            reportID: item.reportID,
-            policyID: item.policyID,
-            amount: Math.abs(item.modifiedAmount || item.amount),
-            convertedAmount: item.convertedAmount,
-            convertedCurrency: item.convertedCurrency,
-            currency: item.currency,
-            isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
-        },
+        [key]: selectedInfo,
     };
 }
 
@@ -596,37 +572,36 @@ function Search({
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-
-        if (!data.length || isRefreshingSelection.current) {
-            return;
-        }
-        const areItemsGrouped = !!validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-        const totalSelectableItemsCount = areItemsGrouped
-            ? (data as TransactionGroupListItemType[]).reduce((count, item) => {
-                  // For empty reports, count the report itself as a selectable item
-                  if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
-                      if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                          return count;
+    const updateSelectAllMatchingItemsState = useCallback(
+        (updatedSelectedTransactions: SelectedTransactions) => {
+            if (!data.length || isRefreshingSelection.current) {
+                return;
+            }
+            const areItemsGrouped = !!validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+            const totalSelectableItemsCount = areItemsGrouped
+                ? (data as TransactionGroupListItemType[]).reduce((count, item) => {
+                      // For empty reports, count the report itself as a selectable item
+                      if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+                          if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                              return count;
+                          }
+                          return count + 1;
                       }
-                      return count + 1;
-                  }
-                  // For regular reports, count all transactions
-                  return count + item.transactions.length;
-              }, 0)
-            : data.length;
-        const areAllItemsSelected = totalSelectableItemsCount === Object.keys(selectedTransactions).length;
+                      // For regular reports, count all transactions
+                      return count + item.transactions.length;
+                  }, 0)
+                : data.length;
+            const areAllItemsSelected = totalSelectableItemsCount === Object.keys(updatedSelectedTransactions).length;
 
-        // If the user has selected all the expenses in their view but there are more expenses matched by the search
-        // give them the option to select all matching expenses
-        shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
-        if (!areAllItemsSelected) {
-            selectAllMatchingItems(false);
-        }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy, type]);
+            // If the user has selected all the expenses in their view but there are more expenses matched by the search
+            // give them the option to select all matching expenses
+            shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+            if (!areAllItemsSelected) {
+                selectAllMatchingItems(false);
+            }
+        },
+        [data, validGroupBy, type, searchResults?.search?.hasMoreResults, shouldShowSelectAllMatchingItems, selectAllMatchingItems],
+    );
 
     const toggleTransaction = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -643,7 +618,9 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, outstandingReportsByPolicyID), data);
+                const updatedTransactions = toggleTransactionInList(item, selectedTransactions, outstandingReportsByPolicyID);
+                setSelectedTransactions(updatedTransactions, data);
+                updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
 
@@ -665,17 +642,17 @@ function Search({
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     delete reducedSelectedTransactions[reportKey];
                     setSelectedTransactions(reducedSelectedTransactions, data);
+                    updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                     return;
                 }
 
                 const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
-                setSelectedTransactions(
-                    {
-                        ...selectedTransactions,
-                        [reportKey]: emptyReportSelection,
-                    },
-                    data,
-                );
+                const updatedTransactions = {
+                    ...selectedTransactions,
+                    [reportKey]: emptyReportSelection,
+                };
+                setSelectedTransactions(updatedTransactions, data);
+                updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
 
@@ -687,22 +664,22 @@ function Search({
                 });
 
                 setSelectedTransactions(reducedSelectedTransactions, data);
+                updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
 
-            setSelectedTransactions(
-                {
-                    ...selectedTransactions,
-                    ...Object.fromEntries(
-                        currentTransactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
-                    ),
-                },
-                data,
-            );
+            const updatedTransactions = {
+                ...selectedTransactions,
+                ...Object.fromEntries(
+                    currentTransactions
+                        .filter((t) => !isTransactionPendingDelete(t))
+                        .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                ),
+            };
+            setSelectedTransactions(updatedTransactions, data);
+            updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [data, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [data, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions, updateSelectAllMatchingItemsState],
     );
 
     const onSelectRow = useCallback(
@@ -801,7 +778,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -897,9 +874,11 @@ function Search({
 
         if (totalSelected > 0) {
             clearSelectedTransactions();
+            updateSelectAllMatchingItemsState({});
             return;
         }
 
+        let updatedTransactions: SelectedTransactions;
         if (areItemsGrouped) {
             const allSelections: Array<[string, SelectedTransactionInfo]> = (data as TransactionGroupListItemType[]).flatMap((item) => {
                 if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
@@ -913,21 +892,20 @@ function Search({
                     .filter((t) => !isTransactionPendingDelete(t))
                     .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID));
             });
-            setSelectedTransactions(Object.fromEntries(allSelections), data);
-            return;
-        }
-
-        setSelectedTransactions(
-            Object.fromEntries(
+            updatedTransactions = Object.fromEntries(allSelections);
+        } else {
+            updatedTransactions = Object.fromEntries(
                 (data as TransactionGroupListItemType[]).flatMap((item) =>
                     item.transactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
                 ),
-            ),
-            data,
-        );
-    }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
+            );
+        }
+
+        setSelectedTransactions(updatedTransactions, data);
+        updateSelectAllMatchingItemsState(updatedTransactions);
+    }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType, updateSelectAllMatchingItemsState]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 

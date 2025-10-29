@@ -185,18 +185,18 @@ function SearchList({
     }, [data, groupBy, type]);
 
     const emptyReports = useMemo(() => {
-        if (groupBy && isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             return data.filter((item) => item.transactions.length === 0);
         }
         return [];
-    }, [data, groupBy]);
+    }, [data, type]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactions = flattenedItems.reduce((acc, item) => {
             return acc + (item?.isSelected ? 1 : 0);
         }, 0);
 
-        if (groupBy && isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 return acc + (item.isSelected ? 1 : 0);
             }, 0);
@@ -205,15 +205,15 @@ function SearchList({
         }
 
         return selectedTransactions;
-    }, [data, flattenedItems, groupBy, emptyReports]);
+    }, [flattenedItems, type, data, emptyReports]);
 
     const totalItems = useMemo(() => {
-        if (groupBy && isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             return emptyReports.length + flattenedItems.length;
         }
 
         return flattenedItems.length;
-    }, [data, groupBy, flattenedItems, emptyReports]);
+    }, [data, type, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

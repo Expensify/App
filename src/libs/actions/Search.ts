@@ -608,7 +608,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
 }
 
-function deleteSelectedItemsOnSearch(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>) {
+function bulkDeleteReports(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
@@ -978,7 +978,7 @@ export {
     search,
     updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
-    deleteSelectedItemsOnSearch,
+    bulkDeleteReports,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
