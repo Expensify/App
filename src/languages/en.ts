@@ -7279,6 +7279,7 @@ const translations = {
             youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
             warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
             codeFetchError: 'Couldn’t fetch verification code',
+            genericError: "We couldn't verify your domain. Please try again and reach out to Concierge if the problem persists.",
         },
         domainVerified: {
             title: 'Domain verified',

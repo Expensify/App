@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, validateDomain} from '@libs/actions/Domain';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
@@ -56,8 +57,8 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         if (!accountID) {
             return;
         }
-        getDomainValidationCode(accountID);
-    }, [accountID]);
+        getDomainValidationCode(accountID, domainName);
+    }, [accountID, domainName]);
 
     return (
         <ScreenWrapper
@@ -108,7 +109,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                                     <Button
                                         small
                                         text={translate('domain.retry')}
-                                        onPress={() => getDomainValidationCode(accountID)}
+                                        onPress={() => getDomainValidationCode(accountID, domainName)}
                                     />
                                 </View>
                             )}
@@ -133,11 +134,11 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
 
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
-                    onSubmit={() => validateDomain(accountID)}
-                    message={domain?.validationError ?? undefined}
-                    isAlertVisible={!!domain?.validationError}
+                    onSubmit={() => validateDomain(accountID, domainName)}
+                    message={domain?.domainValidationError ? getLatestErrorMessage({errors: domain?.domainValidationError}) : translate('domain.verifyDomain.genericError')}
+                    isAlertVisible={!!domain?.domainValidationError || domain?.validationPendingStatus === 'error'}
                     containerStyles={styles.mb5}
-                    isLoading={domain?.isValidationPending}
+                    isLoading={domain?.validationPendingStatus === 'pending'}
                 />
             </View>
         </ScreenWrapper>

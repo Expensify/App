@@ -1052,7 +1052,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
 
     // Domain API
-    [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.ValidateDomainParams;
+    [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.DomainParams;
 };
 
 const READ_COMMANDS = {
@@ -1208,7 +1208,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
-    [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.GetDomainValidateCodeParams;
+    [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

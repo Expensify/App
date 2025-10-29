@@ -20,7 +20,7 @@ function CopyableTextField({value, isLoading = false}: CopyableTextFieldProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     return (
-        <View style={[styles.qbdSetupLinkBox, styles.border, styles.flexRow, styles.gap2, styles.justifyContentCenter]}>
+        <View style={[styles.qbdSetupLinkBox, styles.border, styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignItemsCenter]}>
             {isLoading ? (
                 <ActivityIndicator
                     color={theme.text}
