@@ -77,18 +77,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReports = value;
-    },
-});
-
 const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -1025,7 +1013,7 @@ function changeTransactionsReport({
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
                     optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
-                    policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
+                    policyID: allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
                 },
             });
         }
