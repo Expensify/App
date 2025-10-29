@@ -15,18 +15,19 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Session} from '@src/types/onyx';
+import {emailSelector} from '@src/selectors/Session';
+import type {Policy} from '@src/types/onyx';
 
 /**
  * Checks if the 2FA is required because of Xero.
  * - User is an admin of a workspace
  * - Xero connection is enabled in the workspace
  */
-const is2FARequiredBecauseOfXeroSelector = (session: OnyxEntry<Session>) => {
+const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
     return (workspaces: OnyxCollection<Policy>) => {
         return Object.values(workspaces ?? {})?.some((workspace) => {
             const isXeroConnectionEnabled = workspace?.connections?.xero;
-            const isAdmin = session?.email && workspace?.employeeList?.[session.email]?.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = email && workspace?.employeeList?.[email]?.role === CONST.POLICY.ROLE.ADMIN;
             return !!isXeroConnectionEnabled && !!isAdmin;
         });
     };
@@ -36,8 +37,8 @@ function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: is2FARequiredBecauseOfXeroSelector(session), canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: is2FARequiredBecauseOfXeroSelector(email), canBeMissing: true});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
