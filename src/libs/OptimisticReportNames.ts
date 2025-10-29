@@ -280,8 +280,9 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const submitterAccountID = String(updatedReport.ownerAccountID ?? '');
     const managerAccountID = String(updatedReport.managerID ?? '');
 
-    const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;
-    const managerPersonalDetails = managerAccountID ? (allPersonalDetails[managerAccountID] ?? undefined) : undefined;
+    // Note: allPersonalDetails[accountID] can be null, but FormulaContext expects undefined, so we use ?? undefined
+    const submitterPersonalDetails = submitterAccountID ? allPersonalDetails[submitterAccountID] ?? undefined : undefined;
+    const managerPersonalDetails = managerAccountID ? allPersonalDetails[managerAccountID] ?? undefined : undefined;
 
     // Compute the new name
     const formulaContext: FormulaContext = {
