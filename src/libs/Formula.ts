@@ -411,6 +411,10 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         // Check if format is a valid currency code (e.g., USD, EUR, eur)
         const currencyCode = displayCurrency?.trim().toUpperCase();
         if (currencyCode) {
+            if (!isValidCurrencyCode(currencyCode)) {
+                return '';
+            }
+
             // When currency conversion is needed (displayCurrency differs from source currency),
             // return null to signal that backend computation is required
             if (currency !== currencyCode) {
