@@ -68,7 +68,10 @@ function EditTagPage({route}: EditTagPageProps) {
                     throw Error('Policy is required to rename tag');
                 }
                 renamePolicyTag({
-                    policyTag: {oldName: route.params.tagName, newName: values.tagName},
+                    policyTag: {
+                        oldName: route.params.tagName,
+                        newName: values.tagName,
+                    },
                     tagListIndex: route.params.orderWeight,
                     policyTags,
                     policy,
