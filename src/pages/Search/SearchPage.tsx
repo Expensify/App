@@ -187,6 +187,7 @@ function SearchPage({route}: SearchPageProps) {
             // TODO: We need to handle 2 cases for invoice
             // - hasAdditionalData for the first time payment
             // - only has paymentMethod > We need to get the bankID from that payment method and so on
+            // - At the moment account type of all bank accounts are `bankAccount` no matter what it's business or personal.
             const hasAdditionalData = !isEmptyObject(additionalData);
             if (!hash) {
                 return;
@@ -256,6 +257,7 @@ function SearchPage({route}: SearchPageProps) {
                           reportID: report.reportID,
                           amount: report.total,
                           paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                          
                       }))
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
