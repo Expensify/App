@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
@@ -892,14 +893,6 @@ function createOption(
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.keyForList = String(report.reportID);
 
-        // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
-        if (result.private_isArchived) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.lastMessageText = translateLocal('reportArchiveReasons.default');
-        } else {
-            result.lastMessageText = report.lastMessageText ?? '';
-        }
-
         // Type/category flags already set in initialization above, but update brickRoadIndicator
         const reportAttribute = reportAttributesDerived?.[report.reportID];
         result.allReportErrors = reportAttribute?.reportErrors ?? {};
@@ -910,7 +903,8 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)];
+        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
+        result.lastMessageText = getLastMessageTextForReport({report, lastActorDetails, isReportArchived: !!result.private_isArchived});
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
@@ -1185,6 +1179,8 @@ function processReport(
 }
 
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+    const span = Sentry.startInactiveSpan({name: 'createOptionList'});
+
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
@@ -1215,6 +1211,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             reportAttributesDerived,
         ),
     }));
+
+    span.setAttributes({
+        personalDetails: allPersonalDetailsOptions.length,
+        reports: allReportOptions.length,
+    });
+    span.end();
 
     return {
         reports: allReportOptions,
