@@ -3957,6 +3957,31 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNSentry (7.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Sentry/HybridSDK (= 8.57.0)
+    - Yoga
   - RNShare (11.0.2):
     - boost
     - DoubleConversion
@@ -4058,6 +4083,7 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
+  - Sentry/HybridSDK (8.57.0)
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
@@ -4206,6 +4232,7 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShare (from `../node_modules/react-native-share`)
   - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -4260,6 +4287,7 @@ SPEC REPOS:
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
+    - Sentry
     - SocketRocket
     - Turf
     - TweetNacl
@@ -4532,6 +4560,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNShare:
     :path: "../node_modules/react-native-share"
   RNSound:
@@ -4722,6 +4752,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 43c09eb41d8321be2e1375cb87ae734e58f677b0
   RNReanimated: 8d0f830cd94d0d9cc86eed5850e567a89807586e
   RNScreens: 0c5341cc352632758171de6453502a6a757d0369
+  RNSentry: ad7065ec925f1d28fe515a28b9b5a9355362a164
   RNShare: 385bf6a127cb075d4fdbe7bb85587cad88fe9afe
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 9be2bc57df95a874e8c4b0f7dd71866139f321d2
@@ -4729,6 +4760,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
+  Sentry: e1b49e5f49367ff211b25c431a60e2bd83b792aa
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
