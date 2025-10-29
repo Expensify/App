@@ -204,7 +204,7 @@ function useBulkPayOptions({
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Cash,
-                        // key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         additionalData: {
                             payAsBusiness,
                         }                  
@@ -216,14 +216,12 @@ function useBulkPayOptions({
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: User,
-                    // key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
                     text: translate('iou.settleBusiness', {formattedAmount}),
                     icon: Building,
-                    // key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),
                 });
