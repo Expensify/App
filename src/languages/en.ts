@@ -243,6 +243,7 @@ import type {
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
@@ -255,12 +256,15 @@ import type {
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
+    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
@@ -6080,7 +6084,7 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
@@ -6184,14 +6188,15 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added ${prohibitedExpense} as prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed ${prohibitedExpense} as prohibited expenses`,
-        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: {newReimbursementChoice: string; oldReimbursementChoice: string}) =>
+        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
             `updated the reimbursement method from ${oldReimbursementChoice} to ${newReimbursementChoice}`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `set the pre-approval of workspace join requests to ${enabled ? 'Enabled' : 'Disabled'}`,
-        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: {newDefaultTitle: string; oldDefaultTitle: string}) =>
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
             `updated the Custom Report Name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
 
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: {oldOwnerEmail: string; oldOwnerName: string; policyName: string}) =>
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `took over ownership of <strong>${policyName}</strong>'s Workspace from ${oldOwnerName} (${oldOwnerEmail})`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `turned Scheduled Submit ${enabled ? 'on' : 'off'}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

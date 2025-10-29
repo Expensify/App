@@ -98,6 +98,7 @@ import {
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -1468,6 +1469,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
+            children = <ReportActionItemBasicMessage message={getUpdatedAutoHarvestingMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP)) {
             children = (
                 <ReportActionItemBasicMessage message="">

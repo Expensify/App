@@ -61,6 +61,7 @@ import {
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -962,6 +963,8 @@ function getOptionData({
             result.alternateText = getSetAutoJoinMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
             result.alternateText = getUpdatedDefaultTitleMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
+            result.alternateText = getUpdatedAutoHarvestingMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

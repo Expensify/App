@@ -420,13 +420,23 @@ type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverNam
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
+type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
+
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
 
 type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
 
 type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
 
-type UpdatedPolicyFieldWithValueParam = {value: boolean};
+type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
+
+type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
+
+type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
+
+type UpdatedPolicyFieldWithValueParams = {value: boolean};
+
+type UpdatedPolicySetAutoJoinParams = {enabled: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
@@ -1187,6 +1197,7 @@ export type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
+    UpdatedPolicyFieldWithValueParams,
     UnshareParams,
     StripePaidParams,
     RemoveMembersWarningPrompt,
@@ -1229,7 +1240,6 @@ export type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyTimeEnabledParams,
     UpdatedPolicyTimeRateParams,
-    UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
@@ -1315,4 +1325,9 @@ export type {
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
     FocusModeUpdateParams,
+    UpdatedPolicyOwnershipParams,
+    UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyReimbursementChoiceParams,
+    UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicySetAutoJoinParams,
 };

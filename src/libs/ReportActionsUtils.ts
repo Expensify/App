@@ -3314,6 +3314,17 @@ function getUpdatedDefaultTitleMessage(reportAction: OnyxEntry<ReportAction>) {
     return translateLocal('workspaceActions.updatedDefaultTitle', {newDefaultTitle, oldDefaultTitle});
 }
 
+function getUpdatedAutoHarvestingMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {value} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING>) ?? {};
+
+    if (typeof value === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedAutoHarvesting', {enabled: value});
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getUpdatedOwnershipMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
     const {oldOwnerEmail, oldOwnerName} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP>) ?? {};
 
@@ -3728,6 +3739,7 @@ export {
     getChangedApproverActionMessage,
     getUpdatedOwnershipMessage,
     getUpdatedDefaultTitleMessage,
+    getUpdatedAutoHarvestingMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
