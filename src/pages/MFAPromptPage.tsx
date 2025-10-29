@@ -14,6 +14,7 @@ import type { MultiFactorAuthenticationParamList } from '@libs/Navigation/types'
 import type SCREENS from '@src/SCREENS';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type { TranslationPaths } from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
@@ -56,9 +57,9 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         return <NotFoundPage/>
     }
 
-    // const onConfirm = () => {
-    //     onGoBackPress();
-    // };
+    const onConfirm = () => {
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
+    };
 
     return (
         <ScreenWrapper testID={MultiFactorAuthenticationPromptPage.displayName}>
@@ -89,7 +90,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                     <Button
                         success
                         style={[styles.flex1]}
-                        onPress={onGoBackPress}
+                        onPress={onConfirm}
                         text={translate('common.buttonConfirm')}
                     />
                 </View>
