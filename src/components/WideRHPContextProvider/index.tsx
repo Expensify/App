@@ -86,6 +86,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     const expandedRHPProgress = useSharedValue<number>(0);
 
+    const focusedRouteKey = useRootNavigationState((state) => findFocusedRoute(state))?.key;
+
     // Return undefined if RHP is not the last route
     const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
         // Safe handling when navigation is not yet initialized
@@ -122,6 +124,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return currentKeys;
     }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
+    const isWideRhpFocused = useMemo(() => {
+        return focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
+    }, [focusedRouteKey, wideRHPRouteKeys]);
+
     /**
      * Determines whether the secondary overlay should be displayed.
      * Shows second overlay when RHP is open and there is a wide RHP route open but there is another regular route on the top.
@@ -138,6 +144,14 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         // Shouldn't ever happen but for type safety
         if (!focusedRoute?.key) {
             return false;
+        }
+
+        if (superWideRHPRouteKeys.includes(focusedRoute.key) && wideRHPRouteKeys.length > 0) {
+            return false;
+        }
+
+        if (superWideRHPRouteKeys.length > 0 && !superWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+            return true;
         }
 
         // Check the focused route to avoid glitching when quickly close and open RHP.
@@ -162,12 +176,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        // Check the focused route to avoid glitching when quickly close and open RHP.
-        if (superWideRHPRouteKeys.length > 0 && !superWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-            return true;
-        }
+        const isSuperWideRhpDisplayedBelow =
+            superWideRHPRouteKeys.length > 0 && !superWideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+        const isWideRhpDisplayedBelow = wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP;
 
-        return false;
+        // Check the focused route to avoid glitching when quickly close and open RHP.
+        return isSuperWideRhpDisplayedBelow && isWideRhpDisplayedBelow && isRHPLastRootRoute;
     });
 
     /**
@@ -359,6 +373,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToWideReport,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
+            isWideRhpFocused,
         }),
         [
             expandedRHPProgress,
@@ -372,6 +387,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToWideReport,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
+            isWideRhpFocused,
         ],
     );
 

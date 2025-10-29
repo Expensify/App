@@ -1,10 +1,11 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -51,6 +52,7 @@ import type {
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
 } from '@navigation/types';
+import variables from '@styles/variables';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -93,8 +95,11 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay} = useContext(WideRHPContext);
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay} = useContext(WideRHPContext);
         const route = useRoute();
+        const {windowWidth} = useWindowDimensions();
+
+        const isFocused = useIsFocused();
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -125,11 +130,23 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused ? (
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={receiptPaneRHPWidth}
+                    />
+                ) : null}
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !isFocused ? (
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        positionLeftValue={windowWidth - variables.navigationTabBarSize - variables.sideBarWidth - variables.sideBarWithLHBWidth}
+                    />
+                ) : null}
+                {!isSmallScreenWidth && shouldRenderThirdOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
+                    <Overlay
+                        progress={thirdOverlayProgress}
+                        positionLeftValue={windowWidth - variables.navigationTabBarSize - variables.sideBarWidth - variables.sideBarWithLHBWidth}
                     />
                 ) : null}
             </View>

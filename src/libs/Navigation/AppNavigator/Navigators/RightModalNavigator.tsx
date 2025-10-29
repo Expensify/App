@@ -34,7 +34,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress} = useContext(WideRHPContext);
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, wideRHPRouteKeys, shouldRenderThirdOverlay, thirdOverlayProgress} =
+        useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const {sidePanelTranslateX} = useSidePanel();
 
@@ -290,6 +291,13 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
                     <Overlay
                         progress={secondOverlayProgress}
+                        positionRightValue={isWideRhpFocused ? variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth) : variables.sideBarWidth}
+                        onPress={() => Navigation.closeRHPFlow()}
+                    />
+                )}
+                {shouldRenderThirdOverlay && !shouldUseNarrowLayout && (
+                    <Overlay
+                        progress={thirdOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
                         onPress={() => Navigation.closeRHPFlow()}
                     />
