@@ -146,9 +146,25 @@ function Expensify() {
     }, [shouldInit, splashScreenState]);
 
     const initializeClient = () => {
+        const appState = AppState.currentState;
+
+        Log.info('[Expensify] initializeClient called', true, {
+            appState,
+            isVisible: Visibility.isVisible(),
+            isAuthenticated,
+        });
+
         if (!Visibility.isVisible()) {
+            Log.info('[Expensify] initializeClient skipped - not visible', true, {
+                appState,
+            });
             return;
         }
+
+        Log.info('[Expensify] initializing ActiveClientManager', true, {
+            appState,
+            isSafari: isSafari(),
+        });
 
         // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
         // Events are flushed only when the tab becomes active again causing issues with client initialization.
