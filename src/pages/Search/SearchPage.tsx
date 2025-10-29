@@ -35,6 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -480,6 +481,26 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                },
+            });
+        }
+
+        const shouldShowMergeOption = selectedTransactionsKeys.length === 2; /*&& report && isMergeAction(report, selectedTransactionsList, policy)*/
+        if (shouldShowMergeOption) {
+            options.push({
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: 'MERGE',
+                onSelected: () => {
+                    const targetTransactionID = selectedTransactionsKeys[0];
+                    const sourceTransactionID = selectedTransactionsKeys[1];
+
+                    if (!targetTransactionID || !sourceTransactionID) {
+                        return;
+                    }
+
+                    setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
+                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
                 },
             });
         }

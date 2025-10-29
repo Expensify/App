@@ -1,4 +1,5 @@
 import {emailSelector} from '@selectors/Session';
+import {merge} from '@storybook/manager-api';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,6 +34,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -43,49 +45,37 @@ import MergeFieldReview from './MergeFieldReview';
 
 type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
 
-const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
-
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const {transactionID, backTo} = route.params;
+    const {transactionID, backTo, hash} = route.params;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+
+    console.log('result', currentSearchResults);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
+    let [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
 
-    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
-        selector: hasOnceLoadedTransactionThreadReportActionsSelector,
+    let [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
-    const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [iouActionForTargetTransaction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
-        {
-            selector: (value) => {
-                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
-                    return undefined;
-                }
-                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
-            },
-            canBeMissing: true,
-        },
-        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
-    );
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
-        canBeMissing: true,
-    });
-    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+
+    if (!sourceTransaction && currentSearchResults?.data) {
+        sourceTransaction = currentSearchResults.data[ONYXKEYS.COLLECTION.TRANSACTION + mergeTransaction?.sourceTransactionID];
+    }
+
+    if (!targetTransaction && currentSearchResults?.data) {
+        targetTransaction = currentSearchResults.data[`ONYXKEYS.COLLECTION.TRANSACTION${mergeTransaction?.targetTransactionID ?? '-1'}`];
+    }
+
+    console.log('targetTransaction', targetTransaction);
+    console.log('sourceTransaction', sourceTransaction);
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
-
-    console.log(targetTransaction);
-    console.log(sourceTransaction);
 
     useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
@@ -141,7 +131,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            setIsCheckingDataBeforeGoNext(true);
         }
     }, [mergeTransaction, conflictFields]);
 
@@ -150,6 +140,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
         [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
     );
+
+    console.log('merge fields count is ' + mergeFields.length);
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
@@ -197,6 +189,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
+                        isLoading={isCheckingDataBeforeGoNext}
                         pressOnEnter
                     />
                 </FixedFooter>

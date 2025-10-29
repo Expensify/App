@@ -2668,6 +2668,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
     },
+    MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH: {
+        route: 'r/:transactionID/merge/details',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string, backTo?: string, hash?: number) => getUrlWithBackToParam(`r/${transactionID}/merge/details?hash=${hash}` as const, backTo),
+    },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
         route: 'r/:transactionID/merge/confirmation',
 
