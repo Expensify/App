@@ -177,15 +177,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+        removeMembers([accountID], policyID);
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false);
+            setPolicyPreventSelfApproval(route.params.policyID, false);
         }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
+    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
 
     const removeUser = useCallback(() => {
         const ownerEmail = ownerDetails?.login;
@@ -264,9 +264,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+            updateWorkspaceMembersRole(policyID, [accountID], value);
         },
-        [accountID, memberLogin, policyID],
+        [accountID, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
