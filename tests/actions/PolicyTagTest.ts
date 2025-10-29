@@ -716,7 +716,10 @@ describe('actions/Policy', () => {
             // When trying to rename a tag with invalid index
             expect(() => {
                 renamePolicyTag({
-                    policyTag: {oldName: 'oldTag', newName: 'newTag'},
+                    policyTag: {
+                        oldName: 'oldTag',
+                        newName: 'newTag',
+                    },
                     tagListIndex: 5,
                     policyTags: emptyPolicyTags,
                     policy: fakePolicy,
@@ -825,7 +828,10 @@ describe('actions/Policy', () => {
 
             // When renaming tag with data from useOnyx
             renamePolicyTag({
-                policyTag: {oldName: oldTagName, newName: newTagName},
+                policyTag: {
+                    oldName: oldTagName,
+                    newName: newTagName,
+                },
                 tagListIndex: 0,
                 policyTags: policyTagsResult.current[0],
                 policy,
