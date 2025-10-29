@@ -1,6 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
@@ -73,7 +74,18 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 
 // We can assume that if error is a string, it has already been translated because it is server error
 function getErrorMessageWithTranslationData(error: string | null): string {
-    return error ?? '';
+    if (!error) {
+        return '';
+    }
+
+    const currentLocale = IntlStore.getCurrentLocale();
+    if (currentLocale && currentLocale !== CONST.LOCALES.EN) {
+        if (error === 'The deposit and withdrawal accounts are the same.') {
+            return translateLocal('bankAccount.error.sameDepositAndWithdrawalAccount');
+        }
+    }
+
+    return error;
 }
 
 type OnyxDataWithErrors = {

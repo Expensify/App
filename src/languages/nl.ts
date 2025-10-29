@@ -2876,7 +2876,8 @@ ${amount} voor ${merchant} - ${date}`,
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
             deletePaymentBankAccount:
-                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
+                'Deze bankrekening kan niet worden verwijderd omdat deze wordt gebruikt voor Expensify-kaartbetalingen. Als u deze account toch wilt verwijderen, neem dan contact op met de Concierge.',
+            sameDepositAndWithdrawalAccount: 'De deposito- en opnamerekeningen zijn hetzelfde.',
         },
     },
     addPersonalBankAccount: {
