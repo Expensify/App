@@ -6210,14 +6210,33 @@ function createThreadsForOrphanedTransactions(iouReport?: OnyxEntry<Report>, tra
         return;
     }
 
-    transactions.forEach((transaction) => {
-        const iouReportAction = ReportActionsUtils.getIOUActionForReportID(iouReport.reportID, transaction.transactionID);
+    // Build a Set of transaction IDs that already have IOU actions for efficient lookup
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReport.reportID);
+    const transactionIDsWithIOUActions = new Set<string>();
 
-        // Only create thread for orphaned transactions (no IOU action linking them)
-        if (!iouReportAction && transaction.transactionID) {
-            const violations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            createTransactionThreadReport(iouReport, undefined, transaction, violations);
+    Object.values(reportActions ?? {}).forEach((reportAction) => {
+        if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            return;
         }
+        const IOUTransactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+        if (IOUTransactionID) {
+            transactionIDsWithIOUActions.add(IOUTransactionID);
+        }
+    });
+
+    // Create threads only for orphaned transactions (those without IOU actions)
+    transactions.forEach((transaction) => {
+        if (!transaction.transactionID) {
+            return;
+        }
+
+        // Skip transactions that already have IOU actions
+        if (transactionIDsWithIOUActions.has(transaction.transactionID)) {
+            return;
+        }
+
+        const violations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        createTransactionThreadReport(iouReport, undefined, transaction, violations);
     });
 }
 
