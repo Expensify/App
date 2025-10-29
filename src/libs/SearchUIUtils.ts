@@ -1225,8 +1225,9 @@ function getActions(
 
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
 
-    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
@@ -2266,6 +2267,10 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
     const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.NEVER] as SearchDatePreset[];
+
+    if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+    }
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
