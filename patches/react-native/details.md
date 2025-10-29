@@ -163,7 +163,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/65268
 - PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)
 
-### [react-native+0.79.2+026+textinput-prevent-focus-on-first-responder.patch](react-native+0.79.2+026+textinput-prevent-focus-on-first-responder.patch)
+### [react-native+0.81.4+023+textinput-prevent-focus-on-first-responder.patch](react-native+0.81.4+023+textinput-prevent-focus-on-first-responder.patch)
 
 - Reason: On iOS, a text input automatically becomes the "first responder" in UIKit's "UIResponder" chain. Once a text input becomes the first responder, it will be automatically focused. (This also causes the keyboard to open)
     - This is not handled by React or React Native, but is rather a native iOS/UIKit behaviour. This patch adds an additional `TextInput` prop (`preventFocusOnFirstResponder`) and a ref method (`preventFocusOnFirstResponderOnce`) to bypass the focus on first responder.
@@ -172,14 +172,14 @@
 - E/App issue: [#54813](https://github.com/Expensify/App/issues/54813)
 - PR Introducing Patch: [#61492](https://github.com/Expensify/App/pull/61492)
 
-### [react-native+0.81.4+023+fix-modal-transparent-navigation-bar.patch](react-native+0.81.4+023+fix-modal-transparent-navigation-bar.patch)
+### [react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch](react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch)
 
 - Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.81.4+024+restore-interaction-manager.patch](react-native+0.81.4+024+restore-interaction-manager.patch)
+### [react-native+0.81.4+025+restore-interaction-manager.patch](react-native+0.81.4+025+restore-interaction-manager.patch)
 
 - Reason:
 
