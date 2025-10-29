@@ -172,6 +172,10 @@ function StatusClearAfterPage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     }, [draftPeriod, statusType, statusDraftCustomClearAfterDate]);
 
+    const initialFocusedIndex = useMemo(() => {
+        return statusType.find((item) => item.isSelected)?.keyForList;
+    }, [statusType]);
+
     const timePeriodOptions = useCallback(
         () => (
             <SelectionList
@@ -180,6 +184,8 @@ function StatusClearAfterPage() {
                 onSelectRow={updateMode}
                 listFooterContent={listFooterContent}
                 showConfirmButton
+                initiallyFocusedOptionKey={initialFocusedIndex}
+                shouldUpdateFocusedIndex
                 confirmButtonText={translate('statusPage.save')}
                 onConfirm={saveAndGoBack}
             />
