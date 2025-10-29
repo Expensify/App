@@ -1987,7 +1987,12 @@ function createTypeMenuSections(
                                                           },
                                                       });
                                                   } else {
-                                                      const {reportID: createdReportID} = createNewReport(personalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
+                                                      const {reportID: createdReportID} = createNewReport(
+                                                          personalDetails,
+                                                          isASAPSubmitBetaEnabled,
+                                                          hasViolations,
+                                                          workspaceIDForReportCreation,
+                                                      );
                                                       Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                           Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                       });

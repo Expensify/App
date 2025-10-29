@@ -150,8 +150,9 @@ function SearchTransactionsChangeReport() {
                 removeFromReport={removeFromReport}
                 createReport={createReport}
                 isEditing
-            isUnreported={areAllTransactionsUnreported}
-            targetOwnerAccountID={targetOwnerAccountID}/>
+                isUnreported={areAllTransactionsUnreported}
+                targetOwnerAccountID={targetOwnerAccountID}
+            />
         </>
     );
 }
