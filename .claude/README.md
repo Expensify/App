@@ -170,8 +170,6 @@ Always perform a **security assessment**: If an agent with your current tool con
    tools: Read, Glob, Grep, Bash, Edit, Write, mcp__github_inline_comment__create_inline_comment
    model: inherit
    ---
-   # <Agent Name>
-   <!-- prompt: what to do and how to do -->
    ```
 
 2. Create `.claude/commands/<command>.md` describing which agent(s) to run and where to post results. Specify allowed tools in the frontmatter:
