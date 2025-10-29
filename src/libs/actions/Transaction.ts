@@ -675,8 +675,8 @@ function changeTransactionsReport({
     const successData: OnyxUpdate[] = [];
 
     const existingSelfDMReportID = findSelfDMReportID();
-    let selfDMReport: Report;
-    let selfDMCreatedReportAction: ReportAction;
+    let selfDMReport: Report | undefined;
+    let selfDMCreatedReportAction: ReportAction | undefined;
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -905,14 +905,22 @@ function changeTransactionsReport({
                 (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
-        if (reportID && newReport) {
-            updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
-            updatedReportNonReimbursableTotals[targetReportID] =
-                (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
-                (transactionReimbursable ? 0 : transactionAmount);
-            updatedReportUnheldNonReimbursableTotals[targetReportID] =
-                (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
-                (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+
+        if (targetReportID) {
+            const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
+            const targetReport =
+                allReportsCollection?.[targetReportKey] ??
+                (targetReportID === newReport?.reportID ? newReport : undefined) ??
+                (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+
+            const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
+            updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
+
+            const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
+            updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
+
+            const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
+            updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -1114,7 +1122,7 @@ function changeTransactionsReport({
                 : {}),
         };
 
-        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
@@ -1230,8 +1238,19 @@ function changeTransactionsReport({
     });
 
     // 9. Update next step for report
-    const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolationsCollection);
+    const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
+    const destinationReport = destinationReportID
+        ? (allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
+          (destinationReportID === newReport?.reportID ? newReport : undefined) ??
+          (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
+        : undefined;
+    const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
+    const nextStepReport = {
+        ...destinationReport,
+        reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
+        total: destinationTotal,
+    };
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
     const optimisticNextStep = buildNextStepNew({
         report: nextStepReport,
         policy,
