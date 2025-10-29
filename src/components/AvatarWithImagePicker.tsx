@@ -8,13 +8,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentModal from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
@@ -66,16 +64,7 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
     /** The errors to display  */
     errors?: OnyxCommon.Errors | null;
 
-    /** Title for avatar preview modal */
-    headerTitle?: string;
-
-    /** Avatar source for avatar preview modal */
-    previewSource?: AvatarSource;
-
-    /** File name of the avatar */
-    originalFileName?: string;
-
-    /** Executed once click on view photo option */
+    /** If set, the AvatarWithImagePicker will show a "View Photo" option and use this callback on press */
     onViewPhotoPress?: () => void;
 
     /** Allows to open an image without Attachment Picker. */
@@ -104,9 +93,6 @@ function AvatarWithImagePicker({
     fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
-    headerTitle = '',
-    previewSource = '',
-    originalFileName = '',
     isUsingDefaultAvatar = false,
     onImageSelected = () => {},
     onImageRemoved = () => {},
@@ -115,7 +101,6 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
     name = '',
 }: AvatarWithImagePickerProps) {
@@ -245,12 +230,10 @@ function AvatarWithImagePicker({
     return (
         <View style={[styles.w100, style]}>
             <View style={styles.w100}>
-                <AttachmentModal
-                    headerTitle={headerTitle}
-                    source={previewSource}
-                    originalFileName={originalFileName}
-                    fallbackSource={fallbackIcon}
-                    maybeIcon={isUsingDefaultAvatar}
+                <AttachmentPicker
+                    type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                    // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                    shouldValidateImage={false}
                 >
                     {({show}) => (
                         <AttachmentPicker

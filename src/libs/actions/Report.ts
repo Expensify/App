@@ -211,6 +211,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -237,12 +238,10 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
-type Video = {
+type Video = Dimensions & {
     url: string;
     thumbnailUrl: string;
     duration: number;
-    width: number;
-    height: number;
 };
 
 type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
@@ -2958,6 +2957,7 @@ function buildNewReportOptimisticData(
         optimisticData,
         successData,
         failureData,
+        optimisticReportData,
     };
 }
 
@@ -2975,7 +2975,7 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -2994,7 +2994,7 @@ function createNewReport(
         notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
     }
 
-    return optimisticReportID;
+    return optimisticReportData;
 }
 
 /**
@@ -3582,8 +3582,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 

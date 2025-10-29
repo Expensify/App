@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -192,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +676,7 @@ const translations = {
         pinned: 'Épinglé',
         read: 'Lu',
         copyToClipboard: 'Copier dans le presse-papiers',
+        thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
     },
     supportalNoAccess: {
@@ -1061,8 +1062,6 @@ const translations = {
         dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
-        chooseReceipt: 'Choisissez un reçu à télécharger ou transférez un reçu à',
-        chooseReceipts: 'Choisissez des reçus à télécharger ou transférez des reçus à',
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Télécharger l’application</a> pour scanner depuis votre téléphone</label-text>`,
@@ -1072,8 +1071,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envoyez des reçus par SMS au ${phoneNumber} (numéros US uniquement)</label-text>`,
         takePhoto: 'Prendre une photo',
         cameraAccess: "L'accès à la caméra est requis pour prendre des photos des reçus.",
-        deniedCameraAccess: "L'accès à la caméra n'a toujours pas été accordé, veuillez suivre",
-        deniedCameraAccessInstructions: 'ces instructions',
+        deniedCameraAccess: `L'accès à la caméra n'a toujours pas été accordé, veuillez suivre <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">ces instructions</a>.`,
         cameraErrorTitle: 'Erreur de caméra',
         cameraErrorMessage: "Une erreur s'est produite lors de la prise de la photo. Veuillez réessayer.",
         locationAccessTitle: "Autoriser l'accès à la localisation",
@@ -1861,11 +1859,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: "Pour des raisons de sécurité, Xero nécessite une authentification à deux facteurs pour connecter l'intégration.",
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: "Veuillez activer l'authentification à deux facteurs.",
-        twoFactorAuthIsRequiredForAdminsDescription:
-            "Votre connexion comptable Xero nécessite l'utilisation de l'authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l'activer.",
+        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: "L'authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.",
         explainProcessToRemoveWithRecovery: "Pour désactiver l'authentification à deux facteurs (2FA), veuillez entrer un code de récupération valide.",
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
     },
     recoveryCodeForm: {
         error: {
@@ -2439,10 +2437,10 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceCategoriesLink}) =>
                     '*Configurez les catégories* pour que votre équipe puisse coder les dépenses facilement.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Catégories*.\n' +
-                    '5. Désactivez les catégories inutiles.\n' +
-                    '6. Ajoutez vos propres catégories en haut à droite.\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Catégories*.\n' +
+                    '4. Désactivez les catégories inutiles.\n' +
+                    '5. Ajoutez vos propres catégories en haut à droite.\n\n' +
                     `[Accéder aux paramètres de catégories](${workspaceCategoriesLink}).\n\n` +
                     `![Configurer les catégories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
             },
@@ -2485,12 +2483,11 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connectez${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '-vous à votre' : '-vous à'} ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n` +
                     '\n' +
-                    '1. Cliquez sur *Paramètres*.\n' +
-                    '2. Accédez à *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Comptabilité*.\n' +
-                    `5. Trouvez ${integrationName}.\n` +
-                    '6. Cliquez sur *Connecter*.\n\n' +
+                    '1. Cliquez sur *Espaces de travail*.\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Comptabilité*.\n' +
+                    `4. Trouvez ${integrationName}.\n` +
+                    '5. Cliquez sur *Connecter*.\n\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
                             ? `[Accéder à la comptabilité](${workspaceAccountingLink}).\n\n![Connecter ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
@@ -2512,10 +2509,10 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceMembersLink}) =>
                     '*Invitez votre équipe* sur Expensify pour qu’ils commencent à suivre leurs dépenses dès aujourd’hui.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Membres* > *Inviter un membre*.\n' +
-                    '5. Entrez des emails ou numéros de téléphone.\n' +
-                    '6. Ajoutez un message personnalisé si vous le souhaitez !\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Membres* > *Inviter un membre*.\n' +
+                    '4. Entrez des emails ou numéros de téléphone.\n' +
+                    '5. Ajoutez un message personnalisé si vous le souhaitez !\n\n' +
                     `[Accéder aux membres](${workspaceMembersLink}).\n\n` +
                     `![Inviter votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
@@ -2530,11 +2527,11 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Utilisez les tags pour ajouter des détails comme projets, clients, emplacements et départements. Pour plusieurs niveaux de tags, passez au plan Control.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Fonctionnalités supplémentaires*.\n' +
-                    '5. Activez *Tags*.\n' +
-                    '6. Allez dans *Tags* dans l’éditeur.\n' +
-                    '7. Cliquez sur *+ Ajouter un tag* pour en créer un.\n\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Fonctionnalités supplémentaires*.\n' +
+                    '4. Activez *Tags*.\n' +
+                    '5. Allez dans *Tags* dans l’éditeur.\n' +
+                    '6. Cliquez sur *+ Ajouter un tag* pour en créer un.\n\n' +
                     `[Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).\n\n` +
                     `![Configurer les tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
@@ -2757,6 +2754,7 @@ ${amount} pour ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,
         subtitle: "Votre demande n'a pas pu être complétée. Veuillez réessayer plus tard.",
+        wrongTypeSubtitle: "Cette recherche n'est pas valide. Essayez de modifier vos critères de recherche.",
     },
     setPasswordPage: {
         enterPassword: 'Entrez un mot de passe',
@@ -4528,6 +4526,12 @@ ${amount} pour ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Veuillez sélectionner un pays avant de continuer',
                     pleaseSelectFeedType: 'Veuillez sélectionner un type de flux avant de continuer',
                 },
+                exitModal: {
+                    title: 'Un problème est survenu ?',
+                    prompt: "Nous avons remarqué que vous n'avez pas terminé d'ajouter vos cartes. Si vous avez rencontré un problème, faites-le nous savoir afin que nous puissions vous aider à le résoudre.",
+                    confirmText: 'Signaler un problème',
+                    cancelText: 'Ignorer',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
@@ -4542,7 +4546,8 @@ ${amount} pour ${merchant} - ${date}`,
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: "Qui a besoin d'une carte assignée ?",
             chooseCard: 'Choisissez une carte',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Choisissez une carte pour ${assignee} à partir du flux de cartes ${feed}.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Faites-le nous savoir.</concierge-link>`,
             noActiveCards: 'Aucune carte active dans ce flux',
             somethingMightBeBroken:
                 "<muted-text><centered-text>Ou quelque chose pourrait être cassé. Dans tous les cas, si vous avez des questions, n'hésitez pas à <concierge-link>contacter le Concierge</concierge-link>.</centered-text></muted-text>",
@@ -4898,9 +4903,11 @@ ${amount} pour ${merchant} - ${date}`,
             textType: 'Texte',
             dateType: 'Date',
             dropdownType: 'Liste',
+            formulaType: 'Formule',
             textAlternateText: 'Ajoutez un champ pour la saisie de texte libre.',
             dateAlternateText: 'Ajouter un calendrier pour la sélection de la date.',
             dropdownAlternateText: "Ajouter une liste d'options à choisir.",
+            formulaAlternateText: 'Ajouter un champ de formule.',
             nameInputSubtitle: 'Choisissez un nom pour le champ du rapport.',
             typeInputSubtitle: 'Choisissez le type de champ de rapport à utiliser.',
             initialValueInputSubtitle: 'Entrez une valeur de départ à afficher dans le champ du rapport.',
@@ -6247,6 +6254,7 @@ ${amount} pour ${merchant} - ${date}`,
             delete: 'Supprimer',
             hold: 'Attente',
             unhold: 'Supprimer la suspension',
+            reject: 'Refuser',
             noOptionsAvailable: 'Aucune option disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
@@ -6310,6 +6318,7 @@ ${amount} pour ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} est ${value}`,
         },
         has: 'A',
         groupBy: 'Groupe par',
