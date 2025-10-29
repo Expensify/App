@@ -1110,6 +1110,7 @@ function openReport(
             participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
             transactionID: transaction.transactionID,
             isOwnPolicyExpenseChat: true,
+            reportActionID: iouReportActionID,
         });
 
         // We have a case where the transaction data is only available from the snapshot
@@ -1120,7 +1121,9 @@ function openReport(
             value: transaction,
         });
 
-        // Add violations if they exist
+        // Add violations if they exist. This is needed when opening from search results where
+        // violations are in the snapshot but not yet synced to the main collections, so we need
+        // to add them to Onyx to ensure they show up in the transaction thread
         if (transactionViolations) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1145,7 +1148,6 @@ function openReport(
             value: {
                 [iouReportActionID]: {
                     ...optimisticIOUAction,
-                    reportActionID: iouReportActionID,
                     childReportID: reportID,
                 },
             },
