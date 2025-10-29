@@ -3487,7 +3487,6 @@ function openReportFromDeepLink(
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
-    translate: LocalizedTranslate,
 ) {
     const reportID = getReportIDFromLink(url);
 
