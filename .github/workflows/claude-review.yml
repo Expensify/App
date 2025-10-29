@@ -1,4 +1,7 @@
-name: PR Reviews with Claude Code
+name: Claude Review - Manual Trigger
+
+# This workflow allows manual triggering of Claude code reviews
+# For automatic reviews on fork PRs, see claude-review-generate.yml and claude-review-post.yml
 
 permissions:
   contents: read

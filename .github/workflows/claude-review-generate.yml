@@ -1,0 +1,59 @@
+name: Claude Review - Generate
+
+# This workflow runs on PRs (including from forks) and generates a code review
+# The review is saved as an artifact to be posted by claude-review-post.yml
+
+permissions:
+    contents: read
+    pull-requests: read
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+jobs:
+    generate-review:
+        runs-on: ubuntu-latest
+        # Only run on PRs from forks
+        if: github.event.pull_request.head.repo.full_name != github.repository
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.event.pull_request.head.sha }}
+
+            - name: Generate Claude Code Review
+              id: claude-review
+              uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+              with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+                  claude_args: |
+                      --allowedTools "mcp__github_inline_comment__create_inline_comment"
+              continue-on-error: true
+
+            - name: Save review metadata
+              run: |
+                  mkdir -p review-output
+                  echo "${{ github.event.pull_request.number }}" > review-output/pr_number.txt
+                  echo "${{ github.event.pull_request.head.sha }}" > review-output/pr_sha.txt
+                  echo "${{ github.repository }}" > review-output/repository.txt
+
+                  # Save the review output if available
+                  # Note: The claude-code-action may output review content differently
+                  # This is a placeholder - adjust based on actual action output
+                  if [ -f "claude-review-output.md" ]; then
+                    cp claude-review-output.md review-output/review.md
+                  else
+                    echo "Review generated - check action logs" > review-output/review.md
+                  fi
+
+            - name: Upload review artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: claude-review-${{ github.event.pull_request.number }}
+                  path: review-output/
+                  retention-days: 5
