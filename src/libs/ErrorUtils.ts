@@ -8,7 +8,7 @@ import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {translate, translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -81,7 +81,7 @@ function getErrorMessageWithTranslationData(error: string | null): string {
     const currentLocale = IntlStore.getCurrentLocale();
     if (currentLocale && currentLocale !== CONST.LOCALES.EN) {
         if (error === 'The deposit and withdrawal accounts are the same.') {
-            return translateLocal('bankAccount.error.sameDepositAndWithdrawalAccount');
+            return translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount');
         }
     }
 
