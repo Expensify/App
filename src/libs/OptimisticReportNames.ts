@@ -197,7 +197,7 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): {name: string; isPending: boolean} | null {
     const {allPolicies, isOffline} = context;
 
     // If no report is provided, extract it from the update (for new reports)
@@ -258,10 +258,12 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         transaction: updatedTransaction,
     };
 
+    const needsBackendComputation = requiresBackendComputation(formulaParts, formulaContext);
+
     // When we cannot properly compute the formula (e.g., currency conversion requires exchange rates),
     // computing while online causes flickering between incorrect optimistic values and correct backend values.
     // Return null to skip optimistic updates and let the backend provide the accurate result.
-    if (!isOffline && requiresBackendComputation(formulaParts, formulaContext)) {
+    if (!isOffline && needsBackendComputation) {
         return null;
     }
 
@@ -269,12 +271,17 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     // Only return an update if the name actually changed
     if (newName && newName !== targetReport.reportName) {
+        const isPending = isOffline && needsBackendComputation;
         Log.info('[OptimisticReportNames] Report name computed', false, {
             updateType,
             isNewReport: !report,
+            isPending,
         });
 
-        return newName;
+        return {
+            name: newName,
+            isPending,
+        };
     }
 
     return null;
@@ -296,6 +303,24 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         updatesCount: updates.length,
     });
 
+    /**
+     * Helper function to create a report name update with pending field if needed
+     */
+    function createReportNameUpdate(reportID: string, reportNameUpdate: {name: string; isPending: boolean}): OnyxUpdate {
+        return {
+            key: getReportKey(reportID),
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                reportName: reportNameUpdate.name,
+                ...(reportNameUpdate.isPending && {
+                    pendingFields: {
+                        reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                }),
+            },
+        };
+    }
+
     const additionalUpdates: OnyxUpdate[] = [];
 
     for (const update of updates) {
@@ -310,13 +335,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
-                    additionalUpdates.push({
-                        key: getReportKey(reportID),
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        value: {
-                            reportName: reportNameUpdate,
-                        },
-                    });
+                    additionalUpdates.push(createReportNameUpdate(reportID, reportNameUpdate));
                 }
                 break;
             }
@@ -328,13 +347,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
+                        additionalUpdates.push(createReportNameUpdate(report.reportID, reportNameUpdate));
                     }
                 }
                 break;
@@ -353,13 +366,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
+                        additionalUpdates.push(createReportNameUpdate(report.reportID, reportNameUpdate));
                     }
                 }
                 break;
