@@ -241,7 +241,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 
@@ -295,7 +295,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 
@@ -1041,6 +1041,10 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
+                if (displayNamesWithTooltips.length > 2) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName}, ${translateLocal('common.and')}`;
+                }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return `${displayName} ${translateLocal('common.and')}`;
             }
