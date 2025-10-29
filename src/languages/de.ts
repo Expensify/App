@@ -1990,6 +1990,11 @@ const translations = {
         confirmYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
         personalBankAccounts: 'Persönliche Bankkonten',
         businessBankAccounts: 'Geschäftsbankkonten',
+        shareBankAccount: 'Bankkonto teilen',
+        bankAccountShared: 'Geteiltes Bankkonto',
+        shareBankAccountTitle: 'Wählen Sie die Administratoren aus, mit denen dieses Bankkonto geteilt werden soll:',
+        shareBankAccountSuccess: 'Bankkonto geteilt!',
+        shareBankAccountSuccessDescription: 'Die ausgewählten Administratoren erhalten eine Bestätigungsnachricht vom Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

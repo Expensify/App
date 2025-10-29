@@ -1976,6 +1976,11 @@ const translations = {
         confirmYourBankAccount: '銀行口座を確認してください',
         personalBankAccounts: '個人銀行口座',
         businessBankAccounts: 'ビジネス銀行口座',
+        shareBankAccount: '銀行口座を共有',
+        bankAccountShared: '銀行口座を共有しました',
+        shareBankAccountTitle: 'この銀行口座を共有する管理者を選択してください',
+        shareBankAccountSuccess: '銀行口座を共有しました！',
+        shareBankAccountSuccessDescription: '選択した管理者にはコンシェルジュから確認メッセージが届きます',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

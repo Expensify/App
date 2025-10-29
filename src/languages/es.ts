@@ -1961,6 +1961,11 @@ const translations = {
         confirmYourBankAccount: 'Confirma tu cuenta bancaria',
         personalBankAccounts: 'Cuentas bancarias personales',
         businessBankAccounts: 'Cuentas bancarias empresariales',
+        shareBankAccount: 'Compartir cuenta bancaria',
+        bankAccountShared: 'Cuenta bancaria compartida',
+        shareBankAccountTitle: 'Seleccionar los administradores con quienes compartir esta cuenta bancaria:',
+        shareBankAccountSuccess: '¡Cuenta bancaria compartida!',
+        shareBankAccountSuccessDescription: 'Los administradores seleccionados recibirán un mensaje de confirmación de Concierge.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

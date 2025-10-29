@@ -1979,6 +1979,11 @@ const translations = {
         confirmYourBankAccount: 'Bevestig uw bankrekening',
         personalBankAccounts: 'Persoonlijke bankrekeningen',
         businessBankAccounts: 'Zakelijke bankrekeningen',
+        shareBankAccount: 'Bankrekening delen',
+        bankAccountShared: 'Bankrekening gedeeld',
+        shareBankAccountTitle: 'Selecteer de beheerders waarmee u deze bankrekening wilt delen:',
+        shareBankAccountSuccess: 'Bankrekening gedeeld!',
+        shareBankAccountSuccessDescription: 'De geselecteerde beheerders ontvangen een bevestigingsbericht van Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

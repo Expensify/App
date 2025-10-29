@@ -1976,6 +1976,11 @@ const translations = {
         confirmYourBankAccount: 'Potwierdź swoje konto bankowe',
         personalBankAccounts: 'Osobiste konta bankowe',
         businessBankAccounts: 'Firmowe konta bankowe',
+        shareBankAccount: 'Udostępnij konto bankowe',
+        bankAccountShared: 'Konto bankowe udostępnione',
+        shareBankAccountTitle: 'Wybierz administratorów, z którymi chcesz udostępnić to konto bankowe:',
+        shareBankAccountSuccess: 'Konto bankowe udostępnione!',
+        shareBankAccountSuccessDescription: 'Wybrani administratorzy otrzymają wiadomość z potwierdzeniem od Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

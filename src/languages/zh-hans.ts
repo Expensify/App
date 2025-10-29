@@ -1956,6 +1956,11 @@ const translations = {
         confirmYourBankAccount: '确认您的银行账户',
         personalBankAccounts: '个人银行账户',
         businessBankAccounts: '企业银行账户',
+        shareBankAccount: '共享银行账户',
+        bankAccountShared: '已共享银行账户',
+        shareBankAccountTitle: '选择要共享此银行账户的管理员：',
+        shareBankAccountSuccess: '已共享银行账户！',
+        shareBankAccountSuccessDescription: '选定的管理员将收到来自礼宾部的确认消息。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

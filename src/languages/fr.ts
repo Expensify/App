@@ -1988,6 +1988,11 @@ const translations = {
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
         personalBankAccounts: 'Comptes bancaires personnels',
         businessBankAccounts: 'Comptes bancaires professionnels',
+        shareBankAccount: 'Partager le compte bancaire',
+        bankAccountShared: 'Compte bancaire partagé',
+        shareBankAccountTitle: 'Sélectionnez les administrateurs avec lesquels partager ce compte bancaire:',
+        shareBankAccountSuccess: 'Compte bancaire partagé!',
+        shareBankAccountSuccessDescription: 'Les administrateurs sélectionnés recevront un message de confirmation de Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

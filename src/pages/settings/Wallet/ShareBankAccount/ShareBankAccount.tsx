@@ -77,37 +77,36 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             return [];
         }
 
-        let membersToDisplay = admins;
+        let adminsToDisplay = admins;
 
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            membersToDisplay = tokenizedSearch(admins, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+            adminsToDisplay = tokenizedSearch(admins, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
-        // Filter to show selected members first, then apply search filter to selected members
+        // Filter to show selected admins first, then apply search filter to selected admins
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
             filterSelectedOptions = selectedOptions.filter((option) => {
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm;
+                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
         }
 
-        // Combine selected members with unselected members
+        // Combine selected admins with unselected admins
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.includes(login));
+        const unselectedAdmins = adminsToDisplay.filter(({login}) => !selectedLogins.includes(login));
 
-        const allMembersWithState: MemberForList[] = [];
+        const allAdminsWithState: MemberForList[] = [];
         filterSelectedOptions.forEach((member) => {
-            allMembersWithState.push({...member, isSelected: true});
+            allAdminsWithState.push({...member, isSelected: true});
         });
-        unselectedMembers.forEach((member) => {
-            allMembersWithState.push({...member, isSelected: false});
+        unselectedAdmins.forEach((member) => {
+            allAdminsWithState.push({...member, isSelected: false});
         });
 
-        return allMembersWithState;
+        return allAdminsWithState;
     }, [admins, countryCode, debouncedSearchTerm, selectedOptions]);
 
     const sections = useMemo(
@@ -164,7 +163,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
             <HeaderWithBackButton
-                title={translate('walletPage.shareBankAccount')}
+                title={translate(shouldShowSuccess ? 'walletPage.bankAccountShared' : 'walletPage.shareBankAccount')}
                 onBackButtonPress={shouldShowSuccess ? onButtonPress : goBack}
             />
             {shouldShowSuccess ? (
@@ -201,7 +200,6 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     onConfirm={handleConfirm}
                     footerContent={footerContent}
                     isConfirmButtonDisabled={selectedOptions.length === 0}
-                    addBottomSafeAreaPadding
                 />
             )}
         </ScreenWrapper>

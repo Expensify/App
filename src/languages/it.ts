@@ -1979,6 +1979,11 @@ const translations = {
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
         personalBankAccounts: 'Conti bancari personali',
         businessBankAccounts: 'Conti bancari aziendali',
+        shareBankAccount: 'Condividi conto bancario',
+        bankAccountShared: 'Conto bancario condiviso',
+        shareBankAccountTitle: 'Seleziona gli amministratori con cui condividere questo conto bancario:',
+        shareBankAccountSuccess: 'Conto bancario condiviso!',
+        shareBankAccountSuccessDescription: 'Gli amministratori selezionati riceveranno un messaggio di conferma da Concierge.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

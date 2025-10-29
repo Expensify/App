@@ -89,6 +89,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
+    const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowCardMenu, setShouldShowCardMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
@@ -167,6 +168,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     description: description ?? getPaymentMethodDescription(accountType, accountData),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
+                setShouldShowShareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
@@ -231,6 +233,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
         setShowConfirmDeleteModal(false);
+        setShouldShowShareButton(false);
     }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const hideCardMenu = useCallback(() => {
@@ -624,18 +627,20 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 numberOfLinesTitle={0}
                             />
                         )}
-                        <MenuItem
-                            title={translate('common.share')}
-                            icon={Expensicons.UserPlus}
-                            onPress={() => {
-                                if (isAccountLocked) {
-                                    closeModal(() => showLockedAccountModal());
-                                    return;
-                                }
-                                closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                            }}
-                            wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                        />
+                        {shouldShowShareButton && (
+                            <MenuItem
+                                title={translate('common.share')}
+                                icon={Expensicons.UserPlus}
+                                onPress={() => {
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
+                                        return;
+                                    }
+                                    closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                                }}
+                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                            />
+                        )}
                         <MenuItem
                             title={translate('common.delete')}
                             icon={Expensicons.Trashcan}
