@@ -4,6 +4,8 @@ import type {ColorValue, StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,8 +13,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Text from './Text';
@@ -64,6 +70,9 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
@@ -73,6 +82,9 @@ function ParentNavigationSubtitle({
     }
 
     const onPress = () => {
+        const parentAction = getReportAction(parentReportID, parentReportActionID);
+        const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
+
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
@@ -102,6 +114,12 @@ function ParentNavigationSubtitle({
             if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
             }
+        }
+
+        if (isVisibleAction) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+        } else {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
         }
     };
 
