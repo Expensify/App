@@ -273,10 +273,9 @@ function IOURequestStepAmount({
             const firstParticipant = transaction?.participants?.at(0);
 
             // Check if user manually selected a recipient different from default workspace
-            const isManuallyAssigned = transaction?.participantsAutoAssigned === false;
             const hasDifferentWorkspace = !!(firstParticipant?.reportID && firstParticipant.reportID !== activePolicyExpenseChat?.reportID);
             const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
-            const hasManuallySelectedParticipant = isManuallyAssigned || hasDifferentWorkspace || isP2PChat;
+            const hasManuallySelectedParticipant = hasDifferentWorkspace || isP2PChat;
 
             if (hasManuallySelectedParticipant) {
                 const targetReportID = firstParticipant?.reportID ?? transaction?.reportID ?? generateReportID();
