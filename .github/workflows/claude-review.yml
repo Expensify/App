@@ -27,6 +27,11 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
         with:
           fetch-depth: 1
+      - name: Debug - Log review-code-pr.md file contents
+        run: |
+          echo "=== Contents of .claude/commands/review-code-pr.md ==="
+          cat .claude/commands/review-code-pr.md
+          echo "=== End of file ==="
 
       - name: Filter paths
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
