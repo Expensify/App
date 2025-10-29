@@ -16,7 +16,7 @@ const makeError = (code: ValueOf<typeof GeolocationErrorCode>, message: string) 
 const isLocationPermissionState = (status: unknown): status is LocationPermissionState =>
     typeof status === 'string' && Object.values(LOCATION_PERMISSION_STATES).includes(status as LocationPermissionState);
 
-const getCurrentPosition: GetCurrentPosition = (success, error, options) => {
+const getCurrentPosition: GetCurrentPosition = async (success, error, options) => {
     const doGeoRequest = () => {
         try {
             navigator.geolocation.getCurrentPosition(success, error, options);
