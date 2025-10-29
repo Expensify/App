@@ -208,6 +208,7 @@ function getOnyxTargetTransactionData(
                     customUnit: mergeTransaction.customUnit ?? null,
                 },
                 routes: mergeTransaction.routes ?? null,
+                iouRequestType: mergeTransaction.iouRequestType ?? null,
             },
         });
     }
@@ -253,7 +254,6 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         tag: mergeTransaction.tag,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
-        iouRequestType: mergeTransaction.iouRequestType,
     };
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories);
