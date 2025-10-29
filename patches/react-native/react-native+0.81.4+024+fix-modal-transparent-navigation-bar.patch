@@ -1,10 +1,10 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
-index 139a1c1..f6d1faa 100644
+index c711027..7255545 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
-@@ -361,6 +361,21 @@ public class ReactModalHostView(context: ThemedReactContext) :
-       // Navigation bar cannot be translucent without status bar being translucent too
-       dialogWindow.setSystemBarsTranslucency(navigationBarTranslucent)
+@@ -382,6 +382,20 @@ public class ReactModalHostView(context: ThemedReactContext) :
+         }
+       }
  
 +      // If enforceNavigationBarContrast is explicitly set in the app theme (AppTheme),
 +      // we need to override the default behaviour for edge-to-edge mode in WindowUtils.setSystemBarsTranslucency.
@@ -20,7 +20,6 @@ index 139a1c1..f6d1faa 100644
 +        ta.recycle()
 +      }
 +
-+
-       if (!navigationBarTranslucent) {
-         dialogWindow.setStatusBarTranslucency(statusBarTranslucent)
-       }
+       // Navigation bar cannot be translucent without status bar being translucent too
+       if (navigationBarTranslucent) {
+         dialogWindow.enableEdgeToEdge()
