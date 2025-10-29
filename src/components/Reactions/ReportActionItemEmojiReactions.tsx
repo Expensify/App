@@ -33,7 +33,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
-    toggleReaction: (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => void;
+    toggleReaction: (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -104,7 +104,7 @@ function ReportActionItemEmojiReactions({
             }
 
             const onPress = () => {
-                toggleReaction(emoji, true);
+                toggleReaction(emoji, -1, true);
             };
 
             const onReactionListOpen = (event: ReactionListEvent) => {
