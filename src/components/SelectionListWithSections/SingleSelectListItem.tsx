@@ -33,7 +33,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
-                style={styles.ml2}
+                style={styles.ml3}
                 containerStyle={styles.m0}
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={isSelected}
@@ -41,7 +41,7 @@ function SingleSelectListItem<TItem extends ListItem>({
                 focusable={false}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [isSelected, item, onSelectRow, styles.ml3, styles.m0]);
 
     return (
         <RadioListItem

@@ -40,7 +40,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 containerStyle={styles.m0}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [isSelected, item, onSelectRow, styles.m0]);
 
     return (
         <RadioListItem

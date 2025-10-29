@@ -41,7 +41,7 @@ function SingleSelectListItem<TItem extends ListItem>({
                 containerStyle={styles.m0}
             />
         );
-    }, [item, onSelectRow]);
+    }, [item, onSelectRow, styles.m0, styles.ml3]);
 
     return (
         <RadioListItem
