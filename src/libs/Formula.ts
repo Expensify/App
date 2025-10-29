@@ -588,14 +588,15 @@ function computeSubmitFromPart(path: string[], context: FormulaContext): string 
         case 'email':
             return submitterPersonalDetails.login ?? '';
         case 'userid':
-            return String(submitterPersonalDetails.accountID ?? '');
+            return submitterPersonalDetails.accountID !== undefined && submitterPersonalDetails.accountID !== null ? String(submitterPersonalDetails.accountID) : '';
         case 'customfield1': {
             // Get custom field from policy employeeList using the user's email
             const email = submitterPersonalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            return policy.employeeList[email]?.employeeUserID ?? '';
+            const employeeUserID = policy.employeeList[email]?.employeeUserID;
+            return employeeUserID ?? '';
         }
         case 'customfield2': {
             // Get custom field from policy employeeList using the user's email
@@ -603,7 +604,8 @@ function computeSubmitFromPart(path: string[], context: FormulaContext): string 
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            return policy.employeeList[email]?.employeePayrollID ?? '';
+            const employeePayrollID = policy.employeeList[email]?.employeePayrollID;
+            return employeePayrollID ?? '';
         }
         default:
             return '';
@@ -631,14 +633,15 @@ function computeSubmitToPart(path: string[], context: FormulaContext): string {
         case 'email':
             return managerPersonalDetails.login ?? '';
         case 'userid':
-            return String(managerPersonalDetails.accountID ?? '');
+            return managerPersonalDetails.accountID !== undefined && managerPersonalDetails.accountID !== null ? String(managerPersonalDetails.accountID) : '';
         case 'customfield1': {
             // Get custom field from policy employeeList using the user's email
             const email = managerPersonalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            return policy.employeeList[email]?.employeeUserID ?? '';
+            const employeeUserID = policy.employeeList[email]?.employeeUserID;
+            return employeeUserID ?? '';
         }
         case 'customfield2': {
             // Get custom field from policy employeeList using the user's email
@@ -646,7 +649,8 @@ function computeSubmitToPart(path: string[], context: FormulaContext): string {
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            return policy.employeeList[email]?.employeePayrollID ?? '';
+            const employeePayrollID = policy.employeeList[email]?.employeePayrollID;
+            return employeePayrollID ?? '';
         }
         default:
             return '';

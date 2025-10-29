@@ -277,8 +277,8 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
     // Get personal details for submitter and manager
-    const submitterAccountID = String(updatedReport.ownerAccountID ?? '');
-    const managerAccountID = String(updatedReport.managerID ?? '');
+    const submitterAccountID = updatedReport.ownerAccountID ? String(updatedReport.ownerAccountID) : undefined;
+    const managerAccountID = updatedReport.managerID ? String(updatedReport.managerID) : undefined;
 
     // Note: allPersonalDetails[accountID] can be null, but FormulaContext expects undefined, so we use ?? undefined
     const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;

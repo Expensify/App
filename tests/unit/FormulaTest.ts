@@ -960,6 +960,22 @@ describe('CustomFormula', () => {
 
                 expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('');
             });
+
+            test('date with time - yyyy-MM-dd HH:mm:ss format', () => {
+                expect(compute('{report:submit:date:yyyy-MM-dd HH:mm:ss}', mockContextWithSubmissionInfo)).toBe('2025-01-15 10:30:00');
+            });
+
+            test('date with time - MM/dd/yyyy hh:mm tt format', () => {
+                expect(compute('{report:submit:date:MM/dd/yyyy hh:mm tt}', mockContextWithSubmissionInfo)).toBe('01/15/2025 10:30 AM');
+            });
+
+            test('date with time - dd/MM/yyyy HH:mm format', () => {
+                expect(compute('{report:submit:date:dd/MM/yyyy HH:mm}', mockContextWithSubmissionInfo)).toBe('15/01/2025 10:30');
+            });
+
+            test('time only - HH:mm:ss format', () => {
+                expect(compute('{report:submit:date:HH:mm:ss}', mockContextWithSubmissionInfo)).toBe('10:30:00');
+            });
         });
 
         describe('Function modifiers', () => {
