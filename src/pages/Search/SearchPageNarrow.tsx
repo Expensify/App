@@ -78,7 +78,7 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -88,6 +88,8 @@ function SearchPageNarrow({
     const triggerScrollEvent = useScrollEventEmitter();
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
+
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -145,7 +147,7 @@ function SearchPageNarrow({
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
@@ -166,7 +168,7 @@ function SearchPageNarrow({
         );
     }
 
-    const shouldShowFooter = !!metadata?.count;
+    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
@@ -252,6 +254,7 @@ function SearchPageNarrow({
                             contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                         />
                     </View>
                 )}

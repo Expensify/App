@@ -4,6 +4,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -26,10 +27,13 @@ function isActiveTaskEditRoute(reportID: string | undefined): boolean {
 function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Message, 'text' | 'html'> {
     switch (action?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return {text: translateLocal('task.messages.completed')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return {text: translateLocal('task.messages.canceled')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return {text: translateLocal('task.messages.reopened')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_EDITED:
             return {
@@ -37,6 +41,7 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
                 html: getReportActionHtml(action),
             };
         default:
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return {text: translateLocal('task.task')};
     }
 }
@@ -56,6 +61,7 @@ function getTaskTitle(taskReport?: OnyxEntry<Report>, fallbackTitle = '', should
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>, taskReport?: OnyxEntry<Report>, shouldReturnMarkdown = false) {
     const taskTitle = getTaskTitle(taskReport, reportAction?.childReportName, shouldReturnMarkdown);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 

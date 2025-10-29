@@ -118,7 +118,7 @@ describe('actions/Workflow', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policyID, currentApprovalWorkflow});
+            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policy: fakePolicy, currentApprovalWorkflow});
             await waitForBatchedUpdates();
 
             const approvalWorkflow = await getApprovalWorkflowState();
@@ -216,7 +216,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow(policy.id, approvalWorkflow);
+            createApprovalWorkflow(approvalWorkflow, policy);
             await mockFetch.resume();
 
             let updatedPolicy: Policy | undefined;

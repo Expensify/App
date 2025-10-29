@@ -17,7 +17,6 @@ import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
-import {translateLocal} from '@src/libs/Localize';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -1682,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2164,6 +2163,7 @@ describe('actions/Report', () => {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
                 TestHelper.formatPhoneNumber,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -2252,7 +2252,7 @@ describe('actions/Report', () => {
             const submitterEmployee = policyData?.employeeList?.[ownerEmail];
             expect(submitterEmployee).toBeTruthy();
             expect(submitterEmployee?.errors).toBeTruthy();
-            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
             mockFetch.succeed?.();
@@ -2410,7 +2410,7 @@ describe('actions/Report', () => {
             const submitterEmployee = policyData?.employeeList?.[ownerEmail];
             expect(submitterEmployee).toBeTruthy();
             expect(submitterEmployee?.errors).toBeTruthy();
-            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
             mockFetch.succeed?.();

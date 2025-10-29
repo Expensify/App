@@ -175,7 +175,7 @@ describe('ReportUtils', () => {
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 draftComment: undefined,
-                isReportArchived: undefined,
+                isReportArchived: false,
             }),
         );
     });
