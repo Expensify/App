@@ -153,7 +153,7 @@ function isPrimaryPayAction(
     isChatReportArchived?: boolean,
     invoiceReceiverPolicy?: Policy,
     reportActions?: ReportAction[],
-    isFromSecondaryAction?: boolean,
+    isSecondaryAction?: boolean,
 ) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -166,7 +166,7 @@ function isPrimaryPayAction(
     const isProcessingReport = isProcessingReportUtils(report);
     const isExported = isExportedUtil(reportActions);
     const hasExportError = hasExportErrorUtil(reportActions, report);
-    const isExportedAndHasExportError = !isExported && hasExportError;
+    const didExportFail = !isExported && hasExportError;
 
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
@@ -175,7 +175,7 @@ function isPrimaryPayAction(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
-        return isFromSecondaryAction ?? !isExportedAndHasExportError;
+        return isSecondaryAction ?? !didExportFail;
     }
 
     if (!isProcessingReport) {
