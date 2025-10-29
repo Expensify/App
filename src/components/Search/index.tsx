@@ -712,7 +712,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -762,14 +762,14 @@ function Search({
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-                const isBaseKeyMatch = newSearchResultKeys?.has(baseKey);
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return newSearchResultKeys?.has(transactionKey);
+                        return !!newSearchResultKeys?.has(transactionKey);
                     });
 
                 // Determine if either the base key or any transaction key matches

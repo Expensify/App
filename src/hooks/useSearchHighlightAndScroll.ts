@@ -182,13 +182,13 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newSearchResultKeys = new Set<string>();
+            const newKeys = new Set<string>();
             newReportActionIDs.forEach((id) => {
                 const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
                 highlightedIDs.current.add(newReportActionKey);
-                newSearchResultKeys.add(newReportActionKey);
-            })
-            setNewSearchResultKeys(newSearchResultKeys);
+                newKeys.add(newReportActionKey);
+            });
+            setNewSearchResultKeys(newKeys);
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
@@ -200,13 +200,13 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newSearchResultKeys = new Set<string>();
+            const newKeys = new Set<string>();
             newTransactionIDs.forEach((id) => {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
                 highlightedIDs.current.add(newTransactionKey);
-                newSearchResultKeys.add(newTransactionKey);
-            })
-            setNewSearchResultKeys(newSearchResultKeys);
+                newKeys.add(newTransactionKey);
+            });
+            setNewSearchResultKeys(newKeys);
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
 
