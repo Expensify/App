@@ -5810,7 +5810,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildUpdateWorkspaceMembersRoleOnyxData(policyID, [accountantAccountID], CONST.POLICY.ROLE.ADMIN);
+        } = buildUpdateWorkspaceMembersRoleOnyxData(policyID, [accountantEmail], [accountantAccountID], CONST.POLICY.ROLE.ADMIN);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -12735,9 +12735,11 @@ function dismissRejectUseExplanation() {
  * @param transactionID - The ID of the transaction to reject
  * @param reportID - The ID of the expense report to reject
  * @param comment - The comment to add to the reject action
- * @returns The route to navigate back to
+ * @param options
+ *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
+ * @returns The route to navigate back to*
  */
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, options?: {sharedRejectedToReportID?: string}): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -12757,7 +12759,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const childReportID = reportAction?.childReportID;
 
     let movedToReport;
-    let rejectedToReportID;
+    let rejectedToReportID = options?.sharedRejectedToReportID;
     let urlToNavigateBack;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -12964,7 +12966,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
             });
         } else {
-            rejectedToReportID = generateReportID();
+            // When no existing open report is found, use the sharedRejectedToReportID
+            // so multiple sequential rejections land in the same destination report
+            // Fallback to generating a fresh ID if not provided
+            rejectedToReportID = rejectedToReportID ?? generateReportID();
         }
         optimisticData.push(
             {
@@ -13180,6 +13185,48 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             },
         });
     });
+
+    // Add snapshot updates if called from the Reports page
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    if (currentSearchQueryJSON?.hash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: true,
+                        errors: null,
+                    },
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: false,
+                    },
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: false,
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        });
+    }
 
     // Build API parameters
     const parameters: RejectMoneyRequestParams = {
