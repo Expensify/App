@@ -34,7 +34,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const source = tempSource && tempSource !== '' ? tempSource : getFullSizeAvatar(avatarURL, accountID);
+    const source = tempSource ? tempSource : getFullSizeAvatar(avatarURL, accountID);
     const originalFileName = tempOriginalFileName ?? personalDetail?.originalFileName ?? '';
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables

@@ -54,7 +54,7 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
             if (isUsingDefaultAvatar) {
                 return menuItems;
             }
-            if (!source || source === '') {
+            if (!source) {
                 menuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('avatarWithImagePicker.removePhoto'),
