@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,12 +64,11 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: incorporationTypes}]}
-                    initiallyFocusedOptionKey={currentBusinessType}
+                    data={incorporationTypes}
+                    initiallyFocusedItemKey={currentBusinessType}
                     onSelectRow={onBusinessTypeSelected}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
                     ListItem={RadioListItem}
                 />
             </ScreenWrapper>
