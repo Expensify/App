@@ -6,12 +6,13 @@ import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/ty
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
@@ -395,8 +396,17 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     }
 }
 
+/**
+ * A local version of translate that uses the current locale from IntlStore
+ * This is useful in tests where we don't have access to the full app context
+ * to provide the locale.
+ */
+function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
+    const currentLocale = IntlStore.getCurrentLocale();
+    return translate(currentLocale, phrase, ...parameters);
+}
+
 function getNavigateToChatHintRegex(): RegExp {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
 }
@@ -422,6 +432,7 @@ function localeCompare(a: string, b: string): number {
 
 export type {MockFetch, FormData};
 export {
+    translateLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

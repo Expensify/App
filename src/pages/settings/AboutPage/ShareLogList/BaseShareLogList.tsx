@@ -24,7 +24,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
@@ -42,13 +42,13 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const shareLogOptions = getShareLogOptions(options, draftComments, nvpDismissedProductTraining, betas ?? []);
 
-        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
+        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '', countryCode);
 
         return {
             ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, draftComments, betas, nvpDismissedProductTraining]);
+    }, [areOptionsInitialized, options, draftComments, betas, countryCode, nvpDismissedProductTraining]);
 
     const searchOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
@@ -64,8 +64,8 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
-            false,
             countryCode,
+            false,
         );
 
         return {...filteredOptions, headerMessage};
