@@ -11,6 +11,7 @@ import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
