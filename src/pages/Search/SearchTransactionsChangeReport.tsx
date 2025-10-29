@@ -125,10 +125,10 @@ function SearchTransactionsChangeReport() {
         }
         changeTransactionsReport(
             selectedTransactionsKeys,
-
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
+            undefined,
             undefined,
             undefined,
             undefined,

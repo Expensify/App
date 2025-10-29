@@ -94,6 +94,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             undefined,
             undefined,
             undefined,
+            undefined,
             nextStepsCollection,
         );
         if (shouldTurnOffSelectionMode) {
