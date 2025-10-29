@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -24,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import MoneyRequestView from './MoneyRequestView';
 
 type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
 
@@ -92,6 +92,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <MoneyRequestView
                         allReports={allReports}
                         expensePolicy={policy}
+                        parentReportProp={report}
                         shouldShowAnimatedBackground={false}
                         readonly
                         updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
