@@ -20,7 +20,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -278,9 +278,10 @@ function IOURequestStepAmount({
             const hasManuallySelectedParticipant = hasDifferentWorkspace || isP2PChat;
 
             if (hasManuallySelectedParticipant) {
-                const targetReportID = firstParticipant?.reportID ?? transaction?.reportID ?? generateReportID();
+                const participantReportID = firstParticipant?.reportID || undefined;
+                const targetReportID = participantReportID ?? transaction?.reportID ?? reportID;
 
-                if (!firstParticipant?.reportID && targetReportID) {
+                if (targetReportID && targetReportID !== transaction?.reportID) {
                     setTransactionReport(transactionID, {reportID: targetReportID}, true);
                 }
 
