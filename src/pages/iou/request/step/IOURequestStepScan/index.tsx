@@ -25,8 +25,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -139,6 +139,9 @@ function IOURequestStepScan({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+
+    const shouldPreventPhotoCapture = useRef(false);
+
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -241,13 +244,12 @@ function IOURequestStepScan({
         let isAllScanFilesCanBeRead = true;
 
         Promise.all(
-            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptPath = item.receipt?.source;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
-                    return;
+                    return Promise.resolve();
                 }
 
                 const onFailure = () => {
@@ -668,6 +670,7 @@ function IOURequestStepScan({
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
+            removeDraftTransactions(true);
             navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
@@ -788,7 +791,20 @@ function IOURequestStepScan({
         });
     }, []);
 
+    useEffect(() => {
+        if (!isTabActive) {
+            return;
+        }
+        shouldPreventPhotoCapture.current = false;
+    }, [isTabActive]);
+
     const capturePhoto = useCallback(() => {
+        if (shouldPreventPhotoCapture.current) {
+            return;
+        }
+        if (!isMultiScanEnabled) {
+            shouldPreventPhotoCapture.current = true;
+        }
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
@@ -804,7 +820,7 @@ function IOURequestStepScan({
         }
 
         getScreenshot();
-    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints, isMultiScanEnabled]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -852,8 +868,7 @@ function IOURequestStepScan({
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                         {cameraPermissionState === 'denied' ? (
                             <Text style={[styles.subTextFileUpload]}>
-                                {translate('receipt.deniedCameraAccess')}
-                                <TextLink href={CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}>{translate('receipt.deniedCameraAccessInstructions')}</TextLink>.
+                                <RenderHTML html={translate('receipt.deniedCameraAccess')} />
                             </Text>
                         ) : (
                             <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
