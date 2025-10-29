@@ -90,14 +90,14 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
+            const optimisticReport = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
+                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
                 changeTransactionsReport({
                     transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
-                    reportID: optimisticReportID,
+                    newReport: optimisticReport,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
@@ -121,7 +121,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
             }
-            navigateToNewReport(optimisticReportID);
+            navigateToNewReport(optimisticReport.reportID);
         },
         [
             activePolicyID,

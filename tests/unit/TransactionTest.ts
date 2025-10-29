@@ -60,6 +60,14 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: selfDM,
 };
 
+const getReportFromUseOnyx = async (reportID: string) => {
+    const {result} = renderHook(() => {
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        return {report};
+    });
+    return result.current.report;
+};
+
 describe('Transaction', () => {
     beforeAll(() => {
         Onyx.init({
@@ -96,6 +104,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -104,7 +113,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -146,6 +155,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -154,7 +164,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -209,6 +219,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -217,7 +228,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -275,6 +286,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -283,7 +295,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -330,6 +342,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -338,7 +351,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -384,6 +397,7 @@ describe('Transaction', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
@@ -393,7 +407,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: true,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
@@ -440,6 +454,7 @@ describe('Transaction', () => {
 
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
             const allReports = reportCollectionDataSet as OnyxCollection<Report>;
             const allTransactions = {
@@ -449,7 +464,7 @@ describe('Transaction', () => {
 
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: FAKE_NEW_REPORT_ID,
+                newReport: report,
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
                 email: customEmail,
@@ -477,6 +492,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -509,7 +525,7 @@ describe('Transaction', () => {
             await act(async () => {
                 changeTransactionsReport({
                     transactionIDs: [transaction.transactionID],
-                    reportID: FAKE_NEW_REPORT_ID,
+                    newReport: report,
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',

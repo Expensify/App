@@ -1,5 +1,6 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -19,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -100,7 +102,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const handleRegularReportSelection = (item: TransactionGroupListItem) => {
+    const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
         if (!transaction) {
             return;
         }
@@ -119,7 +121,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             if (isEditing) {
                 changeTransactionsReport({
                     transactionIDs: [transaction.transactionID],
-                    reportID: item.value,
+                    newReport: report,
                     isASAPSubmitBetaEnabled,
                     accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: session?.email ?? '',
@@ -153,8 +155,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         // Handle regular report selection
-        handleRegularReportSelection(item);
+        handleRegularReportSelection(item, report);
     };
 
     const removeFromReport = () => {
@@ -166,7 +169,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
@@ -194,8 +196,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        handleRegularReportSelection({value: createdReportID});
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
     return (

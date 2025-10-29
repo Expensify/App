@@ -631,7 +631,7 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
 
 type ChangeTransactionsReportProps = {
     transactionIDs: string[];
-    reportID: string;
+    newReport?: OnyxEntry<Report>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -645,7 +645,7 @@ type ChangeTransactionsReportProps = {
 
 function changeTransactionsReport({
     transactionIDs,
-    reportID,
+    newReport,
     isASAPSubmitBetaEnabled,
     accountID,
     email,
@@ -656,7 +656,7 @@ function changeTransactionsReport({
     allTransactionsCollection,
     allTransactionViolationsCollection,
 }: ChangeTransactionsReportProps) {
-    const newReport = allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};

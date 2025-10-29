@@ -50,9 +50,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
@@ -166,7 +166,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
-                    reportID: report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                    newReport: reportToConfirm,
                     isASAPSubmitBetaEnabled,
                     accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: session?.email ?? '',
@@ -184,6 +184,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         selectedIds,
         translate,
         report,
+        reportToConfirm,
         isASAPSubmitBetaEnabled,
         session?.accountID,
         session?.email,
