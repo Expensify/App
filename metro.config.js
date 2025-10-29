@@ -15,6 +15,7 @@ const expoConfig = getExpoDefaultConfig(__dirname);
 const isE2ETesting = process.env.E2E_TESTING === 'true';
 const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
 
+const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -36,9 +37,13 @@ const config = {
             },
         }),
     },
-    serializer: {
-        customSerializer: createSentryMetroSerializer(),
-    },
+    serializer: !isDev
+        ? {
+              customSerializer: createSentryMetroSerializer(),
+          }
+        : {},
 };
 
-module.exports = withSentryConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
+const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+
+module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
