@@ -6,12 +6,12 @@ import {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
-import type {CanvasSize, ContentSize} from '@components/MultiGestureCanvas/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {Dimensions} from '@src/types/utils/Layout';
 import IconWrapperStyles from './IconWrapperStyles';
 
 type IconProps = {
@@ -82,8 +82,8 @@ function Icon({
     const styles = useThemeStyles();
     const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const contentSize: ContentSize = {width: iconWidth as number, height: iconHeight as number};
-    const [canvasSize, setCanvasSize] = useState<CanvasSize>();
+    const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
     const isCanvasLoading = canvasSize === undefined;
     const updateCanvasSize = useCallback(
         ({
