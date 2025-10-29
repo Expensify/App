@@ -61,7 +61,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
+import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
