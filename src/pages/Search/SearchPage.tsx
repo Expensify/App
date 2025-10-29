@@ -412,7 +412,7 @@ function SearchPage({route}: SearchPageProps) {
                 if (!report) {
                     return false;
                 }
-                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] as Policy | undefined;
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? undefined;
                 return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
             });
         const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && areSelectedTransactionsRejectable;
