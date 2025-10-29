@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
@@ -63,14 +63,14 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const collectedErrors = useRef<ErrorObject[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
 
-    const updateFileOrderMapping = useCallback((oldFile: FileObject | undefined, newFile: FileObject) => {
+    const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
         if (originalIndex !== undefined) {
             originalFileOrder.current.set(newFile.uri ?? '', originalIndex);
         }
-    }, []);
+    };
 
-    const deduplicateErrors = useCallback((errors: ErrorObject[]) => {
+    const deduplicateErrors = (errors: ErrorObject[]) => {
         const uniqueErrors = new Set<string>();
         return errors.filter((error) => {
             const key = `${error.error}-${error.fileExtension ?? ''}`;
@@ -80,9 +80,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             uniqueErrors.add(key);
             return true;
         });
-    }, []);
+    };
 
-    const resetValidationState = useCallback(() => {
+    const resetValidationState = () => {
         setIsValidatingFiles(false);
         setIsValidatingReceipts(undefined);
         setIsValidatingMultipleFiles(false);
@@ -100,15 +100,15 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         dataTransferItemList.current = [];
         collectedErrors.current = [];
         originalFileOrder.current.clear();
-    }, [setIsLoaderVisible]);
+    };
 
-    const hideModalAndReset = useCallback(() => {
+    const hideModalAndReset = () => {
         setIsErrorModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
-    }, [resetValidationState]);
+    };
 
     const setErrorAndOpenModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
         setFileError(error);
@@ -157,7 +157,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         });
     };
 
-    const checkIfAllValidatedAndProceed = useCallback(() => {
+    const checkIfAllValidatedAndProceed = () => {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
@@ -187,7 +187,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             onFilesValidated(sortedFiles, dataTransferItemList.current);
             resetValidationState();
         }
-    }, [deduplicateErrors, pdfFilesToRender.length, onFilesValidated, resetValidationState]);
+    };
 
     const validateAndResizeFiles = (files: FileObject[], items: DataTransferItem[], validationOptions?: ValidationOptions) => {
         // Early return for empty files
