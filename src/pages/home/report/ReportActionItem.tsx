@@ -160,6 +160,7 @@ function ReportActionItem({
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+            bankAccountList={bankAccountList}
         />
     );
 }

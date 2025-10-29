@@ -77,6 +77,7 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {
     canApproveIOU,
     canIOUBePaid,
@@ -4111,7 +4112,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
         return !reportField?.deletable;
     }
 
-    return false;
+    return reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
 }
 
 /**
@@ -4581,7 +4582,7 @@ function canEditFieldOfMoneyRequest(
             Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                 getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
             ).length > 1 ||
-            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+            ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
         );
     }
 
@@ -5017,12 +5018,23 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
 
             if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 translatePhraseKey = 'iou.businessBankAccount';
+            }
+
+            if (isFromInvoice) {
+                translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
+                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return translateLocal(translatePhraseKey, {
+                    amount: formattedAmount,
+                    last4Digits: currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                });
             }
         }
 

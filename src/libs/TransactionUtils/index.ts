@@ -175,6 +175,16 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction);
+}
+
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -226,6 +236,9 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     }
     if (isMapDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+    }
+    if (isDistanceTypeRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
     if (isScanRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.SCAN;
@@ -365,7 +378,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         pendingAction,
         receipt: receipt?.source
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
-            : {},
+            : undefined,
+        hasEReceipt: !receipt?.source,
         filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
@@ -376,6 +390,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         reimbursable,
         inserted: DateUtils.getDBTime(),
         participants,
+        cardID: existingTransaction?.cardID,
+        cardName: existingTransaction?.cardName,
+        cardNumber: existingTransaction?.cardNumber,
     };
 }
 
