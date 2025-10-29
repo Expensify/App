@@ -8,16 +8,17 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
+import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
-const cachedImageDimensions = new Map<string, ContentSize | undefined>();
+const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
 type LightboxProps = {
     /** Whether source url requires authentication */
@@ -98,7 +99,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 
-    const [canvasSize, setCanvasSize] = useState<CanvasSize>();
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
     const isCanvasLoading = canvasSize === undefined;
     const updateCanvasSize = useCallback(
         ({
@@ -109,9 +110,9 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [],
     );
 
-    const [contentSize, setInternalContentSize] = useState<ContentSize | undefined>(() => cachedImageDimensions.get(uri));
+    const [contentSize, setInternalContentSize] = useState<Dimensions | undefined>(() => cachedImageDimensions.get(uri));
     const setContentSize = useCallback(
-        (newDimensions: ContentSize | undefined) => {
+        (newDimensions: Dimensions | undefined) => {
             setInternalContentSize(newDimensions);
             cachedImageDimensions.set(uri, newDimensions);
         },
