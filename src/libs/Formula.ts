@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import {getAllReportActions} from './ReportActionsUtils';
@@ -26,6 +26,8 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    submitterPersonalDetails?: PersonalDetails;
+    managerPersonalDetails?: PersonalDetails;
 };
 
 const FORMULA_PART_TYPES = {
@@ -265,6 +267,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'submit':
+            return computeSubmitPart(additionalPath, context);
         default:
             return part.definition;
     }
@@ -516,6 +520,140 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     });
 
     return newestDate;
+}
+
+/**
+ * Compute the value of a report:submit:* formula part
+ * Handles nested paths like submit:from:firstname, submit:to:email, submit:date
+ */
+function computeSubmitPart(path: string[], context: FormulaContext): string {
+    const [direction, ...subPath] = path;
+
+    if (!direction) {
+        return '';
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'from':
+            return computeSubmitFromPart(subPath, context);
+        case 'to':
+            return computeSubmitToPart(subPath, context);
+        case 'date': {
+            // For submission date, we need to get the date from the submitted report action
+            const submittedDate = getSubmittedReportActionDate(context.report.reportID);
+            const format = subPath.length > 0 ? subPath.join(':') : undefined;
+            return formatDate(submittedDate, format);
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute submitter (from) information
+ */
+function computeSubmitFromPart(path: string[], context: FormulaContext): string {
+    const [field] = path;
+    const {submitterPersonalDetails, policy} = context;
+
+    if (!submitterPersonalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            return submitterPersonalDetails.firstName ?? submitterPersonalDetails.login ?? '';
+        case 'lastname':
+            return submitterPersonalDetails.lastName ?? submitterPersonalDetails.login ?? '';
+        case 'fullname':
+            return submitterPersonalDetails.displayName ?? submitterPersonalDetails.login ?? '';
+        case 'email':
+            return submitterPersonalDetails.login ?? '';
+        case 'userid':
+            return String(submitterPersonalDetails.accountID ?? '');
+        case 'customfield1': {
+            // Get custom field from policy employeeList using the user's email
+            const email = submitterPersonalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        case 'customfield2': {
+            // Get custom field from policy employeeList using the user's email
+            const email = submitterPersonalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            return policy.employeeList[email]?.employeePayrollID ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute manager (to) information
+ */
+function computeSubmitToPart(path: string[], context: FormulaContext): string {
+    const [field] = path;
+    const {managerPersonalDetails, policy} = context;
+
+    if (!managerPersonalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            return managerPersonalDetails.firstName ?? managerPersonalDetails.login ?? '';
+        case 'lastname':
+            return managerPersonalDetails.lastName ?? managerPersonalDetails.login ?? '';
+        case 'fullname':
+            return managerPersonalDetails.displayName ?? managerPersonalDetails.login ?? '';
+        case 'email':
+            return managerPersonalDetails.login ?? '';
+        case 'userid':
+            return String(managerPersonalDetails.accountID ?? '');
+        case 'customfield1': {
+            // Get custom field from policy employeeList using the user's email
+            const email = managerPersonalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        case 'customfield2': {
+            // Get custom field from policy employeeList using the user's email
+            const email = managerPersonalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            return policy.employeeList[email]?.employeePayrollID ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Get the date when the report was submitted by finding the SUBMITTED report action
+ */
+function getSubmittedReportActionDate(reportID: string): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const reportActions = getAllReportActions(reportID);
+    if (!reportActions || Object.keys(reportActions).length === 0) {
+        return undefined;
+    }
+
+    // Find the SUBMITTED or SUBMITTED_AND_CLOSED action
+    const submittedAction = Object.values(reportActions).find(
+        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+    );
+
+    return submittedAction?.created;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, parse};

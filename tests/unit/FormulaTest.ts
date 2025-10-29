@@ -7,7 +7,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -640,6 +640,444 @@ describe('CustomFormula', () => {
             expect(compute('{report:startdate:yyyy-MM-dd HH:mm:ss}', mockContextWithDate)).toBe('2025-01-08 15:30:45');
             expect(compute('{report:created:HH:mm:ss}', mockContextWithDate)).toBe('15:30:45');
             expect(compute('{report:startdate:g:i a}', mockContextWithDate)).toBe('3:30 pm');
+        });
+    });
+
+    describe('Submission Info', () => {
+        const mockSubmitter: PersonalDetails = {
+            accountID: 12345,
+            firstName: 'John',
+            lastName: 'Doe',
+            displayName: 'John Doe',
+            login: 'john.doe@company.com',
+        };
+
+        const mockManager: PersonalDetails = {
+            accountID: 67890,
+            firstName: 'Jane',
+            lastName: 'Smith',
+            displayName: 'Jane Smith',
+            login: 'jane.smith@company.com',
+        };
+
+        const mockContextWithSubmissionInfo: FormulaContext = {
+            report: {
+                reportID: '123',
+                reportName: '',
+                type: 'expense',
+                ownerAccountID: 12345,
+                managerID: 67890,
+            } as Report,
+            policy: {
+                name: 'Test Policy',
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'john.doe@company.com': {
+                        email: 'john.doe@company.com',
+                        employeeUserID: 'EMP001',
+                        employeePayrollID: 'PAY123',
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'jane.smith@company.com': {
+                        email: 'jane.smith@company.com',
+                        employeeUserID: 'EMP002',
+                        employeePayrollID: 'PAY456',
+                    },
+                },
+            } as unknown as Policy,
+            submitterPersonalDetails: mockSubmitter,
+            managerPersonalDetails: mockManager,
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+
+            const mockReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    created: '2025-01-10T08:00:00Z',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '2': {
+                    reportActionID: '2',
+                    created: '2025-01-15T10:30:00Z',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                },
+            } as unknown as ReportActions;
+
+            mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions);
+        });
+
+        describe('Submitter information', () => {
+            test('firstname - basic submitter first name', () => {
+                expect(compute('{report:submit:from:firstname}', mockContextWithSubmissionInfo)).toBe('John');
+            });
+
+            test('lastname - basic submitter last name', () => {
+                expect(compute('{report:submit:from:lastname}', mockContextWithSubmissionInfo)).toBe('Doe');
+            });
+
+            test('fullname - basic submitter full name', () => {
+                expect(compute('{report:submit:from:fullname}', mockContextWithSubmissionInfo)).toBe('John Doe');
+            });
+
+            test('email - basic submitter email', () => {
+                expect(compute('{report:submit:from:email}', mockContextWithSubmissionInfo)).toBe('john.doe@company.com');
+            });
+
+            test('userid - basic submitter account ID', () => {
+                expect(compute('{report:submit:from:userid}', mockContextWithSubmissionInfo)).toBe('12345');
+            });
+
+            test('customfield1 - submitter employee user ID from policy', () => {
+                expect(compute('{report:submit:from:customfield1}', mockContextWithSubmissionInfo)).toBe('EMP001');
+            });
+
+            test('customfield2 - submitter employee payroll ID from policy', () => {
+                expect(compute('{report:submit:from:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY123');
+            });
+
+            test('firstname - fall back to email when name missing', () => {
+                const contextWithPartialDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 111,
+                        login: 'fallback@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithPartialDetails)).toBe('fallback@email.com');
+            });
+
+            test('lastname - fall back to email when name missing', () => {
+                const contextWithPartialDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 111,
+                        login: 'fallback@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:lastname}', contextWithPartialDetails)).toBe('fallback@email.com');
+            });
+
+            test('fullname - fall back to email when displayName missing', () => {
+                const contextWithPartialDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 111,
+                        login: 'fallback@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:fullname}', contextWithPartialDetails)).toBe('fallback@email.com');
+            });
+
+            test('firstname - show formula definition when personal details missing', () => {
+                const contextWithoutSubmitter: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: undefined,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithoutSubmitter)).toBe('{report:submit:from:firstname}');
+            });
+
+            test('email - show formula definition when personal details missing', () => {
+                const contextWithoutSubmitter: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: undefined,
+                };
+
+                expect(compute('{report:submit:from:email}', contextWithoutSubmitter)).toBe('{report:submit:from:email}');
+            });
+
+            test('customfield1 - show formula definition when employeeList missing', () => {
+                const contextWithoutEmployeeList: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                    } as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithoutEmployeeList)).toBe('{report:submit:from:customfield1}');
+            });
+
+            test('customfield2 - show formula definition when employeeList missing', () => {
+                const contextWithoutEmployeeList: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                    } as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield2}', contextWithoutEmployeeList)).toBe('{report:submit:from:customfield2}');
+            });
+
+            test('customfield1 - show formula definition when user not in employeeList', () => {
+                const contextWithDifferentEmployee: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                        employeeList: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'other.user@company.com': {
+                                email: 'other.user@company.com',
+                                employeeUserID: 'EMP999',
+                            },
+                        },
+                    } as unknown as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('{report:submit:from:customfield1}');
+            });
+        });
+
+        describe('Manager information', () => {
+            test('firstname - basic manager first name', () => {
+                expect(compute('{report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('Jane');
+            });
+
+            test('lastname - basic manager last name', () => {
+                expect(compute('{report:submit:to:lastname}', mockContextWithSubmissionInfo)).toBe('Smith');
+            });
+
+            test('fullname - basic manager full name', () => {
+                expect(compute('{report:submit:to:fullname}', mockContextWithSubmissionInfo)).toBe('Jane Smith');
+            });
+
+            test('email - basic manager email', () => {
+                expect(compute('{report:submit:to:email}', mockContextWithSubmissionInfo)).toBe('jane.smith@company.com');
+            });
+
+            test('userid - basic manager account ID', () => {
+                expect(compute('{report:submit:to:userid}', mockContextWithSubmissionInfo)).toBe('67890');
+            });
+
+            test('customfield1 - manager employee user ID from policy', () => {
+                expect(compute('{report:submit:to:customfield1}', mockContextWithSubmissionInfo)).toBe('EMP002');
+            });
+
+            test('customfield2 - manager employee payroll ID from policy', () => {
+                expect(compute('{report:submit:to:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY456');
+            });
+
+            test('firstname - fall back to email when manager name missing', () => {
+                const contextWithPartialManagerDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: {
+                        accountID: 222,
+                        login: 'manager@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:to:firstname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
+            });
+
+            test('fullname - fall back to email when manager displayName missing', () => {
+                const contextWithPartialManagerDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: {
+                        accountID: 222,
+                        login: 'manager@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:to:fullname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
+            });
+
+            test('firstname - show formula definition when manager personal details missing', () => {
+                const contextWithoutManager: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: undefined,
+                };
+
+                expect(compute('{report:submit:to:firstname}', contextWithoutManager)).toBe('{report:submit:to:firstname}');
+            });
+
+            test('email - show formula definition when manager personal details missing', () => {
+                const contextWithoutManager: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: undefined,
+                };
+
+                expect(compute('{report:submit:to:email}', contextWithoutManager)).toBe('{report:submit:to:email}');
+            });
+        });
+
+        describe('Submission date', () => {
+            test('default format - yyyy-MM-dd from SUBMITTED action', () => {
+                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-15');
+            });
+
+            test('MMMM dd, yyyy - long format with full month name', () => {
+                expect(compute('{report:submit:date:MMMM dd, yyyy}', mockContextWithSubmissionInfo)).toBe('January 15, 2025');
+            });
+
+            test('MM/dd/yy - short format with 2-digit year', () => {
+                expect(compute('{report:submit:date:MM/dd/yy}', mockContextWithSubmissionInfo)).toBe('01/15/25');
+            });
+
+            test('dd MMM yyyy - day-first format with short month', () => {
+                expect(compute('{report:submit:date:dd MMM yyyy}', mockContextWithSubmissionInfo)).toBe('15 Jan 2025');
+            });
+
+            test('SUBMITTED_AND_CLOSED - extract date from alternative action type', () => {
+                mockReportActionsUtils.getAllReportActions.mockReturnValue({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        created: '2025-01-20T14:00:00Z',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                    },
+                } as unknown as ReportActions);
+
+                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-20');
+            });
+
+            test('unsubmitted report - show formula definition when no SUBMITTED action', () => {
+                mockReportActionsUtils.getAllReportActions.mockReturnValue({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        created: '2025-01-10T08:00:00Z',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    },
+                } as unknown as ReportActions);
+
+                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('{report:submit:date}');
+            });
+        });
+
+        describe('Function modifiers', () => {
+            test('frontpart - extract username from submitter email', () => {
+                expect(compute('{report:submit:from:email|frontpart}', mockContextWithSubmissionInfo)).toBe('john.doe');
+            });
+
+            test('domain - extract domain from submitter email', () => {
+                expect(compute('{report:submit:from:email|domain}', mockContextWithSubmissionInfo)).toBe('company.com');
+            });
+
+            test('frontpart - extract username from manager email', () => {
+                expect(compute('{report:submit:to:email|frontpart}', mockContextWithSubmissionInfo)).toBe('jane.smith');
+            });
+
+            test('substr - extract first 4 characters from fullname', () => {
+                expect(compute('{report:submit:from:fullname|substr:0:4}', mockContextWithSubmissionInfo)).toBe('John');
+            });
+
+            test('chained modifiers - frontpart then substr on email', () => {
+                expect(compute('{report:submit:from:email|frontpart|substr:0:4}', mockContextWithSubmissionInfo)).toBe('john');
+            });
+        });
+
+        describe('Combined formulas', () => {
+            test('submission info with report total', () => {
+                mockCurrencyUtils.getCurrencySymbol.mockReturnValue('$');
+                const context = {
+                    ...mockContextWithSubmissionInfo,
+                    report: {
+                        ...mockContextWithSubmissionInfo.report,
+                        total: -10000,
+                        currency: 'USD',
+                    },
+                };
+
+                expect(compute('Report by {report:submit:from:fullname} - {report:total}', context)).toBe('Report by John Doe - $100.00');
+            });
+
+            test('submitter and manager names together', () => {
+                expect(compute('{report:submit:from:firstname} -> {report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('John -> Jane');
+            });
+
+            test('transaction date range with submission date', () => {
+                const mockTransactions = [
+                    {
+                        transactionID: 'trans1',
+                        created: '2025-01-08T12:00:00Z',
+                        amount: 5000,
+                        merchant: 'Store',
+                    },
+                ] as Transaction[];
+
+                mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+
+                expect(compute('{report:startdate} to {report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-08 to 2025-01-15');
+            });
+        });
+
+        describe('Edge cases', () => {
+            test('empty email - show formula definition when email empty', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:email}', contextWithEmptyEmail)).toBe('{report:submit:from:email}');
+            });
+
+            test('empty email with name - show formula definition when name also empty', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('{report:submit:from:firstname}');
+            });
+
+            test('empty email with frontpart - show formula definition for empty email modifier', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('{report:submit:from:email|frontpart}');
+            });
+
+            test('accountID zero - allow 0 as valid account ID', () => {
+                const contextWithZeroAccountID: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 0,
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:userid}', contextWithZeroAccountID)).toBe('0');
+            });
+
+            test('unknown field - show formula definition for invalid field name', () => {
+                expect(compute('{report:submit:from:unknown}', mockContextWithSubmissionInfo)).toBe('{report:submit:from:unknown}');
+            });
+
+            test('invalid direction - show formula definition for invalid from/to', () => {
+                expect(compute('{report:submit:invalid:email}', mockContextWithSubmissionInfo)).toBe('{report:submit:invalid:email}');
+            });
         });
     });
 });
