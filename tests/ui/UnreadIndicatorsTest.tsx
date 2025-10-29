@@ -14,8 +14,6 @@ import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} 
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
@@ -56,8 +54,7 @@ afterEach(() => {
 });
 
 function scrollUpToRevealNewMessagesBadge() {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -78,8 +75,7 @@ function scrollUpToRevealNewMessagesBadge() {
 }
 
 function isNewMessagesBadgeVisible(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('accessibilityHints.scrollToNewestMessages');
+    const hintText = TestHelper.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
     const badgeProps = badge?.props as {style: ViewStyle};
     const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
@@ -88,8 +84,7 @@ function isNewMessagesBadgeVisible(): boolean {
 }
 
 function navigateToSidebar(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('accessibilityHints.navigateToChatsList');
+    const hintText = TestHelper.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     if (reportHeaderBackButton) {
         fireEvent(reportHeaderBackButton, 'press');
@@ -98,8 +93,7 @@ function navigateToSidebar(): Promise<void> {
 }
 
 function areYouOnChatListScreen(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('sidebarScreen.listOfChats');
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
 
     return !sidebarLinks?.at(0)?.props?.accessibilityElementsHidden;
@@ -253,8 +247,7 @@ describe('Unread Indicators', () => {
                 expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = TestHelper.translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
@@ -263,8 +256,7 @@ describe('Unread Indicators', () => {
                 expect(optionRows).toHaveLength(1);
 
                 // And that the text is bold
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
                 expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
@@ -274,18 +266,15 @@ describe('Unread Indicators', () => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const welcomeMessageHintText = translateLocal('accessibilityHints.chatWelcomeMessage');
+                const welcomeMessageHintText = TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage');
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
                 expect(createdAction).toBeTruthy();
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
+                const reportCommentsHintText = TestHelper.translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -301,8 +290,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             })
@@ -325,8 +313,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
@@ -334,8 +321,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
@@ -408,8 +394,7 @@ describe('Unread Indicators', () => {
                 const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(2);
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintTexts = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
@@ -427,8 +412,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
@@ -449,8 +433,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the indicator appears above the last action
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -463,8 +446,7 @@ describe('Unread Indicators', () => {
             .then(navigateToSidebar)
             .then(() => {
                 // Verify the report is marked as unread in the sidebar
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
@@ -476,8 +458,7 @@ describe('Unread Indicators', () => {
             .then(() => navigateToSidebar())
             .then(() => {
                 // Verify the report is now marked as read
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
@@ -487,8 +468,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -508,8 +488,7 @@ describe('Unread Indicators', () => {
             })
             .then(async () => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -518,8 +497,7 @@ describe('Unread Indicators', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             }));
@@ -534,8 +512,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -544,8 +521,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => navigateToSidebarOption(0))
             .then(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -554,8 +530,7 @@ describe('Unread Indicators', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -596,8 +571,7 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
 
@@ -610,8 +584,7 @@ describe('Unread Indicators', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
@@ -649,8 +622,7 @@ describe('Unread Indicators', () => {
         }
 
         const secondNewReportAction = reportActions ? lastItem(reportActions) : undefined;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(1);
         const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -675,8 +647,7 @@ describe('Unread Indicators', () => {
         });
 
         // Then the new line indicator shouldn't be displayed
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
@@ -744,8 +715,7 @@ describe('Unread Indicators', () => {
         await waitForBatchedUpdates();
 
         // Then the new line indicator shouldn't be displayed
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
@@ -779,8 +749,7 @@ describe('Unread Indicators', () => {
         markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
         const displayNameTexts = screen.queryAllByLabelText(hintText);
         expect(displayNameTexts).toHaveLength(1);
         expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);

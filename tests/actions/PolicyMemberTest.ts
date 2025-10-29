@@ -1,8 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
@@ -571,8 +569,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -601,8 +598,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -635,8 +631,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -669,8 +664,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -711,8 +705,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -748,8 +741,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -792,8 +784,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
         });
     });
 });

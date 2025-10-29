@@ -435,13 +435,13 @@ function updateAvatar(
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'>) {
+function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -504,7 +504,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCodeWithCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',

@@ -4,13 +4,18 @@ import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import type {PaymentData} from '@components/Search/types';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canIOUBePaid} from '@libs/actions/IOU';
 import {payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
@@ -64,22 +69,35 @@ function ActionCell({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
+    const policy = usePolicy(policyID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, transactions, false, undefined, undefined, true);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, transactions, true, undefined, undefined, true);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
     const {currency} = iouReport ?? {};
 
     const confirmPayment = useCallback(
-        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined) => {
+        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
+            const invoiceParams: Partial<PaymentData> = {
+                policyID,
+                payAsBusiness,
+            };
+            if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                invoiceParams.bankAccountID = methodID;
+            }
 
-            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID}]);
+            if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                invoiceParams.fundID = methodID;
+            }
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
-        [hash, amount, reportID],
+        [reportID, hash, amount, policyID, iouReport],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
@@ -126,24 +144,25 @@ function ActionCell({
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAY && !isInvoiceReport(iouReport)) {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
         return (
             <SettlementButton
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
-                formattedAmount={convertToDisplayString(iouReport?.total, currency)}
+                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={(type) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>)}
+                onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
                 style={[styles.w100]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline}
                 isLoading={isLoading}
+                onlyShowPayElsewhere={shouldOnlyShowElsewhere}
             />
         );
     }
