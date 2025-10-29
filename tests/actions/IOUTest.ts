@@ -7191,6 +7191,75 @@ describe('actions/IOU', () => {
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
         });
+
+        it('should preserve reimbursable field when adding new split to card transaction', async () => {
+            // Setup: Card transaction (reimbursable: false)
+            const cardTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Card transaction',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+                reimbursable: false, // Card transaction - not reimbursable
+            };
+
+            const draftTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Card transaction',
+                    splitExpenses: [
+                        {
+                            transactionID: '789',
+                            amount: 50,
+                            description: 'Card transaction',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                            reimbursable: false, // Existing split - not reimbursable
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+                reimbursable: false,
+            };
+
+            // Action: Add a new split expense field
+            addSplitExpenseField(cardTransaction, draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${cardTransaction.transactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+
+            // Verify: The new split should have reimbursable: false (not counted as out-of-pocket)
+            expect(splitExpenses?.[1].reimbursable).toBe(false);
+            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].description).toBe('Card transaction');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+
+            // Verify: The existing split should still have reimbursable: false
+            expect(splitExpenses?.[0].reimbursable).toBe(false);
+        });
     });
 
     describe('updateSplitExpenseAmountField', () => {
@@ -9199,6 +9268,7 @@ describe('actions/IOU', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 iouReportID: undefined,
             };
+            const policy: OnyxEntry<Policy> = createRandomPolicy(1);
 
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -9207,7 +9277,7 @@ describe('actions/IOU', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {

@@ -11,6 +11,8 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
@@ -51,14 +53,13 @@ function BaseSelectionList<TItem extends ListItem>({
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
     selectedItems = CONST.EMPTY_ARRAY,
-    listStyle,
-    listItemTitleStyles,
-    listItemWrapperStyle,
+    style,
     isSelected,
     isSmallScreenWidth,
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
+    includeSafeAreaPaddingBottom = true,
     showListEmptyContent,
     showLoadingPlaceholder,
     showScrollIndicator = true,
@@ -80,6 +81,8 @@ function BaseSelectionList<TItem extends ListItem>({
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const activeElementRole = useActiveElementRole();
+    const {isKeyboardShown} = useKeyboardState();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
@@ -93,6 +96,11 @@ function BaseSelectionList<TItem extends ListItem>({
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
+    );
+
+    const paddingBottomStyle = useMemo(
+        () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
+        [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
@@ -308,11 +316,11 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={!!alternateNumberOfSupportedLines}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
-                wrapperStyle={listItemWrapperStyle}
-                titleStyles={listItemTitleStyles}
+                wrapperStyle={style?.listItemWrapperStyle}
+                titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
             />
         );
@@ -365,7 +373,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()
@@ -391,7 +399,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={listStyle as ViewStyle}
+                        style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
                         ListHeaderComponent={
