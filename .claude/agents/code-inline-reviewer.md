@@ -229,7 +229,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 4. **Each comment must reference exactly one Rule ID.**
 5. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
 6. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
-   LGTM :feelsgood:. Thank you for your hard work!
+   LGTM 👍 Thank you for your hard work!
 7. **Output LGTM if and only if**:
    - You examined EVERY line of EVERY changed file
    - You checked EVERY changed file against ALL rules
