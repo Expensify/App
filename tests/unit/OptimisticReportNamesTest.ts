@@ -119,7 +119,7 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeReportNameIfNeeded(mockReport, update, mockContext);
-            expect(result).toEqual('Expense Report - $200.00');
+            expect(result?.name).toEqual('Expense Report - $200.00');
         });
 
         test('should return null when name would not change', () => {
