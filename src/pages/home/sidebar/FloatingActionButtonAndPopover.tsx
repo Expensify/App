@@ -16,7 +16,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -30,7 +29,6 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
-import {isAnonymousUser} from '@libs/actions/Session';
 import {startTestDrive} from '@libs/actions/Tour';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -162,12 +160,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
     const reportID = useMemo(() => generateReportID(), []);
-
-    const {
-        taskReport: viewTourTaskReport,
-        taskParentReport: viewTourTaskParentReport,
-        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
@@ -564,19 +556,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () =>
-                          interceptAnonymousUser(() =>
-                              startTestDrive(
-                                  introSelected,
-                                  isAnonymousUser(),
-                                  tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                                  isUserPaidPolicyMember,
-                                  viewTourTaskReport,
-                                  viewTourTaskParentReport,
-                                  isViewTourTaskParentReportArchived,
-                                  currentUserPersonalDetails.accountID,
-                              ),
-                          ),
+                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
                   },
               ]
             : []),
