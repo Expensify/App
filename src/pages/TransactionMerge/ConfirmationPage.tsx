@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,8 +14,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {mergeTransactionRequest, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
+import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -43,9 +43,21 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
-
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${mergeTransaction?.reportID}`];
-    const policyID = report?.policyID;
+    const targetTransactionThreadReportIDSelector = useCallback(
+        (reportActionsList: OnyxEntry<ReportActions>) => {
+            const reportActions = Object.values(reportActionsList ?? {});
+            const transactionIOUReportAction = mergeTransaction?.targetTransactionID ? getIOUActionForTransactionID(reportActions, mergeTransaction.targetTransactionID) : undefined;
+            return transactionIOUReportAction?.childReportID;
+        },
+        [mergeTransaction?.targetTransactionID],
+    );
+    const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
+    const [targetTransactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransactionParentReportID}`, {
+        canBeMissing: true,
+        selector: targetTransactionThreadReportIDSelector,
+    });
+    const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
+    const policyID = targetTransactionThreadReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -53,22 +65,38 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
 
-    useEffect(() => {
-        setMergeTransactionKey(transactionID, mergedTransactionData);
-    }, [mergedTransactionData, transactionID]);
+    const contextValue = useMemo(
+        () => ({
+            transactionThreadReport: targetTransactionThreadReport,
+            action: undefined,
+            report: targetTransactionThreadReport,
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
+            isReportArchived: false,
+            anchor: null,
+            isDisabled: false,
+        }),
+        [targetTransactionThreadReport],
+    );
 
     const handleMergeExpenses = useCallback(() => {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
+        const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
 
-        Navigation.dismissModal();
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, policy, policyTags, policyCategories]);
+        const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
+        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+        } else {
+            Navigation.dismissModal();
+        }
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
 
-    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
+    if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -89,14 +117,17 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <View style={[styles.ph5, styles.pb8]}>
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
                     </View>
-                    <MoneyRequestView
-                        allReports={allReports}
-                        expensePolicy={policy}
-                        parentReportProp={report}
-                        shouldShowAnimatedBackground={false}
-                        readonly
-                        updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
-                    />
+                    <ShowContextMenuContext.Provider value={contextValue}>
+                        <MoneyRequestView
+                            allReports={allReports}
+                            expensePolicy={policy}
+                            report={targetTransactionThreadReport}
+                            shouldShowAnimatedBackground={false}
+                            readonly
+                            updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
+                            mergeTransactionID={transactionID}
+                        />
+                    </ShowContextMenuContext.Provider>
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
                     <Button
