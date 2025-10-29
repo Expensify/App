@@ -7236,6 +7236,11 @@ const CONST = {
 
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
+        STEPS: {
+            GET_STARTED_TRAVEL: 'GetStartedTravel',
+            BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
+            REVIEWING_REQUEST: 'ReviewingRequest',
+        },
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',

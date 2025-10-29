@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelDisplayComponent} from '@libs/PolicyUtils';
+import {getTravelStep} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,12 +40,12 @@ function WorkspaceTravelPage({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const mainContent = useMemo(() => {
-        const componentType = getTravelDisplayComponent(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
+        const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
-        switch (componentType) {
-            case 'BookOrManageYourTrip':
+        switch (step) {
+            case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 return <BookOrManageYourTrip policyID={policyID} />;
-            case 'ReviewingRequest':
+            case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
             default:
                 return <GetStartedTravel policyID={policyID} />;

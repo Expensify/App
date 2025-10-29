@@ -46,6 +46,8 @@ import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
+type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
@@ -1563,15 +1565,15 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
 }
 
 /**
- * Determines which travel display component should be shown based on policy state
+ * Determines which travel step should be shown based on policy state
  */
-function getTravelDisplayComponent(
+function getTravelStep(
     policy: OnyxEntry<Policy>,
     travelSettings: TravelSettings | undefined,
     isTravelVerifiedBetaEnabled: boolean,
     policies: OnyxCollection<Policy>,
     currentUserLogin: string | undefined,
-): 'GetStartedTravel' | 'BookOrManageYourTrip' | 'ReviewingRequest' {
+): TravelStep {
     const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
     const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
 
@@ -1580,15 +1582,15 @@ function getTravelDisplayComponent(
     const groupPaidPolicies = activePolicies.filter(isPaidGroupPolicy);
 
     if (adminDomains.length === 0 || groupPaidPolicies.length < 1 || !isPaidGroupPolicy(policy)) {
-        return 'GetStartedTravel';
+        return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
     }
     if (hasAcceptedTerms) {
-        return 'BookOrManageYourTrip';
+        return CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP;
     }
     if (!isPolicyProvisioned && !isTravelVerifiedBetaEnabled) {
-        return 'ReviewingRequest';
+        return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
-    return 'GetStartedTravel';
+    return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
 export {
@@ -1748,7 +1750,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getTravelDisplayComponent,
+    getTravelStep,
 };
 
 export type {MemberEmailsToAccountIDs};
