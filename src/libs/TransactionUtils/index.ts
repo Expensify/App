@@ -155,7 +155,7 @@ Onyx.connect({
     },
 });
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
+function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -209,6 +209,11 @@ function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    // Distance requests can have a receipt source (for the map), so we need to exclude them
+    if (hasDistanceCustomUnit(transaction)) {
+        return false;
     }
 
     return !!transaction?.receipt?.source && transaction?.amount === 0;
