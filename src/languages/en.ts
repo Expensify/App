@@ -244,6 +244,7 @@ import type {
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
@@ -6009,6 +6010,7 @@ const translations = {
                 ? `added the description hint "${newValue}" to the category "${categoryName}"`
                 : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
         },
+        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated the tags on the list "${tagListName}"`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>

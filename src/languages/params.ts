@@ -563,6 +563,8 @@ type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
 
+type UpdatedPolicyCategoriesParams = {count: number};
+
 type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
 type TaxAmountParams = {taxAmount: number};
@@ -1074,6 +1076,7 @@ export type {
     SecondaryLoginParams,
     TaxAmountParams,
     CategoryNameParams,
+    UpdatedPolicyCategoriesParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,

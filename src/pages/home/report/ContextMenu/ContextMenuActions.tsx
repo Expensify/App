@@ -70,6 +70,7 @@ import {
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -597,6 +598,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES) {
+                    Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     Clipboard.setString(translateLocal('workspaceActions.importTags'));

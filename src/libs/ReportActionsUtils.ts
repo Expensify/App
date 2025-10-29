@@ -2510,6 +2510,16 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
     return getReportActionText(action);
 }
 
+function getWorkspaceCategoriesUpdatedMessage(action: ReportAction): string {
+    const {count} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES>) ?? {};
+    if (typeof count === 'number') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateCategories', {count});
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceTagUpdateMessage(action: ReportAction | undefined): string {
     const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
@@ -2530,7 +2540,7 @@ function getWorkspaceTagUpdateMessage(action: ReportAction | undefined): string 
         });
     }
 
-    if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
+    if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName && typeof count === 'string') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.deleteMultipleTags', {
             count,
@@ -3746,6 +3756,7 @@ export {
     getActionableCardFraudAlertMessage,
     getUpdatedReimbursementChoiceMessage,
     getSetAutoJoinMessage,
+    getWorkspaceCategoriesUpdatedMessage,
 };
 
 export type {LastVisibleMessage};

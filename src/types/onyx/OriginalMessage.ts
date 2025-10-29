@@ -516,7 +516,7 @@ type OriginalMessagePolicyChangeLog = {
     isRequired?: boolean;
 
     /** Count of elements updated */
-    count?: string;
+    count?: string | number;
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
