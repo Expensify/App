@@ -167,17 +167,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);changeTransactionsReport(
-                [transaction.transactionID],
-
-                false,
-                CURRENT_USER_ID,
-                'test@example.com',
-               report, undefined,
-                mockReportNextStep,
-                undefined,
-                emptyNextStepsCollection,
-            );
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, mockReportNextStep, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -234,18 +225,9 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             await waitForBatchedUpdates();
 
-            const report = await getReportFromUseOnyx(
-                CONST.REPORT.UNREPORTED_REPORT_ID);
+            const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID],
-                false,
-                CURRENT_USER_ID,
-                'test@example.com',
-               report, undefined,
-                mockReportNextStep,
-                undefined,
-                emptyNextStepsCollection,
-            );
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, mockReportNextStep, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -435,7 +417,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             await waitForBatchedUpdates();
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, undefined, undefined, emptyNextStepsCollection);
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -498,8 +481,9 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             // Move only one transaction, leaving the other in the old report
-            changeTransactionsReport([transaction1.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, undefined, undefined, emptyNextStepsCollection);
+            changeTransactionsReport([transaction1.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -552,7 +536,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             await waitForBatchedUpdates();
 
-            changeTransactionsReport([transaction.transactionID], destinationReportID, false, CURRENT_USER_ID, 'test@example.com', undefined, undefined, undefined, emptyNextStepsCollection);
+            const report = await getReportFromUseOnyx(destinationReportID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -650,17 +635,8 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`]: destinationNextStep,
             } satisfies OnyxCollection<ReportNextStep>;
 
-            changeTransactionsReport(
-                [transaction.transactionID],
-                destinationReportID,
-                false,
-                CURRENT_USER_ID,
-                'test@example.com',
-                undefined,
-                destinationNextStep,
-                undefined,
-                nextStepsCollection,
-            );
+            const report = await getReportFromUseOnyx(destinationReportID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, destinationNextStep, undefined, nextStepsCollection);
             await waitForBatchedUpdates();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
