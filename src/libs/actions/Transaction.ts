@@ -1250,7 +1250,7 @@ function changeTransactionsReport({
         reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
         total: destinationTotal,
     };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolationsCollection);
     const optimisticNextStep = buildNextStepNew({
         report: nextStepReport,
         policy,
