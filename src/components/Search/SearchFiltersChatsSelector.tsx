@@ -4,7 +4,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,11 +59,10 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
-            const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, {});
+            const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs, archivedReportsIdSet]);
+    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
