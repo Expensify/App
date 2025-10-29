@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheetModal from '@components/ImportSpreadsheetModal';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -194,7 +194,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     </View>
                 </PressableWithoutFeedback>
             </FixedFooter>
-            <ImportSpreadsheetModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
             />

@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetModal from '@components/ImportSpreadsheetModal';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -188,7 +188,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
-            <ImportSpreadsheetModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {

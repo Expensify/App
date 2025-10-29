@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
-import ImportSpreadsheetModal from '@components/ImportSpreadsheetModal';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -146,7 +146,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             large
                         />
                     </FixedFooter>
-                    <ImportSpreadsheetModal
+                    <ImportSpreadsheetConfirmModal
                         isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
                         closeImportPageAndModal={closeImportPageAndModal}
                     />

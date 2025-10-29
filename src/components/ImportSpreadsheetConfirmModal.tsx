@@ -5,7 +5,7 @@ import type {TranslationParameters} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 
-type ImportSpreadsheetModalProps = {
+type ImportSpreadsheetConfirmModalProps = {
     /** Modal visibility */
     isVisible: boolean;
 
@@ -16,7 +16,7 @@ type ImportSpreadsheetModalProps = {
     onModalHide?: () => void;
 };
 
-function ImportSpreadsheetModal({isVisible, closeImportPageAndModal, onModalHide}: ImportSpreadsheetModalProps) {
+function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide}: ImportSpreadsheetConfirmModalProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
@@ -40,6 +40,6 @@ function ImportSpreadsheetModal({isVisible, closeImportPageAndModal, onModalHide
     );
 }
 
-ImportSpreadsheetModal.displayName = 'ImportSpreadsheetModal';
+ImportSpreadsheetConfirmModal.displayName = 'ImportSpreadsheetConfirmModal';
 
-export default ImportSpreadsheetModal;
+export default ImportSpreadsheetConfirmModal;

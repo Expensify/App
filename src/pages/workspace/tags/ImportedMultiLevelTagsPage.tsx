@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetModal from '@components/ImportSpreadsheetModal';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -69,7 +69,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
                 customHeaderText={translate('workspace.tags.importMultiLevelTagsSupportingText')}
             />
 
-            <ImportSpreadsheetModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
             />
