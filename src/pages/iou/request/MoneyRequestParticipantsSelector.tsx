@@ -121,7 +121,7 @@ function MoneyRequestParticipantsSelector({
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -259,6 +259,7 @@ function MoneyRequestParticipantsSelector({
                     !isEmptyObject(chatOptions.selfDMChat),
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
+                countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         [
@@ -270,6 +271,7 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             debouncedSearchTerm,
             participants,
+            countryCode,
         ],
     );
     /**
