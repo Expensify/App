@@ -17,7 +17,7 @@ const textInputBasedComponents: TextInputBasedComponents = [TextInput, RoomNameI
 type ComputedComponentSpecificRegistrationParams = {
     shouldSubmitForm: boolean;
     shouldSetTouchedOnBlurOnly: boolean;
-    blurOnSubmit: boolean | undefined;
+    submitBehavior: 'submit' | 'blurAndSubmit' | 'newline' | undefined;
 };
 
 function computeComponentSpecificRegistrationParams({
@@ -25,7 +25,7 @@ function computeComponentSpecificRegistrationParams({
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
-    blurOnSubmit,
+    submitBehavior,
 }: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
     if (textInputBasedComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
@@ -46,7 +46,7 @@ function computeComponentSpecificRegistrationParams({
             // calling some methods too early or twice, so we had to add this check to prevent that side effect.
             // For now this side effect happened only in `TextInput` components.
             shouldSetTouchedOnBlurOnly: true,
-            blurOnSubmit: (isEffectivelyMultiline && shouldReallySubmitForm) || blurOnSubmit,
+            submitBehavior: isEffectivelyMultiline && shouldReallySubmitForm ? 'blurAndSubmit' : submitBehavior,
             shouldSubmitForm: shouldReallySubmitForm,
         };
     }
@@ -54,7 +54,7 @@ function computeComponentSpecificRegistrationParams({
     return {
         shouldSetTouchedOnBlurOnly: false,
         // Forward the originally provided value
-        blurOnSubmit,
+        submitBehavior,
         shouldSubmitForm: !!shouldSubmitForm,
     };
 }
@@ -80,9 +80,9 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({
     const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
-    const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
+    const {shouldSetTouchedOnBlurOnly, submitBehavior, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
     // eslint-disable-next-line react-compiler/react-compiler
-    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, submitBehavior});
 
     return (
         <InputComponent

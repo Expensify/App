@@ -121,7 +121,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
-    blurOnSubmit?: boolean;
+    submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
 };

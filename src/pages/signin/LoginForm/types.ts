@@ -5,7 +5,7 @@ type LoginFormProps = {
     scrollPageToTop?: () => void;
 
     /** Should we dismiss the keyboard when transitioning away from the page? */
-    blurOnSubmit?: boolean;
+    submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
 
     /** Whether the content is visible. */
     isVisible: boolean;
