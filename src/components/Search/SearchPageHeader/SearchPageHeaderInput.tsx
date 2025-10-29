@@ -268,7 +268,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                        submitSearch(item.searchQuery, true);
+                        submitSearch(item.searchQuery, item.keyForList !== 'findItem');
 
                         const endTime = Date.now();
                         Log.info('[CMD_K_DEBUG] Page search submitted', false, {
