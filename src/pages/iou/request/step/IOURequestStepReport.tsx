@@ -175,7 +175,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 undefined,
                 undefined,
                 undefined,
-                undefined,
                 nextStepsCollection,
             );
             removeTransaction(transaction.transactionID);
