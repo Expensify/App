@@ -196,9 +196,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString) => {
+        (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, true);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
 
             if (!updatedQuery) {
                 return;
@@ -268,7 +268,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                        submitSearch(item.searchQuery);
+                        submitSearch(item.searchQuery, true);
 
                         const endTime = Date.now();
                         Log.info('[CMD_K_DEBUG] Page search submitted', false, {
