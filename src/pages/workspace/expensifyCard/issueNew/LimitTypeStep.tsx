@@ -2,8 +2,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -103,11 +103,11 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             <SelectionList
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => setTypeSelected(value)}
-                sections={[{data}]}
+                data={data}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={typeSelected}
+                initiallyFocusedItemKey={typeSelected}
                 shouldUpdateFocusedIndex
-                isAlternateTextMultilineSupported
+                alternateNumberOfSupportedLines={2}
                 addBottomSafeAreaPadding
                 footerContent={
                     <Button

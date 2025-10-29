@@ -1,6 +1,7 @@
 import type {ForwardedRef, JSXElementConstructor, ReactElement, ReactNode, RefObject} from 'react';
 import type {
     AccessibilityState,
+    BlurEvent,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -11,7 +12,6 @@ import type {
     StyleProp,
     TargetedEvent,
     TextInput,
-    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
@@ -429,7 +429,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     onInputFocus?: (index: number) => void;
 
     /** Callback when the input inside the item is blurred (if input exists) */
-    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onInputBlur?: (e: BlurEvent) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &

@@ -17,6 +17,7 @@ import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
@@ -54,10 +55,7 @@ import variables from './variables';
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
 
-type AnchorDimensions = {
-    width: number;
-    height: number;
-};
+type AnchorDimensions = Dimensions;
 
 type AnchorPosition = {
     horizontal: number;
@@ -4143,6 +4141,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiPickerButtonDropdownIcon: {
             fontSize: 30,
+            overflow: 'visible',
         },
 
         moneyRequestImage: {
@@ -5329,7 +5328,6 @@ const staticStyles = (theme: ThemeColors) =>
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
-            flex: 1,
         },
 
         receiptCellLoadingContainer: {
@@ -5445,6 +5443,13 @@ const staticStyles = (theme: ThemeColors) =>
         searchBarMargin: {
             marginHorizontal: 20,
             marginBottom: 20,
+        },
+        loadingMessage: {
+            alignItems: 'center',
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
         },
         domainIcon: {
             backgroundColor: theme.border,

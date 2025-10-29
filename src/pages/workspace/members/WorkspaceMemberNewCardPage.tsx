@@ -4,9 +4,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -196,11 +196,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
+                    data={feeds}
                     ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectFeed}
-                    sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
+                    alternateNumberOfSupportedLines={2}
                 />
                 <FormAlertWithSubmitButton
                     containerStyles={styles.p5}
