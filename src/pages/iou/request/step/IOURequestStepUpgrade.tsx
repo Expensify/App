@@ -29,7 +29,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -90,11 +90,11 @@ function IOURequestStepUpgrade({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             default:
         }
-    }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
