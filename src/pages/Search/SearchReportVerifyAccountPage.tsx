@@ -11,4 +11,6 @@ function SearchReportVerifyAccountPage({route}: SearchReportVerifyAccountPagePro
     return <VerifyAccountPageBase navigateBackTo={ROUTES.SEARCH_REPORT.getRoute({reportID: route.params.reportID})} />;
 }
 
+SearchReportVerifyAccountPage.displayName = 'SearchReportVerifyAccountPage';
+
 export default SearchReportVerifyAccountPage;

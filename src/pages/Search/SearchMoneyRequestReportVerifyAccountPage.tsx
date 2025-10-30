@@ -11,4 +11,6 @@ function SearchMoneyRequestReportVerifyAccountPage({route}: SearchMoneyRequestRe
     return <VerifyAccountPageBase navigateBackTo={ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: route.params.reportID})} />;
 }
 
+SearchMoneyRequestReportVerifyAccountPage.displayName = 'SearchMoneyRequestReportVerifyAccountPage';
+
 export default SearchMoneyRequestReportVerifyAccountPage;
