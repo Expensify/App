@@ -78,6 +78,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useAncestors from '@hooks/useAncestors';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -147,6 +148,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
+    const ancestors = useAncestors(parentReport);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -364,7 +366,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

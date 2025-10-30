@@ -124,6 +124,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import useAncestors from '@hooks/useAncestors';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -572,6 +573,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
     ]);
+    
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -785,10 +787,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             </View>
         </OfflineWithFeedback>
     );
+    
+    const ancestors = useAncestors(parentReport);
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
+            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
             return;
         }
 
