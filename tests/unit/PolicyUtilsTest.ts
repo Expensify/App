@@ -462,7 +462,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -477,7 +477,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -493,7 +493,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -512,7 +512,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -544,7 +544,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -571,7 +571,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -605,7 +605,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -640,7 +640,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -752,7 +752,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
             const result = getManagerAccountID(policy, report);
 
@@ -768,7 +768,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
 
             const result = getManagerAccountID(policy, report);
@@ -789,7 +789,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -806,7 +806,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
