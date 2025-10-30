@@ -145,6 +145,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                     component={TestSearchFullscreenNavigator}
                 />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN}
+                    component={getEmptyComponent()}
+                />
             </RootStack.Navigator>
         </NavigationContainer>
     );
