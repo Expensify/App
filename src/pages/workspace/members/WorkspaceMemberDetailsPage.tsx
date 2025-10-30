@@ -175,9 +175,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers([accountID], policyID, approvalWorkflows);
+        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID}, approvalWorkflows, personalDetails);
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, approvalWorkflows, policyID]);
+    }, [accountID, memberLogin, approvalWorkflows, policyID, personalDetails]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -225,9 +225,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [accountID], value);
+            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
         },
-        [accountID, policyID],
+        [accountID, memberLogin, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
