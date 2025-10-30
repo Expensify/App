@@ -4297,10 +4297,10 @@ type GetUpdateMoneyRequestParamsType = {
     allowNegative?: boolean;
     newTransactionReportID?: string | undefined;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    hasViolations: boolean;
-    isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    hasViolations?: boolean;
+    isASAPSubmitBetaEnabled?: boolean;
 };
 
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData {
@@ -5009,10 +5009,6 @@ function updateMoneyRequestBillable(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
 ) {
     if (!transactionID || !transactionThreadReportID) {
         return;
@@ -5027,10 +5023,6 @@ function updateMoneyRequestBillable(
         policy,
         policyTagList,
         policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }

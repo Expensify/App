@@ -335,9 +335,9 @@ function MoneyRequestView({
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', hasViolations, isASAPSubmitBetaEnabled);
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', hasViolations, isASAPSubmitBetaEnabled],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     const saveReimbursable = useCallback(
