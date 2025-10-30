@@ -11,6 +11,7 @@ import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
@@ -26,7 +27,8 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const {translate} = useLocalize();
 
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
     const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
@@ -123,6 +125,7 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
+                    isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                 />
             </ScrollView>
             <Button

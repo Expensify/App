@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
@@ -82,6 +83,7 @@ function SearchFiltersBar({
     confirmPayment,
     latestBankItems,
 }: SearchFiltersBarProps) {
+    const isFocused = useIsFocused();
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -271,10 +273,12 @@ function SearchFiltersBar({
             return;
         }
         if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            updateAdvancedFilters(filterFormValues, true);
+            if (isFocused) {
+                updateAdvancedFilters(filterFormValues, true);
+            }
             isFormInitializedRef.current = true;
         }
-    }, [queryJSON, filterFormValues]);
+    }, [queryJSON, filterFormValues, isFocused]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
