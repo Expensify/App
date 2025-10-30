@@ -37,6 +37,8 @@ type ValidateCodeFormError = {
     validateCode?: TranslationPaths;
 };
 
+const ACTION_VERIFIED_ERROR_FIELD = 'actionVerified';
+
 type ValidateCodeFormProps = {
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete?: AutoCompleteVariant;
@@ -126,7 +128,7 @@ function BaseValidateCodeForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
-    const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
+    const defaultValidateCodeError = getLatestErrorField(validateCodeAction, ACTION_VERIFIED_ERROR_FIELD);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(innerRef, () => ({
@@ -322,7 +324,7 @@ function BaseValidateCodeForm({
                         clearValidateCodeActionError(validateCodeActionErrorField);
                     }
                     if (!isEmptyObject(validateCodeAction?.errorFields?.actionVerified)) {
-                        clearValidateCodeActionError('actionVerified');
+                        clearValidateCodeActionError(ACTION_VERIFIED_ERROR_FIELD);
                     }
                 }}
                 style={buttonStyles}
