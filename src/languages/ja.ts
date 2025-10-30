@@ -642,19 +642,19 @@ const translations = {
         help: '助けて',
         expenseReport: '経費報告書',
         expenseReports: '経費報告書',
-        leaveWorkspace: 'ワークスペースを離れる',
-        leaveWorkspaceConfirmation: 'このワークスペースを離れると、費用を提出できなくなります。',
-        leaveWorkspaceConfirmationAuditor: 'このワークスペースを離れると、レポートや設定を確認できなくなります。',
-        leaveWorkspaceConfirmationAdmin: 'このワークスペースを離れると、設定を管理できなくなります。',
+        leaveWorkspace: 'ワークスペースを退出する',
+        leaveWorkspaceConfirmation: 'このワークスペースを離れると、経費を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを離れると、そのレポートや設定を表示できなくなります。',
+        leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを離れると、承認フローで ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+            `このワークスペースを離れると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に代わられます。`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを離れると、優先エクスポーターとして ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+            `このワークスペースを退出すると、あなたは優先エクスポーターとしてワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを離れると、テクニカルコンタクトとして ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+            `このワークスペースを離れると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に変更されます。`,
         leaveWorkspaceReimburser:
-            'リムバースメント担当者としてこのワークスペースを離れることはできません。ワークスペース > 支払いの作成または追跡で新しいリムバースメント担当者を設定してから再試行してください。',
-        cannotLeaveWorkspaceOutstandingReport: 'ワークスペースを離れる前に、未処理の費用報告書を承認してください。',
+            'あなたはこのワークスペースの払い戻し担当者のため、退出できません。Workspaces > Make or track payments で新しい払い戻し担当者を設定してから、もう一度お試しください。',
+        cannotLeaveWorkspaceOutstandingReport: 'このワークスペースを離れる前に、あなたに提出された未承認の経費レポートを承認してください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
@@ -5100,16 +5100,17 @@ ${date} - ${merchant}に${amount}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー総数: ${count}`,
             importMembers: 'メンバーをインポート',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `もし${approver}をこのワークスペースから削除すると、承認フローで${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
+                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースの所有者である${workspaceOwner}に置き換えます。`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName}には未承認の費用報告書があります。承認を依頼するか、報告書を引き継いでからこのワークスペースから削除してください。`,
+                `${memberName} には承認待ちの経費レポートがあります。ワークスペースから削除する前に、承認を依頼するか、レポートの管理を引き継いでください。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `${memberName}をこのワークスペースから削除することはできません。ワークスペース > 支払いを作成または追跡で新しいリムバースメント担当者を設定してから再試行してください。`,
+                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡 で新しい支払担当者を設定してから、もう一度お試しください。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `もし${memberName}をこのワークスペースから削除すると、${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
+                `このワークスペースから${memberName}を削除すると、優先のエクスポート担当者はワークスペースの所有者である${workspaceOwner}に置き換えられます。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `もし${memberName}をこのワークスペースから削除すると、${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
-            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName}には未処理のレポートがあります。必要なアクションを完了してから削除してください。`,
+                `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に変更されます。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} には対応が必要な処理中のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',

@@ -642,19 +642,19 @@ const translations = {
         help: 'Hilfe',
         expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
-        leaveWorkspace: 'Workspace verlassen',
-        leaveWorkspaceConfirmation: 'Wenn Sie diesen Workspace verlassen, können Sie keine Ausgaben mehr einreichen.',
-        leaveWorkspaceConfirmationAuditor: 'Wenn Sie diesen Workspace verlassen, können Sie keine Berichte und Einstellungen mehr einsehen.',
-        leaveWorkspaceConfirmationAdmin: 'Wenn Sie diesen Workspace verlassen, können Sie die Einstellungen nicht mehr verwalten.',
+        leaveWorkspace: 'Arbeitsbereich verlassen',
+        leaveWorkspaceConfirmation: 'Wenn du diesen Arbeitsbereich verlässt, kannst du keine Ausgaben mehr dafür einreichen.',
+        leaveWorkspaceConfirmationAuditor: 'Wenn Sie diesen Arbeitsbereich verlassen, können Sie dessen Berichte und Einstellungen nicht mehr einsehen.',
+        leaveWorkspaceConfirmationAdmin: 'Wenn du diesen Arbeitsbereich verlässt, kannst du die Einstellungen nicht mehr verwalten.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Wenn Sie diesen Workspace verlassen, werden Sie im Genehmigungsprozess durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+            `Wenn du diesen Arbeitsbereich verlässt, wirst du im Genehmigungs-Workflow durch ${workspaceOwner}, den Arbeitsbereichsinhaber, ersetzt.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Wenn Sie diesen Workspace verlassen, werden Sie als bevorzugter Exporteur durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+            `Wenn du diesen Workspace verlässt, wirst du als bevorzugter Exporteur durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Wenn Sie diesen Workspace verlassen, werden Sie als technischer Ansprechpartner durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+            `Wenn du diesen Arbeitsbereich verlässt, wirst du als technischer Kontakt durch ${workspaceOwner}, den Arbeitsbereichsinhaber, ersetzt.`,
         leaveWorkspaceReimburser:
-            'Sie können diesen Workspace nicht als Erstattungsbeauftragter verlassen. Bitte setzen Sie einen neuen Erstattungsbeauftragten in Workspaces > Zahlungen erstellen oder nachverfolgen und versuchen Sie es dann erneut.',
-        cannotLeaveWorkspaceOutstandingReport: 'Bitte genehmigen Sie alle ausstehenden Ausgabenberichte, die Ihnen vor dem Verlassen dieses Workspaces vorgelegt wurden.',
+            'Du kannst diesen Workspace nicht verlassen, solange du als Erstattende(r) festgelegt bist. Bitte lege unter Workspaces > Make or track payments eine(n) neue(n) Erstattende(n) fest und versuche es erneut.',
+        cannotLeaveWorkspaceOutstandingReport: 'Bitte genehmigen Sie alle ausstehenden Spesenabrechnungen, die Ihnen eingereicht wurden, bevor Sie diesen Arbeitsbereich verlassen.',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinien',
         reimbursable: 'Erstattungsfähig',
         editYourProfile: 'Bearbeiten Sie Ihr Profil',
@@ -5132,17 +5132,17 @@ ${amount} für ${merchant} - ${date}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Gesamtanzahl der Arbeitsbereichsmitglieder: ${count}`,
             importMembers: 'Mitglieder importieren',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `Wenn Sie ${approver} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie im Genehmigungsprozess ersetzen.`,
+                `Wenn du ${approver} aus diesem Workspace entfernst, ersetzen wir diese Person im Genehmigungs-Workflow durch ${workspaceOwner}, den/die Workspace-Inhaber/in.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} hat ausstehende Ausgabenberichte zur Genehmigung. Bitte bitten Sie sie, die Berichte zu genehmigen oder übernehmen Sie die Kontrolle, bevor Sie sie aus dem Workspace entfernen.`,
+                `${memberName} hat ausstehende Spesenabrechnungen zur Genehmigung. Bitte bitten Sie die Person, diese zu genehmigen, oder übernehmen Sie die Kontrolle über ihre Abrechnungen, bevor Sie die Person aus dem Arbeitsbereich entfernen.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `Sie können ${memberName} nicht aus diesem Workspace entfernen. Bitte setzen Sie einen neuen Erstattungsbeauftragten in Workflows > Zahlungen erstellen oder nachverfolgen und versuchen Sie es dann erneut.`,
+                `Du kannst ${memberName} nicht aus diesem Arbeitsbereich entfernen. Bitte setze in Workflows > Zahlungen erstellen oder nachverfolgen einen neuen Erstattenden fest und versuche es dann erneut.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Wenn Sie ${memberName} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie als bevorzugten Exporteur ersetzen.`,
+                `Wenn du ${memberName} aus diesem Workspace entfernst, setzen wir stattdessen ${workspaceOwner}, den Workspace-Inhaber, als bevorzugten Exporteur fest.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Wenn Sie ${memberName} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie als technischen Ansprechpartner ersetzen.`,
+                `Wenn du ${memberName} aus diesem Arbeitsbereich entfernst, wird ${workspaceOwner}, der Inhaber des Arbeitsbereichs, als technischer Kontakt eingetragen.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} hat einen ausstehenden Bericht zur Bearbeitung. Bitte bitten Sie sie, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
+                `${memberName} hat einen offenen Bericht in Bearbeitung, der eine Aktion erfordert. Bitte fordern Sie die Person auf, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Arbeitsbereich entfernen.`,
         },
         card: {
             getStartedIssuing: 'Beginnen Sie, indem Sie Ihre erste virtuelle oder physische Karte ausstellen.',

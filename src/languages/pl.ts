@@ -642,19 +642,19 @@ const translations = {
         help: 'Pomoc',
         expenseReport: 'Raport wydatków',
         expenseReports: 'Raporty wydatków',
-        leaveWorkspace: 'Opuszcz przestrzeń roboczą',
-        leaveWorkspaceConfirmation: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zgłaszać wydatków.',
-        leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł przeglądać jej raportów ani ustawień.',
-        leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zarządzać jej ustawieniami.',
+        leaveWorkspace: 'Opuść przestrzeń roboczą',
+        leaveWorkspaceConfirmation: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć możliwości przesyłania do niej wydatków.',
+        leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć dostępu do jej raportów i ustawień.',
+        leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć możliwości zarządzania jej ustawieniami.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony w procesie zatwierdzania przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            `Jeśli opuścisz ten obszar roboczy, Twoją rolę w procesie zatwierdzania przejmie ${workspaceOwner}, właściciel obszaru roboczego.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            `Jeśli opuścisz tę przestrzeń roboczą, zastąpi Cię w roli preferowanego eksportera ${workspaceOwner}, właściciel przestrzeni roboczej.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+            `Jeśli opuścisz ten obszar roboczy, zostaniesz zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela obszaru roboczego.`,
         leaveWorkspaceReimburser:
-            'Nie możesz opuścić tej przestrzeni roboczej jako osoba odpowiedzialna za zwroty. Ustaw nową osobę odpowiedzialną za zwroty w przestrzeniach roboczych > Tworzenie lub śledzenie płatności, a następnie spróbuj ponownie.',
-        cannotLeaveWorkspaceOutstandingReport: 'Zatwierdź wszystkie zaległe raporty wydatków przed opuszczeniem tej przestrzeni roboczej.',
+            'Nie możesz opuścić tej przestrzeni roboczej jako osoba wypłacająca zwroty. Ustaw nową osobę wypłacającą zwroty w Workspaces > Make or track payments, a następnie spróbuj ponownie.',
+        cannotLeaveWorkspaceOutstandingReport: 'Przed opuszczeniem tego obszaru roboczego zatwierdź proszę wszystkie oczekujące na zatwierdzenie raporty wydatków przesłane do Ciebie.',
         rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
         editYourProfile: 'Edytuj swój profil',
@@ -4431,7 +4431,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
@@ -5127,17 +5126,17 @@ ${amount} dla ${merchant} - ${date}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Importuj członków',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${approver} z tej przestrzeni roboczej, zostanie on zastąpiony w procesie zatwierdzania przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+                `Jeśli usuniesz ${approver} z tego obszaru roboczego, zastąpimy tę osobę w przepływie zatwierdzania użytkownikiem ${workspaceOwner}, właścicielem obszaru roboczego.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Proszę poproś ich o zatwierdzenie lub przejąć ich raporty, zanim usuniesz ich z przestrzeni roboczej.`,
+                `${memberName} ma oczekujące na zatwierdzenie raporty wydatków. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad raportami tej osoby, zanim usuniesz tę osobę z przestrzeni roboczej.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `Nie możesz usunąć ${memberName} z tej przestrzeni roboczej. Ustaw nowego zwracającego pieniądze w Workflows > Utwórz lub śledź płatności, a następnie spróbuj ponownie.`,
+                `Nie możesz usunąć ${memberName} z tego obszaru roboczego. Ustaw nową osobę dokonującą zwrotów w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zostanie on zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+                `Jeśli usuniesz ${memberName} z tego obszaru roboczego, zastąpimy tę osobę w roli preferowanego eksportera użytkownikiem ${workspaceOwner}, właścicielem obszaru roboczego.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zostanie on zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
+                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, rolę kontaktu technicznego przejmie ${workspaceOwner}, właściciel przestrzeni roboczej.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} ma zaległy raport, który wymaga działania. Proszę poproś ich, aby zakończyli wymaganą akcję, zanim usuniesz ich z przestrzeni roboczej.`,
+                `${memberName} ma oczekujący raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę, aby wykonała wymagane działanie, zanim usuniesz ją z obszaru roboczego.`,
         },
         card: {
             getStartedIssuing: 'Rozpocznij, wydając swoją pierwszą wirtualną lub fizyczną kartę.',

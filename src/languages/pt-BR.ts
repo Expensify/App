@@ -644,18 +644,18 @@ const translations = {
         expenseReports: 'Relatórios de Despesas',
         rateOutOfPolicy: 'Taxa fora da política',
         leaveWorkspace: 'Sair do espaço de trabalho',
-        leaveWorkspaceConfirmation: 'Se você sair deste espaço de trabalho, não poderá mais enviar despesas para ele.',
-        leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá mais visualizar seus relatórios e configurações.',
-        leaveWorkspaceConfirmationAdmin: 'Se você sair deste espaço de trabalho, não poderá mais gerenciar suas configurações.',
+        leaveWorkspaceConfirmation: 'Se você sair deste espaço de trabalho, não poderá enviar despesas para ele.',
+        leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
+        leaveWorkspaceConfirmationAdmin: 'Se você sair deste espaço de trabalho, não poderá gerenciar as configurações dele.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Se você sair deste espaço de trabalho, será substituído no fluxo de aprovação por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            `Se você sair deste espaço de trabalho, você será substituído(a) no fluxo de aprovação por ${workspaceOwner}, proprietário(a) do espaço de trabalho.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Se você sair deste espaço de trabalho, será substituído como o exportador preferido por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            `Se você sair deste espaço de trabalho, será substituído como exportador preferido por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Se você sair deste espaço de trabalho, será substituído como o contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            `Se você sair deste espaço de trabalho, você será substituído como contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
         leaveWorkspaceReimburser:
-            'Você não pode sair deste espaço de trabalho como reembolsador. Defina um novo reembolsador em Espaços de trabalho > Realizar ou rastrear pagamentos e tente novamente.',
-        cannotLeaveWorkspaceOutstandingReport: 'Por favor, aprove todos os relatórios de despesas pendentes antes de sair deste espaço de trabalho.',
+            'Você não pode sair deste espaço de trabalho por ser o responsável pelos reembolsos. Defina um novo responsável pelos reembolsos em Espaços de trabalho > Fazer ou acompanhar pagamentos e tente novamente.',
+        cannotLeaveWorkspaceOutstandingReport: 'Por favor, aprove quaisquer relatórios de despesas pendentes enviados a você antes de sair deste espaço de trabalho.',
         reimbursable: 'Reembolsável',
         editYourProfile: 'Edite seu perfil',
         comments: 'Comentários',
@@ -4430,7 +4430,6 @@ ${amount} para ${merchant} - ${date}`,
             displayedAsTagDescription: 'O departamento será selecionável para cada despesa individual no relatório de um funcionário.',
             displayedAsReportFieldDescription: 'A seleção de departamento será aplicada a todas as despesas no relatório de um funcionário.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Escolha como lidar com o Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
-
             expenseTypes: 'Tipos de despesas',
             expenseTypesDescription: 'Seus tipos de despesas do Sage Intacct serão importados para o Expensify como categorias.',
             accountTypesDescription: 'Seu plano de contas do Sage Intacct será importado para o Expensify como categorias.',
@@ -5126,17 +5125,17 @@ ${amount} para ${merchant} - ${date}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total de membros do espaço de trabalho: ${count}`,
             importMembers: 'Importar membros',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `Se você remover ${approver} deste espaço de trabalho, substituiremos ele no fluxo de aprovação por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+                `Se você remover ${approver} deste espaço de trabalho, vamos substituir essa pessoa no fluxo de aprovação por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} tem relatórios de despesas pendentes de aprovação. Por favor, peça para ele aprovar ou assuma o controle dos relatórios antes de removê-lo do espaço de trabalho.`,
+                `${memberName} tem relatórios de despesas pendentes de aprovação. Peça que os aprove ou assuma o controle desses relatórios antes de remover essa pessoa do espaço de trabalho.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `Você não pode remover ${memberName} deste espaço de trabalho. Defina um novo reembolsador em Workflows > Realizar ou rastrear pagamentos e tente novamente.`,
+                `Você não pode remover ${memberName} deste espaço de trabalho. Defina um novo reembolsador em Fluxos de trabalho > Fazer ou acompanhar pagamentos e tente novamente.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Se você remover ${memberName} deste espaço de trabalho, o substituiremos como o exportador preferido por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+                `Se você remover ${memberName} deste espaço de trabalho, vamos substituí-lo como exportador preferencial por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Se você remover ${memberName} deste espaço de trabalho, o substituiremos como o contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+                `Se você remover ${memberName} deste espaço de trabalho, ${workspaceOwner}, proprietário(a) do espaço de trabalho, passará a ser o contato técnico.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} tem um relatório pendente de processamento. Por favor, peça para completar a ação necessária antes de removê-lo do espaço de trabalho.`,
+                `${memberName} tem um relatório em processamento pendente de ação. Por favor, peça para que conclua a ação necessária antes de removê-lo(a) do espaço de trabalho.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7368,7 +7367,6 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
-
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',
