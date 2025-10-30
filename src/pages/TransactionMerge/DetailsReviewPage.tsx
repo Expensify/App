@@ -131,7 +131,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            setIsCheckingDataBeforeGoNext(true);
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
     }, [mergeTransaction, conflictFields]);
 
@@ -189,7 +189,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
-                        isLoading={isCheckingDataBeforeGoNext}
                         pressOnEnter
                     />
                 </FixedFooter>
