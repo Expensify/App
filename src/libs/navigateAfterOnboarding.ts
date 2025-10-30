@@ -26,7 +26,7 @@ const navigateAfterOnboarding = (
     } else {
         const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
-        // we don't want to navigate to newly created workspaces/selfDM after onboarding is completed.
+        // We need to send the user to the #admins room from the policy that was created while onboarding, instead of navigating to newly created workspaces/selfDM after onboarding is completed.
         if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
             reportID = lastAccessedReportID;
         }
