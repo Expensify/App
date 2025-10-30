@@ -33,6 +33,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -469,6 +470,8 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive,
     });
 
+    const fsClass = FS.getChatFSClass(undefined, report);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -547,6 +550,7 @@ function ReportActionCompose({
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
+                            forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
