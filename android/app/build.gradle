@@ -203,9 +203,16 @@ sentry {
     autoUploadProguardMapping = true
     uploadNativeSymbols = true
     includeNativeSources = true
+    
+    // Enable React Native source map upload (includes Debug IDs from Metro)
+    autoUploadReactNativeSourceMaps = true
+    
     tracingInstrumentation {
         enabled = false
     }
+    
+    // Must match the release in Sentry.init() runtime call
+    releaseName = "new.expensify@${android.defaultConfig.versionName}"
     
     // Upload for all release builds except development
     autoUpload = !project.gradle.startParameter.taskNames.any { 

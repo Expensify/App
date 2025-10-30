@@ -183,8 +183,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                               name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
                           },
                           sourcemaps: {
-                              assets: './dist/**/*.{js,map}',
-                              filesToDeleteAfterUpload: './dist/**/*.map',
+                              // Use relative path from project root - works for both web (dist/) and desktop (desktop/dist/www/)
+                              assets: platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}',
+                              filesToDeleteAfterUpload: platform === 'desktop' ? './desktop/dist/www/**/*.map' : './dist/**/*.map',
                           },
                       }),
                   ] as WebpackPluginInstance[])),
