@@ -38,7 +38,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -103,7 +103,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const currentLoginAccountID = 1;
 
         await waitForBatchedUpdates();
@@ -118,7 +118,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getIcons on 1k participants', async () => {
-        const report = {...createRandomReport(1), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
+        const report = {...createRandomReport(1, undefined), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
         const policy = createRandomPolicy(1);
         const defaultIcon = null;
         const defaultName = '';
@@ -138,7 +138,7 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
         const reportAction = createRandomReportAction(1);
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
         const shouldConsiderReceiptBeingScanned = true;
         const isPreviewMessageForParentChatReport = true;
@@ -148,7 +148,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
-        const report = {...createRandomReport(1), chatType: undefined, participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
@@ -156,7 +156,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const accountID = 1;
 
         await waitForBatchedUpdates();
@@ -164,7 +164,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
         const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -186,7 +186,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
@@ -194,7 +194,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
-        const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, isOwnPolicyExpenseChat: true};
+        const report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), isOwnPolicyExpenseChat: true};
         const policy = createRandomPolicy(1);
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
