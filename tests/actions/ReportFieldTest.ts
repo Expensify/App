@@ -8,6 +8,9 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportField from '@src/libs/actions/Policy/ReportField';
 import type {CreateReportFieldParams} from '@src/libs/actions/Policy/ReportField';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import HttpUtils from '@src/libs/HttpUtils';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
@@ -44,10 +47,18 @@ describe('actions/ReportField', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
+        // Ensure clean queues and no pending requests between tests
+        SequentialQueue.resetQueue();
+        HttpUtils.cancelPendingRequests();
+        NetworkStore.checkRequiredData();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createReportField', () => {
+        afterEach(() => {
+            // Make sure paused fetches don’t leak between tests
+            mockFetch?.resume?.();
+        });
         it('creates a new text report field of a workspace', async () => {
             mockFetch.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});

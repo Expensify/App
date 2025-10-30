@@ -5,7 +5,6 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
-import {FORMULA_PART_TYPES, parse} from './Formula';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {isRequiredFulfilled} from './ValidationUtils';
@@ -98,7 +97,10 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     if (!initialValue || typeof initialValue !== 'string') {
         return false;
     }
-    return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
+
+    // Dynamically require to avoid circular dependency with ReportActionsUtils
+    const {parse, FORMULA_PART_TYPES} = require('./Formula');
+    return parse(initialValue).some((part: any) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
 export {
