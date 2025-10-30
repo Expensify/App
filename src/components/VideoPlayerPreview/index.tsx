@@ -17,12 +17,8 @@ import getPlatform from '@libs/getPlatform';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Dimensions} from '@src/types/utils/Layout';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
-
-type VideoDimensions = {
-    width: number;
-    height: number;
-};
 
 type VideoPlayerPreviewProps = {
     /** Url to a video. */
@@ -32,7 +28,7 @@ type VideoPlayerPreviewProps = {
     reportID: string | undefined;
 
     /** Dimension of a video. */
-    videoDimensions: VideoDimensions;
+    videoDimensions: Dimensions;
 
     /** Duration of a video. */
     videoDuration: number;
