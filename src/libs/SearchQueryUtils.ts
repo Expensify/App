@@ -680,8 +680,8 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
-            const validActionTypes = new Set(Object.values(CONST.SEARCH.ACTION_FILTERS));
-            filtersForm[key as typeof filterKey] = filterValues.filter((actionType) => validActionTypes.has(actionType as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>)).at(0);
+            const actionValue = filterValues.at(0) as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> | undefined;
+            filtersForm[key as typeof filterKey] = actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue) ? actionValue : undefined;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
