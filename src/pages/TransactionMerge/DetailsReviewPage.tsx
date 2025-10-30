@@ -51,8 +51,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, backTo, hash} = route.params;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
-    console.log('result', currentSearchResults);
-
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     let [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
@@ -69,9 +67,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     if (!targetTransaction && currentSearchResults?.data) {
         targetTransaction = currentSearchResults.data[`ONYXKEYS.COLLECTION.TRANSACTION${mergeTransaction?.targetTransactionID ?? '-1'}`];
     }
-
-    console.log('targetTransaction', targetTransaction);
-    console.log('sourceTransaction', sourceTransaction);
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
@@ -131,7 +126,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            if (hash) {
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE_FROM_SEARCH.getRoute(transactionID, Navigation.getActiveRoute(), hash));
+            } else {
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            }
         }
     }, [mergeTransaction, conflictFields]);
 
@@ -140,8 +139,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
         [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
     );
-
-    console.log('merge fields count is ' + mergeFields.length);
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);

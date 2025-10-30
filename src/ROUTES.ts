@@ -2680,6 +2680,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
     },
+    MERGE_TRANSACTION_CONFIRMATION_PAGE_FROM_SEARCH: {
+        route: 'r/:transactionID/merge/confirmation',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string, backTo?: string, hash?: number) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation?hash=${hash}` as const, backTo),
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import` as const,

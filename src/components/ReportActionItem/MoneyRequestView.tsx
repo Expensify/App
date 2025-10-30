@@ -652,7 +652,8 @@ function MoneyRequestView({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    if ((readonly && !transactionThreadReport?.reportID) || (!readonly && !parentReport?.reportID) || !transaction?.transactionID) {
+    // If the view is readonly, we don't need the transactionThread dependency, only the parent expense report
+    if ((!readonly && !transactionThreadReport?.reportID) || (readonly && !parentReport?.reportID) || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
     }
 
