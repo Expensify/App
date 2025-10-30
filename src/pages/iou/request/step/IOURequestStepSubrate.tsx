@@ -30,6 +30,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -113,7 +114,7 @@ function IOURequestStepSubrate({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
         const subrateVal = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityVal, 10);
         if (subrateVal === '' || !validOptions.some(({value}) => value === subrateVal)) {
@@ -131,8 +132,8 @@ function IOURequestStepSubrate({
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>) => {
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
+        const subrateVal = SafeString(values[`subrate${pageIndex}`]);
         const quantityInt = parseInt(quantityVal, 10);
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';

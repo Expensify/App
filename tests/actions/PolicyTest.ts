@@ -26,6 +26,8 @@ const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
 
+const EMPLOYEE_EMAIL = 'employee@example.com';
+
 OnyxUpdateManager();
 describe('actions/Policy', () => {
     beforeAll(() => {
@@ -852,15 +854,80 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('setWorkspaceApprovalMode', () => {
+        it('should not change employee list when disabling approval', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const policyID = Policy.generatePolicyID();
+            const employeeList = {
+                [ESH_EMAIL]: {
+                    email: ESH_EMAIL,
+                    submitsTo: ESH_EMAIL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+                [EMPLOYEE_EMAIL]: {
+                    email: EMPLOYEE_EMAIL,
+                    submitsTo: ESH_EMAIL,
+                    role: CONST.POLICY.ROLE.USER,
+                },
+            };
+
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+                employeeList,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            expect(policy?.employeeList).toEqual(employeeList);
+            expect(policy?.pendingFields?.approvalMode).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.pendingFields?.approvalMode).toBeFalsy();
+            expect(policy?.employeeList).toEqual(employeeList);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        });
+    });
+
     describe('deleteWorkspace', () => {
         it('should apply failure data when deleteWorkspace fails', async () => {
             // Given a policy
             const fakePolicy = createRandomPolicy(0);
             const fakeReport = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyName: fakePolicy.name,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -931,11 +998,10 @@ describe('actions/Policy', () => {
             const expenseReportID = '2';
             const transactionID = '3';
             const expenseChatReport = {
-                ...createRandomReport(Number(expenseChatReportID)),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(Number(expenseChatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
                 iouReportID: expenseReportID,
-            };
+            } as Report;
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, expenseChatReport);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
