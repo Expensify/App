@@ -250,7 +250,7 @@ function MoneyRequestReportTransactionList({
             } as ReportScreenNavigationProps;
 
             if (!reportIDToNavigate) {
-                const transaction = transactions.find((t) => t.transactionID === activeTransactionID);
+                const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
                 const transactionThreadReport = createTransactionThreadReport(report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
