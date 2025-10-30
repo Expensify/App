@@ -5,13 +5,11 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicon from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -56,8 +54,16 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         )} `;
     }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade]);
 
-    // TODO: check other icons and migrate them to the chunk
-    const illustrationIcons = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+    const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .map((feat) => feat?.icon)
+        .filter((icon) => icon !== undefined);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Tag', 'Coins', 'Rules', 'CompanyCard', 'PerDiem', 'ReportReceipt', 'CarIce', 'Pencil']);
+    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Luggage', 'Unlock']);
+    const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
+    const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
+    if (missing.length) {
+        throw new Error(`Missing icons: ${missing.join(', ')}`);
+    }
 
     const subscriptionLink = useMemo(() => {
         if (!subscriptionPlan) {
@@ -87,15 +93,13 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         );
     }
 
-    const isIllustration = feature.icon in Illustrations;
+    const isIllustration = feature.icon in illustrations;
     const isIllustrationIcon = feature.icon in illustrationIcons;
     let iconSrc;
     if (isIllustrationIcon) {
         iconSrc = illustrationIcons[feature.icon as keyof typeof illustrationIcons];
     } else if (isIllustration) {
-        iconSrc = Illustrations[feature.icon as keyof typeof Illustrations];
-    } else {
-        iconSrc = Expensicon[feature.icon as keyof typeof Expensicon];
+        iconSrc = illustrations[feature.icon as keyof typeof illustrations];
     }
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
@@ -118,7 +122,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                         />
                     )}
                     <Badge
-                        icon={Expensicon.Unlock}
+                        icon={illustrationIcons.Unlock}
                         text={translate('workspace.upgrade.upgradeToUnlock')}
                         success
                     />
@@ -127,9 +131,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
-                        {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                        {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
+                        <RenderHTML html={translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, {formattedPrice, hasTeam2025Pricing})} />
                     </Text>
                 </View>
                 <Button

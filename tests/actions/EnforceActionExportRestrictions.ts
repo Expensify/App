@@ -88,11 +88,6 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getIconsForGroupChat).toBeUndefined();
     });
 
-    it('does not export getIconsForUserCreatedPolicyRoom', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getIconsForUserCreatedPolicyRoom).toBeUndefined();
-    });
-
     it('does not export getAllReportActions', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getAllReportActions).toBeUndefined();

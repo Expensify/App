@@ -15,7 +15,7 @@ def patchedArtifacts = settings.getExtensions().create('patchedArtifacts', Patch
 
 def warnIfNotConfigured(reason) {
     ExpensiLog.warn("$reason")
-    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
+    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts")
 }
 
 def getNewDotRootDir() {
@@ -32,28 +32,62 @@ def hasGithubCLI() {
     return runCommand(["which", "gh"]).exitCode == 0
 }
 
+def isCIEnvironment() {
+    return System.getenv("CI") != null
+}
+
 def hasRequiredScopes() {
     def scopes = runCommand(["gh", "auth", "status"]).output
     return ['read:packages', 'write:packages'].any { scope -> scopes.contains(scope) }
 }
 
+def getCIGithubActor() {
+    return System.getenv("GITHUB_ACTOR")
+}
+
+def getCIGithubToken() {
+    return System.getenv("GITHUB_TOKEN")
+}
+
+def hasRequiredCIEnvs() {
+    return getCIGithubActor() != null && getCIGithubToken() != null
+}
+
 def getGithubUsername() {
+    if (isCIEnvironment()) {
+        return getCIGithubActor()
+    }
     return new JsonSlurper().parseText(runCommand(["gh", "api", "user"]).output).login
 }
 
 def getGithubToken() {
+    if (isCIEnvironment()) {
+        return getCIGithubToken()
+    }
     return runCommand(["gh", "auth", "token"]).output
 }
 
-def getCredentials() {
+def validateCredentialsContext() {
     if (!hasGithubCLI()) {
-        warnIfNotConfigured("No Github CLI found.")
-        return null
+        return "No Github CLI found."
     }
 
-    try {
-        if(!hasRequiredScopes()) {
-            warnIfNotConfigured("Github token does not have required scope read:packages.")
+    if (isCIEnvironment() && !hasRequiredCIEnvs()) {
+        return "Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN."
+    }
+
+    if (!isCIEnvironment() && !hasRequiredScopes()) {
+        return "Github token does not have required scope read:packages."
+    }
+
+    return null
+}
+
+def getCredentials() {
+    try { 
+        def validationErrorMessage = validateCredentialsContext()
+        if (validationErrorMessage != null) {
+            warnIfNotConfigured(validationErrorMessage)
             return null
         }
 
@@ -132,7 +166,7 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
         config.buildFromSource = true
-        ExpensiLog.lifecycle("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
+        ExpensiLog.error("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
     }
     else {
         config.buildFromSource = false

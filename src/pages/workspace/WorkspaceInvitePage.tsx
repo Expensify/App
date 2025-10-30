@@ -49,7 +49,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const {translate} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -74,7 +74,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
     }, [policy?.employeeList]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -95,6 +95,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
+            });
+        }
+
+        // Recent reports section
+        if (availableOptions.recentReports.length > 0) {
+            sectionsArr.push({
+                title: translate('common.recents'),
+                data: availableOptions.recentReports,
             });
         }
 
@@ -160,12 +168,18 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             !availableOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(availableOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite]);
+        return getHeaderMessage(
+            availableOptions.personalDetails.length !== 0 || !!availableOptions.userToInvite || availableOptions.recentReports.length !== 0,
+            !!availableOptions.userToInvite,
+            searchValue,
+            countryCode,
+            false,
+        );
+    }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite, availableOptions.recentReports.length, countryCode]);
 
     const footerContent = useMemo(
         () => (
@@ -225,6 +239,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
+                    onEndReached={onListEndReached}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

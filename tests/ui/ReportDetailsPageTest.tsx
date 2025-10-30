@@ -3,7 +3,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {translateLocal} from '@libs/Localize';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -15,6 +14,7 @@ import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -44,25 +44,19 @@ describe('ReportDetailsPage', () => {
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
-        });
-
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
         const trackExpenseActionID = '123';
         const transactionID = '3';
         const transaction = createRandomTransaction(1);
         const trackExpenseReport: Report = {
-            ...createRandomReport(Number(trackExpenseReportID)),
-            chatType: '' as Report['chatType'],
+            ...createRandomReport(Number(trackExpenseReportID), undefined),
             parentReportID: selfDMReportID,
             parentReportActionID: trackExpenseActionID,
         };
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
-                ...createRandomReport(Number(selfDMReportID)),
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ...createRandomReport(Number(selfDMReportID), CONST.REPORT.CHAT_TYPE.SELF_DM),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, trackExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
@@ -93,14 +87,14 @@ describe('ReportDetailsPage', () => {
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
-
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
-        const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
-        const shareText = translateLocal('actionableMentionTrackExpense.share');
-
         await screen.findByText(submitText);
-        await screen.findByText(categorizeText);
-        await screen.findByText(shareText);
+
+        // Categorize and share are temporarily disabled
+        // const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
+        // const shareText = translateLocal('actionableMentionTrackExpense.share');
+        // await screen.findByText(categorizeText);
+        // await screen.findByText(shareText);
 
         const movedTrackExpenseReport = {
             ...trackExpenseReport,
@@ -128,7 +122,9 @@ describe('ReportDetailsPage', () => {
         );
 
         expect(screen.queryByText(submitText)).not.toBeVisible();
-        expect(screen.queryByText(categorizeText)).not.toBeVisible();
-        expect(screen.queryByText(shareText)).not.toBeVisible();
+
+        // Categorize and share are temporarily disabled
+        // expect(screen.queryByText(categorizeText)).not.toBeVisible();
+        // expect(screen.queryByText(shareText)).not.toBeVisible();
     });
 });

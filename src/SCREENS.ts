@@ -7,7 +7,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    ATTACHMENTS: 'Attachments',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
@@ -43,6 +43,7 @@ const SCREENS = {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
+        MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
@@ -83,9 +84,11 @@ const SCREENS = {
         ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP: 'Search_Advanced_Filters_Purchase_Currency_RHP',
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
         ADVANCED_FILTERS_ATTENDEE_RHP: 'Search_Advanced_Filters_Attendee_RHP',
+        ADVANCED_FILTERS_REPORT_FIELD_RHP: 'Search_Advanced_Filters_Report_Field_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
     },
     SETTINGS: {
@@ -100,6 +103,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Verify_Account',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
+        ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
@@ -210,6 +214,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
+        SET_DEFAULT_WORKSPACE: 'Set_Default_Workspace',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -282,7 +287,6 @@ const SCREENS = {
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
-        STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
@@ -398,6 +402,10 @@ const SCREENS = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         ROOT: 'NewReportWorkspaceSelection_Root',
+    },
+
+    SET_DEFAULT_WORKSPACE: {
+        ROOT: 'SetDefaultWorkspace_Root',
     },
 
     REPORT_DETAILS: {
@@ -668,6 +676,7 @@ const SCREENS = {
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
         RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',

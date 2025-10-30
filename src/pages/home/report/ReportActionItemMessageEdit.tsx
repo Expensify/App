@@ -2,7 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -16,6 +16,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
+import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -133,6 +134,8 @@ function ReportActionItemMessageEdit({
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
+    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
+
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
@@ -236,6 +239,7 @@ function ReportActionItemMessageEdit({
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
+            raiseIsScrollLayoutTriggered();
             const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
             emojisPresentBefore.current = emojis;
@@ -258,7 +262,7 @@ function ReportActionItemMessageEdit({
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -275,7 +279,7 @@ function ReportActionItemMessageEdit({
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -305,7 +309,7 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
+        editReportComment(originalReport, action, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
@@ -336,12 +340,15 @@ function ReportActionItemMessageEdit({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
+            if (isScrollLayoutTriggered.current) {
+                return;
+            }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
 
             hideSuggestionMenu();
         },
-        [hideSuggestionMenu],
+        [isScrollLayoutTriggered, hideSuggestionMenu],
     );
 
     /**
@@ -350,7 +357,7 @@ function ReportActionItemMessageEdit({
      * @param {Event} e
      */
     const triggerSaveOrCancel = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
+        (e: TextInputKeyPressEvent | KeyboardEvent) => {
             if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
@@ -503,7 +510,7 @@ function ReportActionItemMessageEdit({
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
-                                // eslint-disable-next-line deprecation/deprecation
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
@@ -525,10 +532,10 @@ function ReportActionItemMessageEdit({
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+                            onBlur={(event: BlurEvent) => {
                                 setIsFocused(false);
-                                const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || isEmojiPickerVisible()) {
+                                const relatedTargetId = event.nativeEvent?.target;
+                                if (relatedTargetId === tag.get() || isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
