@@ -722,7 +722,7 @@ function WorkspacesListPage() {
                 }
             />
         ),
-        [StyleUtils, styles, translate],
+        [StyleUtils, styles, translate, isRestrictedPolicyCreation],
     );
 
     const onBackButtonPress = () => {
