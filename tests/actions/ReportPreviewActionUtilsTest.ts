@@ -306,10 +306,10 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
-    it('canPay should return false for IOU report with zero total amount', async () => {
+    it('canPay should return false for Expense report with zero total amount', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
-            type: CONST.REPORT.TYPE.IOU,
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -329,7 +329,7 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
-        // Should not show PAY button for zero amount IOUs
+        // Should not show PAY button for zero amount Expenses
         expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
