@@ -21,7 +21,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getCustomAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,7 +61,7 @@ function ScheduleCallConfirmationPage() {
                       accountID: scheduleCallDraft.guide.accountID,
                       login: scheduleCallDraft.guide.email,
                       displayName: scheduleCallDraft.guide.email,
-                      avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID, scheduleCallDraft.guide.email),
+                      avatar: getCustomAvatarURL(scheduleCallDraft.guide.accountID, scheduleCallDraft.guide.email),
                   })
                 : null,
         [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],

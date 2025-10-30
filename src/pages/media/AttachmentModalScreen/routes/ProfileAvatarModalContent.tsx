@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar} from '@libs/UserUtils';
+import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -14,7 +14,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
-    const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
+    const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -33,9 +33,8 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         }
         openPublicProfilePage(accountID);
     }, [accountID]);
-
-    const source = getFullSizeAvatar(avatarURL, accountID);
-    const originalFileName = personalDetail?.originalFileName ?? '';
+    const originalFileName = tempOriginalFileName ?? personalDetail?.originalFileName ?? '';
+    const source = tempSource ?? getFullSizeAvatar({avatarSource: avatarURL, accountID});
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !avatarURL;

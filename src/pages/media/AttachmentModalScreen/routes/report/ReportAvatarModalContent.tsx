@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
-import {getFullSizeAvatar} from '@libs/UserUtils';
+import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -19,14 +19,14 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
-                source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
+                source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl}) : getDefaultGroupAvatar(report?.reportID),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }
 
         return {
-            source: getFullSizeAvatar(getWorkspaceIcon(report, policy).source, 0),
+            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source}),
             headerTitle: getPolicyName({report, policy}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
