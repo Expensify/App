@@ -12,7 +12,7 @@ function normalizeAlias(alias: string): string {
 }
 
 function toRoutePath(filename: string): string {
-    return filename.slice(DOCS_DIRECTORY_PREFIX.length).replace(/\.md$/, '');
+    return filename.slice(DOCS_DIRECTORY_PREFIX.length).replaceAll(/\.md$/, '');
 }
 
 async function getUpdatedDocRoutes(octokit: OctokitClient, owner: string, repo: string, prNumber: number): Promise<string[]> {
@@ -61,7 +61,7 @@ async function run(): Promise<void> {
     const routes = await getUpdatedDocRoutes(octokit, owner, repo, prNumber);
     const normalizedRootURL = normalizeAlias(rootURL);
 
-    const displayRootURL = normalizedRootURL.replace(/\/$/, '');
+    const displayRootURL = normalizedRootURL.replaceAll(/\/$/, '');
     let body = `A preview of your ExpensifyHelp changes have been deployed to ${displayRootURL} ⚡️`;
 
     if (routes.length > 0) {
