@@ -49,7 +49,6 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
-import {getFullSizeAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -168,7 +167,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const prevIsPendingDelete = usePrevious(isPendingDelete);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -206,12 +204,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const continueDeleteWorkspace = useCallback(() => {
-        if (isOffline) {
-            setShouldShowOfflineModal(true);
-            return;
-        }
         setIsDeleteModalOpen(true);
-    }, [isOffline]);
+    }, []);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -224,7 +218,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod]);
+        if (isOffline) {
+            setIsDeleteModalOpen(false);
+            goBackFromInvalidPolicy();
+        }
+    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
@@ -422,9 +420,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 }
                                 clearAvatarErrors(policy.id);
                             }}
-                            previewSource={getFullSizeAvatar(policy?.avatarURL ?? '')}
-                            headerTitle={translate('workspace.common.workspaceAvatar')}
-                            originalFileName={policy?.originalFileName}
                             disabled={readOnly}
                             disabledStyle={styles.cursorDefault}
                             errorRowStyles={styles.mt3}
@@ -566,15 +561,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
                         success={false}
-                    />
-                    <ConfirmModal
-                        title={translate('common.youAppearToBeOffline')}
-                        isVisible={shouldShowOfflineModal}
-                        onConfirm={() => setShouldShowOfflineModal(false)}
-                        onCancel={() => setShouldShowOfflineModal(false)}
-                        confirmText={translate('common.buttonConfirm')}
-                        prompt={translate('common.offlinePrompt')}
-                        shouldShowCancelButton={false}
                     />
                 </View>
             )}

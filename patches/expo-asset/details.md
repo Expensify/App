@@ -1,6 +1,6 @@
 # `expo-asset` patches
 
-### [expo-asset+11.1.5+001+make-storybook-work.patch](expo-asset+11.1.5+001+make-storybook-work.patch)
+### [expo-asset+12.0.8+001+make-storybook-work.patch](expo-asset+12.0.8+001+make-storybook-work.patch)
 
 - Reason:
   

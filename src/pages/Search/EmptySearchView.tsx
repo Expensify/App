@@ -97,7 +97,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+    const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies), [allPolicies]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -356,7 +356,7 @@ function EmptySearchViewContent({
                                                   }
 
                                                   if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                                      const createdReportID = createNewReport(
+                                                      const {reportID: createdReportID} = createNewReport(
                                                           currentUserPersonalDetails,
                                                           isASAPSubmitBetaEnabled,
                                                           hasViolations,

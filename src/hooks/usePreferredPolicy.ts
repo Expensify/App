@@ -8,6 +8,9 @@ type UsePreferredPolicyResult = {
 
     /** The ID of the preferred policy */
     preferredPolicyID: string | undefined;
+
+    /** Whether the user is restricted from creating policies */
+    isRestrictedPolicyCreation: boolean;
 };
 
 /**
@@ -36,6 +39,7 @@ function usePreferredPolicy(): UsePreferredPolicyResult {
     return {
         isRestrictedToPreferredPolicy: isRestrictionEnabled && hasValidPolicyID,
         preferredPolicyID: restrictedPolicyID,
+        isRestrictedPolicyCreation: securityGroup?.enableRestrictedPolicyCreation === true,
     };
 }
 

@@ -6,6 +6,9 @@ import type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
+    ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchDateFilterKeys,
     SearchDatePreset,
@@ -88,6 +91,12 @@ const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    const isReportField = keyName.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+
+    if (isReportField) {
+        return keyName.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD) as UserFriendlyKey;
+    }
+
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
 }
 
@@ -220,8 +229,14 @@ function getFilters(queryJSON: SearchQueryJSON) {
             traverse(node.right);
         }
 
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!filterKeys.includes(nodeKey)) {
+        // Only process if its a leaf
+        if (typeof node.left !== 'string') {
+            return;
+        }
+
+        const nodeKey = node.left;
+
+        if (!filterKeys.includes(nodeKey) && !nodeKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
             return;
         }
 
@@ -371,23 +386,10 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
-    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => supportedFilter === filter);
-}
-
-/**
- * Normalizes the value into a single string.
- * - If it's an array, returns the first element.
- * - Otherwise, returns the value as is.
-
- * @param value - The raw field value from SearchQueryJSON
- * @returns The normalized field value
- */
-function normalizeValue<T>(value: T | T[]): T {
-    if (Array.isArray(value)) {
-        return value.at(0) as T;
-    }
-
-    return value;
+    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => {
+        const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+        return supportedFilter === filter || isReportFieldSupported;
+    });
 }
 
 /**
@@ -412,14 +414,6 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
-        }
-
-        if (result.groupBy) {
-            result.groupBy = normalizeValue(result.groupBy);
-        }
-
-        if (result.type) {
-            result.type = normalizeValue(result.type);
         }
 
         return result;
@@ -559,6 +553,36 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
                 const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
                 return `${value}`;
+            }
+
+            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
+                const value = sanitizeSearchValue(filterValue as string);
+                const isFieldNegated = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX);
+                const isTextBasedReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) || isNegated;
+                const fieldPrefix = isFieldNegated ? '-' : '';
+
+                if (isTextBasedReportField) {
+                    return `${fieldPrefix}${filterKey}:${value}`;
+                }
+
+                const isOnDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX);
+                const isAfterDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX);
+                const isBeforeDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX);
+
+                if (isOnDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}:${value}`;
+                }
+
+                if (isAfterDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}>${value}`;
+                }
+
+                if (isBeforeDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}<${value}`;
+                }
             }
 
             if (
@@ -802,6 +826,42 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[key as typeof filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+        }
+
+        if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+            const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, '');
+
+            const textKey = filterKey as ReportFieldTextKey;
+            const negatedKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.NOT_MODIFIER}${suffix}` as ReportFieldNegatedKey;
+            const dateOnKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.ON}${suffix}` as ReportFieldDateKey;
+            const dateBeforeKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}${suffix}` as ReportFieldDateKey;
+            const dateAfterKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}${suffix}` as ReportFieldDateKey;
+
+            let dateBeforeFilter;
+            let dateAfterFilter;
+            let dateOnFilter;
+            let negatedFilter;
+            let textFilter;
+
+            for (const filter of filterList) {
+                if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString())) {
+                    dateBeforeFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString())) {
+                    dateAfterFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()))) {
+                    dateOnFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                    negatedFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && !isValidDate(filter.value.toString()) && !isSearchDatePreset(filter.value.toString())) {
+                    textFilter = filter;
+                }
+            }
+
+            filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
+            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
+            filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
+            filtersForm[dateBeforeKey] = dateBeforeFilter?.value.toString() ?? filtersForm[dateBeforeKey];
+            filtersForm[dateAfterKey] = dateAfterFilter?.value.toString() ?? filtersForm[dateAfterKey];
         }
     }
 

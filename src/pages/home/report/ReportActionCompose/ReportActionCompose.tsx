@@ -1,12 +1,11 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
@@ -76,7 +75,7 @@ import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
-    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
@@ -132,7 +131,6 @@ function ReportActionCompose({
     reportTransactions,
     transactionThreadReportID,
 }: ReportActionComposeProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -328,7 +326,7 @@ function ReportActionCompose({
     }, []);
 
     const onBlur = useCallback(
-        (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        (event: BlurEvent) => {
             const webEvent = event as unknown as FocusEvent;
             setIsFocused(false);
             onComposerBlur?.();
@@ -400,18 +398,6 @@ function ReportActionCompose({
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
     }, [isSendDisabled, composerRefShared]);
-
-    const measureComposer = useCallback(
-        (e: LayoutChangeEvent) => {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
-                payload: {
-                    composerHeight: e.nativeEvent.layout.height,
-                },
-            });
-        },
-        [actionSheetAwareScrollViewContext],
-    );
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
@@ -488,10 +474,7 @@ function ReportActionCompose({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View
-                onLayout={measureComposer}
-                style={isComposerFullSize ? styles.flex1 : {}}
-            >
+            <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
                     shouldDisableOpacity
                     pendingAction={pendingAction}

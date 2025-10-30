@@ -10,8 +10,9 @@ import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyl
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
+import type {OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -27,12 +28,12 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** The width and height of the canvas.
      *  This is needed in order to properly scale the content in the canvas
      */
-    canvasSize: CanvasSize;
+    canvasSize: Dimensions;
 
     /** The width and height of the content.
      *  This is needed in order to properly scale the content in the canvas
      */
-    contentSize?: ContentSize;
+    contentSize?: Dimensions;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;

@@ -7,6 +7,7 @@ type FocusTrapForModalProps = {
     active: boolean;
     initialFocus?: FocusTrapOptions['initialFocus'];
     shouldPreventScroll?: boolean;
+    shouldReturnFocus?: boolean;
 };
 
 export default FocusTrapForModalProps;

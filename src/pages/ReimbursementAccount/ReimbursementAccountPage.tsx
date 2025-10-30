@@ -83,6 +83,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
+    const prevPolicyCurrency = usePrevious(policyCurrency);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -199,6 +200,19 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
+
+    useEffect(() => {
+        if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
+            return;
+        }
+
+        if (policyCurrency === CONST.CURRENCY.USD) {
+            setNonUSDBankAccountStep(null);
+        } else {
+            setUSDBankAccountStep(null);
+        }
+        setBankAccountSubStep(null);
+    }, [policyCurrency, prevPolicyCurrency]);
 
     useEffect(
         () => {
@@ -468,7 +482,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         );
     }
 
-    if (USDBankAccountStep !== null) {
+    if (!isNonUSDWorkspace && USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow
                 USDBankAccountStep={currentStep}

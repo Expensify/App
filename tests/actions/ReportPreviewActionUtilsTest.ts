@@ -78,7 +78,7 @@ describe('getReportPreviewAction', () => {
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -107,7 +107,7 @@ describe('getReportPreviewAction', () => {
 
     it('canSubmit should return true for open report in instant submit policy with no approvers', async () => {
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN, // Report is OPEN
@@ -137,7 +137,7 @@ describe('getReportPreviewAction', () => {
 
     it('canSubmit should return false for expense preview report with only pending transactions', async () => {
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -171,7 +171,7 @@ describe('getReportPreviewAction', () => {
     describe('canApprove', () => {
         it('should return true for report being processed', async () => {
             const report = {
-                ...createRandomReport(REPORT_ID),
+                ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -198,7 +198,7 @@ describe('getReportPreviewAction', () => {
 
         it('should return false for report with scanning expenses', async () => {
             const report = {
-                ...createRandomReport(REPORT_ID),
+                ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -226,7 +226,7 @@ describe('getReportPreviewAction', () => {
 
         it('should return false for report with pending expenses', async () => {
             const report = {
-                ...createRandomReport(REPORT_ID),
+                ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -256,7 +256,7 @@ describe('getReportPreviewAction', () => {
 
     it("canApprove should return true for the current report manager regardless of whether they're in the current approval workflow", async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -283,7 +283,7 @@ describe('getReportPreviewAction', () => {
 
     it('canPay should return true for expense report with payments enabled', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -308,7 +308,7 @@ describe('getReportPreviewAction', () => {
 
     it('canPay should return true for submitted invoice', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -340,7 +340,7 @@ describe('getReportPreviewAction', () => {
     it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {
         const PARENT_REPORT_ID = (REPORT_ID + 1).toString();
         const parentReport: Report = {
-            ...createRandomReport(Number(PARENT_REPORT_ID)),
+            ...createRandomReport(Number(PARENT_REPORT_ID), undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             invoiceReceiver: {
                 type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
@@ -350,7 +350,7 @@ describe('getReportPreviewAction', () => {
         };
 
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             parentReportID: PARENT_REPORT_ID,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1, // Different from current user
@@ -386,7 +386,7 @@ describe('getReportPreviewAction', () => {
 
     it('canPay should return false for archived invoice', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -423,7 +423,7 @@ describe('getReportPreviewAction', () => {
         // Given the invoice data
         const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -449,7 +449,7 @@ describe('getReportPreviewAction', () => {
 
     it('canExport should return true for finished reports', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -475,7 +475,7 @@ describe('getReportPreviewAction', () => {
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
         (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -520,7 +520,7 @@ describe('getReportPreviewAction', () => {
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
         (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -564,7 +564,7 @@ describe('getReportPreviewAction', () => {
         hasAnyViolationsMock.mockReturnValue(true);
 
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -603,7 +603,7 @@ describe('getReportPreviewAction', () => {
 
     it('canView should return true for reports in which we are waiting for user to add a bank account', async () => {
         const report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -627,7 +627,7 @@ describe('getReportPreviewAction', () => {
     it('canReview should return false for submitters when RECEIPT_NOT_SMART_SCANNED violation exists but is hidden from submitter', async () => {
         (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -664,7 +664,7 @@ describe('getReportPreviewAction', () => {
     it('canReview should return true when report has mix of visible and hidden violations but at least one is visible', async () => {
         (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -705,7 +705,7 @@ describe('getReportPreviewAction', () => {
     it('canReview should return false when report has no visible violations for current user role', async () => {
         (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
-            ...createRandomReport(REPORT_ID),
+            ...createRandomReport(REPORT_ID, undefined),
             statusNum: 0,
             stateNum: 0,
             type: CONST.REPORT.TYPE.EXPENSE,
