@@ -367,6 +367,9 @@ type OriginalMessageChangeLog = {
 
     /** Name of the added category */
     categoryName?: string;
+
+    /** Avatar URL of workspace room */
+    avatarUrl?: string;
 };
 
 /** Model of change log */
