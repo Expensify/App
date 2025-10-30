@@ -1,10 +1,9 @@
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
-import {search} from '@libs/actions/Search';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {DebugForms} from './const';
 import {DETAILS_CONSTANT_FIELDS} from './const';
@@ -56,12 +55,13 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
 
     return (
         <SelectionList
-            data={sections}
-            shouldShowTextInput
-            textInputOptions={{value: searchValue, label: translate('common.search'), onChangeText: setSearchValue}}
+            sections={[{data: sections}]}
+            textInputValue={searchValue}
+            textInputLabel={translate('common.search')}
+            onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
         />
     );
