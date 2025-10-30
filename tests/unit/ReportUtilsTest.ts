@@ -1661,6 +1661,7 @@ describe('ReportUtils', () => {
                     const expenseReport: Report = {
                         ...baseExpenseReport,
                         statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
                     };
 
                     const params = {
