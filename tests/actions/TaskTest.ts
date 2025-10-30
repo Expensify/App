@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -751,15 +752,16 @@ describe('actions/Task', () => {
             );
 
             // Verify optimisticData contains childStateNum and childStatusNum updates
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0);
-            const optimisticData = onyxData.optimisticData;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData];
+            const optimisticData = onyxData.optimisticData ?? [];
 
             // Find the optimistic update for parent report action
             const parentReportActionUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
 
             expect(parentReportActionUpdate).toBeDefined();
-            expect(parentReportActionUpdate.value).toEqual({
+            expect(parentReportActionUpdate?.value).toEqual({
                 [mockParentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
@@ -767,11 +769,11 @@ describe('actions/Task', () => {
             });
 
             // Verify failureData contains rollback to OPEN state
-            const failureData = onyxData.failureData;
+            const failureData = onyxData.failureData ?? [];
             const parentReportActionFailure = failureData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
 
             expect(parentReportActionFailure).toBeDefined();
-            expect(parentReportActionFailure.value).toEqual({
+            expect(parentReportActionFailure?.value).toEqual({
                 [mockParentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                     childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -812,9 +814,10 @@ describe('actions/Task', () => {
             );
 
             // Verify optimisticData does NOT contain parent report action updates
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0);
-            const optimisticData = onyxData.optimisticData;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData];
+            const optimisticData = onyxData.optimisticData ?? [];
 
             // Should not have any parent report action updates
             const parentReportActionUpdate = optimisticData.find(
