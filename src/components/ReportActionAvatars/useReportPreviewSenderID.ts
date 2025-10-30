@@ -5,7 +5,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
-import {isDM} from '@libs/ReportUtils';
+import {isDM, isIOUReport} from '@libs/ReportUtils';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +55,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         canBeMissing: true,
     });
 
-    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport)) {
         return getCurrentUserAccountID();
     }
 

@@ -2,7 +2,7 @@ import {FullStory, init, isInitialized} from '@fullstory/browser';
 import {Str} from 'expensify-common';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import * as Environment from '@src/libs/Environment/Environment';
+import getEnvironment from '@src/libs/Environment/getEnvironment';
 import getChatFSClass from './common';
 import type {FSPageLike, Fullstory} from './types';
 
@@ -54,7 +54,7 @@ const FS: Fullstory = {
             return;
         }
         try {
-            Environment.getEnvironment().then((envName: string) => {
+            getEnvironment().then((envName: string) => {
                 const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
                 if (
                     (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) ||

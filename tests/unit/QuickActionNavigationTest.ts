@@ -28,7 +28,9 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start manual submit request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
         });
@@ -41,7 +43,9 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start scan split request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
         });
@@ -54,36 +58,40 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start distance track request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true);
         });
 
-        it('should be navigated to Map distance Expense if isManualDistanceTrackingEnabled beta', () => {
-            // When the quick action is REQUEST_DISTANCE and isManualDistanceTrackingEnabled
+        it('should be navigated to Map distance Expense by default', () => {
+            // When the quick action is REQUEST_DISTANCE
             navigateToQuickAction({
                 isValidReport: true,
                 quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
-                isManualDistanceTrackingEnabled: true,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start map distance request flow
             expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true);
         });
 
-        it('should be navigated to request distance Expense if isManualDistanceTrackingEnabled beta depending on lastDistanceExpenseType', () => {
-            // When the quick action is REQUEST_DISTANCE and isManualDistanceTrackingEnabled
+        it('should be navigated to request distance Expense depending on lastDistanceExpenseType', () => {
+            // When the quick action is REQUEST_DISTANCE
             navigateToQuickAction({
                 isValidReport: true,
                 quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
-                isManualDistanceTrackingEnabled: true,
                 lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start manual distance request flow
             expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true);
         });
@@ -96,7 +104,9 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
+
             // Then we should start per diem request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true);
         });
@@ -112,6 +122,7 @@ describe('Non IOU quickActions test:', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
             expect(startOutCreateTaskQuickAction).toHaveBeenCalled();
         });

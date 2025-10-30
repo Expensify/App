@@ -1,5 +1,6 @@
 import type {NavigationRoute} from '@react-navigation/native';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -98,11 +99,12 @@ function usePreloadFullScreenNavigators() {
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const route = useRoute();
     const state = navigation.getState();
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
+    // The fallback is used to prevent crashing from the UI test
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
 
     const hasSubscriptionPlanTurnedOff = useMemo(() => {
         return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);

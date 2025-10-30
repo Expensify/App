@@ -9,25 +9,29 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import {useSearchContext} from '@components/Search/SearchContext';
+import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
+import type {Location} from '@src/types/utils/Layout';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
-
-type Location = {
-    x: number;
-    y: number;
-};
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
@@ -52,6 +56,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -88,6 +93,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         width: 0,
         height: 0,
     });
+
+    const [composerToRefocusOnClose, setComposerToRefocusOnClose] = useState<ComposerType>();
 
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
@@ -174,7 +181,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             event,
             selection,
             contextMenuAnchor,
-            report = {},
+            report: currentReport = {},
             reportAction = {},
             callbacks = {},
             disabledOptions = [],
@@ -182,7 +189,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             isOverflowMenu = false,
             withoutOverlay = true,
         } = showContextMenuParams;
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
+        if (ReportActionComposeFocusManager.isFocused()) {
+            setComposerToRefocusOnClose('main');
+        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+            setComposerToRefocusOnClose('edit');
+        }
+
+        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
@@ -275,17 +288,24 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
-        if (typeof onHideActionCallback === 'function') {
-            onPopoverHideActionCallback.current = onHideActionCallback;
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
         }
+
+        selectionRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
+        setIsPopoverVisible(false);
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: Actions.CLOSE_POPOVER,
         });
-        selectionRef.current = '';
-        reportActionDraftMessageRef.current = undefined;
-        setIsPopoverVisible(false);
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
+            setComposerToRefocusOnClose(undefined);
+        });
     };
 
     const transactionIDs: string[] = [];
@@ -297,6 +317,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {currentSearchHash} = useSearchContext();
+    const {deleteTransactions} = useDeleteTransactions({
+        report,
+        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
+        policy,
+    });
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
@@ -304,13 +334,26 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, isReportArchived);
-            } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    chatReport: report,
+                    transactionID: originalMessage?.IOUTransactionID,
+                    reportAction,
+                    iouReport,
+                    chatIOUReport: chatReport,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
+                    isSingleTransactionView: undefined,
+                    isChatReportArchived: isReportArchived,
+                    isChatIOUReportArchived,
+                });
+            } else if (originalMessage?.IOUTransactionID) {
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
         } else if (reportAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
             });
@@ -318,7 +361,18 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived]);
+    }, [
+        report,
+        iouReport,
+        chatReport,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        isReportArchived,
+        isChatIOUReportArchived,
+        deleteTransactions,
+        currentSearchHash,
+        isOriginalReportArchived,
+    ]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -353,6 +407,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         clearActiveReportAction,
         contentRef,
         isContextMenuOpening,
+        composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
     const reportAction = reportActionRef.current;
@@ -361,7 +416,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         <>
             <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                onClose={hideContextMenu}
+                onClose={() => hideContextMenu()}
                 onModalShow={runAndResetOnPopoverShow}
                 onModalHide={runAndResetOnPopoverHide}
                 anchorPosition={popoverAnchorPosition.current}

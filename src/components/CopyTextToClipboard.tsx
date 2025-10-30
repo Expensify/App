@@ -40,13 +40,13 @@ function CopyTextToClipboard({
     return (
         <PressableWithDelayToggle
             text={text}
-            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-            tooltipTextChecked={translate('reportActionContextMenu.copied')}
+            tooltipText={translate('common.copyToClipboard')}
+            tooltipTextChecked={translate('common.copied')}
             icon={Expensicons.Copy}
             textStyles={textStyles}
             onPress={copyToClipboard}
             accessible
-            accessibilityLabel={translate('reportActionContextMenu.copyToClipboard')}
+            accessibilityLabel={translate('common.copyToClipboard')}
             accessibilityRole={accessibilityRole}
             shouldHaveActiveBackground={shouldHaveActiveBackground}
             iconWidth={iconWidth}

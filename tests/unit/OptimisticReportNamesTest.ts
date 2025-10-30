@@ -3,6 +3,7 @@ import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
@@ -22,6 +23,12 @@ const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 describe('OptimisticReportNames', () => {
     const mockPolicy = {
         id: 'policy1',
+        fieldList: {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                defaultValue: '{report:type} - {report:total}',
+            },
+        },
     } as unknown as Policy;
 
     const mockReport = {
@@ -35,7 +42,7 @@ describe('OptimisticReportNames', () => {
     } as Report;
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
         betaConfiguration: {},
         allReports: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -79,6 +86,7 @@ describe('OptimisticReportNames', () => {
                         private_isArchived: '',
                     },
                 },
+                allPolicies: {},
             };
             const result = shouldComputeReportName(mockReport, context);
             expect(result).toBe(false);
@@ -130,7 +138,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('updateOptimisticReportNamesFromUpdates()', () => {
-        test.skip('should detect new report creation and add name update', () => {
+        test('should detect new report creation and add name update', () => {
             const updates = [
                 {
                     key: 'report_456' as OnyxKey,
@@ -178,6 +186,18 @@ describe('OptimisticReportNames', () => {
                     report_456: {...mockReport, reportID: '456'},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     report_789: {...mockReport, reportID: '789'},
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Policy: {report:policyname}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allReportNameValuePairs: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -379,6 +399,18 @@ describe('OptimisticReportNames', () => {
                             defaultValue: 'Report from {report:startdate}',
                         },
                     } as unknown as ReportNameValuePairs,
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Report from {report:startdate}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allTransactions: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
