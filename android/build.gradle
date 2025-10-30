@@ -1,16 +1,16 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "36.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 35
-        targetSdkVersion = 35
+        compileSdkVersion = 36
+        targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
 
         androidXCore = "1.0.2"
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
-        kotlinVersion = "2.0.21"
+        kotlinVersion = "2.1.20"
 
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
@@ -58,12 +58,12 @@ allprojects {
         if (!patchedArtifactsConfig.buildFromSource) {
             maven {
                 url "https://maven.pkg.github.com/Expensify/App"
-                
+
                 credentials {
                     username = patchedArtifactsConfig.githubUsername
                     password = patchedArtifactsConfig.githubToken
                 }
-            } 
+            }
         }
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
