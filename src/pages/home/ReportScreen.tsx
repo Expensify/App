@@ -959,7 +959,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             )}
                             {/* TODO: REMOVE BEFORE MERGING, ONLY FOR TESTING  */}
                             <Button
-                                text="Send setry"
+                                text="Send sentry test error"
                                 onPress={() => {
                                     Sentry.captureException(new Error('First error with Source maps'));
                                 }}
