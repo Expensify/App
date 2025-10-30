@@ -2,11 +2,11 @@
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 
 /* eslint-disable rulesdir/no-api-in-views */
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
@@ -85,7 +85,8 @@ const Log = new Logger({
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
-const appGroupName = CONFIG.IS_HYBRID_APP ? 'group.com.expensify' : 'group.com.expensify.new';
+// eslint-disable-next-line no-restricted-properties
+const appGroupName = HybridAppModule.isHybridApp() ? 'group.com.expensify' : 'group.com.expensify.new';
 AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
