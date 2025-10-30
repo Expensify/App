@@ -1,8 +1,8 @@
+import {translateLocal} from 'tests/utils/TestHelper';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
-import { translateLocal } from 'tests/utils/TestHelper';
 
 describe('UserUtils', () => {
     it('should return default avatar if the url is for default avatar', () => {
