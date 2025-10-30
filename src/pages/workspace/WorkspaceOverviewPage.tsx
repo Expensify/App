@@ -266,23 +266,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isLoadingBill]);
 
     useEffect(() => {
-        if (!shouldShowPolicy(policy, isOffline, session?.email)) {
-            return;
-        }
-
-        if (policy?.employeeList && session?.email && policy?.employeeList?.[session?.email]) {
-            const employee = policy?.employeeList[session.email];
-
-            if (employee.errors && employee.pendingAction === 'delete') {
-                const hasApprovalError = Object.values(employee.errors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
-                if (hasApprovalError) {
-                    setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(true);
-                    // Clear the error after showing the modal to prevent it from triggering again
-                    removePendingApproverMemberErrorMessage(policy?.id, employee.errors);
-                }
-            }
-        }
-
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
