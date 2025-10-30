@@ -1154,7 +1154,7 @@ function processReport(
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
 } {
-    if (!report) {
+    if (!report?.reportID) {
         return {reportOption: null};
     }
 
