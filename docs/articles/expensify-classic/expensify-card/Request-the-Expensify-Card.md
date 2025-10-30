@@ -1,7 +1,7 @@
 ---
 title: Request the Expensify Card
 description: Learn how to request, activate, and manage the Expensify Card, including virtual card setup, replacement procedures, and eligibility requirements.
-keywords: [Expensify Classic, Expensify Card, request a card, new card]
+keywords: [Expensify Classic, Expensify Card, request a card, new card, activate, virtual card, replace card, lost card, update address]
 ---
 
 This guide provides details on how you and your employees can request and use the Expensify Card.
