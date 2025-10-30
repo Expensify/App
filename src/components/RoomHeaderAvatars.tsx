@@ -1,13 +1,11 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyMember} from '@libs/PolicyUtils';
-import {isAuditor, isReportParticipant, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -23,9 +21,10 @@ type RoomHeaderAvatarsProps = {
     icons: Icon[];
     report: Report;
     policy: OnyxEntry<Policy>;
+    participants: number[];
 };
 
-function RoomHeaderAvatars({icons, report, policy}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -39,13 +38,8 @@ function RoomHeaderAvatars({icons, report, policy}: RoomHeaderAvatarsProps) {
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const canEditRoomAvatar =
-        isUserCreatedPolicyRoom(report) &&
-        isPolicyMember(policy, currentUserPersonalDetails?.login) &&
-        isReportParticipant(currentUserPersonalDetails?.accountID, report) &&
-        !isAuditor(report);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
         return null;

@@ -599,6 +599,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         icons={icons}
                         report={report}
                         policy={policy}
+                        participants={participants}
                     />
                 </View>
             );
