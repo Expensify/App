@@ -7,6 +7,10 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+// Default test user identifiers used when specific tests don't declare their own
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
@@ -369,7 +373,6 @@ describe('actions/IOU', () => {
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
         });
     });
-
     describe('trackExpense', () => {
         it('category a distance expense of selfDM report', async () => {
             /*
@@ -828,7 +831,6 @@ describe('actions/IOU', () => {
             expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
         });
     });
-
     describe('requestMoney', () => {
         it('creates new chat if needed', () => {
             const amount = 10000;
@@ -857,6 +859,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1104,6 +1110,10 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
+                        currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                        currentUserEmailParam: TEST_USER_LOGIN,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1324,6 +1334,10 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1450,7 +1464,6 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
-
         it('correctly implements RedBrickRoad error handling', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
@@ -1478,6 +1491,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             return (
                 waitForBatchedUpdates()
@@ -1963,6 +1980,10 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1984,6 +2005,10 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2023,6 +2048,10 @@ describe('actions/IOU', () => {
                     reimbursable: true,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2056,6 +2085,10 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2088,6 +2121,10 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2105,11 +2142,14 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
     });
-
     describe('split expense', () => {
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
@@ -2832,7 +2872,6 @@ describe('actions/IOU', () => {
             expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
         });
     });
-
     describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
@@ -2918,6 +2957,10 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 firstIOU: iouAction,
                 isNewDotRevertSplitsEnabled: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3021,6 +3064,10 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 firstIOU: undefined,
                 isNewDotRevertSplitsEnabled: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3140,6 +3187,10 @@ describe('actions/IOU', () => {
                 chatReport,
                 firstIOU: undefined,
                 isNewDotRevertSplitsEnabled: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3184,6 +3235,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -3411,7 +3466,7 @@ describe('actions/IOU', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
                             },
                             transactionParams: {
                                 amount,
@@ -3422,6 +3477,10 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3544,7 +3603,7 @@ describe('actions/IOU', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
                             },
                             transactionParams: {
                                 amount,
@@ -3555,6 +3614,10 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3598,7 +3661,6 @@ describe('actions/IOU', () => {
                 );
         });
     });
-
     describe('payMoneyRequest', () => {
         it('should apply optimistic data correctly', async () => {
             // Given an outstanding IOU report
@@ -3780,6 +3842,10 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3880,6 +3946,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -4101,6 +4171,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -4350,7 +4424,6 @@ describe('actions/IOU', () => {
 
             expect(report?.reportID).toBeFalsy();
         });
-
         it('does not delete the transaction thread if there are visible comments in the thread', async () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
@@ -4629,6 +4702,10 @@ describe('actions/IOU', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                        currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                        currentUserEmailParam: TEST_USER_LOGIN,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
                 });
             }
 
@@ -4688,6 +4765,10 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -4868,7 +4949,6 @@ describe('actions/IOU', () => {
             expect(report?.unheldNonReimbursableTotal).toBe(10);
         });
     });
-
     describe('submitReport', () => {
         it('correctly submits a report', () => {
             const amount = 10000;
@@ -4923,6 +5003,10 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5039,6 +5123,10 @@ describe('actions/IOU', () => {
                                 reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5220,6 +5308,10 @@ describe('actions/IOU', () => {
                                 reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                            currentUserEmailParam: TEST_USER_LOGIN,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5630,7 +5722,6 @@ describe('actions/IOU', () => {
                 });
         });
     });
-
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
             // Mock API.write for this test
@@ -6160,6 +6251,10 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: '1',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -6226,7 +6321,6 @@ describe('actions/IOU', () => {
             });
         });
     });
-
     describe('canApproveIOU', () => {
         it('should return false if we have only pending card transactions', async () => {
             const policyID = '2';
@@ -6875,7 +6969,7 @@ describe('actions/IOU', () => {
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
                         payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
                     },
                     transactionParams: {
                         amount,
@@ -6886,6 +6980,10 @@ describe('actions/IOU', () => {
                         comment,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -6960,7 +7058,7 @@ describe('actions/IOU', () => {
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
                         payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
                     },
                     transactionParams: {
                         amount,
@@ -6971,6 +7069,10 @@ describe('actions/IOU', () => {
                         comment,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -7007,7 +7109,6 @@ describe('actions/IOU', () => {
             });
         });
     });
-
     describe('initSplitExpense', () => {
         it('should initialize split expense with correct transaction details', async () => {
             const transaction: Transaction = {
@@ -7434,7 +7535,6 @@ describe('actions/IOU', () => {
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
         });
     });
-
     describe('changeTransactionsReport', () => {
         it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
             let personalDetailsList: OnyxEntry<PersonalDetailsList>;
@@ -7603,6 +7703,10 @@ describe('actions/IOU', () => {
                         comment: '*hey* `hey`',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -7697,6 +7801,10 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -7746,6 +7854,10 @@ describe('actions/IOU', () => {
                         comment: '*hey* `hey`',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -7840,6 +7952,10 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8194,7 +8310,6 @@ describe('actions/IOU', () => {
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.MERGE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
     });
-
     describe('resolveDuplicates', () => {
         let writeSpy: jest.SpyInstance;
 
@@ -8593,6 +8708,10 @@ describe('actions/IOU', () => {
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify the result structure and key values
@@ -8719,6 +8838,10 @@ describe('actions/IOU', () => {
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify the result uses existing chat report
@@ -8799,6 +8922,10 @@ describe('actions/IOU', () => {
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify policy expense chat handling
@@ -8810,7 +8937,6 @@ describe('actions/IOU', () => {
             expect(result.reimbursable).toBe(true);
         });
     });
-
     describe('getSendInvoiceInformation', () => {
         it('should return correct invoice information with new chat report', () => {
             // Given: Mock transaction data
