@@ -74,6 +74,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         loginDataRef.current = loginList?.[contactMethod];
         return loginList?.[contactMethod];
     }, [loginList, contactMethod]);
