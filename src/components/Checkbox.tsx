@@ -58,6 +58,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
     /** Additional styles to add to checkbox wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Used to locate this view in end-to-end tests. */
+    testID?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
@@ -79,6 +82,7 @@ function Checkbox({
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
+    testID,
     ref,
 }: CheckboxProps) {
     const theme = useTheme();
@@ -111,6 +115,7 @@ function Checkbox({
 
     return (
         <PressableWithFeedback
+            testID={testID}
             disabled={disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={(e) => {
