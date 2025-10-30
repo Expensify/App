@@ -2613,6 +2613,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report)) {
+        console.log('not money request');
         return false;
     }
 
@@ -2624,6 +2625,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
+        return true;
         return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
     }
 

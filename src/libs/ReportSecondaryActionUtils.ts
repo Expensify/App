@@ -558,19 +558,26 @@ function isMergeActionFromReportView(transactionIDs: string[], searchResults: On
     const reports = [searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transactions[0]?.reportID}`], searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transactions[1]?.reportID}`]];
     const policies = [searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${reports[0]?.policyID}`], searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${reports[1]?.policyID}`]];
 
+    console.log('t', transactions);
+    console.log('r', reports);
+    console.log('p', policies);
+
     // If one of the reports is not in an editable state by the current user prevent merging
     if (
-        reports.filter((report) => {
+        reports.find((report) => {
             if (!report) {
+                console.log('no report');
                 return true;
             }
             const policy = policies.find((p) => p?.id === report?.policyID);
             if (!policy) {
+                console.log('no policy');
                 return true;
             }
             return !isMoneyRequestReportEligibleForMerge(report, policy.role === CONST.POLICY.ROLE.ADMIN);
         })
     ) {
+        console.log('hope here');
         return false;
     }
 
@@ -578,7 +585,7 @@ function isMergeActionFromReportView(transactionIDs: string[], searchResults: On
         return false;
     }
 
-    if (areTransactionsEligibleForMerge(transactions[0], transactions[1])) {
+    if (!areTransactionsEligibleForMerge(transactions[0], transactions[1])) {
         return false;
     }
 
