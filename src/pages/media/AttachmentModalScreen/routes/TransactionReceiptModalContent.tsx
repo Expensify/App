@@ -159,7 +159,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     text: translate('common.replace'),
                     onSelected: () => {
                         Navigation.dismissModal();
-                        InteractionManager.runAfterInteractions(() => {
+                        requestIdleCallback(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                     action ?? CONST.IOU.ACTION.EDIT,
