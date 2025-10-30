@@ -2,7 +2,7 @@
 
 name: code-inline-reviewer
 description: Reviews code and creates inline comments for specific rule violations.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 
@@ -249,7 +249,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 6. **Each comment must reference exactly one Rule ID.**
 7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
 8. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
-   LGTM :feelsgood:. Thank you for your hard work!
+   LGTM 👍 Thank you for your hard work!
 9. **Output LGTM if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules

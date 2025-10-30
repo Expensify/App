@@ -1,7 +1,7 @@
 ---
 name: helpdot-inline-reviewer
 description: Reviews HelpDot documentation files and creates inline comments for specific rule violations and issues.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 

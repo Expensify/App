@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -152,15 +152,9 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );
