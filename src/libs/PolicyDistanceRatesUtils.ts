@@ -7,6 +7,7 @@ import type {CustomUnit, Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
@@ -23,8 +24,10 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors.rate = translateLocal('common.error.invalidRateError');
     } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors.rate = translateLocal('common.error.lowRateError');
     }
     return errors;
@@ -34,6 +37,7 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
     if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors.taxClaimableValue = translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;

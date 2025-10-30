@@ -9,6 +9,7 @@ type ImportPlaidAccountsParams = {
     plaidAccounts: string;
     statementPeriodEnd?: StatementPeriodEnd;
     statementPeriodEndDay?: StatementPeriodEndDay;
+    plaidAccessToken?: string;
 };
 
 export default ImportPlaidAccountsParams;

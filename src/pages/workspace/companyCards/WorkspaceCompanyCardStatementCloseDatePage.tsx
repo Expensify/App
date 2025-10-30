@@ -60,8 +60,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
+    }, [policyID]);
 
     const clearError = useCallback(() => {
         if (!selectedFeed) {

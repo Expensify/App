@@ -34,6 +34,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isChecked={isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
+                isIndeterminate={item.isIndeterminate}
             />
         );
     }, [isSelected, item, onSelectRow]);
@@ -53,7 +54,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={[wrapperStyle, isAlternateTextMultilineSupported ? styles.optionRowWithPadding : styles.optionRowCompact]}
             titleStyles={titleStyles}
         />
     );

@@ -69,6 +69,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                         [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                     },
                     policyID,
+                    lastPaymentMethod?.[policyID],
                 );
             } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
                 connectBankAccountWithPlaid(

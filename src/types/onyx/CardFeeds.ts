@@ -61,6 +61,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
+    country?: string;
+
     /** The id of the domain the feed relates to */
     domainID?: number;
 
@@ -77,6 +80,11 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
@@ -109,6 +117,11 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Card feed data */

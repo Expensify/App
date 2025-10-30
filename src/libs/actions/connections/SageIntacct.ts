@@ -139,7 +139,10 @@ function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CON
     }
 }
 
-function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
+function updateSageIntacctMappingValue(policyID: string | undefined, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
+    if (!policyID) {
+        return;
+    }
     const command = getCommandForMapping(mappingName);
     if (!command) {
         return;

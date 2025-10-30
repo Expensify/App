@@ -5,7 +5,7 @@ import type GetHighResolutionInfoWrapperStyle from './types';
 const getHighResolutionInfoWrapperStyle: GetHighResolutionInfoWrapperStyle = (isUploaded) => ({
     ...spacing.ph5,
     ...spacing.pt5,
-    ...(isUploaded ? spacing.pb5 : spacing.mbn1),
+    ...(isUploaded ? spacing.pb5 : spacing.pb1),
 });
 
 export default getHighResolutionInfoWrapperStyle;

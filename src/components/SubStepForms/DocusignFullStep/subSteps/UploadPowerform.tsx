@@ -11,11 +11,11 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type UploadPowerformProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** Default value for file upload input */

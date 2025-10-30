@@ -33,7 +33,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
         // If on AttachmentModal, only play when the source parameters match videoUrl ensures correct play VideoPlayer share for this one
         const currentRoute = navigationRef.getCurrentRoute();
         if (
-            currentRoute?.name === SCREENS.ATTACHMENTS &&
+            currentRoute?.name === SCREENS.REPORT_ATTACHMENTS &&
             currentRoute?.params &&
             'source' in currentRoute.params &&
             currentRoute.params.source === videoUrl &&
@@ -57,7 +57,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
             const route = navigationRef.getCurrentRoute();
             // If the app is launched with the attachment route, it will always remain on the report screen.
             // Thus, it can be considered as still being on the rendered route.
-            isOnInitialRenderedRouteRef.current = navigation.isFocused() || route?.name === SCREENS.ATTACHMENTS;
+            isOnInitialRenderedRouteRef.current = navigation.isFocused() || route?.name === SCREENS.REPORT_ATTACHMENTS;
         });
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +71,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
         const unsubscribeBlur = navigation.addListener('blur', () => {
             const route = navigationRef.getCurrentRoute();
 
-            if (route?.name === SCREENS.ATTACHMENTS) {
+            if (route?.name === SCREENS.REPORT_ATTACHMENTS) {
                 // Skip route update when attachment modal is opened
                 return;
             }

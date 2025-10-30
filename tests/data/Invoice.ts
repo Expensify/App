@@ -197,7 +197,6 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
     transactionID: '1',
     isFromGlobalCreate: true,
     merchant: '(none)',
-    splitPayerAccountIDs: [32],
     shouldShowOriginalAmount: true,
     participants: [
         {

@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type BeneficialOwnerValues = {
     firstName: string;

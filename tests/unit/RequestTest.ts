@@ -17,9 +17,9 @@ const request: OnyxTypes.Request = {
     data: {authToken: 'testToken'},
 };
 
-test('Request.use() can register a middleware and it will run', () => {
+test('Request.addMiddleware() can register a middleware and it will run', () => {
     const testMiddleware = jest.fn<Middleware, Parameters<Middleware>>();
-    Request.use(testMiddleware as unknown as Middleware);
+    Request.addMiddleware(testMiddleware as unknown as Middleware);
 
     Request.processWithMiddleware(request, true);
     return waitForBatchedUpdates().then(() => {
@@ -35,7 +35,7 @@ test('Request.use() can register a middleware and it will run', () => {
     });
 });
 
-test('Request.use() can register two middlewares. They can pass a response to the next and throw errors', () => {
+test('Request.addMiddleware() can register two middlewares. They can pass a response to the next and throw errors', () => {
     // Given an initial middleware that returns a promise with a resolved value
     const testMiddleware = jest.fn().mockResolvedValue({
         jsonCode: 404,
@@ -54,8 +54,8 @@ test('Request.use() can register two middlewares. They can pass a response to th
                 }),
         );
 
-    Request.use(testMiddleware);
-    Request.use(errorThrowingMiddleware);
+    Request.addMiddleware(testMiddleware);
+    Request.addMiddleware(errorThrowingMiddleware);
 
     const catchHandler = jest.fn();
     Request.processWithMiddleware(request).catch(catchHandler);

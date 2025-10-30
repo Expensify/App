@@ -9,7 +9,6 @@ import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -25,6 +24,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -62,7 +62,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -104,11 +104,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
+
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
+    const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -208,9 +210,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight);
+            setPolicyTagsRequired({policyID, requiresTag: value, tagListIndex: orderWeight, policyTags});
         },
-        [policyID],
+        [policyID, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -234,10 +236,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: policyTagList.required,
                     isDisabledCheckbox: isSwitchDisabled,
                     rightElement: hasDependentTags ? (
-                        <ListItemRightCaretWithLabel
-                            labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
-                            shouldShowCaret
-                        />
+                        <ListItemRightCaretWithLabel labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})} />
                     ) : (
                         <Switch
                             isOn={isSwitchEnabled}
@@ -285,10 +284,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
-        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
-        const tagValue = StringUtils.normalize(tag.value?.toLowerCase() ?? '');
-        const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
-        return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
+        const results = tokenizedSearch([tag], searchInput, (option) => [option.text ?? '', option.value ?? '']);
+        return results.length > 0;
     }, []);
     const sortTags = useCallback(
         (tags: TagListItem[]) => {
@@ -333,7 +330,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     canSelectMultiple={false}
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
-                    rightHeaderMinimumWidth={120}
+                    shouldShowRightCaret
                 />
             );
         }
@@ -343,6 +340,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -373,7 +371,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -667,7 +665,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                 >
                     <HeaderWithBackButton
-                        icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                        icon={!selectionModeHeader ? illustrations.Tag : undefined}
                         shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
@@ -718,6 +716,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
+                            shouldShowRightCaret
                         />
                     )}
                     {!hasVisibleTags && !isLoading && (

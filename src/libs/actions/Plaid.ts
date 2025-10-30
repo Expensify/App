@@ -126,6 +126,7 @@ function importPlaidAccounts(
     plaidAccounts: string,
     statementPeriodEnd: StatementPeriodEnd | undefined,
     statementPeriodEndDay: StatementPeriodEndDay | undefined,
+    plaidAccessToken: string | undefined,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -136,6 +137,7 @@ function importPlaidAccounts(
         plaidAccounts,
         statementPeriodEnd,
         statementPeriodEndDay,
+        plaidAccessToken,
     };
 
     API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);

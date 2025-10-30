@@ -1,6 +1,6 @@
-import React, {useMemo} from 'react';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import React from 'react';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
@@ -31,25 +31,22 @@ type ReportFieldTypePickerProps = {
 function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldTypePickerProps) {
     const {translate} = useLocalize();
 
-    const typeSections = useMemo(() => {
-        const data = Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
-            keyForList: reportFieldType,
-            value: reportFieldType,
-            isSelected: defaultValue === reportFieldType,
-            text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
-            alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
-        }));
-
-        return [{data}];
-    }, [defaultValue, translate]);
+    const typeOptions = Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
+        keyForList: reportFieldType,
+        value: reportFieldType,
+        isSelected: defaultValue === reportFieldType,
+        text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
+        alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
+    }));
+    const selectedOption = typeOptions.find((reportField) => reportField.isSelected)?.keyForList;
 
     return (
         <SelectionList
-            sections={typeSections}
+            data={typeOptions}
             ListItem={RadioListItem}
             onSelectRow={onOptionSelected}
             addBottomSafeAreaPadding
-            initiallyFocusedOptionKey={typeSections.at(0)?.data?.find((reportField) => reportField.isSelected)?.keyForList}
+            initiallyFocusedItemKey={selectedOption}
         />
     );
 }

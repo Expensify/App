@@ -1,5 +1,5 @@
 import type {ImageSourcePropType} from 'react-native';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type OnFileRead = (source: string, file: FileObject, filename: string) => void;
 

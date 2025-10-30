@@ -23,6 +23,12 @@ const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 describe('OptimisticReportNames', () => {
     const mockPolicy = {
         id: 'policy1',
+        fieldList: {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                defaultValue: '{report:type} - {report:total}',
+            },
+        },
     } as unknown as Policy;
 
     const mockReport = {
@@ -80,6 +86,7 @@ describe('OptimisticReportNames', () => {
                         private_isArchived: '',
                     },
                 },
+                allPolicies: {},
             };
             const result = shouldComputeReportName(mockReport, context);
             expect(result).toBe(false);
@@ -131,7 +138,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('updateOptimisticReportNamesFromUpdates()', () => {
-        test.skip('should detect new report creation and add name update', () => {
+        test('should detect new report creation and add name update', () => {
             const updates = [
                 {
                     key: 'report_456' as OnyxKey,
@@ -179,6 +186,18 @@ describe('OptimisticReportNames', () => {
                     report_456: {...mockReport, reportID: '456'},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     report_789: {...mockReport, reportID: '789'},
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Policy: {report:policyname}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allReportNameValuePairs: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -380,6 +399,18 @@ describe('OptimisticReportNames', () => {
                             defaultValue: 'Report from {report:startdate}',
                         },
                     } as unknown as ReportNameValuePairs,
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Report from {report:startdate}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allTransactions: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention

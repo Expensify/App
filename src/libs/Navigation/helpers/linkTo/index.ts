@@ -50,7 +50,7 @@ function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): acti
 }
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
-    return focusedRouteName === SCREENS.ATTACHMENTS;
+    return focusedRouteName === SCREENS.REPORT_ATTACHMENTS;
 }
 
 function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {

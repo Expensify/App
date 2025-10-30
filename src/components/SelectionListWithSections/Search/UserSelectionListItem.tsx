@@ -87,7 +87,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
                             source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.SMALL}
+                            size={CONST.AVATAR_SIZE.SMALLER}
                             name={item.icons.at(0)?.name}
                             avatarID={item.icons.at(0)?.id}
                             type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
@@ -117,7 +117,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={isDisabled || item.isDisabledCheckbox}
                     onPress={handleCheckboxPress}
-                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !!item.rightElement && styles.mr3]}
                 >
                     <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                         {!!item.isSelected && (

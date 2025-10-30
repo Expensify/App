@@ -40,9 +40,7 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
 
-type ColumnComponents = {
-    [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
-};
+type ColumnComponents = Record<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>, React.ReactElement>;
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
@@ -80,6 +78,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** Report to which the transaction belongs */
+    report?: Report;
 };
 
 type TransactionItemRowProps = {
@@ -397,7 +398,10 @@ function TransactionItemRow({
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}>
+            <View
+                style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}
+                testID="transaction-item-row"
+            >
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
                         <Checkbox

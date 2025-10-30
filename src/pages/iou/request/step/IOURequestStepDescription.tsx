@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -64,6 +65,7 @@ function IOURequestStepDescription({
 
     const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     /**
      * @returns - An object containing the errors for each inputID
@@ -109,7 +111,7 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
             navigateBack();
             return;
         }
@@ -171,7 +173,7 @@ function IOURequestStepDescription({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });

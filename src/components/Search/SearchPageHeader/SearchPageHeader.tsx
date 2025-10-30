@@ -1,7 +1,8 @@
 import React from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import type CONST from '@src/CONST';
@@ -16,6 +17,10 @@ type SearchPageHeaderProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     handleSearch: (value: string) => void;
     isMobileSelectionModeEnabled: boolean;
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -28,6 +33,10 @@ function SearchPageHeader({
     headerButtonsOptions,
     handleSearch,
     isMobileSelectionModeEnabled,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    confirmPayment,
+    latestBankItems,
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
@@ -39,6 +48,10 @@ function SearchPageHeader({
             <SearchSelectedNarrow
                 options={headerButtonsOptions}
                 itemsLength={selectedTransactionsKeys.length}
+                currentSelectedPolicyID={currentSelectedPolicyID}
+                currentSelectedReportID={currentSelectedReportID}
+                confirmPayment={confirmPayment}
+                latestBankItems={latestBankItems}
             />
         );
     }

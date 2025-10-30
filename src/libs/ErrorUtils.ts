@@ -6,6 +6,7 @@ import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} fro
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
@@ -42,6 +43,7 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 

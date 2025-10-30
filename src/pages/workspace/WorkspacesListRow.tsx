@@ -81,6 +81,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -128,6 +131,7 @@ function WorkspacesListRow({
     isDefault,
     isLoadingBill,
     resetLoadingSpinnerIconIndex,
+    isHovered,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,7 +168,7 @@ function WorkspacesListRow({
 
     const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
@@ -230,7 +234,7 @@ function WorkspacesListRow({
                             <TextWithTooltip
                                 text={title}
                                 shouldShowTooltip
-                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             />
                         </View>
                         {isNarrow && ThreeDotMenuOrPendingIcon}
@@ -252,7 +256,7 @@ function WorkspacesListRow({
                                     />
                                     <Text
                                         numberOfLines={1}
-                                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                     >
                                         {Str.removeSMSDomain(ownerDetails?.login ?? '')}
                                     </Text>
@@ -271,14 +275,14 @@ function WorkspacesListRow({
                             {!!workspaceType && (
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
                                     {getUserFriendlyWorkspaceType(workspaceType)}
                                 </Text>
                             )}
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             >
                                 {translate('workspace.common.plan')}
                             </Text>
@@ -287,6 +291,17 @@ function WorkspacesListRow({
                 </View>
 
                 {!isNarrow && ThreeDotMenuOrPendingIcon}
+                {!isNarrow && (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                            isButtonIcon
+                            medium
+                        />
+                    </View>
+                )}
             </Animated.View>
         </View>
     );

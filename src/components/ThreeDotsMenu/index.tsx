@@ -2,13 +2,13 @@ import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, use
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -24,7 +24,7 @@ import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
-    icon = Expensicons.ThreeDots,
+    icon,
     iconFill,
     iconStyles,
     onIconPress = () => {},
@@ -54,6 +54,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -153,7 +154,7 @@ function ThreeDotsMenu({
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
-                            src={icon}
+                            src={icon ?? expensifyIcons.ThreeDots}
                             fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>

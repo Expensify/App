@@ -22,17 +22,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => '/'),
 }));
 
-jest.mock('expo-av', () => {
-    const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...jest.requireActual('expo-av'),
-        Video: class extends View {
-            setStatusAsync = jest.fn().mockResolvedValue(undefined);
-        },
-    };
-});
-
 jest.mock('@components/ImageSVG', () => {
     const {View} = require<typeof ReactNative>('react-native');
     // eslint-disable-next-line react/jsx-props-no-spreading

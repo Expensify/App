@@ -1,6 +1,6 @@
 # `react-native-web` patches
 
-### [react-native-web+0.20.0+001+initial.patch](react-native-web+0.20.0+001+initial.patch)
+### [react-native-web+0.21.2+001+initial.patch](react-native-web+0.21.2+001+initial.patch)
 
 - Reason:
   
@@ -12,7 +12,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/24482
 
-### [react-native-web+0.20.0+002+fixLastSpacer.patch](react-native-web+0.20.0+002+fixLastSpacer.patch)
+### [react-native-web+0.21.2+002+fixLastSpacer.patch](react-native-web+0.21.2+002+fixLastSpacer.patch)
 
 - Reason:
   
@@ -24,7 +24,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/32843
 
-### [react-native-web+0.20.0+003+image-header-support.patch](react-native-web+0.20.0+003+image-header-support.patch)
+### [react-native-web+0.21.2+003+image-header-support.patch](react-native-web+0.21.2+003+image-header-support.patch)
 
 - Reason:
   
@@ -36,7 +36,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/13036
 
-### [react-native-web+0.20.0+004+fixPointerEventDown.patch](react-native-web+0.20.0+004+fixPointerEventDown.patch)
+### [react-native-web+0.21.2+004+fixPointerEventDown.patch](react-native-web+0.21.2+004+fixPointerEventDown.patch)
 
 - Reason:
   
@@ -48,7 +48,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/38494
 
-### [react-native-web+0.20.0+005+osr-improvement.patch](react-native-web+0.20.0+005+osr-improvement.patch)
+### [react-native-web+0.21.2+005+osr-improvement.patch](react-native-web+0.21.2+005+osr-improvement.patch)
 
 - Reason:
   
@@ -60,7 +60,7 @@
 - E/App issue: 🛑
 - PR introducing patch: 
 
-### [react-native-web+0.20.0+006+remove-focus-trap-from-modal.patch](react-native-web+0.20.0+006+remove-focus-trap-from-modal.patch)
+### [react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch](react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch)
 
 - Reason:
   
@@ -72,7 +72,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/39520
 
-### [react-native-web+0.20.0+007+fix-scrollable-overflown-text.patch](react-native-web+0.20.0+007+fix-scrollable-overflown-text.patch)
+### [react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch](react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch)
 
 - Reason:
   
@@ -84,7 +84,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/47532
 
-### [react-native-web+0.20.0+008+fix-nested-flatlist-scroll-on-web.patch](react-native-web+0.20.0+008+fix-nested-flatlist-scroll-on-web.patch)
+### [react-native-web+0.21.2+008+fix-nested-flatlist-scroll-on-web.patch](react-native-web+0.21.2+008+fix-nested-flatlist-scroll-on-web.patch)
 
 - Reason:
   
@@ -96,7 +96,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60174
 
-### [react-native-web+0.20.0+009+fix-two-direction-scroll-on-web.patch](react-native-web+0.20.0+009+fix-two-direction-scroll-on-web.patch)
+### [react-native-web+0.21.2+009+fix-two-direction-scroll-on-web.patch](react-native-web+0.21.2+009+fix-two-direction-scroll-on-web.patch)
 
 - Reason:
   
@@ -108,7 +108,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60340
 
-### [react-native-web+0.20.0+010+fullstory-support.patch](react-native-web+0.20.0+010+fullstory-support.patch)
+### [react-native-web+0.21.2+010+fullstory-support.patch](react-native-web+0.21.2+010+fullstory-support.patch)
 
 - Reason:
   
@@ -120,18 +120,7 @@
 - E/App issue: As explained above the current solution can't be applied to upstream because it's tailored to Fullstory needs.
 - PR introducing patch: https://github.com/Expensify/App/pull/67552
 
-### [react-native-web+0.20.0+011+fix-memory-leak.patch](react-native-web+0.20.0+011+fix-memory-leak.patch)
-- Reason:
-  
-    ```
-    Fixes memory leak on web caused by Animated API used in @react-navigation package
-    ```
-  
-- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2800
-- E/App issue: https://github.com/Expensify/App/issues/65820
-- PR introducing patch: https://github.com/Expensify/App/pull/68834
-
-### [react-native-web+0.20.0+012+fix-overscroll-recoil.patch](react-native-web+0.20.0+012+fix-overscroll-recoil.patch)
+### [react-native-web+0.21.2+011+fix-overscroll-recoil.patch](react-native-web+0.21.2+011+fix-overscroll-recoil.patch)
 
 - Reason:
   

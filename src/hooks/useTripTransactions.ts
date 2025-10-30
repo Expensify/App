@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useOnyx from './useOnyx';
 
@@ -16,11 +16,16 @@ import useOnyx from './useOnyx';
  * @returns Transactions linked to the specified trip room.
  */
 function useTripTransactions(reportID: string | undefined): Transaction[] {
-    const [tripTransactionReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) =>
+    const tripTransactionReportIDsSelector = useCallback(
+        (reports: OnyxCollection<Report>) =>
             Object.values(reports ?? {})
                 .filter((report) => report && report.chatReportID === reportID)
                 .map((report) => report?.reportID),
+        [reportID],
+    );
+
+    const [tripTransactionReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: tripTransactionReportIDsSelector,
         canBeMissing: true,
     });
 

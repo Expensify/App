@@ -1,9 +1,8 @@
-import {createRef} from 'react';
 import type {RefObject} from 'react';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ContinueActionParams} from '@components/KYCWall/types';
+import type {KYCWallRef} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -29,19 +28,10 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
-type KYCWallRef = {
-    continueAction?: (params: ContinueActionParams) => void;
-};
-
-/**
- * Sets up a ref to an instance of the KYC Wall component.
- */
-const kycWallRef: RefObject<KYCWallRef | null> = createRef<KYCWallRef>();
-
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute?: Route) {
+function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
@@ -583,7 +573,6 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
-    kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,

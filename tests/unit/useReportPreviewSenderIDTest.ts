@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
@@ -11,7 +11,7 @@ import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 import PropertyKeysOf = jest.PropertyKeysOf;
 
@@ -46,16 +46,20 @@ describe('useReportPreviewSenderID', () => {
     });
 
     beforeEach(() => {
-        Onyx.multiSet({
-            ...reportActionCollectionDataSet,
-            ...transactionCollectionDataSet,
+        return act(async () => {
+            await Onyx.multiSet({
+                ...reportActionCollectionDataSet,
+                ...transactionCollectionDataSet,
+            });
+            await waitForBatchedUpdatesWithAct();
         });
-        return waitForBatchedUpdates();
     });
 
     afterEach(() => {
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        return act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('returns avatar with no reportPreviewSenderID when action is not a report preview', async () => {
@@ -68,7 +72,7 @@ describe('useReportPreviewSenderID', () => {
                 }),
             {wrapper: OnyxListItemProvider},
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
     });
 
@@ -82,22 +86,24 @@ describe('useReportPreviewSenderID', () => {
                 }),
             {wrapper: OnyxListItemProvider},
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(iouReportR14932.managerID);
     });
 
     it('returns both avatars & no reportPreviewSenderID when there are multiple attendees', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
-            ...transactionR14932,
-            comment: {
-                attendees: [{email: personalDetails[15593135].login, displayName: 'Test One', avatarUrl: 'https://none.com/none'}],
-            },
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
-            ...transactionR14932,
-            comment: {
-                attendees: [{email: personalDetails[51760358].login, displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
-            },
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
+                ...transactionR14932,
+                comment: {
+                    attendees: [{email: personalDetails[15593135].login, displayName: 'Test One', avatarUrl: 'https://none.com/none'}],
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
+                ...transactionR14932,
+                comment: {
+                    attendees: [{email: personalDetails[51760358].login, displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
+                },
+            });
         });
         const {result} = renderHook(
             () =>
@@ -108,18 +114,20 @@ describe('useReportPreviewSenderID', () => {
                 }),
             {wrapper: OnyxListItemProvider},
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
     });
 
     it('returns both avatars & no reportPreviewSenderID when amounts have different signs', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
-            ...transactionR14932,
-            amount: 100,
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
-            ...transactionR14932,
-            amount: -100,
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
+                ...transactionR14932,
+                amount: 100,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
+                ...transactionR14932,
+                amount: -100,
+            });
         });
         const {result} = renderHook(
             () =>
@@ -130,7 +138,7 @@ describe('useReportPreviewSenderID', () => {
                 }),
             {wrapper: OnyxListItemProvider},
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(result.current).toBeUndefined();
     });
 
@@ -144,7 +152,7 @@ describe('useReportPreviewSenderID', () => {
                 }),
             {wrapper: OnyxListItemProvider},
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(iouReportR14932.ownerAccountID);
     });
 });

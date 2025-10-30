@@ -66,7 +66,7 @@ case "$BUILD" in
         npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose
         ;;
     *)
         print_error_and_exit

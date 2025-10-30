@@ -33,7 +33,7 @@ beforeEach(async () => {
 describe('Middleware', () => {
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -68,7 +68,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -117,7 +117,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'RequestMoney',
@@ -181,7 +181,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'MoveIOUReportToExistingPolicy',

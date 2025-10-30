@@ -107,7 +107,7 @@ function FormWrapper({
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
-        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
+        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
         if (!focusKey) {
             return;
@@ -228,7 +228,7 @@ function FormWrapper({
                     if (!shouldScrollToEnd) {
                         return;
                     }
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         requestAnimationFrame(() => {
                             formRef.current?.scrollToEnd({animated: true});

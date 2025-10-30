@@ -29,7 +29,20 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 - Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
 ### Production Build
-- To run the production web build: `npm run web:prod`
+To build and run the production web build locally:
+
+```bash
+# 1. Set USE_WEB_PROXY environment variable in .env.production
+USE_WEB_PROXY=true
+
+# 2. Build the production bundle
+npm run build
+
+# 3. Run the distribution server
+npm run web:dist
+```
+
+The `web:dist` command starts both the proxy server (port 9000) and web server (port 8080) concurrently. Access the application at **http://localhost:8080**
 
 ## Environment Variables
 

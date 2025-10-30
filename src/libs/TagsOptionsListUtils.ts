@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
@@ -143,6 +144,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translateLocal('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
@@ -151,6 +153,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translateLocal('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),

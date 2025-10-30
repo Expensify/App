@@ -34,6 +34,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
 
     const {params, routeName, currentState} = useRootNavigationState((rootState) => {
+        // Safe handling when navigation is not yet initialized
+        if (!rootState) {
+            return {
+                routeName: '' as Screen,
+                params: {} as Record<string, string>,
+                currentState: undefined,
+            };
+        }
+
         const focusedRoute = findFocusedRoute(rootState);
         setExpandedIndex(0);
         return {

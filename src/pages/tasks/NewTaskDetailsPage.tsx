@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamLis
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -71,17 +73,19 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
 
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
-            createTaskAndNavigate(
-                task?.parentReportID,
-                values.taskTitle,
-                values.taskDescription ?? '',
-                task?.assignee ?? '',
-                task.assigneeAccountID,
-                task.assigneeChatReport,
-                CONST.POLICY.OWNER_EMAIL_FAKE,
-                false,
+            createTaskAndNavigate({
+                parentReportID: task?.parentReportID,
+                title: values.taskTitle,
+                description: values.taskDescription ?? '',
+                assigneeEmail: task?.assignee ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
+                assigneeAccountID: task.assigneeAccountID,
+                assigneeChatReport: task.assigneeChatReport,
+                policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+                isCreatedUsingMarkdown: false,
                 quickAction,
-            );
+            });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }

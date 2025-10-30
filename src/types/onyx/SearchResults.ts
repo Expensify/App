@@ -547,9 +547,7 @@ type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
-type PrefixedRecord<Prefix extends string, ValueType> = {
-    [Key in `${Prefix}${string}`]: ValueType;
-};
+type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of search results */
 type SearchResults = {

@@ -49,15 +49,15 @@ function ReportFieldsInitialValuePage({
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (currentInitialValue !== values.initialValue) {
-                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+                updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue});
             }
             Navigation.goBack();
         },
-        [policyID, reportFieldID, currentInitialValue],
+        [currentInitialValue, policy, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
-        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
+        updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: currentInitialValue === value ? '' : value});
         Navigation.goBack();
     };
 
@@ -66,7 +66,7 @@ function ReportFieldsInitialValuePage({
             const {initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            if (formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
                     length: formInitialValue.length,
                     limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
@@ -121,7 +121,7 @@ function ReportFieldsInitialValuePage({
                         validate={validateForm}
                         style={styles.flex1}
                         enabledWhenOffline
-                        isSubmitButtonVisible={isTextFieldType}
+                        isSubmitButtonVisible
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >

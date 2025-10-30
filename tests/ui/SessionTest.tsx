@@ -19,6 +19,10 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('@libs/BootSplash', () => ({
+    hide: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
@@ -35,7 +39,7 @@ jest.setTimeout(60000);
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
-const report = createRandomReport(7);
+const report = createRandomReport(7, undefined);
 
 function getInitialURL() {
     const params = new URLSearchParams();

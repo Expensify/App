@@ -1,4 +1,4 @@
-import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -7,6 +7,8 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
+
+const MapViewImpl = lazy(() => import('./MapViewImpl.website'));
 
 function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
@@ -22,13 +24,6 @@ function MapView({ref, ...props}: MapViewProps) {
         }
         setErrorResetKey((key) => key + 1);
     }, [isOffline, wasOffline]);
-
-    // The only way to retry loading the module is to call `React.lazy` again.
-    const MapViewImpl = useMemo(
-        () => lazy(() => import('./MapViewImpl.website')),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [errorResetKey],
-    );
 
     return (
         <ErrorBoundary

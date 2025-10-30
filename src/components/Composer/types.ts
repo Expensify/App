@@ -1,5 +1,5 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;
@@ -7,7 +7,7 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
@@ -35,7 +35,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file: FileObject) => void;
+    onPasteFile?: (files: FileObject | FileObject[]) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types

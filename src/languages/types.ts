@@ -49,7 +49,7 @@ type TranslationDeepObject<TTranslations = any> = {
 type FlattenObject<TObject, TPrefix extends string = ''> = {
     [TKey in keyof TObject]: TObject[TKey] extends (arg: any) => any
         ? `${TPrefix}${TKey & string}`
-        : // eslint-disable-next-line @typescript-eslint/ban-types
+        : // eslint-disable-next-line @typescript-eslint/no-restricted-types
           TObject[TKey] extends object
           ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
           : `${TPrefix}${TKey & string}`;

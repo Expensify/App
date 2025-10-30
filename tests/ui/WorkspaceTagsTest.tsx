@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
@@ -123,7 +122,7 @@ describe('WorkspaceTags', () => {
 
         // Wait for the "Select" option to appear
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('common.select'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -168,7 +167,7 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
         const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
@@ -176,7 +175,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(disableMenuItem, mockEvent);
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();

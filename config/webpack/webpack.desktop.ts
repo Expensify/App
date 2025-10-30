@@ -2,7 +2,7 @@ import path from 'path';
 import type {Configuration} from 'webpack';
 import webpack from 'webpack';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages -- alias imports don't work for webpack
-import {dependencies as desktopDependencies} from '../../desktop/package.json';
+import {dependencies as desktopDependencies, optionalDependencies as desktopOptionalDependencies} from '../../desktop/package.json';
 import type Environment from './types';
 import getCommonConfiguration from './webpack.common';
 
@@ -29,6 +29,7 @@ const getConfiguration = (environment: Environment): Configuration[] => {
         entry: {
             main: './desktop/main.ts',
             contextBridge: './desktop/contextBridge.ts',
+            afterPack: './desktop/afterPack.ts',
         },
         output: {
             filename: '[name].js',
@@ -37,7 +38,7 @@ const getConfiguration = (environment: Environment): Configuration[] => {
         },
         resolve: rendererConfig.resolve,
         plugins: [definePlugin],
-        externals: [...Object.keys(desktopDependencies), 'fsevents'],
+        externals: [...Object.keys(desktopDependencies), ...Object.keys(desktopOptionalDependencies), 'fsevents'],
         node: {
             /**
              * Disables webpack processing of __dirname and __filename, so it works like in node

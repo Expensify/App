@@ -28,7 +28,7 @@ function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextPr
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: LocaleContextProps['localeCompare']): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: LocaleContextProps['localeCompare'], countryCode: number): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
@@ -47,6 +47,7 @@ const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: Locale
                 email,
                 phone: phoneNumber,
                 avatar: avatarSource,
+                countryCode,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);

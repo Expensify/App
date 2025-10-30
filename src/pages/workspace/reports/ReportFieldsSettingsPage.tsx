@@ -50,7 +50,7 @@ function ReportFieldsSettingsPage({
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {
-        deleteReportFields(policyID, [reportFieldKey]);
+        deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey]});
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
