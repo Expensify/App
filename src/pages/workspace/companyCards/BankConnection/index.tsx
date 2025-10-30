@@ -74,7 +74,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
-    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -85,13 +85,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     }, [url]);
 
     useEffect(() => {
-        if (!isBlockToAddNewFeeds || !policyID) {
+        if (!isBlockedToAddNewFeeds || !policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();
@@ -129,7 +129,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isBlockToAddNewFeeds || isAllFeedsResultLoading) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isBlockedToAddNewFeeds || isAllFeedsResultLoading) {
             return;
         }
 
@@ -190,7 +190,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         isNewFeedConnected,
         isAllFeedsResultLoading,
         shouldBlockWindowOpen,
-        isBlockToAddNewFeeds,
+        isBlockedToAddNewFeeds,
         newFeed,
         policyID,
         url,
@@ -214,7 +214,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 />
             );
         }
-        if (!isPlaid && !isBlockToAddNewFeeds && !isAllFeedsResultLoading) {
+        if (!isPlaid && !isBlockedToAddNewFeeds && !isAllFeedsResultLoading) {
             return (
                 <BlockingView
                     icon={PendingBank}

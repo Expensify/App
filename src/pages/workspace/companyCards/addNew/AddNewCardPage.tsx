@@ -40,7 +40,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
-    const {isBlockToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
 
@@ -49,13 +49,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
-        if (!isBlockToAddNewFeeds || !policyID) {
+        if (!isBlockedToAddNewFeeds || !policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     useEffect(() => {
         return () => {
@@ -73,7 +73,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
 
-    if (isAddCardFeedLoading || isBlockToAddNewFeeds || isAllFeedsResultLoading) {
+    if (isAddCardFeedLoading || isBlockedToAddNewFeeds || isAllFeedsResultLoading) {
         return <FullScreenLoadingIndicator />;
     }
 

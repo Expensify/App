@@ -58,7 +58,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const {isBlockToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
 
     const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
         const feed = key as CompanyCardFeed;
@@ -95,7 +95,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
-        if (isBlockToAddNewFeeds) {
+        if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );
