@@ -770,7 +770,8 @@
         "Areport",
         "mple",
         "Selec",
-        "setuptools"
+        "setuptools",
+        "DYNAMICEXTERNAL"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
