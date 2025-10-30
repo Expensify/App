@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -136,6 +135,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -677,6 +678,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
     },
     supportalNoAccess: {
@@ -1064,8 +1066,6 @@ const translations = {
         dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
         desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
         desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
-        chooseReceipt: 'Wählen Sie eine Quittung zum Hochladen aus oder leiten Sie eine Quittung weiter an',
-        chooseReceipts: 'Wählen Sie Quittungen zum Hochladen aus oder leiten Sie Quittungen weiter an ',
         alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">App herunterladen</a>, um mit Ihrem Telefon zu scannen</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Leiten Sie Belege an <a href="mailto:${email}">${email}</a> weiter</label-text>`,
@@ -1074,8 +1074,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Senden Sie Belege per SMS an ${phoneNumber} (nur US-Nummern)</label-text>`,
         takePhoto: 'Ein Foto machen',
         cameraAccess: 'Der Kamerazugriff ist erforderlich, um Fotos von Belegen zu machen.',
-        deniedCameraAccess: 'Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie',
-        deniedCameraAccessInstructions: 'diese Anweisungen',
+        deniedCameraAccess: `Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">diese Anweisungen</a>.`,
         cameraErrorTitle: 'Kamerafehler',
         cameraErrorMessage: 'Beim Aufnehmen eines Fotos ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         locationAccessTitle: 'Standortzugriff erlauben',
@@ -1310,6 +1309,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `der ${valueName} zu ${newValueToDisplay} (zuvor ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `änderte das ${translatedChangedField} zu ${newMerchant} (zuvor ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (zuvor ${oldAmountToDisplay})`,
+        basedOnAI: 'basierend auf früheren Aktivitäten',
+        basedOnMCC: 'basierend auf Arbeitsbereichsregel',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnungsbericht Nr. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
@@ -1862,11 +1863,12 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Aus Sicherheitsgründen erfordert Xero eine Zwei-Faktor-Authentifizierung, um die Integration zu verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
+        twoFactorAuthIsRequiredXero:
+            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
         explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
     },
     recoveryCodeForm: {
         error: {
@@ -2487,12 +2489,11 @@ ${amount} für ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
                     '\n' +
-                    '1. Klicke auf *Einstellungen*.\n' +
-                    '2. Gehe zu *Workspaces*.\n' +
-                    '3. Wähle deinen Workspace.\n' +
-                    '4. Klicke auf *Buchhaltung*.\n' +
-                    `5. Finde ${integrationName}.\n` +
-                    '6. Klicke auf *Verbinden*.\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Buchhaltung*.\n' +
+                    `4. Finde ${integrationName}.\n` +
+                    '5. Klicke auf *Verbinden*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2760,6 +2761,7 @@ ${amount} für ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut.',
+        wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuchen Sie, Ihre Suchkriterien anzupassen.',
     },
     setPasswordPage: {
         enterPassword: 'Passwort eingeben',
@@ -4522,6 +4524,12 @@ ${amount} für ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Bitte wählen Sie ein Land aus, bevor Sie fortfahren.',
                     pleaseSelectFeedType: 'Bitte wählen Sie einen Feed-Typ aus, bevor Sie fortfahren.',
                 },
+                exitModal: {
+                    title: 'Funktioniert etwas nicht?',
+                    prompt: 'Wir haben bemerkt, dass Sie das Hinzufügen Ihrer Karten nicht abgeschlossen haben. Wenn Sie ein Problem gefunden haben, lassen Sie es uns wissen, damit wir helfen können, alles wieder in Ordnung zu bringen.',
+                    confirmText: 'Problem melden',
+                    cancelText: 'Überspringen',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
@@ -4536,7 +4544,8 @@ ${amount} für ${merchant} - ${date}`,
             directFeed: 'Direkt-Feed',
             whoNeedsCardAssigned: 'Wer benötigt eine zugewiesene Karte?',
             chooseCard: 'Wählen Sie eine Karte',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Wählen Sie eine Karte für ${assignee} aus dem ${feed} Karten-Feed.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Wählen Sie eine Karte für <strong>${assignee}</strong>. Können Sie die gesuchte Karte nicht finden? <concierge-link>Teilen Sie es uns mit.</concierge-link>`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oder es ist etwas kaputt. Wie auch immer, wenn Sie Fragen haben, wenden Sie <concierge-link>sich an Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4888,9 +4897,11 @@ ${amount} für ${merchant} - ${date}`,
             textType: 'Text',
             dateType: 'Datum',
             dropdownType: 'Liste',
+            formulaType: 'Formel',
             textAlternateText: 'Fügen Sie ein Feld für die freie Texteingabe hinzu.',
             dateAlternateText: 'Fügen Sie einen Kalender zur Datumauswahl hinzu.',
             dropdownAlternateText: 'Fügen Sie eine Liste von Optionen zur Auswahl hinzu.',
+            formulaAlternateText: 'Fügen Sie ein Formularfeld hinzu.',
             nameInputSubtitle: 'Wählen Sie einen Namen für das Berichtsfeld.',
             typeInputSubtitle: 'Wählen Sie aus, welche Art von Berichtsfeld verwendet werden soll.',
             initialValueInputSubtitle: 'Geben Sie einen Startwert ein, der im Berichtsfeld angezeigt werden soll.',
@@ -5573,91 +5584,108 @@ ${amount} für ${merchant} - ${date}`,
             reportFields: {
                 title: 'Berichtsfelder',
                 description: `Berichtsfelder ermöglichen es Ihnen, Details auf Kopfzeilenebene anzugeben, im Gegensatz zu Tags, die sich auf Ausgaben einzelner Positionen beziehen. Diese Details können spezifische Projektnamen, Informationen zu Geschäftsreisen, Standorte und mehr umfassen.`,
-                onlyAvailableOnPlan: 'Berichtsfelder sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Berichtsfelder sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Genießen Sie die automatische Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + NetSuite-Integration. Erhalten Sie tiefgehende, Echtzeit-Finanzanalysen mit nativer und benutzerdefinierter Segmentunterstützung, einschließlich Projekt- und Kundenabbildung.`,
-                onlyAvailableOnPlan: 'Unsere NetSuite-Integration ist nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere NetSuite-Integration ist nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Genießen Sie die automatische Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + Sage Intacct-Integration. Erhalten Sie tiefgehende, Echtzeit-Finanzanalysen mit benutzerdefinierten Dimensionen sowie Spesenkodierung nach Abteilung, Klasse, Standort, Kunde und Projekt (Job).`,
-                onlyAvailableOnPlan: 'Unsere Sage Intacct-Integration ist nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere Sage Intacct-Integration ist nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `Genießen Sie die automatische Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + QuickBooks Desktop-Integration. Erreichen Sie ultimative Effizienz mit einer Echtzeit-Zwei-Wege-Verbindung und der Ausgabenkodierung nach Klasse, Artikel, Kunde und Projekt.`,
-                onlyAvailableOnPlan: 'Unsere QuickBooks Desktop-Integration ist nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere QuickBooks Desktop-Integration ist nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Erweiterte Genehmigungen',
                 description: `Wenn Sie weitere Genehmigungsebenen hinzufügen möchten – oder einfach nur sicherstellen möchten, dass die größten Ausgaben noch einmal überprüft werden – sind Sie bei uns genau richtig. Erweiterte Genehmigungen helfen Ihnen, die richtigen Kontrollen auf jeder Ebene einzurichten, damit Sie die Ausgaben Ihres Teams im Griff behalten.`,
-                onlyAvailableOnPlan: 'Erweiterte Genehmigungen sind nur im Control-Plan verfügbar, der bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Erweiterte Genehmigungen sind nur im Control-Plan verfügbar, der bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             categories: {
                 title: 'Kategorien',
                 description: 'Kategorien ermöglichen es dir, Ausgaben zu verfolgen und zu organisieren. Verwende unsere Standardkategorien oder füge deine eigenen hinzu.',
-                onlyAvailableOnPlan: 'Kategorien sind im Collect-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Kategorien sind im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             glCodes: {
                 title: 'GL-Codes',
                 description: `Fügen Sie Ihren Kategorien und Tags GL-Codes hinzu, um Ausgaben einfach in Ihre Buchhaltungs- und Gehaltssysteme zu exportieren.`,
-                onlyAvailableOnPlan: 'GL-Codes sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL-Codes sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'GL- und Payroll-Codes',
                 description: `Fügen Sie GL- und Payroll-Codes zu Ihren Kategorien hinzu, um Ausgaben einfach in Ihre Buchhaltungs- und Gehaltssysteme zu exportieren.`,
-                onlyAvailableOnPlan: 'GL- und Payroll-Codes sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL- und Payroll-Codes sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             taxCodes: {
                 title: 'Steuercodes',
                 description: `Fügen Sie Ihren Steuern Steuercodes hinzu, um Ausgaben einfach in Ihre Buchhaltungs- und Gehaltssysteme zu exportieren.`,
-                onlyAvailableOnPlan: 'Steuercodes sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Steuercodes sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             companyCards: {
                 title: 'Unbegrenzte Firmenkarten',
                 description: `Müssen Sie weitere Karten-Feeds hinzufügen? Schalten Sie unbegrenzte Firmenkarten frei, um Transaktionen von allen großen Kartenausstellern zu synchronisieren.`,
-                onlyAvailableOnPlan: 'Dies ist nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Dies ist nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             rules: {
                 title: 'Regeln',
                 description: `Regeln laufen im Hintergrund und halten Ihre Ausgaben unter Kontrolle, damit Sie sich nicht um Kleinigkeiten kümmern müssen.\n\nFordern Sie Ausgabendetails wie Belege und Beschreibungen an, legen Sie Limits und Standards fest und automatisieren Sie Genehmigungen und Zahlungen – alles an einem Ort.`,
-                onlyAvailableOnPlan: 'Regeln sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Regeln sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Tagegeld',
                 description:
                     'Per Diem ist eine großartige Möglichkeit, um Ihre täglichen Kosten konform und vorhersehbar zu halten, wann immer Ihre Mitarbeiter reisen. Genießen Sie Funktionen wie benutzerdefinierte Raten, Standardkategorien und detailliertere Informationen wie Ziele und Unterraten.',
-                onlyAvailableOnPlan: 'Tagespauschalen sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Tagespauschalen sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             travel: {
                 title: 'Reisen',
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
-                onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Reisen ist im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             reports: {
                 title: 'Berichte',
                 description: 'Berichte ermöglichen es Ihnen, Ausgaben für eine einfachere Verfolgung und Organisation zu gruppieren.',
-                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Berichte sind im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
                     'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jedem Posten mehrere Tags zu – wie Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
-                onlyAvailableOnPlan: 'Mehrstufige Tags sind nur im Control-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Mehrstufige Tags sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             distanceRates: {
                 title: 'Entfernungsraten',
                 description: 'Erstellen und verwalten Sie Ihre eigenen Tarife, verfolgen Sie in Meilen oder Kilometern und legen Sie Standardkategorien für Entfernungsausgaben fest.',
-                onlyAvailableOnPlan: 'Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
                 description:
                     'Mehrere Genehmigungsstufen ist ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
-                onlyAvailableOnPlan: 'Mehrere Genehmigungsstufen sind nur im Control-Plan verfügbar, beginnend bei ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Mehrere Genehmigungsstufen sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'pro aktivem Mitglied pro Monat.',
@@ -5680,10 +5708,8 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Zum Control-Plan upgraden',
                 note: 'Entsperren Sie unsere leistungsstärksten Funktionen, einschließlich:',
                 benefits: {
-                    startsAt: 'Der Control-Plan beginnt bei',
-                    perMember: 'pro aktivem Mitglied pro Monat.',
-                    learnMore: 'Erfahren Sie mehr',
-                    pricing: 'über unsere Pläne und Preise.',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>Der Control-Plan beginnt bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`} <a href="${learnMoreMethodsRoute}">Erfahren Sie mehr</a> über unsere Pläne und Preise.</muted-text>`,
                     benefit1: 'Erweiterte Buchhaltungsverbindungen (NetSuite, Sage Intacct und mehr)',
                     benefit2: 'Intelligente Ausgabenregeln',
                     benefit3: 'Genehmigungsabläufe mit mehreren Ebenen',
@@ -6288,6 +6314,7 @@ ${amount} für ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportieren',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} ist ${value}`,
         },
         has: 'Hat',
         groupBy: 'Gruppe nach',
