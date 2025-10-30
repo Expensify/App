@@ -406,9 +406,9 @@ function TransactionItemRow({
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[bgActiveStyles, styles.expenseWidgetRadius]}>
+            <>
                 <View
-                    style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -516,16 +516,18 @@ function TransactionItemRow({
                     </View>
                 </View>
                 {!!shouldShowBottomBorder && (
-                    <View style={styles.ph3}>
-                        <View style={styles.borderBottom} />
+                    <View style={bgActiveStyles}>
+                        <View style={styles.ph3}>
+                            <View style={[styles.borderBottom]} />
+                        </View>
                     </View>
                 )}
-            </View>
+            </>
         );
     }
 
     return (
-        <View style={[bgActiveStyles, styles.mw100, styles.flex1, styles.expenseWidgetRadius]}>
+        <>
             <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
@@ -582,11 +584,13 @@ function TransactionItemRow({
                 )}
             </View>
             {!!shouldShowBottomBorder && (
-                <View style={[styles.ph3]}>
-                    <View style={styles.borderBottom} />
+                <View style={bgActiveStyles}>
+                    <View style={styles.ph3}>
+                        <View style={styles.borderBottom} />
+                    </View>
                 </View>
             )}
-        </View>
+        </>
     );
 }
 
