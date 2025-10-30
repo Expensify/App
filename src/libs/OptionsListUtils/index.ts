@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
@@ -1181,6 +1182,8 @@ function processReport(
 }
 
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+    const span = Sentry.startInactiveSpan({name: 'createOptionList'});
+
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
@@ -1211,6 +1214,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             reportAttributesDerived,
         ),
     }));
+
+    span.setAttributes({
+        personalDetails: allPersonalDetailsOptions.length,
+        reports: allReportOptions.length,
+    });
+    span.end();
 
     return {
         reports: allReportOptions,
@@ -2092,35 +2101,6 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(
-    options: OptionList,
-    draftComments: OnyxCollection<string>,
-    betas: Beta[] = [],
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions(
-        options,
-        draftComments,
-        {
-            betas,
-            includeMultipleParticipantReports: true,
-            includeP2P: true,
-            forcePolicyNamePreview: true,
-            includeOwnedWorkspaceChats: true,
-            includeSelfDM: true,
-            includeThreads: true,
-            includeReadOnly: false,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-        countryCode,
-    );
-}
-
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -2766,7 +2746,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
