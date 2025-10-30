@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -192,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +676,7 @@ const translations = {
         pinned: 'Przypięte',
         read: 'Przeczytane',
         copyToClipboard: 'Skopiuj do schowka',
+        thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
     },
     supportalNoAccess: {
@@ -1057,8 +1058,6 @@ const translations = {
         dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
         desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
-        chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
-        chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Pobierz aplikację</a>, aby skanować z telefonu</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Przekazuj paragony na <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1067,8 +1066,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Wysyłaj paragony SMS-em na ${phoneNumber} (tylko numery w USA)</label-text>`,
         takePhoto: 'Zrób zdjęcie',
         cameraAccess: 'Dostęp do aparatu jest wymagany, aby robić zdjęcia paragonów.',
-        deniedCameraAccess: 'Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z',
-        deniedCameraAccessInstructions: 'te instrukcje',
+        deniedCameraAccess: `Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">te instrukcje</a>.`,
         cameraErrorTitle: 'Błąd aparatu',
         cameraErrorMessage: 'Wystąpił błąd podczas robienia zdjęcia. Spróbuj ponownie.',
         locationAccessTitle: 'Zezwól na dostęp do lokalizacji',
@@ -1850,10 +1848,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Ze względów bezpieczeństwa Xero wymaga uwierzytelniania dwuskładnikowego do połączenia integracji.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Wymagana dwuskładnikowa autoryzacja',
         twoFactorAuthIsRequiredForAdminsTitle: 'Proszę włączyć uwierzytelnianie dwuskładnikowe',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Twoje połączenie z Xero wymaga użycia uwierzytelniania dwuskładnikowego. Aby kontynuować korzystanie z Expensify, proszę je włączyć.',
+        twoFactorAuthIsRequiredXero: 'Twoje połączenie księgowe z Xero wymaga użycia uwierzytelniania dwuskładnikowego. Aby nadal korzystać z Expensify, prosimy je włączyć.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Do połączenia z Xero wymagana jest uwierzytelnianie dwuskładnikowe (2FA) i nie można go wyłączyć.',
         explainProcessToRemoveWithRecovery: 'Aby wyłączyć uwierzytelnianie dwuskładnikowe (2FA), wprowadź prawidłowy kod odzyskiwania.',
+        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga korzystania z uwierzytelniania dwuskładnikowego. Aby nadal korzystać z Expensify, włącz je.',
     },
     recoveryCodeForm: {
         error: {
@@ -2424,10 +2423,10 @@ ${amount} dla ${merchant} - ${date}`,
                     '*Stel categorieën in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
                     '\n' +
                     '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Categorieën*.\n' +
-                    '5. Schakel alle categorieën uit die u niet nodig heeft.\n' +
-                    '6. Voeg uw eigen categorieën toe rechtsboven.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Categorieën*.\n' +
+                    '4. Schakel alle categorieën uit die u niet nodig heeft.\n' +
+                    '5. Voeg uw eigen categorieën toe rechtsboven.\n' +
                     '\n' +
                     `[Breng me naar de categorie-instellingen van de werkruimte](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2478,12 +2477,11 @@ ${amount} dla ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' swój' : ' z'} ${integrationName}, aby automatycznie kategoryzować wydatki i synchronizować dane, co ułatwi zamknięcie miesiąca.\n` +
                     '\n' +
-                    '1. Kliknij *Ustawienia*.\n' +
-                    '2. Przejdź do *Przestrzenie robocze*.\n' +
-                    '3. Wybierz swoją przestrzeń roboczą.\n' +
-                    '4. Kliknij *Księgowość*.\n' +
-                    `5. Znajdź ${integrationName}.\n` +
-                    '6. Kliknij *Połącz*.\n' +
+                    '1. Kliknij *Przestrzenie robocze*.\n' +
+                    '2. Wybierz swoją przestrzeń roboczą.\n' +
+                    '3. Kliknij *Księgowość*.\n' +
+                    `4. Znajdź ${integrationName}.\n` +
+                    '5. Kliknij *Połącz*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2509,10 +2507,10 @@ ${amount} dla ${merchant} - ${date}`,
                     '*Nodig uw team* uit voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.\n' +
                     '\n' +
                     '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Leden* > *Lid uitnodigen*.\n' +
-                    '5. Voer e-mailadressen of telefoonnummers in. \n' +
-                    '6. Voeg een aangepast uitnodigingsbericht toe als u dat wilt!\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Leden* > *Lid uitnodigen*.\n' +
+                    '4. Voer e-mailadressen of telefoonnummers in. \n' +
+                    '5. Voeg een aangepast uitnodigingsbericht toe als u dat wilt!\n' +
                     '\n' +
                     `[Breng me naar werkruimtemedewerkers](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2531,11 +2529,11 @@ ${amount} dla ${merchant} - ${date}`,
                     'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
                     '\n' +
                     '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Meer functies*.\n' +
-                    '5. Schakel *Tags* in.\n' +
-                    '6. Navigeer naar *Tags* in de werkruimteditor.\n' +
-                    '7. Klik op *+ Tag toevoegen* om uw eigen tags te maken.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Meer functies*.\n' +
+                    '4. Schakel *Tags* in.\n' +
+                    '5. Navigeer naar *Tags* in de werkruimteditor.\n' +
+                    '6. Klik op *+ Tag toevoegen* om uw eigen tags te maken.\n' +
                     '\n' +
                     `[Breng me naar meer functies](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
@@ -2765,6 +2763,7 @@ ${amount} dla ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Coś poszło nie tak`,
         subtitle: 'Nie można zrealizować Twojego żądania. Spróbuj ponownie później.',
+        wrongTypeSubtitle: 'To wyszukiwanie jest nieprawidłowe. Spróbuj dostosować kryteria wyszukiwania.',
     },
     setPasswordPage: {
         enterPassword: 'Wprowadź hasło',
@@ -4520,6 +4519,12 @@ ${amount} dla ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Proszę wybrać kraj przed kontynuowaniem',
                     pleaseSelectFeedType: 'Proszę wybrać typ kanału przed kontynuowaniem.',
                 },
+                exitModal: {
+                    title: 'Coś nie działa?',
+                    prompt: 'Zauważyliśmy, że nie ukończyłeś dodawania swoich kart. Jeśli napotkałeś problem, daj nam znać, abyśmy mogli pomóc go rozwiązać.',
+                    confirmText: 'Zgłoś problem',
+                    cancelText: 'Pomiń',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ostatni dzień miesiąca',
@@ -4534,7 +4539,8 @@ ${amount} dla ${merchant} - ${date}`,
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseCard: 'Wybierz kartę',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Wybierz kartę dla ${assignee} z kanału kart ${feed}.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Albo coś może być zepsute. W każdym razie, jeśli masz jakieś pytania, <concierge-link>skontaktuj się z Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4885,9 +4891,11 @@ ${amount} dla ${merchant} - ${date}`,
             textType: 'Tekst',
             dateType: 'Data',
             dropdownType: 'Lista',
+            formulaType: 'Formuła',
             textAlternateText: 'Dodaj pole do swobodnego wprowadzania tekstu.',
             dateAlternateText: 'Dodaj kalendarz do wyboru daty.',
             dropdownAlternateText: 'Dodaj listę opcji do wyboru.',
+            formulaAlternateText: 'Dodaj pole formuły.',
             nameInputSubtitle: 'Wybierz nazwę dla pola raportu.',
             typeInputSubtitle: 'Wybierz, jakiego typu pola raportu chcesz użyć.',
             initialValueInputSubtitle: 'Wprowadź wartość początkową do wyświetlenia w polu raportu.',
@@ -6225,6 +6233,7 @@ ${amount} dla ${merchant} - ${date}`,
             delete: 'Usuń',
             hold: 'Trzymaj',
             unhold: 'Usuń blokadę',
+            reject: 'Odrzuć',
             noOptionsAvailable: 'Brak dostępnych opcji dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',
@@ -6288,6 +6297,7 @@ ${amount} dla ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} jest ${value}`,
         },
         has: 'Ma',
         groupBy: 'Grupa według',
