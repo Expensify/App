@@ -3,6 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
+apply plugin: "io.sentry.android.gradle"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
@@ -97,22 +98,6 @@ def enableProguardInReleaseBuilds = true
  * this variant is about 6MiB larger per architecture than default.
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
-
-project.ext.sentryCli = [
-    logLevel: "debug",
-    flavorAware: true
-]
-
-apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
-
-// Disable Sentry uploads for development variant
-tasks.whenTaskAdded { task ->
-    if (task.name.contains("Development") && task.name.contains("Bundle")) {
-        task.doFirst {
-            project.ext.sentryCli.uploadSourceMapsSkip = true
-        }
-    }
-}
 
 android {
     androidResources {
@@ -210,6 +195,21 @@ android {
         if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
             setIgnore(true)
         }
+    }
+}
+
+sentry {
+    // Upload source maps, ProGuard/R8 mappings, and native symbols
+    autoUploadProguardMapping = true
+    uploadNativeSymbols = true
+    includeNativeSources = true
+    tracingInstrumentation {
+        enabled = false
+    }
+    
+    // Upload for all release builds except development
+    autoUpload = !project.gradle.startParameter.taskNames.any { 
+        it.contains("Development")
     }
 }
 
