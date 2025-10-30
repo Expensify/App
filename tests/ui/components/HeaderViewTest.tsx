@@ -34,8 +34,7 @@ describe('HeaderView', () => {
         const accountID = 2;
         let displayName = 'test';
         const report = {
-            ...createRandomReport(Number(chatReportID)),
-            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.INVOICE),
             invoiceReceiver: {
                 accountID,
                 type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
