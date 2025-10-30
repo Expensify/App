@@ -1321,8 +1321,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         formattedMerchant,
         date,
         shouldShowMerchant,
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        shouldShowYear,
+        shouldShowYear: shouldTransactionShowYear,
         isAmountColumnWide,
         isTaxAmountColumnWide,
         violations,
