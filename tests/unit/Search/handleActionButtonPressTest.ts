@@ -68,6 +68,17 @@ const mockReportItemWithHold = {
             report: {
                 reportID: '1350959062018695',
             },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
+            },
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
@@ -145,6 +156,17 @@ const mockReportItemWithHold = {
         {
             report: {
                 reportID: '1350959062018695',
+            },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
             },
             accountID: 1206,
             action: 'view',

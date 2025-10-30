@@ -12,11 +12,12 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {answerQuestionsForWallet} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import SafeString from '@src/utils/SafeString';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -87,7 +88,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 }
             }
 
-            BankAccounts.answerQuestionsForWallet(tempAnswers, idNumber);
+            answerQuestionsForWallet(tempAnswers, idNumber);
             setUserAnswers(tempAnswers);
         } else {
             // Else, show next question
@@ -127,7 +128,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                         possibleAnswers={possibleAnswers}
                         currentQuestionIndex={currentQuestionIndex}
                         onValueChange={(value) => {
-                            chooseAnswer(String(value));
+                            chooseAnswer(SafeString(value));
                         }}
                         onInputChange={() => {}}
                     />
