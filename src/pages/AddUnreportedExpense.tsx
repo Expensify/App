@@ -6,11 +6,11 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
-import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +24,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
+import {getTransactionDetails, hasViolations as hasViolationsReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -60,7 +60,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const session = useSession();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -159,14 +161,21 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                convertBulkTrackedExpensesToIOU(
+                    [...selectedIds],
+                    report.reportID,
+                    currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserDetails?.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                );
             } else {
                 changeTransactionsReport(
                     [...selectedIds],
                     report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    currentUserDetails?.accountID,
+                    currentUserDetails?.email ?? '',
                     policy,
                     reportNextStep,
                     policyCategories,
@@ -174,7 +183,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, currentUserDetails?.accountID, currentUserDetails?.email, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (

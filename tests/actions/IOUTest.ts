@@ -4304,6 +4304,10 @@ describe('actions/IOU', () => {
                     },
                     policyTagList: {},
                     policyCategories: {},
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -6742,6 +6746,10 @@ describe('actions/IOU', () => {
                 policyCategories: {},
                 transactions: {},
                 transactionViolations: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -6802,6 +6810,10 @@ describe('actions/IOU', () => {
                 policyCategories: {},
                 transactions: {},
                 transactionViolations: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();

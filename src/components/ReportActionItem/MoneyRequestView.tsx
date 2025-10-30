@@ -88,6 +88,8 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import usePermissions from '@hooks/usePermissions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type MoneyRequestViewProps = {
     /** All the data of the report collection */
@@ -173,6 +175,9 @@ function MoneyRequestView({
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = isTrackExpenseReport(report);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -330,9 +335,9 @@ function MoneyRequestView({
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', hasViolations, isASAPSubmitBetaEnabled);
         },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', hasViolations, isASAPSubmitBetaEnabled],
     );
 
     const saveReimbursable = useCallback(

@@ -25,6 +25,9 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import usePermissions from '@hooks/usePermissions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 type IOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -56,6 +59,11 @@ function IOURequestStepDate({
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
@@ -85,7 +93,7 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, duplicateTransactions, duplicateTransactionViolations, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate(transactionID, reportID, duplicateTransactions, duplicateTransactionViolations, newCreated, policy, policyTags, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', hasViolations, isASAPSubmitBetaEnabled);
         }
 
         navigateBack();

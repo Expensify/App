@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +68,9 @@ function SubmitDetailsPage({
 
     const {isBetaEnabled} = usePermissions();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
@@ -161,6 +164,10 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
             });
         }
     };
