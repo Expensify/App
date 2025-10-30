@@ -135,7 +135,7 @@ const getEmojiUnicode = memoize(
  * Validates first character is emoji in text string
  */
 function isFirstLetterEmoji(message: string): boolean {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
@@ -149,7 +149,7 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
@@ -572,7 +572,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 /**
  * Given an emoji code, returns an base emoji code without skin tone
  */
-const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replaceAll(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];

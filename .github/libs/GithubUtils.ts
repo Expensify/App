@@ -201,7 +201,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
 
             return {
                 title: issue.title,

@@ -96,9 +96,9 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expenses')
-        .replace(/%Expenses/g, 'Expenses')
-        .replace(/%tobe/g, 'are');
+        .replaceAll('%expenses', 'expenses')
+        .replaceAll('%Expenses', 'Expenses')
+        .replaceAll('%tobe', 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
 }
