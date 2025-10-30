@@ -1762,11 +1762,12 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport?.reportID}`,
                 callback: (metadata) => {
-                    if (metadata?.hasOnceLoadedReportActions) {
-                        Onyx.disconnect(connection);
-                        expect(metadata.hasOnceLoadedReportActions).toBe(true);
-                        resolve();
+                    if (!metadata?.hasOnceLoadedReportActions) {
+                        return;
                     }
+                    Onyx.disconnect(connection);
+                    expect(metadata.hasOnceLoadedReportActions).toBe(true);
+                    resolve();
                 },
             });
         });
