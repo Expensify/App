@@ -1981,7 +1981,9 @@ function pushTransactionViolationsOnyxData(
     const optimisticCategories = isCategoriesUpdateEmpty
         ? policyData.categories
         : {
-              ...Object.fromEntries(Object.entries(policyData.categories).filter(([categoryName]) => !updatedCategoriesNames.includes(categoryName) || categoriesUpdate[categoryName] == null)),
+              ...Object.fromEntries(
+                  Object.entries(policyData.categories).filter(([categoryName]) => !updatedCategoriesNames.includes(categoryName) || categoriesUpdate[categoryName] == null),
+              ),
               ...Object.entries(categoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
                   if (categoryUpdate == null) {
                       return acc;
@@ -2018,18 +2020,20 @@ function pushTransactionViolationsOnyxData(
                               if (tagUpdate == null) {
                                   return accTags;
                               }
-                              accTags[tagName] = {
-                                  ...tags[tagName] ?? {},
-                                  ...tagUpdate,
+                              return {
+                                  ...accTags,
+                                  [tagName]: {
+                                      ...(tags[tagName] ?? {}),
+                                      ...tagUpdate,
+                                  },
                               };
-                              return accTags;
                           }, {}),
                       },
                   };
                   return acc;
               }, {}),
           };
-    
+
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
 
     // Iterate through all policy reports to find transactions that need optimistic violations
