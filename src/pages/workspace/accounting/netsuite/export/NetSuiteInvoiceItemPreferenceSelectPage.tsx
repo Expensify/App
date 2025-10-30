@@ -81,8 +81,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
-                style={[styles.flexGrow1, styles.flexShrink1]}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
+                contentContainerStyle={[styles.minHeight32]}
             >
                 <SelectionList
                     data={options}
@@ -91,11 +90,10 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
-                    style={{containerStyle: [styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}}
                 />
             </OfflineWithFeedback>
             {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
-                <View style={[styles.flexGrow1, styles.flexShrink1]}>
+                <View>
                     <OfflineWithFeedback
                         key={translate('workspace.netsuite.invoiceItem.label')}
                         pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
