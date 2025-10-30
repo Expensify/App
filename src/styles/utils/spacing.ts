@@ -587,6 +587,10 @@ export default {
         paddingRight: 12,
     },
 
+    pr3half: {
+        paddingRight: 14,
+    },
+
     pr4: {
         paddingRight: 16,
     },

@@ -525,7 +525,7 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={bgActiveStyles}>
+        <View style={[bgActiveStyles, styles.mw100, styles.flex1]}>
             <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
@@ -555,7 +555,7 @@ function TransactionItemRow({
                     {!!isLargeScreenWidth && (
                         <PressableWithFeedback
                             onPress={() => onButtonPress()}
-                            style={[styles.p3Half, styles.pl0half, styles.mt1Half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.p3Half, styles.pl0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
