@@ -382,7 +382,15 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
+type UpdatedPolicyTagListParams = {tagListName: string};
+
+type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
+
 type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
+
+type ImportPolicyCustomUnitRatesParams = {customUnitName: string};
+
+type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
@@ -393,6 +401,10 @@ type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRate
 type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
+
+type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
+
+type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
@@ -410,9 +422,23 @@ type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverNam
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
+type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
+
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
 
-type UpdatedPolicyFieldWithValueParam = {value: boolean};
+type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
+
+type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
+
+type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
+
+type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
+
+type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
+
+type UpdatedPolicyFieldWithValueParams = {value: boolean};
+
+type UpdatedPolicySetAutoJoinParams = {enabled: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
@@ -425,6 +451,30 @@ type ChangeTypeParams = {oldType: string; newType: string};
 type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
+
+type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
+
+type UpdatedBudgetParams = {
+    entityType: string;
+    entityName: string;
+    oldFrequency?: string;
+    newFrequency?: string;
+    oldIndividual?: string;
+    newIndividual?: string;
+    oldShared?: string;
+    newShared?: string;
+    oldNotificationThreshold?: number;
+    newNotificationThreshold?: number;
+};
+
+type DeleteBudgetParams = {
+    entityType: string;
+    entityName: string;
+    frequency?: string;
+    individual?: string;
+    shared?: string;
+    notificationThreshold?: number;
+};
 
 type IntegrationsMessageParams = {
     label: string;
@@ -514,6 +564,8 @@ type AmountWithCurrencyParams = {amountWithCurrency: string};
 type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
+
+type UpdatedPolicyCategoriesParams = {count: number};
 
 type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
@@ -1026,6 +1078,7 @@ export type {
     SecondaryLoginParams,
     TaxAmountParams,
     CategoryNameParams,
+    UpdatedPolicyCategoriesParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
@@ -1149,6 +1202,7 @@ export type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
+    UpdatedPolicyFieldWithValueParams,
     UnshareParams,
     StripePaidParams,
     RemoveMembersWarningPrompt,
@@ -1185,9 +1239,12 @@ export type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
@@ -1207,6 +1264,8 @@ export type {
     PolicyDisabledReportFieldAllOptionsParams,
     SubmitsToParams,
     SettlementDateParams,
+    UpdatedPolicyCustomUnitSubRateParams,
+    RemovedPolicyCustomUnitSubRateParams,
     PolicyExpenseChatNameParams,
     ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
@@ -1215,6 +1274,8 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
+    ImportPolicyCustomUnitRatesParams,
+    UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddedPolicyApprovalRuleParams,
@@ -1238,6 +1299,9 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    AddBudgetParams,
+    UpdatedBudgetParams,
+    DeleteBudgetParams,
     QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
@@ -1267,4 +1331,9 @@ export type {
     MergeAccountIntoParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    UpdatedPolicyOwnershipParams,
+    UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyReimbursementChoiceParams,
+    UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicySetAutoJoinParams,
 };
