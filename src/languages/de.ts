@@ -6773,22 +6773,26 @@ ${amount} für ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Verbotene Ausgabe:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} Alkohol`;
-                case 'gambling':
-                    return `${preMessage} Glücksspiel`;
-                case 'tobacco':
-                    return `${preMessage} Tabak`;
-                case 'adultEntertainment':
-                    return `${preMessage} Erwachsenenunterhaltung`;
-                case 'hotelIncidentals':
-                    return `${preMessage} Hotelnebenkosten`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Verbotene Ausgaben:';
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `Alkohol`;
+                    case 'gambling':
+                        return `Glücksspiel`;
+                    case 'tobacco':
+                        return `Tabak`;
+                    case 'adultEntertainment':
+                        return `Erwachsenenunterhaltung`;
+                    case 'hotelIncidentals':
+                        return `Hotelnebenkosten`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',

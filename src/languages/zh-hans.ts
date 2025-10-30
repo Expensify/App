@@ -6632,22 +6632,26 @@ ${merchant}的${amount} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止的费用：';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} 酒精`;
-                case 'gambling':
-                    return `${preMessage} 赌博`;
-                case 'tobacco':
-                    return `${preMessage} 烟草`;
-                case 'adultEntertainment':
-                    return `${preMessage} 成人娱乐`;
-                case 'hotelIncidentals':
-                    return `${preMessage} 酒店杂费`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `酒精`;
+                    case 'gambling':
+                        return `赌博`;
+                    case 'tobacco':
+                        return `烟草`;
+                    case 'adultEntertainment':
+                        return `成人娱乐`;
+                    case 'hotelIncidentals':
+                        return `酒店杂费`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',

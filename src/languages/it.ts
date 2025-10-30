@@ -6784,22 +6784,26 @@ ${amount} per ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcol`;
-                case 'gambling':
-                    return `${preMessage} gioco d'azzardo`;
-                case 'tobacco':
-                    return `${preMessage} tabacco`;
-                case 'adultEntertainment':
-                    return `${preMessage} intrattenimento per adulti`;
-                case 'hotelIncidentals':
-                    return `${preMessage} spese accessorie dell'hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcol`;
+                    case 'gambling':
+                        return `gioco d'azzardo`;
+                    case 'tobacco':
+                        return `tabacco`;
+                    case 'adultEntertainment':
+                        return `intrattenimento per adulti`;
+                    case 'hotelIncidentals':
+                        return `spese accessorie dell'hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisione richiesta',

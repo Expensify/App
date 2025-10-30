@@ -6764,22 +6764,26 @@ ${amount} para ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Despesa proibida:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} álcool`;
-                case 'gambling':
-                    return `${preMessage} jogos de azar`;
-                case 'tobacco':
-                    return `${preMessage} tabaco`;
-                case 'adultEntertainment':
-                    return `${preMessage} entretenimento adulto`;
-                case 'hotelIncidentals':
-                    return `${preMessage} despesas incidentais de hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `álcool`;
+                    case 'gambling':
+                        return `jogos de azar`;
+                    case 'tobacco':
+                        return `tabaco`;
+                    case 'adultEntertainment':
+                        return `entretenimento adulto`;
+                    case 'hotelIncidentals':
+                        return `despesas incidentais de hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',

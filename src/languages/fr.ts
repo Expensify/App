@@ -6778,22 +6778,26 @@ ${amount} pour ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcool`;
-                case 'gambling':
-                    return `${preMessage} jeu d'argent`;
-                case 'tobacco':
-                    return `${preMessage} tabac`;
-                case 'adultEntertainment':
-                    return `${preMessage} divertissement pour adultes`;
-                case 'hotelIncidentals':
-                    return `${preMessage} frais accessoires d'hôtel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcool`;
+                    case 'gambling':
+                        return `jeu d'argent`;
+                    case 'tobacco':
+                        return `tabac`;
+                    case 'adultEntertainment':
+                        return `divertissement pour adultes`;
+                    case 'hotelIncidentals':
+                        return `frais accessoires d'hôtel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',

@@ -6769,22 +6769,26 @@ ${amount} voor ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcohol`;
-                case 'gambling':
-                    return `${preMessage} gokken`;
-                case 'tobacco':
-                    return `${preMessage} tabak`;
-                case 'adultEntertainment':
-                    return `${preMessage} volwassen entertainment`;
-                case 'hotelIncidentals':
-                    return `${preMessage} hotelbijzaken`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
-            }
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcohol`;
+                    case 'gambling':
+                        return `gokken`;
+                    case 'tobacco':
+                        return `tabak`;
+                    case 'adultEntertainment':
+                        return `volwassenen entertainment`;
+                    case 'hotelIncidentals':
+                        return `hotelbijzaken`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            const types = Array.isArray(prohibitedExpenseTypes) ? prohibitedExpenseTypes : prohibitedExpenseTypes ? [prohibitedExpenseTypes] : [];
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',

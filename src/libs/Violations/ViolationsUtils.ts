@@ -569,7 +569,7 @@ const ViolationsUtils = {
                 return translate('violations.hold');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
-                    prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
+                    prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
                 });
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');

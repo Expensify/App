@@ -334,7 +334,7 @@ type ViolationsRterParams = {
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string[]};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
