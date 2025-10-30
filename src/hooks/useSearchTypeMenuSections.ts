@@ -65,9 +65,9 @@ const useSearchTypeMenuSections = () => {
             return false;
         }
 
-        return Object.values(allPolicies).every((policy) => {
+        return Object.values(allPolicies).some((policy) => {
             if (!policy) {
-                return true;
+                return false;
             }
 
             const hasEmployeeList = policy.employeeList !== undefined;
@@ -84,7 +84,7 @@ const useSearchTypeMenuSections = () => {
 
     const defaultFeedForSuggestedSearches = defaultCardFeed ?? defaultExpensifyCard;
 
-    const suggestedSearches = useMemo(() => {
+    const suggestedSearches = useMemo<Record<string, SearchTypeMenuItem>>(() => {
         if (!suggestedSearchesReady) {
             return getEmptyObject<Record<string, SearchTypeMenuItem>>();
         }
@@ -92,7 +92,7 @@ const useSearchTypeMenuSections = () => {
         return getSuggestedSearches(currentUserLoginAndAccountID?.accountID ?? CONST.DEFAULT_NUMBER_ID, defaultFeedForSuggestedSearches?.id);
     }, [currentUserLoginAndAccountID?.accountID, defaultFeedForSuggestedSearches?.id, suggestedSearchesReady]);
 
-    const suggestedSearchesVisibility = useMemo(() => {
+    const suggestedSearchesVisibility = useMemo<Record<string, boolean>>(() => {
         if (!suggestedSearchesReady) {
             return getEmptyObject<Record<string, boolean>>();
         }
@@ -100,9 +100,9 @@ const useSearchTypeMenuSections = () => {
         return getSuggestedSearchesVisibility(currentUserLoginAndAccountID?.email, cardFeedsByPolicy, allPolicies, defaultExpensifyCard, reports, currentUserLoginAndAccountID?.accountID);
     }, [allPolicies, cardFeedsByPolicy, currentUserLoginAndAccountID?.accountID, currentUserLoginAndAccountID?.email, defaultExpensifyCard, reports, suggestedSearchesReady]);
 
-    const typeMenuSections = useMemo(() => {
+    const typeMenuSections = useMemo<SearchTypeMenuSection[]>(() => {
         if (!suggestedSearchesReady) {
-            return getEmptyArray();
+            return getEmptyArray<SearchTypeMenuSection>();
         }
 
         return createTypeMenuSections(

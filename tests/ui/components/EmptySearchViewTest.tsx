@@ -6,14 +6,13 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {translateLocal} from '../../utils/TestHelper';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useSearchTypeMenuSections');
