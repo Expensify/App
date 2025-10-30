@@ -7453,7 +7453,7 @@ describe('ReportUtils', () => {
         it('returns Inbox route for workspace chat even when in search context', async () => {
             const reportID = '999';
             const workspaceChat: Report = {
-                ...createRandomReport(parseInt(reportID, 10)),
+                ...createRandomReport(parseInt(reportID, 10), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 isOwnPolicyExpenseChat: true,
