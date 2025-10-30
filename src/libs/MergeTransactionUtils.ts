@@ -37,6 +37,9 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
+/** Type for merge transaction values that can be null to clear existing values in Onyx */
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
     currency: 'iou.currency',
@@ -332,7 +335,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
         taxValue: mergeTransaction.taxValue,
-        taxAmount: convertToBackendAmount(calculateTaxAmount(mergeTransaction.taxValue, mergeTransaction.amount, mergeTransaction.currency)),
+        taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
     };
 }
@@ -444,6 +447,40 @@ function buildMergeFieldsData(
     });
 }
 
+type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
+    transaction: OnyxEntry<Transaction>;
+    field: K;
+    fieldValue: MergeTransaction[K];
+    mergeTransaction: OnyxEntry<MergeTransaction>;
+};
+
+/**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field, reportID
+ */
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(params: GetMergeFieldUpdatedValuesParams<K>): MergeTransactionUpdateValues {
+    const {transaction, field, fieldValue, mergeTransaction} = params;
+    const updatedValues: MergeTransactionUpdateValues = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+        if (mergeTransaction?.taxValue && transaction?.amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrency(transaction)));
+        }
+    }
+
+    if (field === 'taxValue') {
+        updatedValues.taxCode = transaction?.taxCode;
+        if (mergeTransaction?.amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(transaction?.taxValue, mergeTransaction.amount, mergeTransaction.currency));
+        }
+    }
+
+    return updatedValues;
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -460,9 +497,10 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     MERGE_FIELDS,
     DERIVED_MERGE_FIELDS,
 };
 
-export type {MergeFieldKey, MergeFieldData};
+export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
