@@ -394,10 +394,6 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
         return getTaxName(policy, transaction) ?? '';
     }
 
-    if (field === 'taxValue') {
-        return getTaxName(policy, transaction) ?? '';
-    }
-
     return SafeString(fieldValue);
 }
 /**
