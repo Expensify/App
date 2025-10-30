@@ -1,18 +1,18 @@
 import {format, subDays} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {setAssignCardStepAndData, setTransactionStartDate} from '@userActions/CompanyCards';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,8 +26,8 @@ function TransactionStartDateStep() {
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
-    const startDate = assignCard?.startDate ?? data?.startDate;
     const [errorText, setErrorText] = useState('');
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -43,6 +43,10 @@ function TransactionStartDateStep() {
     const handleSelectDateOption = (dateOption: string) => {
         setErrorText('');
         setDateOptionSelected(dateOption);
+        if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
+            return;
+        }
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
@@ -117,13 +121,11 @@ function TransactionStartDateStep() {
                             <View style={[styles.ph5]}>
                                 <DatePicker
                                     inputID=""
-                                    // sometimes startDate can be empty string, so we use || instead of ??
-                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                    defaultValue={startDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                                    value={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
                                         setErrorText('');
-                                        setTransactionStartDate(value);
+                                        setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                     maxDate={new Date()}
