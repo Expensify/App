@@ -2269,7 +2269,7 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
 
 function getRoomAvatarUpdatedMessage(reportAction: ReportAction): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
-    if (originalMessage?.avatarUrl) {
+    if (originalMessage?.avatarURL) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('roomChangeLog.changedRoomAvatar');
     }

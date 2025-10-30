@@ -369,7 +369,7 @@ type OriginalMessageChangeLog = {
     categoryName?: string;
 
     /** Avatar URL of workspace room */
-    avatarUrl?: string;
+    avatarURL?: string;
 };
 
 /** Model of change log */

@@ -7717,7 +7717,7 @@ function buildOptimisticRoomDescriptionUpdatedReportAction(description: string):
 /**
  * Returns the necessary reportAction onyx data to indicate that the room avatar has been updated
  */
-function buildOptimisticRoomAvatarUpdatedReportAction(avatarUrl: string): OptimisticRoomAvatarUpdatedReportAction {
+function buildOptimisticRoomAvatarUpdatedReportAction(avatarURL: string): OptimisticRoomAvatarUpdatedReportAction {
     const now = DateUtils.getDBTime();
     return {
         reportActionID: rand64(),
@@ -7727,8 +7727,8 @@ function buildOptimisticRoomAvatarUpdatedReportAction(avatarUrl: string): Optimi
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: avatarUrl ? `changed room avatar` : 'removed the room avatar',
-                html: avatarUrl ? `<muted-text>changed room avatar</muted-text>` : '<muted-text>removed the room avatar</muted-text>',
+                text: avatarURL ? `changed the room avatar` : 'removed the room avatar',
+                html: avatarURL ? `<muted-text>changed the room avatar</muted-text>` : '<muted-text>removed the room avatar</muted-text>',
             },
         ],
         person: [
@@ -7739,7 +7739,7 @@ function buildOptimisticRoomAvatarUpdatedReportAction(avatarUrl: string): Optimi
             },
         ],
         originalMessage: {
-            avatarUrl,
+            avatarURL,
             lastModified: now,
         },
         created: now,

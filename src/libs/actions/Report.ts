@@ -994,10 +994,10 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
  * Updates the avatar for a policy room.
  */
 function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
-    const avatarUrl = file?.uri ?? '';
+    const avatarURL = file?.uri ?? '';
     const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
 
-    const optimisticAction = buildOptimisticRoomAvatarUpdatedReportAction(avatarUrl);
+    const optimisticAction = buildOptimisticRoomAvatarUpdatedReportAction(avatarURL);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1011,7 +1011,7 @@ function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageMan
         value: {
             lastActorAccountID: currentUserAccountID,
             lastVisibleActionCreated: optimisticAction.created,
-            lastMessageText: (optimisticAction?.message as Message[])?.at(0)?.text,
+            lastMessageText: (optimisticAction.message as Message[]).at(0)?.text,
         },
     });
 
@@ -1021,6 +1021,16 @@ function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageMan
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
             [optimisticAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticAction.reportActionID]: {
+                pendingAction: null,
+            },
         },
     });
 
