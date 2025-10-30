@@ -1604,6 +1604,14 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
             const errorMessage = result?.messages?.join(', ') ?? '';
             const linkText = result?.link?.text ?? '';
             const linkURL = result?.link?.url ?? '';
+            if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const translateErrorMessage = translateLocal('report.actions.error.invalidCredentials');
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const translateLinkText = translateLocal('report.connectionSettings');
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return translateLocal('report.actions.type.integrationsMessage', {errorMessage: translateErrorMessage, label, linkText: translateLinkText, linkURL});
+            }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
         }

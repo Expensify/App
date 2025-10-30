@@ -60,7 +60,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const completeOnboarding = useCallback(

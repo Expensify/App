@@ -127,6 +127,12 @@ standardFilter
       return buildFilter(operator, key, values);
     }
 
+reportFieldDynamic
+  = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
+      const suffix = rest.replace(/^-+/, "");
+      return "reportField-" + (suffix ? suffix : "");
+    }
+    
 key "key"
   = @(
       date
@@ -168,6 +174,7 @@ key "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      / reportFieldDynamic
     )
 
 filterKey
