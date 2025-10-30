@@ -247,7 +247,6 @@ function WorkspacesListPage() {
     };
 
     const confirmModalPrompt = () => {
-        // Helper to get the policy object for the current policy ID to leave
         const exporters = [
             policyToLeave?.connections?.intacct?.config?.export?.exporter,
             policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
@@ -540,7 +539,6 @@ function WorkspacesListPage() {
      */
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
         if (isEmptyObject(policies)) {
             return [];
         }

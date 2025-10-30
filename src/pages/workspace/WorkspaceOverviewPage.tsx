@@ -272,7 +272,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, policy, isOffline, session?.email]);
+    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot(account?.canDowngrade)) {
@@ -320,7 +320,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [policy?.achAccount?.reimburser, session?.email]);
 
     const confirmModalPrompt = () => {
-        // Helper to get the policy object for the current policy ID to leave
         const exporters = [
             policy?.connections?.intacct?.config?.export?.exporter,
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
