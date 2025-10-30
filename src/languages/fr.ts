@@ -654,7 +654,6 @@ const translations = {
             `Si vous quittez cet espace de travail, vous serez remplacé en tant que contact technique par ${workspaceOwner}, le propriétaire de l’espace de travail.`,
         leaveWorkspaceReimburser:
             'Vous ne pouvez pas quitter cet espace de travail en tant que rembourseur. Veuillez définir un nouveau rembourseur dans Espaces de travail > Effectuer ou suivre des paiements, puis réessayez.',
-        cannotLeaveWorkspaceOutstandingReport: 'Veuillez approuver tous les rapports de dépenses en attente qui vous ont été soumis avant de quitter cet espace de travail.',
         rateOutOfPolicy: 'Taux hors politique',
         reimbursable: 'Remboursable',
         editYourProfile: 'Modifier votre profil',
