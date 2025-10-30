@@ -26,6 +26,7 @@ function PopoverWithoutOverlay(
         onClose,
         onModalHide = () => {},
         children,
+        enableEdgeToEdgeBottomSafeAreaPadding,
     }: PopoverWithoutOverlayProps,
     ref: ForwardedRef<View>,
 ) {
@@ -45,6 +46,7 @@ function PopoverWithoutOverlay(
             anchorPosition,
             innerContainerStyle,
             outerStyle,
+            enableEdgeToEdgeBottomSafeAreaPadding,
         );
 
     useEffect(() => {
@@ -80,12 +82,21 @@ function PopoverWithoutOverlay(
             StyleUtils.getModalPaddingStyles({
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding,
+                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
                 modalContainerStyle,
                 insets,
             }),
-        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
+        [
+            StyleUtils,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+            insets,
+            modalContainerStyle,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     if (!isVisible) {

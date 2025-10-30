@@ -104,6 +104,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         </BaseModal>
     );
 }
-
 Modal.displayName = 'Modal';
+
 export default Modal;
