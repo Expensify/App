@@ -6530,6 +6530,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             HOLD: 'hold',
+            MERGE: 'merge',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',

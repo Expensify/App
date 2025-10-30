@@ -2,9 +2,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
+import {SearchReport} from '@src/types/onyx/SearchResults';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -24,6 +26,7 @@ import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionU
 import {
     canAddTransaction,
     canDeleteMoneyRequestReport,
+    canEditMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -58,6 +61,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
@@ -507,13 +511,12 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    // Do not show merge action if there are multiple transactions
-    if (reportTransactions.length !== 1) {
+    // Do not show merge action if there are more than 2 transactions
+    if (reportTransactions.length > 2) {
         return false;
     }
 
-    // Temporary disable merge action for IOU reports
-    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    // Merging IOUs is currently not planned
     if (isIOUReportUtils(parentReport)) {
         return false;
     }
@@ -544,6 +547,42 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
+}
+
+function isMergeActionFromReportView(transactionIDs: string[], searchResults: OnyxEntry<SearchResults>) {
+    if (transactionIDs.length !== 2) {
+        return false;
+    }
+
+    const transactions = [searchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`], searchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[1]}`]];
+    const reports = [searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transactions[0]?.reportID}`], searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transactions[1]?.reportID}`]];
+    const policies = [searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${reports[0]?.policyID}`], searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${reports[1]?.policyID}`]];
+
+    // If one of the reports is not in an editable state by the current user prevent merging
+    if (
+        reports.filter((report) => {
+            if (!report) {
+                return true;
+            }
+            const policy = policies.find((p) => p?.id === report?.policyID);
+            if (!policy) {
+                return true;
+            }
+            return !isMoneyRequestReportEligibleForMerge(report, policy.role === CONST.POLICY.ROLE.ADMIN);
+        })
+    ) {
+        return false;
+    }
+
+    if (!transactions[0] || !transactions[1]) {
+        return false;
+    }
+
+    if (areTransactionsEligibleForMerge(transactions[0], transactions[1])) {
+        return false;
+    }
+
+    return true;
 }
 
 function isRemoveHoldAction(
@@ -748,4 +787,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionFromReportView, getSecondaryExportReportActions, isSplitAction};

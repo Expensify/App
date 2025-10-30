@@ -58,6 +58,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
 import {
     canRejectReportAction,
     generateReportID,
@@ -272,6 +273,13 @@ function SearchPage({route}: SearchPageProps) {
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
 
+    let searchResults;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -485,12 +493,17 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowMergeOption = selectedTransactionsKeys.length === 2; /*&& report && isMergeAction(report, selectedTransactionsList, policy)*/
-        if (shouldShowMergeOption) {
+        if (selectedTransactionsKeys.length === 2 && isMergeActionFromReportView(selectedTransactionsKeys, searchResults)) {
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[0]}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[1]}`];
+
+            const report1 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1.reportID}`];
+            const report2 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2.reportID}`];
+
             options.push({
                 text: translate('common.merge'),
                 icon: Expensicons.ArrowCollapse,
-                value: 'MERGE',
+                value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
                 onSelected: () => {
                     const targetTransactionID = selectedTransactionsKeys[0];
                     const sourceTransactionID = selectedTransactionsKeys[1];
@@ -736,13 +749,6 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const [isSorting, setIsSorting] = useState(false);
-
-    let searchResults;
-    if (currentSearchResults?.data) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
-    }
 
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;

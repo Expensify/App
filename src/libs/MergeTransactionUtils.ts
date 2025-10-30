@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
+import {transaction} from 'tests/data/Invoice';
 import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -13,10 +14,19 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
+import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails, isIOUReport, isMoneyRequestReportEligibleForMerge} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getAttendeesListDisplayString, getCurrency, getReimbursable, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {
+    getAmount,
+    getAttendeesListDisplayString,
+    getCurrency,
+    getReimbursable,
+    isManagedCardTransaction,
+    isMerchantMissing,
+    isPerDiemRequest,
+    isTransactionPendingDelete,
+} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -326,6 +336,43 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 }
 
 /**
+ * Determines whether two transactions can be merged together.
+ */
+function areTransactionsEligibleForMerge(targetTransaction: Transaction, sourceTransaction: Transaction) {
+    if (isTransactionPendingDelete(sourceTransaction)) {
+        return false;
+    }
+
+    const isUnreportedExpense = !sourceTransaction?.reportID || sourceTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (!isUnreportedExpense && sourceTransaction?.reportID && !isMoneyRequestReportEligibleForMerge(sourceTransaction?.reportID, false)) {
+        return false;
+    }
+
+    // Do not allow merging two card transactions
+    if (isManagedCardTransaction(targetTransaction) && isManagedCardTransaction(sourceTransaction)) {
+        return false;
+    }
+
+    // Do not allow merging two $0 transactions
+    if (getAmount(targetTransaction, false, false) === 0 && getAmount(sourceTransaction, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(targetTransaction) && isManagedCardTransaction(sourceTransaction)) || (isPerDiemRequest(sourceTransaction) && isManagedCardTransaction(targetTransaction))) {
+        return false;
+    }
+
+    // Temporary exclude IOU reports from eligible list
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReport(targetTransaction.reportID) || isIOUReport(sourceTransaction.reportID)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Determines the correct target and source transaction IDs for merging based on transaction types.
  *
  * Rules:
@@ -443,6 +490,7 @@ export {
     buildMergeFieldsData,
     getReportIDForExpense,
     getMergeFieldErrorText,
+    areTransactionsEligibleForMerge,
     MERGE_FIELDS,
 };
 

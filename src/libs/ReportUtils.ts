@@ -2604,13 +2604,13 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
  * - **Managers**: Expenses on Open or Processing reports
  *
- * @param reportID - The ID of the money request report to check for merge eligibility
+ * @param reportOrReportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean): boolean {
-    const report = getReportOrDraftReport(reportID);
+function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
+    const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report)) {
         return false;
@@ -4323,7 +4323,7 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
  *    - the current user is the manager of the report
  *    - or the current user is an admin on the policy the expense report is tied to
  *
- *    This is used in conjunction with canEditRestrictedField to control editing of specific fields like amount, currency, created, receipt, and distance.
+ *    This is used in conjunction with canEditMoneyRequest to control editing of specific fields like amount, currency, created, receipt, and distance.
  *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
  */
 function canEditMoneyRequest(

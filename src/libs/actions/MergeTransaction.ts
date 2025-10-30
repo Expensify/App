@@ -4,7 +4,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
+import {areTransactionsEligibleForMerge, getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -47,31 +47,6 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
     };
 
     API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
-}
-
-function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
-    // Do not allow merging two card transactions
-    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
-        return false;
-    }
-
-    // Do not allow merging two $0 transactions
-    if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
-        return false;
-    }
-
-    // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
-        return false;
-    }
-
-    // Temporary exclude IOU reports from eligible list
-    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
-    if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
-        return false;
-    }
-
-    return true;
 }
 
 /**
