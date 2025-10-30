@@ -131,6 +131,9 @@ function getCombinedErrors(policy: PolicyType | undefined, userEmail: string | u
     };
 }
 
+/**
+ * Dismisses the errors on one item
+ */
 function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined, policies: Record<string, PolicyType | undefined> | undefined, userEmail?: string) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         clearDeleteWorkspaceError(policyID);
@@ -148,7 +151,6 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
 
         if (employeeErrors) {
             removePendingApproverMemberErrorMessage(policyID, employeeErrors);
-            return;
         }
     }
 
