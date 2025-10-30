@@ -240,7 +240,6 @@ function WorkspacesListPage() {
     const personalDetails = usePersonalDetails();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
-    const [isCannotLeaveWorkspaceWithPendingReportsModalOpen, setIsCannotLeaveWorkspaceWithPendingReportsModalOpen] = useState(false);
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
     const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
 
@@ -302,10 +301,6 @@ function WorkspacesListPage() {
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
         const isApprover = isApproverUserAction(policyToLeave, userEmail);
-
-        if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
-            return translate('common.cannotLeaveWorkspaceOutstandingReport');
-        }
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
@@ -898,14 +893,8 @@ function WorkspacesListPage() {
             />
             <ConfirmModal
                 title={translate('common.leaveWorkspace')}
-                isVisible={isCannotLeaveWorkspaceModalOpen || isCannotLeaveWorkspaceWithPendingReportsModalOpen}
-                onConfirm={() => {
-                    if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
-                        setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(false);
-                        return;
-                    }
-                    setIsCannotLeaveWorkspaceModalOpen(false);
-                }}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
+                onConfirm={() => setIsCannotLeaveWorkspaceModalOpen(false)}
                 prompt={confirmModalPrompt()}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
