@@ -6374,9 +6374,8 @@ function removePendingApproverMemberErrorMessage(policyID: string, errors: Error
         return;
     }
 
-    const filteredErrors = Object.entries(errors).filter(([, error]) => typeof error === 'string' && !error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
     const workspaceMemberError: Errors = {};
-    filteredErrors.forEach(([key, error]) => {
+    Object.entries(errors).forEach(([key, error]) => {
         workspaceMemberError[key] = error;
     });
 

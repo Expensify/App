@@ -7319,9 +7319,6 @@ const CONST = {
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
     },
-    POLICY_ERROR_MESSAGES: {
-        PENDING_REPORTS: '402 User has reports pending their approval, cannot leave',
-    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
