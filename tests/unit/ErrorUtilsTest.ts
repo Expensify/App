@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import translations from '@src/languages/de';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
@@ -259,12 +260,12 @@ describe('ErrorUtils', () => {
 
         test('should return translated message for specific error in non-English locale', () => {
             (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
-            (Localize.translate as jest.Mock).mockReturnValue('Las cuentas de depósito y retiro son las mismas.');
+            (Localize.translate as jest.Mock).mockReturnValue(translations.bankAccount.error.sameDepositAndWithdrawalAccount);
             const errorMessage = CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR;
 
             const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
 
-            expect(result).toBe('Las cuentas de depósito y retiro son las mismas.');
+            expect(result).toBe(translations.bankAccount.error.sameDepositAndWithdrawalAccount);
             expect(Localize.translate).toHaveBeenCalledWith(CONST.LOCALES.ES, 'bankAccount.error.sameDepositAndWithdrawalAccount');
         });
 
