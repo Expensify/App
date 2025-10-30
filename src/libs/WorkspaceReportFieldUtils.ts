@@ -99,8 +99,11 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     }
 
     // Dynamically require to avoid circular dependency with ReportActionsUtils
-    const {parse, FORMULA_PART_TYPES} = require('./Formula');
-    return parse(initialValue).some((part: any) => part.type !== FORMULA_PART_TYPES.FREETEXT);
+    const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
+        parse: (formula?: string) => Array<{type: string}>;
+        FORMULA_PART_TYPES: {FREETEXT: string};
+    };
+    return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
 export {
