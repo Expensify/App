@@ -55,6 +55,7 @@ type CreateTaskAndNavigateParams = {
     policyID?: string;
     isCreatedUsingMarkdown?: boolean;
     quickAction?: OnyxEntry<OnyxTypes.QuickAction>;
+    ancestors?: ReportUtils.Ancestor[];
 };
 
 let allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -124,6 +125,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
         isCreatedUsingMarkdown = false,
         quickAction = {},
+        ancestors = [],
     } = params;
     if (!parentReportID) {
         return;
@@ -288,13 +290,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     });
 
     // If needed, update optimistic data for parent report action of the parent report.
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReport, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    optimisticParentReportData.forEach((parentReportData) => {
-        if (isEmptyObject(parentReportData)) {
-            return;
-        }
-        optimisticData.push(parentReportData);
-    });
+    optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({

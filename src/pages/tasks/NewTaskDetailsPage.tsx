@@ -24,6 +24,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
+import useAncestors from '@hooks/useAncestors';
+import type * as OnyxTypes from '@src/types/onyx';
+import type { OnyxEntry } from 'react-native-onyx/dist/types';
 
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
@@ -37,7 +40,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
     const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
     const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
-
+    const ancestors = useAncestors(task as OnyxEntry<OnyxTypes.Report>);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backTo = route.params?.backTo;
@@ -85,6 +88,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction,
+                ancestors, 
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));

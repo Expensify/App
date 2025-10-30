@@ -26,6 +26,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useAncestors from '@hooks/useAncestors';
+import type * as OnyxTypes from '@src/types/onyx';
+import type { OnyxEntry } from 'react-native-onyx/dist/types';
+
 
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
@@ -49,7 +53,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');
-
+    const ancestors = useAncestors(task as OnyxEntry<OnyxTypes.Report>);
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
 
@@ -111,6 +115,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             policyID: parentReport?.policyID,
             isCreatedUsingMarkdown: false,
             quickAction,
+            ancestors
         });
     };
 

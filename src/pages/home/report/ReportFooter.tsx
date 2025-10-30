@@ -43,6 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useAncestors from '@hooks/useAncestors';
 
 type ReportFooterProps = {
     /** Report object for the current report */
@@ -105,6 +106,7 @@ function ReportFooter({
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
@@ -167,6 +169,7 @@ function ReportFooter({
                 policyID: report.policyID,
                 isCreatedUsingMarkdown: true,
                 quickAction,
+                ancestors,
             });
             return true;
         },
