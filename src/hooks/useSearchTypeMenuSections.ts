@@ -96,8 +96,8 @@ const useSearchTypeMenuSections = () => {
             return getEmptyObject<Record<string, boolean>>();
         }
 
-        return getSuggestedSearchesVisibility(currentUserLoginAndAccountID?.email, cardFeedsByPolicy, allPolicies, defaultExpensifyCard, reports, currentUserLoginAndAccountID?.accountID);
-    }, [allPolicies, cardFeedsByPolicy, currentUserLoginAndAccountID?.accountID, currentUserLoginAndAccountID?.email, defaultExpensifyCard, reports, suggestedSearchesReady]);
+        return getSuggestedSearchesVisibility(currentUserLoginAndAccountID?.email, cardFeedsByPolicy, allPolicies, defaultExpensifyCard);
+    }, [allPolicies, cardFeedsByPolicy, currentUserLoginAndAccountID?.email, defaultExpensifyCard, suggestedSearchesReady]);
 
     const typeMenuSections = useMemo<SearchTypeMenuSection[]>(() => {
         if (!suggestedSearchesReady) {
@@ -116,7 +116,6 @@ const useSearchTypeMenuSections = () => {
             defaultExpensifyCard,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            
         );
     }, [
         currentUserLoginAndAccountID?.email,
@@ -130,7 +129,7 @@ const useSearchTypeMenuSections = () => {
         isOffline,
         isASAPSubmitBetaEnabled,
         hasViolations,
-        
+
         suggestedSearchesReady,
     ]);
 
