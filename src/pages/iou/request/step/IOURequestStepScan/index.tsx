@@ -139,6 +139,9 @@ function IOURequestStepScan({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+
+    const shouldPreventPhotoCapture = useRef(false);
+
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -788,7 +791,20 @@ function IOURequestStepScan({
         });
     }, []);
 
+    useEffect(() => {
+        if (!isTabActive) {
+            return;
+        }
+        shouldPreventPhotoCapture.current = false;
+    }, [isTabActive]);
+
     const capturePhoto = useCallback(() => {
+        if (shouldPreventPhotoCapture.current) {
+            return;
+        }
+        if (!isMultiScanEnabled) {
+            shouldPreventPhotoCapture.current = true;
+        }
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
@@ -804,7 +820,7 @@ function IOURequestStepScan({
         }
 
         getScreenshot();
-    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints, isMultiScanEnabled]);
 
     const panResponder = useRef(
         PanResponder.create({
