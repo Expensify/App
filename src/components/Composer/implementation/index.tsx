@@ -1,10 +1,10 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {BaseSyntheticEvent, ForwardedRef} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -91,8 +91,7 @@ function Composer(
     /**
      *  Adds the cursor position to the selection change event.
      */
-    const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
+    const addCursorPositionToSelectionChange = (event: TextInputSelectionChangeEvent) => {
         const sel = window.getSelection();
         if (shouldCalculateCaretPosition && isRendered && sel) {
             const range = sel.getRangeAt(0).cloneRange();
@@ -108,23 +107,23 @@ function Composer(
             }
 
             const selectionValue = {
-                start: webEvent.nativeEvent.selection.start,
-                end: webEvent.nativeEvent.selection.end,
+                start: event.nativeEvent.selection.start,
+                end: event.nativeEvent.selection.end,
                 positionX: x - CONST.SPACE_CHARACTER_WIDTH,
                 positionY: y,
             };
 
             onSelectionChange({
-                ...webEvent,
+                ...event,
                 nativeEvent: {
-                    ...webEvent.nativeEvent,
+                    ...event.nativeEvent,
                     selection: selectionValue,
                 },
             });
             setSelection(selectionValue);
         } else {
-            onSelectionChange(webEvent);
-            setSelection(webEvent.nativeEvent.selection);
+            onSelectionChange(event);
+            setSelection(event.nativeEvent.selection);
         }
     };
 
@@ -283,7 +282,7 @@ function Composer(
                     end: 0,
                 },
             },
-        } as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+        } as TextInputSelectionChangeEvent;
         onSelectionChange(selectionEvent);
         setSelection({start: 0, end: 0});
 
@@ -310,7 +309,7 @@ function Composer(
     }, [clear]);
 
     const handleKeyPress = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (e: TextInputKeyPressEvent) => {
             // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
             if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                 return;
