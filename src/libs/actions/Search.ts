@@ -25,6 +25,7 @@ import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
+    generateReportID,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -48,6 +49,7 @@ import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
+import {rejectMoneyRequest} from './IOU';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -580,6 +582,29 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
+    const transactionIDs = Object.keys(selectedTransactions);
+
+    const transactionsByReport: Record<string, string[]> = {};
+    transactionIDs.forEach((transactionID) => {
+        const reportID = selectedTransactions[transactionID].reportID;
+        if (!transactionsByReport[reportID]) {
+            transactionsByReport[reportID] = [];
+        }
+        transactionsByReport[reportID].push(transactionID);
+    });
+
+    Object.entries(transactionsByReport).forEach(([reportID, reportTransactionIDs]) => {
+        // Share a single destination ID across all rejections from the same source report
+        const sharedRejectedToReportID = generateReportID();
+        reportTransactionIDs.forEach((transactionID) => {
+            rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
+        });
+    });
+
+    playSound(SOUNDS.SUCCESS);
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     const optimisticData: OnyxUpdate[] = [
@@ -981,6 +1006,7 @@ export {
     bulkDeleteReports,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
+    rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
