@@ -2,15 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {
-    LayoutChangeEvent,
-    NativeSyntheticEvent,
-    SectionList as RNSectionList,
-    TextInput as RNTextInput,
-    SectionListData,
-    SectionListRenderItemInfo,
-    TextInputKeyPressEventData,
-} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -613,6 +605,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
+                            testID="selection-list-select-all-checkbox"
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
@@ -706,7 +699,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         return null;
     };
 
-    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
@@ -728,7 +721,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign
+                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                             textInputRef.current = element as RNTextInput;
                         }
                     }}

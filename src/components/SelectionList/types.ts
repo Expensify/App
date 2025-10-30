@@ -64,14 +64,19 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Array of selected item keys */
     selectedItems?: readonly string[];
 
-    /** Styles to apply to the list */
-    listStyle?: StyleProp<ViewStyle>;
+    style?: {
+        /** Styles to apply to the list */
+        listStyle?: StyleProp<ViewStyle>;
 
-    /** Styles applied for the title of the list item */
-    listItemTitleStyles?: StyleProp<TextStyle>;
+        /** Styles applied for the title of the list item */
+        listItemTitleStyles?: StyleProp<TextStyle>;
 
-    /** Styles for the list item wrapper */
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
+        /** Styles for the list item wrapper */
+        listItemWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles to apply to the list container */
+        containerStyle?: StyleProp<ViewStyle>;
+    };
 
     /** Function that determines if an item is selected */
     isSelected?: (item: TItem) => boolean;
@@ -87,6 +92,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
 
     /** Whether to show the empty list content */
     showListEmptyContent?: boolean;
@@ -132,6 +140,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type TextInputOptions = {

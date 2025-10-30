@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,9 +97,9 @@ function TransactionStartDateStep() {
                 <SelectionList
                     ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
-                    sections={[{data: dateOptions}]}
+                    data={dateOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={dateOptionSelected}
+                    initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
                     shouldHighlightSelectedItem={false}

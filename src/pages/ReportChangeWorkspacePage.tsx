@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -31,11 +32,15 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {DismissedProductTraining} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
+
+const changePolicyTrainingModalDismissedSelector = (nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean =>
+    !!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL];
 
 function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
@@ -46,6 +51,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true, selector: changePolicyTrainingModalDismissedSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
@@ -83,6 +89,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     hasViolations,
+                    isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
                     employeeList,
                     formatPhoneNumber,
@@ -95,6 +102,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     hasViolations,
+                    isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isReportLastVisibleArchived,
@@ -113,6 +121,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             hasViolations,
             isASAPSubmitBetaEnabled,
             reportNextStep,
+            isChangePolicyTrainingModalDismissed,
         ],
     );
 
