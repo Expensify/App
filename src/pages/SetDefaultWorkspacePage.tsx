@@ -15,13 +15,13 @@ import useWorkspaceList from '@hooks/useWorkspaceList';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SetDefaultWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import {setNameValuePair} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type SetDefaultWorkspacePageProps = PlatformStackScreenProps<SetDefaultWorkspaceNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE.ROOT>;
+type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
 
 function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const {navigateTo} = route.params ?? {};
