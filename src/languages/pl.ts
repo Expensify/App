@@ -2873,7 +2873,7 @@ ${amount} dla ${merchant} - ${date}`,
             ownershipPercentage: 'Proszę wprowadzić prawidłową liczbę procentową',
             deletePaymentBankAccount:
                 'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
-            sameDepositAndWithdrawalAccount: 'Konta depozytowe i wypłatowe są takie same.',
+            sameDepositAndWithdrawalAccount: 'Konto do wpłaty i konto do wypłaty są takie same.',
         },
     },
     addPersonalBankAccount: {
@@ -4421,7 +4421,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',

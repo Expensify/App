@@ -2871,7 +2871,7 @@ ${amount} para ${merchant} - ${date}`,
             ownershipPercentage: 'Por favor, insira um número percentual válido',
             deletePaymentBankAccount:
                 'Este banco conta não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim deseja excluir essa conta, entre em contato com o Concierge.',
-            sameDepositAndWithdrawalAccount: 'As contas de depósito e saque são as mesmas.',
+            sameDepositAndWithdrawalAccount: 'As contas de depósito e de saque são as mesmas.',
         },
     },
     addPersonalBankAccount: {
@@ -4420,7 +4420,6 @@ ${amount} para ${merchant} - ${date}`,
             displayedAsTagDescription: 'O departamento será selecionável para cada despesa individual no relatório de um funcionário.',
             displayedAsReportFieldDescription: 'A seleção de departamento será aplicada a todas as despesas no relatório de um funcionário.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Escolha como lidar com o Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
-
             expenseTypes: 'Tipos de despesas',
             expenseTypesDescription: 'Seus tipos de despesas do Sage Intacct serão importados para o Expensify como categorias.',
             accountTypesDescription: 'Seu plano de contas do Sage Intacct será importado para o Expensify como categorias.',
@@ -7346,7 +7345,6 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
-
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',

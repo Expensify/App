@@ -2880,7 +2880,7 @@ ${amount} voor ${merchant} - ${date}`,
             ownershipPercentage: 'Voer een geldig percentage in.',
             deletePaymentBankAccount:
                 'Deze bankrekening kan niet worden verwijderd omdat deze wordt gebruikt voor Expensify-kaartbetalingen. Als u deze account toch wilt verwijderen, neem dan contact op met de Concierge.',
-            sameDepositAndWithdrawalAccount: 'De deposito- en opnamerekeningen zijn hetzelfde.',
+            sameDepositAndWithdrawalAccount: 'De stortings- en opnamerekeningen zijn hetzelfde.',
         },
     },
     addPersonalBankAccount: {
