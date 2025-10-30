@@ -261,7 +261,7 @@ function MoneyRequestReportTransactionList({
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            const sortedSiblingTransactionIDs = sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
             setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
@@ -336,7 +336,7 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
