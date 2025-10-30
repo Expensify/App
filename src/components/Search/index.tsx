@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -976,4 +977,6 @@ function Search({
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+WrappedSearch.displayName = 'Search';
+export default WrappedSearch;
