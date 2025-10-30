@@ -68,6 +68,17 @@ mcp__github_inline_comment__create_inline_comment:
   body: "**Terminology violation**: Use 'workspace' instead of 'policy' to match Expensify standards."
 ```
 
+**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+
+Example:
+```bash
+# Good
+gh pr comment --body 'Use "workspace" instead of "policy"'
+
+# Bad
+gh pr comment --body "Use "workspace" instead of "policy""
+```
+
 ## Comment Format
 Keep inline comments concise and actionable:
 - **Issue type in bold**: Brief explanation
