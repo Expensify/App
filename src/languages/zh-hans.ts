@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +677,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
     },
     supportalNoAccess: {
@@ -1050,8 +1052,6 @@ const translations = {
         dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
-        chooseReceipt: '选择要上传的收据或转发收据到',
-        chooseReceipts: '选择要上传的收据或转发收据到',
         alternativeMethodsTitle: '添加收据的其他方式：',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1060,8 +1060,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
-        deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
-        deniedCameraAccessInstructions: '这些说明',
+        deniedCameraAccess: `相机访问权限仍未授予，请按照以下步骤操作 <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">这些说明</a>.`,
         cameraErrorTitle: '相机错误',
         cameraErrorMessage: '拍照时发生错误。请再试一次。',
         locationAccessTitle: '允许位置访问',
@@ -1829,10 +1828,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: '出于安全考虑，Xero 需要双重身份验证才能连接集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。若要继续使用 Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
         explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
+        twoFactorAuthIsRequiredCompany: '贵公司要求使用双因素认证。要继续使用 Expensify，请启用该功能。',
     },
     recoveryCodeForm: {
         error: {
@@ -2447,12 +2447,11 @@ ${merchant}的${amount} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '到'} ${integrationName}，实现自动费用编码和同步，让月末结账变得轻而易举。\n` +
                     '\n' +
-                    '1. 点击 *设置*。\n' +
-                    '2. 前往 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *会计*。\n' +
-                    `5. 找到 ${integrationName}。\n` +
-                    '6. 点击 *连接*。\n' +
+                    '1. 点击 *工作区*。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *会计*。\n' +
+                    `4. 找到 ${integrationName}。\n` +
+                    '5. 点击 *连接*。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -6117,6 +6116,7 @@ ${merchant}的${amount} - ${date}`,
             delete: '删除',
             hold: '保持',
             unhold: '移除保留',
+            reject: '拒绝',
             noOptionsAvailable: '所选费用组没有可用选项。',
         },
         filtersHeader: '筛选器',
@@ -6180,6 +6180,7 @@ ${merchant}的${amount} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} 是 ${value}`,
         },
         has: '有',
         groupBy: '组别',

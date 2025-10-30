@@ -50,7 +50,6 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -70,7 +69,6 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 isASAPSubmitBetaEnabled,
                 hasViolations,
-                reports,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -84,7 +82,6 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            reports,
         ],
     );
 
