@@ -24,6 +24,7 @@ function IOURequestStepAccountant({
 }: IOURequestStepAccountantProps) {
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const {translate} = useLocalize();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const setAccountant = useCallback(
         (accountant: Accountant) => {
@@ -36,12 +37,12 @@ function IOURequestStepAccountant({
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         const hasActiveAdminWorkspaces = hasActiveAdminWorkspacesUtil(currentUserLogin);
         if (!hasActiveAdminWorkspaces) {
-            createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
+            createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, action);
             return;
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
-    }, [iouType, transactionID, reportID, action, currentUserLogin]);
+    }, [iouType, transactionID, reportID, action, currentUserLogin, introSelected]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);

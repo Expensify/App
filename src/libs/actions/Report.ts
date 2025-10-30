@@ -75,7 +75,6 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
@@ -88,7 +87,6 @@ import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
-import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -123,7 +121,6 @@ import {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
-    getAllPolicyReports,
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
@@ -168,12 +165,12 @@ import {
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -184,7 +181,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
-    DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -210,7 +206,9 @@ import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -237,12 +235,10 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
-type Video = {
+type Video = Dimensions & {
     url: string;
     thumbnailUrl: string;
     duration: number;
-    width: number;
-    height: number;
 };
 
 type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
@@ -298,14 +294,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => (conciergeReportID = value),
-});
-
-let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (value) => {
-        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
-    },
 });
 
 // map of reportID to all reportActions for that report
@@ -420,43 +408,6 @@ Onyx.connect({
     callback: (value) => (allReportDraftComments = value),
 });
 
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = getAllPolicyReports(policyID);
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
-
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -474,20 +425,6 @@ Onyx.connect({
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
-});
-
-registerPaginationConfig({
-    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
-    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
-    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
-    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions, reportID) => {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
-    },
-    getItemID: (reportAction) => reportAction.reportActionID,
 });
 
 function clearGroupChat() {
@@ -1695,7 +1632,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     }
 }
 
-function markAllMessagesAsRead() {
+function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
     if (isAnonymousUser()) {
         return;
     }
@@ -1716,7 +1653,8 @@ function markAllMessagesAsRead() {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, allReportActions?.[report.reportID]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        if (!isUnread(report, oneTransactionThreadReport)) {
+        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
             return;
         }
 
@@ -1932,7 +1870,7 @@ function handlePreexistingReport(report: Report) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, isReportArchived = false, isOriginalReportArchived = false) {
+function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, isReportArchived: boolean | undefined, isOriginalReportArchived: boolean | undefined) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
@@ -2116,9 +2054,9 @@ function editReportComment(
     originalReport: OnyxEntry<Report>,
     originalReportAction: OnyxEntry<ReportAction>,
     textForNewComment: string,
+    isOriginalReportArchived: boolean | undefined,
+    isOriginalParentReportArchived: boolean | undefined,
     videoAttributeCache?: Record<string, string>,
-    isOriginalReportArchived = false,
-    isOriginalParentReportArchived = false,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -2945,6 +2883,7 @@ function buildNewReportOptimisticData(
         optimisticData,
         successData,
         failureData,
+        optimisticReportData,
     };
 }
 
@@ -2962,7 +2901,7 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -2981,7 +2920,7 @@ function createNewReport(
         notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
     }
 
-    return optimisticReportID;
+    return optimisticReportData;
 }
 
 /**
@@ -3367,7 +3306,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3380,7 +3319,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
+                                [skinTone]: createdAt,
                             },
                         },
                     },
@@ -3461,7 +3400,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number = preferredSkinTone,
+    paramSkinTone: number,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3482,7 +3421,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
+    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3569,7 +3508,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 
@@ -4137,7 +4076,7 @@ function optimisticReportLastData(
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived = false) {
+function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived: boolean | undefined) {
     const originalReportID = originalReport?.reportID;
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
@@ -4190,7 +4129,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
     ];
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isOriginalReportArchived);
 
     const optimisticLastReportData = optimisticReportLastData(
         originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -4415,50 +4354,25 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    const willRedirectToOldDotFromOnboarding = shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration);
-    if (willRedirectToOldDotFromOnboarding) {
+    // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
+    if (!shouldSkipTestDriveModal && onboarding?.testDriveModalDismissed !== true) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: true},
+            value: {testDriveModalDismissed: false},
         });
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false},
+            value: {testDriveModalDismissed: false},
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false},
+            value: {testDriveModalDismissed: null},
         });
-    }
-
-    // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
-    // because we don't want the modal to reappear when returning from oldDot.
-    // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
-    if (!shouldSkipTestDriveModal && !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)) {
-        if (onboarding?.testDriveModalDismissed !== true) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: false},
-            });
-
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: false},
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: null},
-            });
-        }
     }
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
@@ -4584,8 +4498,8 @@ function resolveActionableMentionWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isReportArchived: boolean | undefined,
     policy?: OnyxEntry<Policy>,
-    isReportArchived = false,
 ) {
     if (!reportAction || !reportID) {
         return;
@@ -4599,6 +4513,7 @@ function resolveActionableMentionWhisper(
         if (actionOriginalMessage && policyID) {
             const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
             const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
 
@@ -4633,7 +4548,7 @@ function resolveActionableMentionWhisper(
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, optimisticReportActions as ReportActions, isReportArchived);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -4696,14 +4611,14 @@ function resolveActionableMentionConfirmWhisper(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, undefined, isReportArchived);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, isReportArchived, undefined);
 }
 
 function resolveActionableReportMentionWhisper(
     reportId: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
-    isReportArchived?: boolean,
+    isReportArchived: boolean | undefined,
 ) {
     if (!reportAction || !reportId) {
         return;
@@ -4718,7 +4633,7 @@ function resolveActionableReportMentionWhisper(
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions, isReportArchived);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -5419,7 +5334,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
             role,
             email: submitterLogin,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            submitsTo: getDefaultApprover(policy),
         },
     };
 
@@ -5712,8 +5627,8 @@ function updatePolicyIdForReportAndThreads(
     });
 }
 
-function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<DismissedProductTraining>, reportID: string) {
-    if (dismissedProductTrainingNVP?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
+function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {
+    if (isChangePolicyTrainingModalDismissed) {
         return;
     }
 
@@ -5730,9 +5645,9 @@ function buildOptimisticChangePolicyData(
     email: string,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
+    isReportLastVisibleArchived: boolean | undefined,
     reportNextStep?: ReportNextStep,
     optimisticPolicyExpenseChatReport?: Report,
-    isReportLastVisibleArchived = false,
 ) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -5859,11 +5774,9 @@ function buildOptimisticChangePolicyData(
         const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
             [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
         })?.lastMessageText;
-        const lastVisibleActionCreated = getReportLastMessage(
-            oldWorkspaceChatReportID,
-            {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-            isReportLastVisibleArchived,
-        )?.lastVisibleActionCreated;
+        const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
+            [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
+        })?.lastVisibleActionCreated;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6006,6 +5919,7 @@ function changeReportPolicy(
     accountID: number,
     email: string,
     hasViolationsParam: boolean,
+    isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportNextStep?: ReportNextStep,
     isReportLastVisibleArchived = false,
@@ -6021,9 +5935,8 @@ function changeReportPolicy(
         email,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
-        reportNextStep,
-        undefined,
         isReportLastVisibleArchived,
+        reportNextStep,
     );
 
     const params = {
@@ -6036,7 +5949,7 @@ function changeReportPolicy(
 
     // If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
 }
 
 /**
@@ -6048,10 +5961,11 @@ function changeReportPolicyAndInviteSubmitter(
     accountID: number,
     email: string,
     hasViolationsParam: boolean,
+    isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isReportLastVisibleArchived = false,
+    isReportLastVisibleArchived: boolean | undefined,
 ) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -6091,9 +6005,9 @@ function changeReportPolicyAndInviteSubmitter(
         email,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isReportLastVisibleArchived,
         undefined,
         membersChats.reportCreationData[submitterEmail],
-        isReportLastVisibleArchived,
     );
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
@@ -6111,7 +6025,7 @@ function changeReportPolicyAndInviteSubmitter(
 
     // If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
 }
 
 /**

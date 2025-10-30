@@ -457,6 +457,10 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SET_DEFAULT_WORKSPACE: {
+        route: 'set-default-workspace',
+        getRoute: (navigateTo?: string) => (navigateTo ? (`set-default-workspace?navigateTo=${encodeURIComponent(navigateTo)}` as const) : ('set-default-workspace' as const)),
+    },
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
@@ -2272,6 +2276,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/billing-account',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/receipt-partners/${integration}/billing-account` as const,
+    },
     WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
         route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
         getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
@@ -3074,7 +3082,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE: {
         route: 'workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
-        getRoute: (policyID: string, mapping: string) => `workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
+        getRoute: (policyID: string | undefined, mapping: string) => `workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX: {
         route: 'workspaces/:policyID/accounting/sage-intacct/import/tax',
