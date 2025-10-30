@@ -112,7 +112,7 @@ type TransactionItemRowProps = {
     isDisabled?: boolean;
     areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
-    shouldShowBottomBorder: boolean;
+    shouldShowBottomBorder?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -515,7 +515,7 @@ function TransactionItemRow({
                         )}
                     </View>
                 </View>
-                {shouldShowBottomBorder && (
+                {!!shouldShowBottomBorder && (
                     <View style={styles.ph3}>
                         <View style={styles.borderBottom} />
                     </View>
@@ -581,7 +581,7 @@ function TransactionItemRow({
                     />
                 )}
             </View>
-            {shouldShowBottomBorder && (
+            {!!shouldShowBottomBorder && (
                 <View style={[styles.ph3]}>
                     <View style={styles.borderBottom} />
                 </View>
