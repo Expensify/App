@@ -98,6 +98,22 @@ def enableProguardInReleaseBuilds = true
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+project.ext.sentryCli = [
+    logLevel: "debug",
+    flavorAware: true
+]
+
+apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
+
+// Disable Sentry uploads for development variant
+tasks.whenTaskAdded { task ->
+    if (task.name.contains("Development") && task.name.contains("Bundle")) {
+        task.doFirst {
+            project.ext.sentryCli.uploadSourceMapsSkip = true
+        }
+    }
+}
+
 android {
     androidResources {
       noCompress += ["bundle"]
