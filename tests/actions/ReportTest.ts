@@ -209,7 +209,7 @@ describe('actions/Report', () => {
     });
 
     it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
-        const REPORT: OnyxTypes.Report = {...createRandomReport(1), errorFields: {createChat: {error: 'error'}}};
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
         const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
 
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
@@ -697,7 +697,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -717,7 +717,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -732,7 +732,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skin tone
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -765,7 +765,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -824,7 +824,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1333,7 +1333,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
@@ -1353,6 +1353,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1432,7 +1433,7 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
@@ -1452,6 +1453,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1646,7 +1648,7 @@ describe('actions/Report', () => {
             [mentionActionID2]: mentionAction2,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            ...createRandomReport(Number(reportID)),
+            ...createRandomReport(Number(reportID), undefined),
             lastMentionedTime: mentionAction2.created,
         });
 
@@ -1681,7 +1683,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1826,13 +1828,13 @@ describe('actions/Report', () => {
                 (index) => {
                     if (index % 2 === 0) {
                         return {
-                            ...createRandomReport(index),
+                            ...createRandomReport(index, undefined),
                             lastMessageText: 'test',
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
                             lastVisibleActionCreated: currentTime,
                         };
                     }
-                    return createRandomReport(index);
+                    return createRandomReport(index, undefined);
                 },
                 10,
             );
@@ -1873,7 +1875,7 @@ describe('actions/Report', () => {
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
             const report: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 description: '<h1>test</h1>',
             };
             const mockFetch = fetch as MockFetch;
@@ -1970,10 +1972,10 @@ describe('actions/Report', () => {
                     enabled: false,
                 },
             };
-            const chatReport: OnyxTypes.Report = {...createRandomReport(11), policyID: fakePolicy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, hasOutstandingChildRequest: true};
+            const chatReport: OnyxTypes.Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), policyID: fakePolicy.id, hasOutstandingChildRequest: true};
 
             const expenseReport1: OnyxTypes.Report = {
-                ...createRandomReport(5),
+                ...createRandomReport(5, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: currentUserAccountID,
                 ownerAccountID: currentUserAccountID,
@@ -1991,7 +1993,7 @@ describe('actions/Report', () => {
                 },
             };
             const expenseReport2: OnyxTypes.Report = {
-                ...createRandomReport(6),
+                ...createRandomReport(6, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: currentUserAccountID,
                 ownerAccountID: currentUserAccountID,
@@ -2057,7 +2059,7 @@ describe('actions/Report', () => {
         it('should unarchive the expense report', async () => {
             // Given an archived expense report
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
             };
@@ -2069,7 +2071,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -2101,7 +2103,7 @@ describe('actions/Report', () => {
         it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
             // Given an expense report
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 chatReportID: '2',
@@ -2112,7 +2114,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
@@ -2137,7 +2139,7 @@ describe('actions/Report', () => {
             const ownerEmail = 'owner@gmail.com';
             const adminEmail = 'admin@gmail.com';
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 ownerAccountID,
@@ -2158,6 +2160,7 @@ describe('actions/Report', () => {
                 1,
                 '',
                 true,
+                false,
                 false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -2187,7 +2190,7 @@ describe('actions/Report', () => {
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
 
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 reportID: 'expenseReport123',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'oldPolicy123',
@@ -2238,7 +2241,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call changeReportPolicyAndInviteSubmitter
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, false, employeeList, TestHelper.formatPhoneNumber, false);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -2265,7 +2268,7 @@ describe('actions/Report', () => {
             const ownerEmail = 'owner@gmail.com';
             const adminEmail = 'admin@gmail.com';
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
             };
@@ -2306,7 +2309,7 @@ describe('actions/Report', () => {
             const ownerAccountID = 1;
             const ownerEmail = 'owner@gmail.com';
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
             };
@@ -2343,7 +2346,7 @@ describe('actions/Report', () => {
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
 
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 reportID: 'iouReport123',
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
@@ -2354,7 +2357,7 @@ describe('actions/Report', () => {
             };
 
             const policy: OnyxTypes.Policy = {
-                ...createRandomPolicy(1),
+                ...createRandomPolicy(1, undefined),
                 id: 'policy456',
                 name: 'Test Policy for IOU Move',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2420,7 +2423,7 @@ describe('actions/Report', () => {
     describe('buildOptimisticChangePolicyData', () => {
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };

@@ -1,4 +1,4 @@
-import React, {useCallback, useImperativeHandle, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
@@ -42,6 +42,9 @@ type DatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
+    /** Whether the search advanced filters form Onyx data is loading or not */
+    isSearchAdvancedFiltersFormLoading?: boolean;
+
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
@@ -56,7 +59,7 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, ref}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,6 +68,15 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
     const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
+
+    useEffect(() => {
+        if (isSearchAdvancedFiltersFormLoading) {
+            return;
+        }
+        setDateValues(defaultDateValues);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isSearchAdvancedFiltersFormLoading]);
+
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
         setDateValues((prevDateValues) => {
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {

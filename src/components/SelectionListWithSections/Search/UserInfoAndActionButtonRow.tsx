@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -26,6 +27,7 @@ function UserInfoAndActionButtonRow({
     containerStyles?: StyleProp<ViewStyle>;
 }) {
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
     const {currentSearchHash} = useSearchContext();
@@ -59,14 +61,15 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
-                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                    avatarSize={!isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                    infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
+            <View style={[{width: isLargeScreenWidth ? variables.w80 : variables.w72}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}
@@ -76,6 +79,7 @@ function UserInfoAndActionButtonRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
+                    extraSmall={!isLargeScreenWidth}
                 />
             </View>
         </View>

@@ -438,11 +438,14 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Should show the last actor display name from last actor details.
  */
 function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+    const reportID = report?.reportID;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
+
     if (
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastReportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) ||
         (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
@@ -2098,35 +2101,6 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(
-    options: OptionList,
-    draftComments: OnyxCollection<string>,
-    betas: Beta[] = [],
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions(
-        options,
-        draftComments,
-        {
-            betas,
-            includeMultipleParticipantReports: true,
-            includeP2P: true,
-            forcePolicyNamePreview: true,
-            includeOwnedWorkspaceChats: true,
-            includeSelfDM: true,
-            includeThreads: true,
-            includeReadOnly: false,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-        countryCode,
-    );
-}
-
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -2772,7 +2746,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,

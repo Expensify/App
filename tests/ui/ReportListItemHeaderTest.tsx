@@ -151,7 +151,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.queryByText('John Doe')).not.toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
@@ -160,7 +160,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
+                expect(screen.getByTestId('UserInfoToIndicator')).toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
@@ -168,7 +168,7 @@ describe('ReportListItemHeader', () => {
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should only display submitter if recipient is invalid', async () => {
@@ -177,7 +177,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
         });
 
@@ -197,7 +197,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
@@ -206,7 +206,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
+                expect(screen.getByTestId('UserInfoToIndicator')).toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {
@@ -214,7 +214,7 @@ describe('ReportListItemHeader', () => {
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
             it('should only display submitter if recipient is invalid', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'fake');
@@ -222,7 +222,7 @@ describe('ReportListItemHeader', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
         });
     });

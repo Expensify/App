@@ -1,0 +1,17 @@
+diff --git a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/pods.js b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/pods.js
+index d08747d..f3ed060 100644
+--- a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/pods.js
++++ b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/pods.js
+@@ -81,10 +81,8 @@ async function runPodInstall(options) {
+             env: {
+                 RCT_NEW_ARCH_ENABLED: options.newArch ? '1' : '0',
+                 RCT_IGNORE_PODS_DEPRECATION: '1',
+-                RCT_USE_RN_DEP: process.env['RCT_USE_RN_DEP'] || usePrebuiltReactNative ? '1' : '0',
+-                RCT_USE_PREBUILT_RNCORE: process.env['RCT_USE_PREBUILT_RNCORE'] || usePrebuiltReactNative
+-                    ? '1'
+-                    : '0',
++                RCT_USE_RN_DEP: '0',
++                RCT_USE_PREBUILT_RNCORE: '0',
+                 ...(options.brownfield && { USE_FRAMEWORKS: 'static' }),
+                 ...(process.env['USE_THIRD_PARTY_JSC'] && {
+                     USE_THIRD_PARTY_JSC: process.env['USE_THIRD_PARTY_JSC'],

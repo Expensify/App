@@ -1,13 +1,15 @@
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
-index a9ca4d7..69e335f 100644
+index a3af28d..9c0282a 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
-@@ -363,7 +363,8 @@ ShadowNode::Unshared ShadowNode::cloneTree(
+@@ -399,9 +399,8 @@ std::shared_ptr<ShadowNode> ShadowNode::cloneTree(
      children[childIndex] = childNode;
  
      childNode = parentNode.clone(
--        {.children = std::make_shared<ShadowNode::ListOfShared>(children)});
-+        {.children = std::make_shared<ShadowNode::ListOfShared>(children),
+-        {.children =
+-             std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+-                 children)});
++        {.children = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children),
 +         .state = parentNode.getState()});
    }
  
