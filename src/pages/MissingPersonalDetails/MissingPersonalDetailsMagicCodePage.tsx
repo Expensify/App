@@ -44,7 +44,7 @@ function MissingPersonalDetailsMagicCodePage() {
         }
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        Navigation.goBack();
+        Navigation.dismissModal();
     }, [missingDetails, privateDetailsErrors, areAllCardsShipped]);
 
     const clearError = () => {
