@@ -191,7 +191,7 @@ function Expensify() {
             if (!sessionId) {
                 return;
             }
-            Sentry.setContext('Fullstory', {sessionId});
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
         });
     }, [userMetadata]);
 
