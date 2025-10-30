@@ -1290,6 +1290,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} 改为 ${newValueToDisplay}（之前为 ${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `将${translatedChangedField}更改为${newMerchant}（之前为${oldMerchant}），这更新了金额为${newAmountToDisplay}（之前为${oldAmountToDisplay}）`,
+        basedOnAI: '基于过去的活动',
+        basedOnMCC: '基于工作空间规则',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `为${comment}` : '费用'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
@@ -1828,10 +1830,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: '出于安全考虑，Xero 需要双重身份验证才能连接集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。若要继续使用 Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
         explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
+        twoFactorAuthIsRequiredCompany: '贵公司要求使用双因素认证。要继续使用 Expensify，请启用该功能。',
     },
     recoveryCodeForm: {
         error: {

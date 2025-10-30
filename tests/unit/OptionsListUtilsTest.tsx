@@ -2423,13 +2423,11 @@ describe('OptionsListUtils', () => {
         describe('REPORT_PREVIEW action', () => {
             it('should show report preview message for non-policy expense chat', async () => {
                 const report: Report = {
-                    ...createRandomReport(0),
-                    chatType: undefined,
+                    ...createRandomReport(0, undefined),
                     isOwnPolicyExpenseChat: false,
                 };
                 const iouReport: Report = {
-                    ...createRandomReport(1),
-                    chatType: undefined,
+                    ...createRandomReport(1, undefined),
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
@@ -2481,9 +2479,9 @@ describe('OptionsListUtils', () => {
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-            const report: Report = createRandomReport(0);
+            const report: Report = createRandomReport(0, undefined);
             const report2: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 reportName: 'Expense Report #123',
             };
             const movedTransactionAction: ReportAction = {
@@ -2503,7 +2501,7 @@ describe('OptionsListUtils', () => {
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
-                const report: Report = createRandomReport(0);
+                const report: Report = createRandomReport(0, undefined);
                 const submittedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -2522,7 +2520,7 @@ describe('OptionsListUtils', () => {
         });
         describe('APPROVED action', () => {
             it('should return automatic approved message if approved automatically', async () => {
-                const report: Report = createRandomReport(0);
+                const report: Report = createRandomReport(0, undefined);
                 const approvedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
@@ -2541,7 +2539,7 @@ describe('OptionsListUtils', () => {
         });
         describe('FORWARDED action', () => {
             it('should return automatic forwarded message if forwarded automatically', async () => {
-                const report: Report = createRandomReport(0);
+                const report: Report = createRandomReport(0, undefined);
                 const forwardedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -2559,7 +2557,7 @@ describe('OptionsListUtils', () => {
             });
         });
         it('TAKE_CONTROL action', async () => {
-            const report: Report = createRandomReport(0);
+            const report: Report = createRandomReport(0, undefined);
             const takeControlAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
@@ -2573,7 +2571,7 @@ describe('OptionsListUtils', () => {
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(takeControlAction)));
         });
         it('REROUTE action', async () => {
-            const report: Report = createRandomReport(0);
+            const report: Report = createRandomReport(0, undefined);
             const rerouteAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
@@ -2587,7 +2585,7 @@ describe('OptionsListUtils', () => {
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(rerouteAction)));
         });
         it('MOVED action', async () => {
-            const report: Report = createRandomReport(0);
+            const report: Report = createRandomReport(0, undefined);
             const movedAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,

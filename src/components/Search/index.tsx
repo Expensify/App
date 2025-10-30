@@ -918,20 +918,22 @@ function Search({
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columnsToShow}
-                                type={type}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
-                            />
+                            <View style={[styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYear}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting={shouldShowSorting}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
