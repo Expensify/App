@@ -69,6 +69,7 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
+    shouldShowEmployeeListError,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -107,10 +108,42 @@ type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'do
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 type GetDomainMenuItem = {item: DomainItem; index: number};
 
+function getEmployeeListErrors(policy: PolicyType | undefined, userEmail: string | undefined): OnyxCommon.Errors | undefined {
+    if (!policy?.employeeList || !userEmail || !policy.employeeList[userEmail]) {
+        return undefined;
+    }
+
+    const employee = policy.employeeList[userEmail];
+    return employee.errors;
+}
+
+function hasEmployeePendingApprovalError(policy: PolicyType | undefined, userEmail: string | undefined): boolean {
+    const employeeErrors = getEmployeeListErrors(policy, userEmail);
+    if (!employeeErrors) {
+        return false;
+    }
+
+    return Object.values(employeeErrors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+}
+
+function getCombinedErrors(policy: PolicyType | undefined, userEmail: string | undefined): OnyxCommon.Errors | undefined {
+    const policyErrors = policy?.errors;
+    const employeeErrors = getEmployeeListErrors(policy, userEmail);
+
+    if (!policyErrors && !employeeErrors) {
+        return undefined;
+    }
+
+    return {
+        ...policyErrors,
+        ...employeeErrors,
+    };
+}
+
 /**
  * Dismisses the errors on one item
  */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined, userEmail?: string) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         clearDeleteWorkspaceError(policyID);
         return;
@@ -119,6 +152,23 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         removeWorkspace(policyID);
         return;
+    }
+
+    if (userEmail) {
+        const policy = getPolicy(policyID);
+        const employeeErrors = getEmployeeListErrors(policy, userEmail);
+
+        if (employeeErrors) {
+            const hasPendingApprovalError = Object.values(employeeErrors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+
+            if (hasPendingApprovalError) {
+                removePendingApproverMemberErrorMessage(policyID, employeeErrors);
+                return;
+            }
+
+            removePendingApproverMemberErrorMessage(policyID, employeeErrors);
+            return;
+        }
     }
 
     clearErrors(policyID);
@@ -561,21 +611,6 @@ function WorkspacesListPage() {
         return Object.values(policies)
             .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
             .map((policy): WorkspaceItem => {
-                if (shouldShowPolicy(policy, isOffline, session?.email)) {
-                    if (policy.employeeList && session?.email && policy.employeeList?.[session?.email]) {
-                        const employee = policy.employeeList[session.email];
-
-                        if (employee.errors && employee.pendingAction === 'delete') {
-                            const hasApprovalError = Object.values(employee.errors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
-                            if (hasApprovalError) {
-                                setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(true);
-                                // Clear the error after showing the modal to prevent it from triggering again
-                                removePendingApproverMemberErrorMessage(policy.id, employee.errors);
-                            }
-                        }
-                    }
-                }
-
                 const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
@@ -608,13 +643,14 @@ function WorkspacesListPage() {
                         ? undefined
                         : (reimbursementAccountBrickRoadIndicator ??
                           receiptUberBrickRoadIndicator ??
+                          (shouldShowEmployeeListError(policy) || hasEmployeePendingApprovalError(policy, session?.email) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ??
                           getPolicyBrickRoadIndicatorStatus(
                               policy,
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
                           )),
                     pendingAction: policy.pendingAction,
-                    errors: policy.errors,
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                    errors: getCombinedErrors(policy, session?.email),
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction, session?.email),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
