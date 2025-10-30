@@ -55,7 +55,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
-import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
+import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';

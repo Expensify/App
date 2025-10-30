@@ -37,12 +37,12 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const isLoading = sharedBankAccountData?.isLoading ?? false;
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getActiveAllAdminsFromWorkspaces(allPolicies, accountID.toString());
+    const admins = getActiveAllAdminsFromWorkspaces(allPolicies, currentUserLogin);
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
@@ -94,8 +94,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             });
         }
 
-        // Combine selected admins with unselected admins
-        const selectedLogins = selectedOptions.map(({login}) => login);
+        const selectedLogins = Array.from(new Set(selectedOptions.map(({login}) => login)));
         const unselectedAdmins = adminsToDisplay.filter(({login}) => !selectedLogins.includes(login));
 
         const allAdminsWithState: MemberForList[] = [];
