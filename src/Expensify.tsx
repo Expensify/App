@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -184,6 +185,14 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.onReady().then(async () => {
+            // After the successful connection we want to link Fullstory to Sentry via session id
+            const sessionId = await FS.getSessionId();
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext('Fullstory', {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
