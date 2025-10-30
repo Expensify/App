@@ -57,6 +57,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canRejectReportAction,
     generateReportID,
@@ -67,9 +68,10 @@ import {
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -94,6 +96,9 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -538,6 +543,24 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+        const firstTransactionReport = firstTransaction ? getReportOrDraftReport(firstTransaction.reportID) : undefined;
+        const firstTransactionPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`];
+        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction);
+        const canSplitTransaction =
+            selectedTransactionsKeys.length === 1 && firstTransactionReport && !isExpenseSplit && isSplitAction(firstTransactionReport, [firstTransaction], firstTransactionPolicy);
+
+        if (canSplitTransaction) {
+            options.push({
+                text: translate('iou.split'),
+                icon: Expensicons.ArrowSplit,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
+                onSelected: () => {
+                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                },
+            });
+        }
+
         const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
@@ -589,23 +612,27 @@ function SearchPage({route}: SearchPageProps) {
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        queryJSON,
-        clearSelectedTransactions,
+        selectedTransactionReportIDs,
         lastPaymentMethods,
+        selectedReportIDs,
+        isBetaBulkPayEnabled,
+        allTransactions,
+        allPolicies,
+        queryJSON,
+        selectedPolicyIDs,
+        policies,
+        integrationsExportTemplates,
+        csvExportLayouts,
+        clearSelectedTransactions,
+        beginExportWithTemplate,
+        currentUserPersonalDetails?.login,
+        bulkPayButtonOptions,
+        onBulkPaySelected,
+        allReports,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        beginExportWithTemplate,
-        integrationsExportTemplates,
-        csvExportLayouts,
-        policies,
-        bulkPayButtonOptions,
-        onBulkPaySelected,
-        selectedPolicyIDs,
-        selectedReportIDs,
-        selectedTransactionReportIDs,
-        isBetaBulkPayEnabled,
     ]);
 
     const handleDeleteExpenses = () => {

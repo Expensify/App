@@ -2,13 +2,13 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {unholdRequest} from '@libs/actions/IOU';
+import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
+import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -20,6 +20,7 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +38,7 @@ const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
 const MERGE = 'MERGE';
+const SPLIT = 'SPLIT';
 
 function useSelectedTransactionsActions({
     report,
@@ -60,6 +62,7 @@ function useSelectedTransactionsActions({
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
@@ -283,6 +286,19 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(selectedTransactionsList.at(0));
+        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, selectedTransactionsList, policy);
+        if (canSplitTransaction) {
+            options.push({
+                text: translate('iou.split'),
+                icon: Expensicons.ArrowSplit,
+                value: SPLIT,
+                onSelected: () => {
+                    initSplitExpense(allTransactions, allReports, selectedTransactionsList.at(0));
+                },
+            });
+        }
+
         // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
         const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
         if (canMergeTransaction) {
@@ -329,6 +345,7 @@ function useSelectedTransactionsActions({
         selectedTransactionsList,
         translate,
         isReportArchived,
+        hasTransactionsFromMultipleOwners,
         policy,
         reportActions,
         clearSelectedTransactions,
@@ -342,9 +359,10 @@ function useSelectedTransactionsActions({
         outstandingReportsByPolicyID,
         iouType,
         lastVisitedPath,
+        allTransactions,
+        allReports,
         session?.accountID,
         showDeleteModal,
-        hasTransactionsFromMultipleOwners,
     ]);
 
     return {
