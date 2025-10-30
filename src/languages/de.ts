@@ -1861,11 +1861,12 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Aus Sicherheitsgründen erfordert Xero eine Zwei-Faktor-Authentifizierung, um die Integration zu verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
+        twoFactorAuthIsRequiredXero:
+            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
         explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
     },
     recoveryCodeForm: {
         error: {
@@ -6267,6 +6268,7 @@ ${amount} für ${merchant} - ${date}`,
             delete: 'Löschen',
             hold: 'Halten',
             unhold: 'Halten entfernen',
+            reject: 'Ablehnen',
             noOptionsAvailable: 'Keine Optionen verfügbar für die ausgewählte Gruppe von Ausgaben.',
         },
         filtersHeader: 'Filter',
