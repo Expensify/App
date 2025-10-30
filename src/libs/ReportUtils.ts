@@ -1879,9 +1879,10 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
  */
 function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
+    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT;
 
     return (
-        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE) &&
+        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE || isFirstTimeCreatingReport) &&
         iouType !== CONST.IOU.TYPE.SPLIT &&
         iouType !== CONST.IOU.TYPE.INVOICE
     );
