@@ -1041,5 +1041,3 @@ SearchPage.displayName = 'SearchPage';
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;
-const isSearchTransaction = (value: unknown): value is import('@src/types/onyx/SearchResults').SearchTransaction =>
-    !!value && typeof value === 'object' && 'transactionID' in value && 'reportID' in value;
