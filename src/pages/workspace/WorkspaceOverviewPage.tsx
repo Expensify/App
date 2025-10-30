@@ -6,7 +6,6 @@ import {Image, StyleSheet, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -293,7 +292,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
+    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, policy, isOffline, session?.email]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot(account?.canDowngrade)) {
@@ -328,6 +327,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>, Navigation.getActiveRoute()),
         );
     }, [currentUserAccountID, policy?.id]);
+
+    const handleLeave = useCallback(() => {
+        const isReimburser = policy?.achAccount?.reimburser === session?.email;
+
+        if (isReimburser) {
+            setIsCannotLeaveWorkspaceModalOpen(true);
+            return;
+        }
+
+        setIsLeaveModalOpen(true);
+    }, [policy?.achAccount?.reimburser, session?.email]);
 
     const confirmModalPrompt = () => {
         // Helper to get the policy object for the current policy ID to leave
@@ -381,11 +391,38 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     };
 
+    const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
+        <View style={[!shouldUseNarrowLayout && styles.flexRow, !shouldUseNarrowLayout && styles.gap2]}>
+            <ButtonWithDropdownMenu
+                ref={dropdownMenuRef}
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={options}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow1}
+            />
+        </View>
+    );
+
     const getHeaderButtons = () => {
+        const secondaryActions: Array<DropdownOption<string>> = [];
+        const canLeave = !isOwner && defaultApprover !== session?.email;
+
         if (readOnly) {
+            if (canLeave) {
+                secondaryActions.push({
+                    value: 'leave',
+                    text: translate('common.leave'),
+                    icon: Expensicons.Exit,
+                    onSelected: handleLeave,
+                });
+                return renderDropdownMenu(secondaryActions);
+            }
             return null;
         }
-        const secondaryActions: Array<DropdownOption<string>> = [];
+
         if (isPolicyAdmin) {
             secondaryActions.push({
                 value: 'invite',
@@ -428,20 +465,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: startChangeOwnershipFlow,
             });
         }
-        return (
-            <View style={[!shouldUseNarrowLayout && styles.flexRow, !shouldUseNarrowLayout && styles.gap2]}>
-                <ButtonWithDropdownMenu
-                    ref={dropdownMenuRef}
-                    success={false}
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow1}
-                />
-            </View>
-        );
+        if (canLeave) {
+            secondaryActions.push({
+                value: 'leave',
+                text: translate('common.leave'),
+                icon: Expensicons.Exit,
+                onSelected: handleLeave,
+            });
+        }
+
+        return renderDropdownMenu(secondaryActions);
     };
 
     return (
@@ -615,25 +648,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     />
                                 </View>
                             </OfflineWithFeedback>
-                        )}
-                        {!isOwner && defaultApprover !== session?.email && (
-                            <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
-                                <Button
-                                    accessibilityLabel={translate('common.leave')}
-                                    text={translate('common.leave')}
-                                    onPress={() => {
-                                        const isReimburser = policy?.achAccount?.reimburser === session?.email;
-
-                                        if (isReimburser) {
-                                            setIsCannotLeaveWorkspaceModalOpen(true);
-                                            return;
-                                        }
-
-                                        setIsLeaveModalOpen(true);
-                                    }}
-                                    icon={Expensicons.Exit}
-                                />
-                            </View>
                         )}
                     </Section>
                     {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
