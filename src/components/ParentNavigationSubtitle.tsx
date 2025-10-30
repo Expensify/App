@@ -14,7 +14,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -83,7 +83,7 @@ function ParentNavigationSubtitle({
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
-    const hasAccessToParentReport = canCurrentUserOpenReport(report, isReportArchived);
+    const hasAccessToParentReport = report?.hasParentAccess !== false || isReportManager(report);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
