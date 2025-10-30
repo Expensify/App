@@ -1,7 +1,7 @@
 import {activePolicySelector} from '@selectors/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
-import {isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -20,7 +20,7 @@ function isPolicyMemberByRole(policy: OnyxEntry<Policy>) {
     return !!policy?.role && Object.values(CONST.POLICY.ROLE).includes(policy.role);
 }
 
-function usePolicyForMovingExpenses() {
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
@@ -32,11 +32,15 @@ function usePolicyForMovingExpenses() {
     const login = session?.email ?? '';
     const userPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) =>
-            checkForUserPendingDelete(login, policy) && isPolicyMemberByRole(policy) && isPaidGroupPolicy(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            checkForUserPendingDelete(login, policy) &&
+            isPolicyMemberByRole(policy) &&
+            isPaidGroupPolicy(policy) &&
+            policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)),
     );
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
 
-    if (activePolicy) {
+    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy))) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
     }
 

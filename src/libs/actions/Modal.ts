@@ -25,33 +25,39 @@ function setCloseModal(onClose: () => void) {
 }
 
 /**
- * Close topmost modal
+ * Close the topmost or a specific modal based on an offset from the top
  */
-function closeTop() {
+function closeTop(topModalOffset?: number) {
     if (closeModals.length === 0) {
         return;
     }
+
+    // Add bounds to the offset to ensure it's not out of bounds and use topmost modal by default.
+    const startFromTopMostModal = topModalOffset === undefined ? -1 : Math.max(Math.min(-topModalOffset - 1, -1), -closeModals.length);
+
+    const modalCloseCallback = closeModals.splice(startFromTopMostModal, 1).at(0);
+
     if (onModalClose) {
-        closeModals[closeModals.length - 1](isNavigate);
-        closeModals.pop();
+        modalCloseCallback?.(isNavigate);
         return;
     }
-    closeModals[closeModals.length - 1]();
-    closeModals.pop();
+    modalCloseCallback?.();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true, shouldCloseAllModals = false) {
+function close(onModalCloseCallback?: () => void, isNavigating = true, shouldCloseAllModals = false, topModalOffset = 0) {
     if (closeModals.length === 0) {
-        onModalCloseCallback();
+        onModalCloseCallback?.();
         return;
     }
-    onModalClose = onModalCloseCallback;
+    if (onModalCloseCallback) {
+        onModalClose = onModalCloseCallback;
+    }
     shouldCloseAll = shouldCloseAllModals;
     isNavigate = isNavigating;
-    closeTop();
+    closeTop(topModalOffset);
 }
 
 function onModalDidClose() {

@@ -162,12 +162,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
             return;
         }
         interceptAnonymousUser(() => {
+            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+
             if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
                 // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
                 return;
             }
-            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
             navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
         });
     }, [selectedTab, subscriptionPlan]);
@@ -324,7 +325,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarItem}>
+                    <View style={styles.leftNavigationTabBarFAB}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                 </View>
