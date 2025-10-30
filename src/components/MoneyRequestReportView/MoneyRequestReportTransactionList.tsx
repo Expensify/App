@@ -261,7 +261,7 @@ function MoneyRequestReportTransactionList({
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            const sortedSiblingTransactionIDs = sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
             setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);

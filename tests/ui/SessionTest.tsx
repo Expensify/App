@@ -39,7 +39,7 @@ jest.setTimeout(60000);
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
-const report = createRandomReport(7);
+const report = createRandomReport(7, undefined);
 
 function getInitialURL() {
     const params = new URLSearchParams();

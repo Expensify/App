@@ -28,8 +28,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -71,7 +71,7 @@ function ProfilePage() {
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
@@ -226,9 +226,6 @@ function ProfilePage() {
                                                 errorRowStyles={styles.mt6}
                                                 onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
                                                 onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                                originalFileName={currentUserPersonalDetails.originalFileName}
-                                                headerTitle={translate('profilePage.profileAvatar')}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
                                             />

@@ -732,9 +732,8 @@ describe('TransactionUtils', () => {
     describe('shouldShowViolation', () => {
         it('should return false for auto approval limit violation when report is not open/processing report', () => {
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                chatType: undefined,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 ownerAccountID: 2,

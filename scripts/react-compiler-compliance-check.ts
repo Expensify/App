@@ -11,74 +11,115 @@ import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
-import Git, {GIT_ERRORS} from './utils/Git';
-import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
+import Git from './utils/Git';
+import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
+
+const TAB = '    ';
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
-type HealthcheckJsonResults = {
-    success: string[];
-    failures: CompilerFailure;
-};
+const SUPPRESSED_COMPILER_ERRORS = [
+    // This error is caused by an internal limitation of React Compiler
+    // https://github.com/facebook/react/issues/29583
+    '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
+] as const satisfies string[];
+
+const ESLINT_DISABLE_PATTERNS = {
+    FILE_KEYWORDS: ['// eslint-disable ', '/* eslint-disable '],
+    LINE_KEYWORDS: ['// eslint-disable-next-line ', '/* eslint-disable-next-line '],
+    LINT_RULES: ['react-compiler/react-compiler', 'react-hooks'],
+} as const;
+
+const VERBOSE_OUTPUT_LINE_REGEXES = {
+    SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
+    FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
+    FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
+    REASON: /Reason: (.+)/,
+} as const satisfies Record<string, RegExp>;
+
+type FailureMap = Map<string, CompilerFailure>;
 
 type CompilerResults = {
     success: Set<string>;
-    failures: Map<string, CompilerFailure>;
+    failures: FailureMap;
+    suppressedFailures: FailureMap;
 };
 
 type CompilerFailure = {
     file: string;
     line?: number;
     column?: number;
-    reason: string;
+    reason?: string;
 };
 
-function check(filesToCheck?: string[], shouldGenerateReport = false) {
-    if (filesToCheck) {
-        info(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
+type DiffFilteringCommits = {
+    fromRef: string;
+    toRef?: string;
+};
+
+type PrintResultsOptions = {
+    shouldPrintSuccesses: boolean;
+    shouldPrintSuppressedErrors: boolean;
+};
+
+type BaseCheckOptions = PrintResultsOptions & {
+    remote?: string;
+    reportFileName?: string;
+    shouldGenerateReport?: boolean;
+    shouldFilterByDiff?: boolean;
+};
+
+type CheckOptions = BaseCheckOptions & {
+    files?: string[];
+};
+
+async function check({
+    files,
+    shouldGenerateReport = false,
+    reportFileName = DEFAULT_REPORT_FILENAME,
+    shouldFilterByDiff = false,
+    remote,
+    shouldPrintSuccesses = false,
+    shouldPrintSuppressedErrors = false,
+}: CheckOptions): Promise<boolean> {
+    if (files) {
+        logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
     } else {
-        info('Running React Compiler check for all files...');
+        logInfo('Running React Compiler check for all files...');
     }
 
-    const src = createFilesGlob(filesToCheck);
-    const results = runCompilerHealthcheck(src);
+    const src = createFilesGlob(files);
+    let results = runCompilerHealthcheck(src);
+
+    if (shouldFilterByDiff) {
+        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+        const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
+
+        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+    }
+
+    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+
+    if (shouldGenerateReport) {
+        generateReport(results, reportFileName);
+    }
 
     const isPassed = results.failures.size === 0;
-    if (isPassed) {
-        logSuccess('All changed files pass React Compiler compliance check!');
+    return isPassed;
+}
+
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
+    logInfo('Checking changed files for React Compiler compliance...');
+
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
+
+    if (changedFiles.length === 0) {
+        logSuccess('No React files changed, skipping check.');
         return true;
     }
 
-    printFailureSummary(results);
-
-    if (shouldGenerateReport) {
-        generateReport(results, DEFAULT_REPORT_FILENAME);
-    }
-
-    return false;
-}
-
-async function checkChangedFiles(remote: string): Promise<boolean> {
-    info('Checking changed files for React Compiler compliance...');
-
-    try {
-        const changedFiles = await Git.getChangedFiles(remote);
-        const filesToCheck = [...new Set(changedFiles)];
-
-        if (filesToCheck.length === 0) {
-            logSuccess('No React files changed, skipping check.');
-            return true;
-        }
-
-        return check(filesToCheck);
-    } catch (error) {
-        if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
-            logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
-        }
-
-        logError('Could not determine changed files:', error);
-        return false;
-    }
+    return check({files: changedFiles, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -88,188 +129,357 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         srcString = srcString?.endsWith('"') ? srcString : `${srcString}"`;
     }
 
-    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --json --verbose `;
+    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --verbose`;
     const output = execSync(command, {
         encoding: 'utf8',
         cwd: process.cwd(),
     });
 
-    // Parse and then normalize via Set/Map to ensure true uniqueness
-    const parsed = parseCombinedOutput(output);
-
-    // Use Set to deduplicate success entries
-    const successSet = new Set(parsed.success);
-
-    // Use Map keyed by unique file key to deduplicate failures
-    const failureMap = new Map<string, CompilerFailure>();
-    parsed.failures.forEach((failure) => {
-        const key = getUniqueFileKey(failure);
-        // Prefer the first occurrence that has a reason
-        const existing = failureMap.get(key);
-        if (!existing) {
-            failureMap.set(key, failure);
-            return;
-        }
-        if (!existing.reason && failure.reason) {
-            failureMap.set(key, failure);
-        }
-    });
-
-    return {success: successSet, failures: failureMap};
+    return parseHealthcheckOutput(output);
 }
 
-function parseCombinedOutput(output: string): CompilerResults {
+// eslint-disable-next-line rulesdir/no-negated-variables
+function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFailure): boolean {
+    const key = getUniqueFileKey(newFailure);
+    const existingFailure = failureMap.get(key);
+
+    if (existingFailure) {
+        const isReasonSet = !!existingFailure.reason;
+        const isNewReasonSet = !!newFailure.reason;
+        if (!isReasonSet && isNewReasonSet) {
+            failureMap.set(key, newFailure);
+            return true;
+        }
+
+        return false;
+    }
+
+    failureMap.set(key, newFailure);
+    return true;
+}
+
+function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
-    const successSet = new Set<string>();
-    const failure = new Map<string, CompilerFailure>();
 
-    // First, try to extract JSON from the output
-    let jsonStart = -1;
-    let jsonEnd = -1;
-    for (let i = 0; i < lines.length; i++) {
-        if (lines.at(i)?.trim().startsWith('{')) {
-            jsonStart = i;
-        }
-        if (jsonStart !== -1 && lines.at(i)?.trim().endsWith('}')) {
-            jsonEnd = i;
-            break;
-        }
-    }
+    const results: CompilerResults = {
+        success: new Set(),
+        failures: new Map(),
+        suppressedFailures: new Map(),
+    };
 
-    // Parse JSON if found
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-        try {
-            const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
-            const jsonStr = jsonLines.join('\n');
-            const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
-            jsonResult.success.forEach((success) => successSet.add(success));
-        } catch (error) {
-            warn('Failed to parse JSON from combined output:', error);
-        }
-    } else {
-        warn('No JSON found in combined output, parsing verbose text only');
-    }
+    let currentFailureWithoutReason: CompilerFailure | null = null;
 
-    // Parse verbose output for detailed failure information
-    let currentFailure: CompilerFailure | null = null;
-
+    // Parse verbose output
     for (const line of lines) {
-        // Parse successful compilation from verbose output
-        const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+        // Parse successful file paths
+        const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
         if (successMatch) {
             const filePath = successMatch[2];
-            successSet.add(filePath);
+            results.success.add(filePath);
             continue;
         }
 
-        // Parse failed compilation with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+        // Parse failed file paths with file, location, and reason all on one line
+        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
-            const newFailure = {
+            const newFailure: CompilerFailure = {
                 file: failureWithReasonMatch[1],
                 line: parseInt(failureWithReasonMatch[2], 10),
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
             };
 
-            const key = getUniqueFileKey(newFailure);
-            // Only add if not already exists, or if existing one has no reason
-            const existing = failure.get(key);
-            if (!existing?.reason) {
-                failure.set(key, newFailure);
-            }
-            currentFailure = null;
-            continue;
-        }
+            // If we already have a reason, we don't want to set the reason again
+            currentFailureWithoutReason = null;
 
-        // Parse failed compilation with file and location only (fallback)
-        const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
-        if (failureMatch) {
-            // Save previous failure if exists
-            if (currentFailure) {
-                const key = getUniqueFileKey(currentFailure);
-                const existing = failure.get(key);
-                if (!existing?.reason) {
-                    failure.set(key, currentFailure);
-                }
-            }
-
-            const key = getUniqueFileKey({
-                file: failureMatch[1],
-                line: parseInt(failureMatch[2], 10),
-                column: parseInt(failureMatch[3], 10),
-                reason: '',
-            });
-
-            // Only create new failure if it doesn't exist
-            if (failure.has(key)) {
-                // Use existing failure if it exists
-                const existingFailure = failure.get(key);
-                if (existingFailure) {
-                    currentFailure = existingFailure;
-                }
+            if (shouldSuppressCompilerError(newFailure.reason)) {
+                addFailureIfDoesNotExist(results.suppressedFailures, newFailure);
                 continue;
             }
 
-            currentFailure = {
-                file: failureMatch[1],
-                line: parseInt(failureMatch[2], 10),
-                column: parseInt(failureMatch[3], 10),
-                reason: '',
+            // Only add if failure does not exist already, or if existing one has no reason
+            addFailureIfDoesNotExist(results.failures, newFailure);
+        }
+
+        // Parse failed compilation with file and location only (fallback)
+        const failureWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
+        if (failureWithoutReasonMatch) {
+            const newFailure: CompilerFailure = {
+                file: failureWithoutReasonMatch[1],
+                line: parseInt(failureWithoutReasonMatch[2], 10),
+                column: parseInt(failureWithoutReasonMatch[3], 10),
             };
+
+            currentFailureWithoutReason = newFailure;
+
+            // Only create new failure if it doesn't exist
+            addFailureIfDoesNotExist(results.failures, newFailure);
+
             continue;
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(/Reason: (.+)/);
-        if (reasonMatch && currentFailure) {
-            // Only update reason if it's not already set
-            if (!currentFailure.reason) {
-                currentFailure.reason = reasonMatch[1];
-                failure.set(getUniqueFileKey(currentFailure), currentFailure);
+        const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
+        if (reasonMatch && currentFailureWithoutReason) {
+            const reason = reasonMatch[1];
+
+            const currentFailure: CompilerFailure = {
+                file: currentFailureWithoutReason.file,
+                line: currentFailureWithoutReason.line,
+                column: currentFailureWithoutReason.column,
+                reason,
+            };
+
+            currentFailureWithoutReason = null;
+
+            if (shouldSuppressCompilerError(reason)) {
+                addFailureIfDoesNotExist(results.suppressedFailures, currentFailure);
+                continue;
             }
-            currentFailure = null;
-            continue;
+
+            addFailureIfDoesNotExist(results.failures, currentFailure);
         }
     }
 
-    // Add any remaining failure
-    if (currentFailure) {
-        const key = getUniqueFileKey(currentFailure);
-        const existing = failure.get(key);
-        if (!existing?.reason) {
-            failure.set(key, currentFailure);
-        }
+    return results;
+}
+
+function shouldSuppressCompilerError(reason: string | undefined): boolean {
+    if (!reason) {
+        return false;
     }
 
-    return {success: successSet, failures: failure};
+    // Check if the error reason matches any of the suppressed error patterns
+    return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
 }
 
-function getUniqueFileKey(failure: CompilerFailure): string {
-    return `${failure.file}:${failure.line}:${failure.column}`;
+function getUniqueFileKey({file, line, column}: CompilerFailure): string {
+    const isLineSet = line !== undefined;
+    const isLineAndColumnSet = isLineSet && column !== undefined;
+
+    return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
 }
 
-function createFilesGlob(filesToCheck?: string[]): string | undefined {
-    if (!filesToCheck || filesToCheck.length === 0) {
+function createFilesGlob(files?: string[]): string | undefined {
+    if (!files || files.length === 0) {
         return undefined;
     }
 
-    if (filesToCheck.length === 1) {
-        return filesToCheck.at(0);
+    if (files.length === 1) {
+        return files.at(0);
     }
 
-    return `**/+(${filesToCheck.join('|')})`;
+    return `**/+(${files.join('|')})`;
 }
 
-function printFailureSummary({success, failures}: CompilerResults): void {
-    // const failedFileNames = getDistinctFileNames(Array.from(failures.values()), (f) => f.file, fileToCheck);
+/**
+ * Filters compiler results to only include failures for lines that were changed in the git diff.
+ * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
+ *
+ * Additionally includes failures when:
+ * - Any chunk in a file contains eslint-disable react-compiler/react-compiler comment
+ * - A line contains eslint-disable-next-line react-compiler/react-compiler comment (includes the next line)
+ *
+ * @param results - The compiler results to filter
+ * @param diffFilteringCommits - The commit range to diff (from and to)
+ * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
+ */
+async function filterResultsByDiff(
+    results: CompilerResults,
+    diffFilteringCommits: DiffFilteringCommits,
+    {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
+): Promise<CompilerResults> {
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
-    if (success.size > 0) {
-        log();
-        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
+    // Get the diff between the base ref and the working tree
+    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
+
+    // If there are no changes, return empty results
+    if (!diffResult.hasChanges) {
+        return {
+            success: new Set(),
+            failures: new Map(),
+            suppressedFailures: new Map(),
+        };
     }
 
-    const tab = '    ';
+    // Create a map of file paths to changed line numbers for quick lookup
+    const changedLinesMap = new Map<string, Set<number>>();
+
+    // Track files with eslint-disable comments and lines with eslint-disable-next-line
+    const filesWithEslintDisable = new Set<string>();
+    const linesWithEslintDisableNextLine = new Map<string, Set<number>>();
+
+    for (const file of diffResult.files) {
+        const changedLines = new Set([...file.addedLines, ...file.modifiedLines]);
+        changedLinesMap.set(file.filePath, changedLines);
+
+        for (const hunk of file.hunks) {
+            for (const line of hunk.lines) {
+                function doesLineIncludeEslintDisableComment(isFileLevel: boolean): boolean {
+                    const trimmedContent = line.content.trim();
+
+                    let includesKeyword = false;
+                    if (isFileLevel) {
+                        includesKeyword = ESLINT_DISABLE_PATTERNS.FILE_KEYWORDS.some((keyword) => trimmedContent.startsWith(keyword));
+                    } else {
+                        includesKeyword = ESLINT_DISABLE_PATTERNS.LINE_KEYWORDS.some((keyword) => trimmedContent.startsWith(keyword));
+                    }
+
+                    return includesKeyword && ESLINT_DISABLE_PATTERNS.LINT_RULES.some((rule) => trimmedContent.includes(rule));
+                }
+
+                // Check for file-level eslint-disable comment
+                if (doesLineIncludeEslintDisableComment(true)) {
+                    filesWithEslintDisable.add(file.filePath);
+                }
+
+                // Check for line-level eslint-disable-next-line comment
+                if (doesLineIncludeEslintDisableComment(false)) {
+                    if (!linesWithEslintDisableNextLine.has(file.filePath)) {
+                        linesWithEslintDisableNextLine.set(file.filePath, new Set());
+                    }
+                    // Include the next line (current line + 1)
+                    const disabledLines = linesWithEslintDisableNextLine.get(file.filePath);
+
+                    if (!disabledLines) {
+                        continue;
+                    }
+
+                    // When the eslint-disable-next-line comment is removed, the react compiler error line number is the line number of the next line
+                    const reactCompilerErrorLineNumber = line.type === 'removed' ? line.number + hunk.newCount : line.number + hunk.newCount + 1;
+                    disabledLines.add(reactCompilerErrorLineNumber);
+                }
+            }
+        }
+    }
+
+    // Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
+    function filterFailuresByChangedLines(failures: Map<string, CompilerFailure>) {
+        // Filter failures to only include those on changed lines
+        const filteredFailures = new Map<string, CompilerFailure>();
+
+        failures.forEach((failure, key) => {
+            const changedLines = changedLinesMap.get(failure.file);
+
+            // If the file is not in the diff, skip this failure
+            if (!changedLines) {
+                return;
+            }
+
+            // If the file has eslint-disable comment, include ALL failures for this file
+            if (filesWithEslintDisable.has(failure.file)) {
+                filteredFailures.set(key, failure);
+                return;
+            }
+
+            // If the failure has a line number, check if it's in the changed lines or eslint-disable-next-line
+            if (failure.line !== undefined) {
+                const isLineChanged = changedLines.has(failure.line);
+                const isLineEslintDisabled = linesWithEslintDisableNextLine.get(failure.file)?.has(failure.line);
+
+                if (isLineChanged || isLineEslintDisabled) {
+                    filteredFailures.set(key, failure);
+                }
+                return;
+            }
+
+            // If there's no line number, include the failure if the file has changes
+            filteredFailures.set(key, failure);
+        });
+
+        return filteredFailures;
+    }
+
+    // Filter failures to only include those on changed lines
+    const filteredFailures = filterFailuresByChangedLines(results.failures);
+    const filteredSuppressedFailures = filterFailuresByChangedLines(results.suppressedFailures);
+
+    // Filter success set to only include files that are in the diff
+    const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
+    const filteredSuccesses = new Set<string>();
+    results.success.forEach((file) => {
+        if (!changedFiles.has(file)) {
+            return;
+        }
+        filteredSuccesses.add(file);
+    });
+
+    if (shouldPrintSuccesses) {
+        if (filteredSuccesses.size === 0) {
+            logInfo('No successes remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuccesses.size} out of ${results.success.size} successes remain after filtering by diff.`);
+        }
+    }
+
+    if (shouldPrintSuppressedErrors) {
+        if (filteredSuppressedFailures.size === 0) {
+            logInfo('No suppressed errors remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuppressedFailures.size} out of ${results.suppressedFailures.size} successes remain after filtering by diff.`);
+        }
+    }
+
+    if (filteredFailures.size === 0) {
+        logInfo('No failures remain after filtering by diff.');
+    } else {
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
+    }
+
+    return {
+        success: filteredSuccesses,
+        failures: filteredFailures,
+        suppressedFailures: filteredSuppressedFailures,
+    };
+}
+
+function printResults({success, failures, suppressedFailures}: CompilerResults, {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions): void {
+    if (shouldPrintSuccesses && success.size > 0) {
+        log();
+        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
+        log();
+
+        success.forEach((successFile) => {
+            logSuccess(`${successFile}`);
+        });
+
+        log();
+    }
+
+    if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
+        // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
+        const suppressedErrorMap = new Map<string, CompilerFailure[]>();
+        suppressedFailures.forEach((failure) => {
+            if (!failure.reason) {
+                return;
+            }
+
+            if (!suppressedErrorMap.has(failure.reason)) {
+                suppressedErrorMap.set(failure.reason, []);
+            }
+
+            suppressedErrorMap.get(failure.reason)?.push(failure);
+        });
+
+        log();
+        logWarn(`Suppressed the following errors in these files:`);
+        log();
+
+        for (const [error, suppressedErrorFiles] of suppressedErrorMap.entries()) {
+            logBold(error);
+            const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
+            logNote(`${TAB} - ${filesLine}`);
+        }
+
+        log();
+    }
+
+    const isPassed = failures.size === 0;
+    if (isPassed) {
+        logSuccess('All files pass React Compiler compliance check!');
+        return;
+    }
 
     const distinctFileNames = new Set<string>();
     failures.forEach((failure) => {
@@ -280,13 +490,10 @@ function printFailureSummary({success, failures}: CompilerResults): void {
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
-    // Print unique failures for the files that were checked
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-        bold(`${failure.file}${location}`);
-        if (failure.reason) {
-            note(`${tab}${failure.reason}`);
-        }
+        logBold(`${failure.file}${location}`);
+        logNote(`${TAB}${failure.reason ?? 'No reason provided'}`);
     });
 
     log();
@@ -295,7 +502,7 @@ function printFailureSummary({success, failures}: CompilerResults): void {
 
 function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
     log('\n');
-    info('Creating React Compiler Compliance Check report:');
+    logInfo('Creating React Compiler Compliance Check report:');
 
     // Save detailed report
     const reportFile = join(process.cwd(), outputFileName);
@@ -353,15 +560,34 @@ async function main() {
         ],
         namedArgs: {
             remote: {
-                description: 'Git remote name to use for main branch (default: origin)',
+                description: 'Git remote name to use for main branch (default: no remote locally and origin in CI)',
                 required: false,
                 supersedes: ['check-changed'],
-                default: 'origin',
+            },
+            reportFileName: {
+                description: 'File name to save the report to',
+                required: false,
+                default: DEFAULT_REPORT_FILENAME,
             },
         },
         flags: {
+            filterByDiff: {
+                description: 'Filter the files to check by the diff between the current commit/PR and the main branch',
+                required: false,
+                default: false,
+            },
             report: {
                 description: 'Generate a report of the results',
+                required: false,
+                default: false,
+            },
+            printSuccesses: {
+                description: 'Print the successes',
+                required: false,
+                default: false,
+            },
+            printSuppressedErrors: {
+                description: 'Print suppressed errors',
                 required: false,
                 default: false,
             },
@@ -369,26 +595,29 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote} = cli.namedArgs;
-    const {report: shouldGenerateReport} = cli.flags;
+    const {remote, reportFileName} = cli.namedArgs;
+    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses, printSuppressedErrors: shouldPrintSuppressedErrors} = cli.flags;
 
-    let isPassed = false;
-    try {
+    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses, shouldPrintSuppressedErrors};
+
+    async function runCommand() {
         switch (command) {
             case 'check':
-                isPassed = Checker.check(file !== '' ? [file] : undefined, shouldGenerateReport);
-                break;
+                return Checker.check({files: file ? [file] : undefined, ...commonOptions});
             case 'check-changed':
-                isPassed = await Checker.checkChangedFiles(remote);
-                break;
+                return Checker.checkChangedFiles({remote, ...commonOptions});
             default:
                 logError(`Unknown command: ${String(command)}`);
-                isPassed = false;
+                return Promise.resolve(false);
         }
-    } catch (error) {
-        isPassed = false;
-    } finally {
+    }
+
+    try {
+        const isPassed = await runCommand();
         process.exit(isPassed ? 0 : 1);
+    } catch (error) {
+        logError('Error running react-compiler-compliance-check:', error);
+        process.exit(1);
     }
 }
 

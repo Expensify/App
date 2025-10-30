@@ -8,9 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import CONST from '@src/CONST';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -46,10 +44,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const platform = getPlatform(true);
-    // We want to display the floating camera button on mobile devices (both web and native)
-    const shouldShowFloatingCameraButton = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP;
-
     useEffect(() => {
         if (!shouldDisplayBottomBar) {
             // If the bottom tab is not visible, that means there is a screen covering it.
@@ -81,7 +75,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 selectedTab={selectedTab}
                 isTopLevelBar
             />
-            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
+            <FloatingCameraButton />
         </View>
     );
 }

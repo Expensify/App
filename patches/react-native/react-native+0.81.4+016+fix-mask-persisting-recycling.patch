@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index 894e200..a81eda9 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -611,6 +611,7 @@ const CGFloat BACKGROUND_COLOR_ZPOSITION = -1024.0f;
+   if ([_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN containsObject:@"opacity"]) {
+     self.layer.opacity = (float)props.opacity;
+   }
++  self.layer.mask = nil;
+ 
+   self.autoresizingMask = UIViewAutoresizingNone;
+ 

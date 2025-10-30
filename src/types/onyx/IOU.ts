@@ -156,6 +156,9 @@ type SplitExpense = {
 
     /** Current reportID  */
     reportID?: string;
+
+    /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
+    reimbursable?: boolean;
 };
 
 /** Model of IOU request */

@@ -1,5 +1,6 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -19,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -99,7 +101,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const handleRegularReportSelection = (item: TransactionGroupListItem) => {
+    const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
         if (!transaction) {
             return;
         }
@@ -118,10 +120,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             if (isEditing) {
                 changeTransactionsReport(
                     [transaction.transactionID],
-                    item.value,
+
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
+                    report,
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
                     allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -149,8 +152,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         // Handle regular report selection
-        handleRegularReportSelection(item);
+        handleRegularReportSelection(item, report);
     };
 
     const removeFromReport = () => {
@@ -160,13 +164,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport(
-                [transaction.transactionID],
-                CONST.REPORT.UNREPORTED_REPORT_ID,
-                isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
-            );
+            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
             removeTransaction(transaction.transactionID);
         });
     };
@@ -187,8 +185,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        handleRegularReportSelection({value: createdReportID});
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
     return (

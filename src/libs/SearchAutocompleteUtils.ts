@@ -143,6 +143,10 @@ function filterOutRangesWithCorrectValue(
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
 
+    if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return range.value.length > 0;
+    }
+
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:

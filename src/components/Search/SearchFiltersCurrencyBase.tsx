@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
 import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';
@@ -55,7 +56,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     }, [currencyList, selectedCurrencyData]);
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
-        updateAdvancedFilters({[filterKey]: values ?? null});
+        updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
     };
 
     return (
