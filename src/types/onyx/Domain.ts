@@ -23,7 +23,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether domain validation is pending */
     domainValidationError?: OnyxCommon.Errors;
 
-    /** Whether validation code is currently loading or has failed/succeeded */
+    /** Whether validation code is currently loading or has failed */
     validateCodeLoadingStatus?: 'loading' | 'error';
 }>;
 
