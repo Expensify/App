@@ -135,6 +135,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     const handleSearchAction = useCallback(
         (value: string) => {
+            console.log('duppppppa dupa _________________');
+            console.log('odpaliło searcha z poziomu SearchPageHeaderInput');
+            console.log('duppppppa dupa _________________');
+            debugger;
             // Skip calling handleSearch on the initial mount
             if (!hasMountedRef.current) {
                 return;

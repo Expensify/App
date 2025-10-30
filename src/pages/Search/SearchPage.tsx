@@ -1,6 +1,8 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -14,8 +16,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchPageFooter from '@components/Search/SearchPageFooter';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -75,6 +81,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isFocused = useIsFocused();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -709,10 +716,19 @@ function SearchPage({route}: SearchPageProps) {
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
+        console.log('duppppppa dupa _________________');
+        console.log('Search naprawdę się wywołał');
+        console.log('duppppppa dupa _________________');
+        debugger;
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            search(value).then((jsonCode) => {
+                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
+                if (isFocused) {
+                    setShowSceletons(false);
+                }
+            });
         }
     }, []);
 
@@ -743,7 +759,8 @@ function SearchPage({route}: SearchPageProps) {
         console.log(currentSearchResults);
         console.log('____________________________________');
     }, [currentSearchResults]);
-    if (!showSceletons) {
+
+    if (true) {
         if (shouldUseNarrowLayout) {
             return (
                 <>
@@ -850,7 +867,40 @@ function SearchPage({route}: SearchPageProps) {
             </ScreenWrapper>
         );
     }
-    return <></>;
+    return (
+        <View style={styles.searchSplitContainer}>
+            <ScreenWrapper
+                testID={Search.displayName}
+                shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                offlineIndicatorStyle={offlineIndicatorStyle}
+            >
+                <SearchPageHeader
+                    queryJSON={queryJSON}
+                    headerButtonsOptions={headerButtonsOptions}
+                    handleSearch={handleSearchAction}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                />
+                <SearchFiltersSkeleton shouldAnimate />
+                <Animated.View
+                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={[styles.flex1]}
+                >
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                    />
+                </Animated.View>
+                {shouldShowFooter && (
+                    <SearchPageFooter
+                        count={footerData.count}
+                        total={footerData.total}
+                        currency={footerData.currency}
+                    />
+                )}
+            </ScreenWrapper>
+        </View>
+    );
 }
 
 SearchPage.displayName = 'SearchPage';

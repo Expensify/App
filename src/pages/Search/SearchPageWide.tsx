@@ -89,41 +89,41 @@ function SearchPageWide({
                     handleSearch={handleSearchAction}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 />
-                <SearchFiltersBar
-                    queryJSON={queryJSON}
-                    headerButtonsOptions={headerButtonsOptions}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                    confirmPayment={onBulkPaySelected}
-                    latestBankItems={latestBankItems}
-                />
-                <Search
-                    key={queryJSON.hash}
-                    queryJSON={queryJSON}
-                    searchResults={searchResults}
-                    handleSearch={handleSearchAction}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    onSearchListScroll={scrollHandler}
-                    onSortPressedCallback={onSortPressedCallback}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                />
-                {shouldShowFooter && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
-                )}
-                <DragAndDropConsumer onDrop={initScanRequest}>
-                    <DropZoneUI
-                        icon={Expensicons.SmartScan}
-                        dropTitle={translate('dropzone.scanReceipts')}
-                        dropStyles={styles.receiptDropOverlay(true)}
-                        dropTextStyles={styles.receiptDropText}
-                        dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                    />
-                </DragAndDropConsumer>
+                {/* <SearchFiltersBar */}
+                {/*     queryJSON={queryJSON} */}
+                {/*     headerButtonsOptions={headerButtonsOptions} */}
+                {/*     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled} */}
+                {/*     currentSelectedPolicyID={selectedPolicyIDs?.at(0)} */}
+                {/*     currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)} */}
+                {/*     confirmPayment={onBulkPaySelected} */}
+                {/*     latestBankItems={latestBankItems} */}
+                {/* /> */}
+                {/* <Search */}
+                {/*     key={queryJSON.hash} */}
+                {/*     queryJSON={queryJSON} */}
+                {/*     searchResults={searchResults} */}
+                {/*     handleSearch={handleSearchAction} */}
+                {/*     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled} */}
+                {/*     onSearchListScroll={scrollHandler} */}
+                {/*     onSortPressedCallback={onSortPressedCallback} */}
+                {/*     searchRequestResponseStatusCode={searchRequestResponseStatusCode} */}
+                {/* /> */}
+                {/* {shouldShowFooter && ( */}
+                {/*     <SearchPageFooter */}
+                {/*         count={footerData.count} */}
+                {/*         total={footerData.total} */}
+                {/*         currency={footerData.currency} */}
+                {/*     /> */}
+                {/* )} */}
+                {/* <DragAndDropConsumer onDrop={initScanRequest}> */}
+                {/*     <DropZoneUI */}
+                {/*         icon={Expensicons.SmartScan} */}
+                {/*         dropTitle={translate('dropzone.scanReceipts')} */}
+                {/*         dropStyles={styles.receiptDropOverlay(true)} */}
+                {/*         dropTextStyles={styles.receiptDropText} */}
+                {/*         dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]} */}
+                {/*     /> */}
+                {/* </DragAndDropConsumer> */}
             </ScreenWrapper>
             {ErrorModal}
         </View>
