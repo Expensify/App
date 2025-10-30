@@ -991,6 +991,7 @@ function clearAvatarErrors(reportID: string) {
  * @param isNewThread Whether this is a new thread being created
  * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param transactionViolations The violations for the transaction, if any
+ * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
  */
 // eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
@@ -1005,6 +1006,7 @@ function openReport(
     isNewThread = false,
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
+    parentReportID?: string,
 ) {
     if (!reportID) {
         return;
@@ -1090,8 +1092,7 @@ function openReport(
 
     // This is a legacy transaction that doesn't have either a transaction thread or a money request preview
     if (transaction && !parentReportActionID) {
-        const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const parentReportID = isUnreportedTransaction ? findSelfDMReportID() : transaction?.reportID;
+        const transactionParentReportID = parentReportID ?? transaction?.reportID;
         const iouReportActionID = rand64();
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
@@ -1128,7 +1129,7 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                parentReportID,
+                parentReportID: transactionParentReportID,
                 parentReportActionID: iouReportActionID,
                 reportName: getTransactionReportName({reportAction: optimisticIOUAction}),
             },
@@ -1136,7 +1137,7 @@ function openReport(
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
             value: {
                 [iouReportActionID]: {
                     ...optimisticIOUAction,
@@ -1405,10 +1406,14 @@ function createTransactionThreadReport(
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
 ): OptimisticChatReport | undefined {
+    // Determine if we need selfDM report (for track expenses or unreported transactions)
+    const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
+    const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
+    
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
-    if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = findSelfDMReportID();
+    if (isTrackExpense && selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -1438,6 +1443,7 @@ function createTransactionThreadReport(
         false,
         transaction,
         transactionViolations,
+        selfDMReportID,
     );
     return optimisticTransactionThread;
 }
