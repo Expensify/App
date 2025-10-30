@@ -273,6 +273,7 @@ function SearchPage({route}: SearchPageProps) {
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
 
+    const [isSorting, setIsSorting] = useState(false);
     let searchResults;
     if (currentSearchResults?.data) {
         searchResults = currentSearchResults;
@@ -747,8 +748,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-
-    const [isSorting, setIsSorting] = useState(false);
 
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
