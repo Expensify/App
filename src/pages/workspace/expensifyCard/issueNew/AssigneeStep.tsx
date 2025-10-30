@@ -78,7 +78,6 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             data.cardTitle = getCardDefaultName(getUserNameByEmail(assignee?.login ?? '', 'firstName'));
         }
 
-        // check if the assinee accountID is not in the employeeList
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             data.assigneeAccountID = assignee?.accountID ?? undefined;
             setIssueNewCardStepAndData({

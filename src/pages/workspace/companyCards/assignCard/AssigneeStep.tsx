@@ -89,7 +89,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             return;
         }
 
-        // check if the assinee accountID is not in the employeeList
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
