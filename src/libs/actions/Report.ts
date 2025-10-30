@@ -1410,7 +1410,7 @@ function createTransactionThreadReport(
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
-    
+
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (isTrackExpense && selfDMReportID) {
