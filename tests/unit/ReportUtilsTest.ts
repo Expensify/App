@@ -1686,6 +1686,20 @@ describe('ReportUtils', () => {
                     expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
                 });
 
+                test('closed expense report with zero total but non-reimbursable total exists', () => {
+                    // Given a closed expense report where reimbursable and non-reimbursable totals cancel out
+                    // The total will be zero, but the non-reimbursable total will exist
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        nonReimbursableTotal: -10000,
+                    };
+
+                    // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                });
+
                 test('should handle paid elsewhere money request', () => {
                     const payAction: ReportAction = {
                         ...baseParentReportAction,
