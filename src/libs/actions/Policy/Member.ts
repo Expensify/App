@@ -26,6 +26,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import * as FormActions from '@userActions/FormActions';
+import {getRemoveApprovalWorkflowOnyxData, getUpdateApprovalWorkflowOnyxData} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -47,7 +48,6 @@ import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getRemoveApprovalWorkflowOnyxData, getUpdateApprovalWorkflowOnyxData} from '../Workflow';
 import {createPolicyExpenseChats, getSetPolicyPreventSelfApprovalOnyxData} from './Policy';
 
 type OnyxDataReturnType = {
