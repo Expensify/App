@@ -646,10 +646,7 @@ const translations = {
         leaveWorkspaceConfirmationAuditor: 'Als je deze werkruimte verlaat, kun je de rapporten en instellingen ervan niet meer bekijken.',
         leaveWorkspaceConfirmationAdmin: 'Als je deze werkruimte verlaat, kun je de instellingen niet meer beheren.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Als je deze werkruimte verlaat, word je in de goedkeuringsworkflow vervangen door ${
-                //_/\__/_/  \_,_/\__/\__/\_,_/
-                workspaceOwner
-            }, de eigenaar van de werkruimte.`,
+            `Als je deze werkruimte verlaat, word je in de goedkeuringsworkflow vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Als je deze werkruimte verlaat, word je als voorkeursexporteur vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>

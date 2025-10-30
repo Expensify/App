@@ -39,7 +39,6 @@ import {
     deleteWorkspaceAvatar,
     leaveWorkspace,
     openPolicyProfilePage,
-    removePendingApproverMemberErrorMessage,
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
@@ -56,7 +55,6 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
-    shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';

@@ -131,10 +131,7 @@ function getCombinedErrors(policy: PolicyType | undefined, userEmail: string | u
     };
 }
 
-/**
- * Dismisses the errors on one item
- */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined, userEmail?: string) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined, policies: Record<string, PolicyType | undefined> | undefined, userEmail?: string) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         clearDeleteWorkspaceError(policyID);
         return;
@@ -145,18 +142,11 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
         return;
     }
 
-    if (userEmail) {
-        const policy = getPolicy(policyID);
+    if (userEmail && policies) {
+        const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         const employeeErrors = getEmployeeListErrors(policy, userEmail);
 
         if (employeeErrors) {
-            const hasPendingApprovalError = Object.values(employeeErrors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
-
-            if (hasPendingApprovalError) {
-                removePendingApproverMemberErrorMessage(policyID, employeeErrors);
-                return;
-            }
-
             removePendingApproverMemberErrorMessage(policyID, employeeErrors);
             return;
         }
@@ -284,7 +274,7 @@ function WorkspacesListPage() {
         if (!policyToDelete) {
             return;
         }
-        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
+        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction, policies);
     };
 
     const confirmLeaveAndHideModal = () => {
@@ -641,7 +631,7 @@ function WorkspacesListPage() {
                           )),
                     pendingAction: policy.pendingAction,
                     errors: getCombinedErrors(policy, session?.email),
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction, session?.email),
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction, policies, session?.email),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,

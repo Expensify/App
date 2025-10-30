@@ -647,15 +647,9 @@ const translations = {
         leaveWorkspaceConfirmationAuditor: 'Se lasci questo spazio di lavoro, non potrai visualizzarne i report e le impostazioni.',
         leaveWorkspaceConfirmationAdmin: 'Se lasci questo spazio di lavoro, non potrai gestirne le impostazioni.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Se lasci questo spazio di lavoro, verrai sostituito nel flusso di approvazione da ${
-                //_/\__/_/  \_,_/\__/\__/\_,_/
-                workspaceOwner
-            }, il proprietario dello spazio di lavoro.`,
+            `Se lasci questo spazio di lavoro, verrai sostituito nel flusso di approvazione da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Se lasci questo spazio di lavoro, verrai sostituito come esportatore preferito da ${
-                //_/\__/_/  \_,_/\__/\__/\_,_/
-                workspaceOwner
-            }, il proprietario dello spazio di lavoro.`,
+            `Se lasci questo spazio di lavoro, verrai sostituito come esportatore preferito da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Se lasci questo spazio di lavoro, verrai sostituito come contatto tecnico da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
         leaveWorkspaceReimburser:
