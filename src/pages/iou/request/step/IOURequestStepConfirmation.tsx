@@ -264,19 +264,30 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
-        if (isCreatingTrackExpense && policyForMovingExpensesID !== undefined && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(policyForMovingExpensesID);
+        if (!isCreatingTrackExpense || policyForMovingExpensesID === undefined) {
+            return;
         }
 
-        const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(policyExpenseChat.policyID);
+        openDraftWorkspaceRequest(policyForMovingExpensesID);
+    }, [isCreatingTrackExpense, policy?.pendingAction, policyForMovingExpensesID]);
+
+    const policyExpenseChatPolicyID = useMemo(() => {
+        return participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    }, [participants]);
+
+    const senderPolicyID = useMemo(() => {
+        return participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
+    }, [participants]);
+
+    useEffect(() => {
+        if (policyExpenseChatPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(policyExpenseChatPolicyID);
+            return;
         }
-        const senderPolicyParticipant = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender);
-        if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
+        if (senderPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(senderPolicyID);
         }
-    }, [isCreatingTrackExpense, isOffline, participants, policy?.pendingAction, policyForMovingExpensesID]);
+    }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
