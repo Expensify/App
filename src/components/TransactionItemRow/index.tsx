@@ -406,7 +406,7 @@ function TransactionItemRow({
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={bgActiveStyles}>
+            <View style={[bgActiveStyles, styles.expenseWidgetRadius]}>
                 <View
                     style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, style, styles.overflowHidden]}
                     testID="transaction-item-row"
@@ -525,7 +525,7 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={[bgActiveStyles, styles.mw100, styles.flex1]}>
+        <View style={[bgActiveStyles, styles.mw100, styles.flex1, styles.expenseWidgetRadius]}>
             <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (

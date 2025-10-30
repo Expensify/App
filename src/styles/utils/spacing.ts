@@ -619,6 +619,10 @@ export default {
         paddingRight: 60,
     },
 
+    pr16: {
+        paddingRight: 64,
+    },
+
     pl0: {
         paddingLeft: 0,
     },
