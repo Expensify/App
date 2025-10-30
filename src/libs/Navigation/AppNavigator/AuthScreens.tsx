@@ -615,7 +615,7 @@ function AuthScreens() {
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {isOnboardingCompleted === false && (
+                {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
