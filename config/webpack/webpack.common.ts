@@ -183,7 +183,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                               name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
                           },
                           sourcemaps: {
-                              assets: './dist/**/*.map',
+                              assets: './dist/**/*.{js,map}',
                               filesToDeleteAfterUpload: './dist/**/*.map',
                           },
                       }),
