@@ -11,4 +11,4 @@
 
 - Upstream PR/issue: N/A I will create an upstream PR once those changes are merged
 - E/App issue: N/A patch will be removed very soon
-- PR introducing patch: TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/73829
