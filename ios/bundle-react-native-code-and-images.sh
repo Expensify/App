@@ -14,7 +14,7 @@ if [[ "$CONFIGURATION" = *Debug* ]]; then
   export SKIP_BUNDLING=1
 fi
 
-Disable Sentry source map upload for development builds
+# Disable Sentry source map upload for development builds
 if [[ "$CONFIGURATION" == *"Development"* ]]; then
   export SENTRY_DISABLE_AUTO_UPLOAD=true
 fi
