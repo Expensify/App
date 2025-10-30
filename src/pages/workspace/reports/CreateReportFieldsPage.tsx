@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import type {FileObject, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
