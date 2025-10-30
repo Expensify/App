@@ -1192,10 +1192,14 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
+    const reportEntry = data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] as SearchReport | undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const hasAnyActionLoading = !!(reportEntry as {isActionLoading?: boolean} | undefined)?.isActionLoading || allReportTransactions.some((t) => t?.isActionLoading);
 
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+    // Avoid showing Pay while transactions are mid-action (e.g., reject in progress),
+    // since snapshot may be temporarily inconsistent during optimistic updates
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions) && !hasAnyActionLoading) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
@@ -1214,13 +1218,14 @@ function getActions(
         canApproveIOU(report, policy, allReportTransactions) &&
         isAllowedToApproveExpenseReport &&
         !hasOnlyPendingCardOrScanningTransactions &&
-        !hasOnlyHeldExpenses(report.reportID, allReportTransactions)
+        !hasOnlyHeldExpenses(report.reportID, allReportTransactions) &&
+        !hasAnyActionLoading
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport && !hasAnyActionLoading) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
