@@ -179,6 +179,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                           authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
                           org: 'expensify',
                           project: 'app',
+                          release: {
+                              name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                          },
+                          sourcemaps: {
+                              assets: './dist/**/*.map',
+                              filesToDeleteAfterUpload: './dist/**/*.map',
+                          },
                       }),
                   ] as WebpackPluginInstance[])),
 
