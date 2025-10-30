@@ -282,7 +282,7 @@ describe('useSearchHighlightAndScroll', () => {
                 ...baseProps.searchResults,
                 data: {
                     reportActions_1: {
-                        '1': {actionName: 'EXISTING', reportActionID: '1'}
+                        '1': {actionName: 'EXISTING', reportActionID: '1'},
                     },
                     reportActions_2: {
                         '2': {actionName: 'EXISTING', reportActionID: '2'},
