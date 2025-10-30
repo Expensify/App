@@ -15,7 +15,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
-import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, getCurrentUserAccountID, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
@@ -65,6 +65,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const currentUserID = getCurrentUserAccountID();
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -74,6 +75,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
+            const shouldSkip = currentUserID === report.ownerAccountID;
             if (isIOUReport(reportID)) {
                 const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
                 if (!invite?.policyExpenseChatReportID) {
@@ -81,7 +83,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-            } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+            } else if (!shouldSkip && isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
                 changeReportPolicyAndInviteSubmitter(
                     report,
