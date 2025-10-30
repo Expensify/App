@@ -601,8 +601,6 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
             rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
         });
     });
-
-    playSound(SOUNDS.SUCCESS);
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
