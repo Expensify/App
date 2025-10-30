@@ -642,19 +642,19 @@ const translations = {
         help: 'Pomoc',
         expenseReport: 'Raport wydatków',
         expenseReports: 'Raporty wydatków',
-        leaveWorkspace: 'Opuść przestrzeń roboczą',
-        leaveWorkspaceConfirmation: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć możliwości przesyłania do niej wydatków.',
+        leaveWorkspace: 'Opuść obszar roboczy',
+        leaveWorkspaceConfirmation: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł(-a) zgłaszać do niej wydatków.',
         leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć dostępu do jej raportów i ustawień.',
         leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć możliwości zarządzania jej ustawieniami.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz ten obszar roboczy, Twoją rolę w procesie zatwierdzania przejmie ${workspaceOwner}, właściciel obszaru roboczego.`,
+            `Jeśli opuścisz ten obszar roboczy, Twoje miejsce w obiegu zatwierdzania zajmie ${workspaceOwner}, właściciel obszaru roboczego.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz tę przestrzeń roboczą, zastąpi Cię w roli preferowanego eksportera ${workspaceOwner}, właściciel przestrzeni roboczej.`,
+            `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Jeśli opuścisz ten obszar roboczy, zostaniesz zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela obszaru roboczego.`,
+            `Jeśli opuścisz tę przestrzeń roboczą, w roli kontaktu technicznego zastąpi Cię ${workspaceOwner}, właściciel przestrzeni roboczej.`,
         leaveWorkspaceReimburser:
-            'Nie możesz opuścić tej przestrzeni roboczej jako osoba wypłacająca zwroty. Ustaw nową osobę wypłacającą zwroty w Workspaces > Make or track payments, a następnie spróbuj ponownie.',
-        cannotLeaveWorkspaceOutstandingReport: 'Przed opuszczeniem tego obszaru roboczego zatwierdź proszę wszystkie oczekujące na zatwierdzenie raporty wydatków przesłane do Ciebie.',
+            'Nie możesz opuścić tego obszaru roboczego jako osoba wypłacająca zwroty. Ustaw nową osobę wypłacającą zwroty w Obszary robocze > Realizuj lub śledź płatności, a następnie spróbuj ponownie.',
+        cannotLeaveWorkspaceOutstandingReport: 'Zatwierdź wszystkie zaległe raporty wydatków przesłane do Ciebie, zanim opuścisz tę przestrzeń roboczą.',
         rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
         editYourProfile: 'Edytuj swój profil',
@@ -5126,17 +5126,17 @@ ${amount} dla ${merchant} - ${date}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Importuj członków',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${approver} z tego obszaru roboczego, zastąpimy tę osobę w przepływie zatwierdzania użytkownikiem ${workspaceOwner}, właścicielem obszaru roboczego.`,
+                `Jeśli usuniesz ${approver} z tego obszaru roboczego, zastąpimy tę osobę w przepływie zatwierdzania przez ${workspaceOwner}, właściciela obszaru roboczego.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} ma oczekujące na zatwierdzenie raporty wydatków. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad raportami tej osoby, zanim usuniesz tę osobę z przestrzeni roboczej.`,
+                `${memberName} ma oczekujące raporty wydatków do zatwierdzenia. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad raportami tej osoby, zanim usuniesz ją z obszaru roboczego.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `Nie możesz usunąć ${memberName} z tego obszaru roboczego. Ustaw nową osobę dokonującą zwrotów w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
+                `Nie możesz usunąć ${memberName} z tego obszaru roboczego. Ustaw nową osobę wypłacającą zwroty w Przepływy pracy > Dokonuj lub śledź płatności, a następnie spróbuj ponownie.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${memberName} z tego obszaru roboczego, zastąpimy tę osobę w roli preferowanego eksportera użytkownikiem ${workspaceOwner}, właścicielem obszaru roboczego.`,
+                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy tę osobę jako preferowanego eksportera użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, rolę kontaktu technicznego przejmie ${workspaceOwner}, właściciel przestrzeni roboczej.`,
+                `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy tę osobę jako kontakt techniczny użytkownikiem ${workspaceOwner}, właścicielem tej przestrzeni roboczej.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} ma oczekujący raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę, aby wykonała wymagane działanie, zanim usuniesz ją z obszaru roboczego.`,
+                `${memberName} ma oczekujący raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę, aby wykonała wymagane działanie przed usunięciem jej z przestrzeni roboczej.`,
         },
         card: {
             getStartedIssuing: 'Rozpocznij, wydając swoją pierwszą wirtualną lub fizyczną kartę.',

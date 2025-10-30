@@ -642,8 +642,8 @@ const translations = {
         expenseReport: 'Onkostennota',
         expenseReports: "Onkostennota's",
         leaveWorkspace: 'Werkruimte verlaten',
-        leaveWorkspaceConfirmation: 'Als je deze werkruimte verlaat, kun je er geen onkosten meer indienen.',
-        leaveWorkspaceConfirmationAuditor: 'Als je deze werkruimte verlaat, kun je de rapporten en instellingen niet meer bekijken.',
+        leaveWorkspaceConfirmation: 'Als je deze werkruimte verlaat, kun je er geen declaraties meer bij indienen.',
+        leaveWorkspaceConfirmationAuditor: 'Als je deze werkruimte verlaat, kun je de rapporten en instellingen ervan niet meer bekijken.',
         leaveWorkspaceConfirmationAdmin: 'Als je deze werkruimte verlaat, kun je de instellingen niet meer beheren.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Als je deze werkruimte verlaat, word je in de goedkeuringsworkflow vervangen door ${
@@ -651,12 +651,12 @@ const translations = {
                 workspaceOwner
             }, de eigenaar van de werkruimte.`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Als je deze werkruimte verlaat, word je vervangen als voorkeursexporteur door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+            `Als je deze werkruimte verlaat, word je als voorkeursexporteur vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Als je deze werkruimte verlaat, word je als technisch contactpersoon vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
         leaveWorkspaceReimburser:
-            'Je kunt deze werkruimte niet verlaten als de uitbetaler. Stel een nieuwe uitbetaler in via Werkruimten > Betalingen uitvoeren of volgen en probeer het daarna opnieuw.',
-        cannotLeaveWorkspaceOutstandingReport: 'Keur al openstaande onkostendeclaraties die bij jou zijn ingediend goed voordat je deze werkruimte verlaat.',
+            'Je kunt deze werkruimte niet verlaten als de uitbetaler. Stel een nieuwe uitbetaler in via Workspaces > Make or track payments en probeer het daarna opnieuw.',
+        cannotLeaveWorkspaceOutstandingReport: 'Keur alle openstaande onkostendeclaraties die bij jou zijn ingediend goed voordat je deze werkruimte verlaat.',
         rateOutOfPolicy: 'Tarief buiten beleid',
         reimbursable: 'Vergoedbaar',
         editYourProfile: 'Bewerk je profiel',
@@ -5140,17 +5140,17 @@ ${amount} voor ${merchant} - ${date}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal leden van de werkruimte: ${count}`,
             importMembers: 'Leden importeren',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `Als je ${approver} uit deze werkruimte verwijdert, vervangen we hen in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+                `Als je ${approver} uit deze werkruimte verwijdert, vervangen we deze persoon in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de werkruimte.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} heeft openstaande onkostenrapporten om goed te keuren. Vraag hen deze goed te keuren, of neem de controle over hun rapporten voordat je hen uit de werkruimte verwijdert.`,
+                `${memberName} heeft openstaande onkostendeclaraties die moeten worden goedgekeurd. Vraag hen deze goed te keuren, of neem hun declaraties over voordat je hen uit de werkruimte verwijdert.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `Je kunt ${memberName} niet uit deze werkruimte verwijderen. Stel een nieuwe terugbetaler in via Workflows > Betalingen doen of bijhouden en probeer het daarna opnieuw.`,
+                `Je kunt ${memberName} niet uit deze werkruimte verwijderen. Stel een nieuwe uitbetaler in via Werkstromen > Betalingen uitvoeren of bijhouden en probeer het daarna opnieuw.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hen als voorkeursexporteur door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hem/haar als voorkeursexporteur door ${workspaceOwner}, de eigenaar van de werkruimte.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hen als technische contactpersoon door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hen als technisch contactpersoon door ${workspaceOwner}, de eigenaar van de werkruimte.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} heeft een openstaand verwerkingsrapport waarvoor actie vereist is. Vraag hen om de vereiste actie te voltooien voordat je hen uit de werkruimte verwijdert.`,
+                `${memberName} heeft een openstaand rapport in behandeling waarvoor actie nodig is. Vraag hen om de vereiste actie te voltooien voordat je hen uit de werkruimte verwijdert.`,
         },
         card: {
             getStartedIssuing: 'Begin met het aanvragen van je eerste virtuele of fysieke kaart.',

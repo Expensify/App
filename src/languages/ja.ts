@@ -642,18 +642,18 @@ const translations = {
         help: '助けて',
         expenseReport: '経費報告書',
         expenseReports: '経費報告書',
-        leaveWorkspace: 'ワークスペースを退出する',
-        leaveWorkspaceConfirmation: 'このワークスペースを離れると、経費を提出できなくなります。',
-        leaveWorkspaceConfirmationAuditor: 'このワークスペースを離れると、そのレポートや設定を表示できなくなります。',
+        leaveWorkspace: 'ワークスペースから退出',
+        leaveWorkspaceConfirmation: 'このワークスペースを退出すると、このワークスペースに経費を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を閲覧できなくなります。',
         leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを離れると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に代わられます。`,
+            `このワークスペースを離れると、承認ワークフローでは、ワークスペースのオーナーである${workspaceOwner}があなたの代わりになります。`,
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを退出すると、あなたは優先エクスポーターとしてワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
+            `このワークスペースを退出すると、あなたは優先エクスポート担当者として、ワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `このワークスペースを離れると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に変更されます。`,
+            `このワークスペースを退出すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
         leaveWorkspaceReimburser:
-            'あなたはこのワークスペースの払い戻し担当者のため、退出できません。Workspaces > Make or track payments で新しい払い戻し担当者を設定してから、もう一度お試しください。',
+            'あなたは精算担当者であるため、このワークスペースを退出できません。Workspaces > 支払いを行うまたは追跡する で新しい精算担当者を設定してから、もう一度お試しください。',
         cannotLeaveWorkspaceOutstandingReport: 'このワークスペースを離れる前に、あなたに提出された未承認の経費レポートを承認してください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
@@ -5100,17 +5100,17 @@ ${date} - ${merchant}に${amount}`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー総数: ${count}`,
             importMembers: 'メンバーをインポート',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
-                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースの所有者である${workspaceOwner}に置き換えます。`,
+                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} には承認待ちの経費レポートがあります。ワークスペースから削除する前に、承認を依頼するか、レポートの管理を引き継いでください。`,
+                `${memberName} には承認すべき未処理の経費レポートがあります。ワークスペースから削除する前に、承認するよう依頼するか、そのレポートの管理を引き継いでください。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
-                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡 で新しい支払担当者を設定してから、もう一度お試しください。`,
+                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡で新しい支払担当者を設定してから、もう一度お試しください。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `このワークスペースから${memberName}を削除すると、優先のエクスポート担当者はワークスペースの所有者である${workspaceOwner}に置き換えられます。`,
+                `このワークスペースから${memberName}を削除すると、優先エクスポーターをワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に変更されます。`,
+                `このワークスペースから${memberName}を削除すると、技術連絡先をワークスペースのオーナーである${workspaceOwner}に変更します。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
-                `${memberName} には対応が必要な処理中のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
+                `${memberName} には対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',
