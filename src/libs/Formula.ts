@@ -553,9 +553,9 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
 
     switch (direction.toLowerCase()) {
         case 'from':
-            return computeSubmitFromPart(subPath, context);
+            return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
         case 'to':
-            return computeSubmitToPart(subPath, context);
+            return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
             // For submission date, we need to get the date from the submitted report action
             const submittedDate = getSubmittedReportActionDate(context.report.reportID);
@@ -568,30 +568,29 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
 }
 
 /**
- * Compute submitter (from) information
+ * Compute personal details information for either submitter (from) or manager (to)
  */
-function computeSubmitFromPart(path: string[], context: FormulaContext): string {
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: Policy | null): string {
     const [field] = path;
-    const {submitterPersonalDetails, policy} = context;
 
-    if (!submitterPersonalDetails || !field) {
+    if (!personalDetails || !field) {
         return '';
     }
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            return submitterPersonalDetails.firstName ?? submitterPersonalDetails.login ?? '';
+            return personalDetails.firstName ?? personalDetails.login ?? '';
         case 'lastname':
-            return submitterPersonalDetails.lastName ?? submitterPersonalDetails.login ?? '';
+            return personalDetails.lastName ?? personalDetails.login ?? '';
         case 'fullname':
-            return submitterPersonalDetails.displayName ?? submitterPersonalDetails.login ?? '';
+            return personalDetails.displayName ?? personalDetails.login ?? '';
         case 'email':
-            return submitterPersonalDetails.login ?? '';
+            return personalDetails.login ?? '';
         case 'userid':
-            return submitterPersonalDetails.accountID !== undefined && submitterPersonalDetails.accountID !== null ? String(submitterPersonalDetails.accountID) : '';
+            return personalDetails.accountID !== undefined && personalDetails.accountID !== null ? String(personalDetails.accountID) : '';
         case 'customfield1': {
             // Get custom field from policy employeeList using the user's email
-            const email = submitterPersonalDetails.login;
+            const email = personalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
@@ -601,54 +600,7 @@ function computeSubmitFromPart(path: string[], context: FormulaContext): string 
         }
         case 'customfield2': {
             // Get custom field from policy employeeList using the user's email
-            const email = submitterPersonalDetails.login;
-            if (!email || !policy?.employeeList) {
-                return '';
-            }
-            // Note: employeePayrollID is a custom text field (not a database ID), so returning empty string is valid
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            return policy.employeeList[email]?.employeePayrollID ?? '';
-        }
-        default:
-            return '';
-    }
-}
-
-/**
- * Compute manager (to) information
- */
-function computeSubmitToPart(path: string[], context: FormulaContext): string {
-    const [field] = path;
-    const {managerPersonalDetails, policy} = context;
-
-    if (!managerPersonalDetails || !field) {
-        return '';
-    }
-
-    switch (field.toLowerCase()) {
-        case 'firstname':
-            return managerPersonalDetails.firstName ?? managerPersonalDetails.login ?? '';
-        case 'lastname':
-            return managerPersonalDetails.lastName ?? managerPersonalDetails.login ?? '';
-        case 'fullname':
-            return managerPersonalDetails.displayName ?? managerPersonalDetails.login ?? '';
-        case 'email':
-            return managerPersonalDetails.login ?? '';
-        case 'userid':
-            return managerPersonalDetails.accountID !== undefined && managerPersonalDetails.accountID !== null ? String(managerPersonalDetails.accountID) : '';
-        case 'customfield1': {
-            // Get custom field from policy employeeList using the user's email
-            const email = managerPersonalDetails.login;
-            if (!email || !policy?.employeeList) {
-                return '';
-            }
-            // Note: employeeUserID is a custom text field (not a database ID), so returning empty string is valid
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            return policy.employeeList[email]?.employeeUserID ?? '';
-        }
-        case 'customfield2': {
-            // Get custom field from policy employeeList using the user's email
-            const email = managerPersonalDetails.login;
+            const email = personalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
