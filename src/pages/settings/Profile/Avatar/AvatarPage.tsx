@@ -21,8 +21,8 @@ import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/Cust
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getDefaultAvatarName, isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName, isCustomAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -78,7 +78,7 @@ function ProfileAvatar() {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
 
-    const isUsingDefaultAvatar = (!imageData.uri && isDefaultOrCustomDefaultAvatar(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.originalFileName)) || !!selected;
+    const isUsingDefaultAvatar = (!imageData.uri && (isCustomAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({

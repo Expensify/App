@@ -49,7 +49,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
-import {getFullSizeAvatar} from '@libs/UserUtils';
+import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

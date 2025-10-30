@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';

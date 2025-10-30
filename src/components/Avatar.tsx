@@ -7,8 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAvatarLocal} from '@libs/Avatars/CustomAvatarCatalog';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getAvatar, getDefaultAvatarNameFromURL} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, getCustomAvatarNameFromURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -87,9 +87,9 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar(originalSource, userAccountID);
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID:  userAccountID});
     let optimizedSource = source;
-    const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(source);
+    const maybeDefaultAvatarName = getCustomAvatarNameFromURL(source);
 
     if (maybeDefaultAvatarName) {
         optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
@@ -113,7 +113,6 @@ function Avatar({
     } else {
         iconColors = null;
     }
-
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}

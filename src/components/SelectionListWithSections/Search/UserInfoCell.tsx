@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 

@@ -29,7 +29,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
+import {getFullSizeAvatar, isDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -226,7 +227,7 @@ function ProfilePage() {
                                                 errorRowStyles={styles.mt6}
                                                 onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
                                                 onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
+                                                previewSource={getFullSizeAvatar({avatarSource: avatarURL, accountID})}
                                                 originalFileName={currentUserPersonalDetails.originalFileName}
                                                 headerTitle={translate('profilePage.profileAvatar')}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}

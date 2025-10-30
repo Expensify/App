@@ -11,6 +11,8 @@ import type {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorSty
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
 
+const DEFAULT_AVATAR_PREFIX = `default-avatar`;
+
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = [
     {backgroundColor: colors.blue100, fillColor: colors.blue600},
     {backgroundColor: colors.blue400, fillColor: colors.blue700},
@@ -226,4 +228,4 @@ function isCustomAvatarID(value: unknown): value is CustomAvatarID {
     return typeof value === 'string' && value in ALL_CUSTOM_AVATARS;
 }
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID};

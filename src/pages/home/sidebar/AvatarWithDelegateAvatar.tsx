@@ -6,7 +6,7 @@ import Avatar from '@components/Avatar';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
+import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
@@ -38,7 +38,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
-                        source={UserUtils.getSmallSizeAvatar(delegatePersonalDetail?.avatar, delegatePersonalDetail?.accountID)}
+                        source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID:  delegatePersonalDetail?.accountID})}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
