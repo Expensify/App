@@ -20,7 +20,7 @@ import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOURep
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -35,7 +35,7 @@ type Props = {
     selectedReportID?: string;
     selectedPolicyID?: string;
     targetOwnerAccountID?: number;
-    selectReport: (item: TransactionGroupListItem) => void;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
