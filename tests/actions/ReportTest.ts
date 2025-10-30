@@ -1740,6 +1740,38 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        const mockFetchData = fetch as MockFetch;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        mockFetchData.pause();
+        Report.createNewReport({accountID}, true, false, policyID);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport?.reportID}`,
+                callback: (metadata) => {
+                    if (metadata?.hasOnceLoadedReportActions) {
+                        Onyx.disconnect(connection);
+                        expect(metadata.hasOnceLoadedReportActions).toBe(true);
+                        resolve();
+                    }
+                },
+            });
+        });
+    });
+
     it('should not optimistic outstandingChildRequest when create report with harvesting is enabled', async () => {
         const accountID = 1234;
         const policyID = '5678';
