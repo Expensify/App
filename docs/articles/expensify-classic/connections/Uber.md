@@ -6,9 +6,12 @@ keywords: [Uber integration, Expensify Classic, trip expense, tip expense, conne
 
 If you use Uber for business travel, you can automatically forward your ride receipts to Expensify—no manual uploads required!
 
+**Note:** This setup must be completed in the **Uber mobile app**. It's not available on the Expensify app or the web.
+
+
 ---
 
-# Connect Uber to Expensify
+# Where to find and connect Uber to Expensify Classic
 
 You can connect your Uber account to Expensify by enrolling in Uber for Business and choosing Expensify as your expense provider.
 
@@ -16,9 +19,9 @@ You can connect your Uber account to Expensify by enrolling in Uber for Business
 
 ## Option 1: Enroll in Uber for Business and connect Expensify
 
-If you haven't yet enrolled in Uber for Business:
+If you haven't yet enrolled in Uber for Business, start in the **Uber mobile app**:
 
-1. Go to **Settings > Account > Wallet**.
+1. Open the Uber mobile app, then tap **Settings > Account > Wallet**.
 2. Scroll down and click **Start using Uber for Business**.
 3. Follow the prompts to enroll and choose **Expensify** as your expense provider during setup.
 
@@ -26,9 +29,9 @@ If you haven't yet enrolled in Uber for Business:
 
 ## Option 2: Already enrolled in Uber for Business? Just choose Expensify
 
-If you’ve already enrolled in Uber for Business:
+If you’ve already enrolled in Uber for Business, open the **Uber mobile app**: 
 
-1. Go to **Settings > Account > Wallet**.
+1. In the Uber mobile app, tap **Settings > Account > Wallet**.
 2. Scroll to the **Ride profiles** section.
 3. Select **Business**.
 4. Under **Expense provider**, choose **Expensify**.
@@ -66,3 +69,6 @@ No. Each Uber account can only be connected to one Expensify account.
 
 If you disconnect Uber from Expensify, future receipts will no longer be forwarded automatically. You can reconnect anytime by using either method listed above.
 
+## Will all my Uber rides import to Expensify?
+
+No. Only rides taken using your Uber Business profile will be forwarded to Expensify. Rides taken on your Personal profile will not be imported.
