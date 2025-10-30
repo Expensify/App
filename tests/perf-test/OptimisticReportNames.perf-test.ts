@@ -55,7 +55,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     const mockReports = createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => ({
-            ...createRandomReport(index),
+            ...createRandomReport(index, undefined),
             policyID: `policy${index % POLICIES_COUNT}`,
             total: -(Math.random() * 100000), // Random negative amount
             currency: 'USD',
