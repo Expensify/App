@@ -3282,8 +3282,9 @@ function getUpdatedProhibitedExpensesMessage(reportAction: OnyxEntry<ReportActio
     }
 
     const wasAdded = newProhibitedExpenses?.[changedKey];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const prohibitedExpense = translateLocal(`workspace.rules.individualExpenseRules.${changedKey}` as TranslationPaths).toLowerCase();
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal(wasAdded ? 'workspaceActions.addedProhibitedExpense' : 'workspaceActions.removedProhibitedExpense', {prohibitedExpense});
 }
 
@@ -3321,6 +3322,7 @@ function getUpdatedDefaultTitleMessage(reportAction: OnyxEntry<ReportAction>) {
         return getReportActionText(reportAction);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updatedDefaultTitle', {newDefaultTitle, oldDefaultTitle});
 }
 
