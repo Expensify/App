@@ -256,7 +256,18 @@ mcp__github_inline_comment__create_inline_comment:
 If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
 
 ```bash
-gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
+gh pr comment --body 'LGTM :feelsgood:. Thank you for your hard work!'
+```
+
+**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+
+Example:
+```bash
+# Good
+gh pr comment --body 'Use `useMemo` to optimize performance'
+
+# Bad
+gh pr comment --body "Use `useMemo` to optimize performance"
 ```
 
 ## Comment Format
