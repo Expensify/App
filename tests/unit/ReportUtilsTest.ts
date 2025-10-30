@@ -70,6 +70,7 @@ import {
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isClosedExpenseReportWithNoExpenses,
     isChatUsedForOnboarding,
     isDeprecatedGroupDM,
     isMoneyRequestReportEligibleForMerge,
@@ -1670,6 +1671,18 @@ describe('ReportUtils', () => {
                     const reportName = getSearchReportName(params);
 
                     expect(reportName).toBe('Deleted report');
+                });
+
+                test('closed expense report with total and transactions not loaded', () => {
+                    // Given a closed (submitted) expense report with a total and no transactions yet loaded
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: -4400, // Report has expenses (negative total indicates expense)
+                    };
+
+                    // Then it should not be considered closed without expenses, because it has a total
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
