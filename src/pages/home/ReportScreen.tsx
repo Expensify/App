@@ -1,6 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
+import * as Sentry from '@sentry/react-native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -11,6 +12,7 @@ import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-nati
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -955,6 +957,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     shouldShowButton
                                 />
                             )}
+                            {/* TODO: REMOVE BEFORE MERGING, ONLY FOR TESTING  */}
+                            <Button
+                                text="Send setry"
+                                onPress={() => {
+                                    Sentry.captureException(new Error('First error with Source maps'));
+                                }}
+                            />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
