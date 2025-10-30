@@ -249,8 +249,8 @@ dependencies {
     implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.5.0'
-    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
