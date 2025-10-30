@@ -19,6 +19,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import getOnyxValue from '../utils/getOnyxValue';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
@@ -704,15 +705,7 @@ describe('actions/Policy', () => {
             Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, ESH_EMAIL, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
-            const draft = await new Promise<OnyxEntry<PolicyType>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(draft?.areWorkflowsEnabled).toBe(false);
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
@@ -730,15 +723,7 @@ describe('actions/Policy', () => {
             Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, ESH_EMAIL, '', policyID, false);
             await waitForBatchedUpdates();
 
-            const draft = await new Promise<OnyxEntry<PolicyType>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(draft?.name).toBe(expectedName);
         });
@@ -753,15 +738,7 @@ describe('actions/Policy', () => {
             const params = Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, ESH_EMAIL, true, WORKSPACE_NAME, policyID, CONST.CURRENCY.USD);
             await waitForBatchedUpdates();
 
-            const draft = await new Promise<OnyxEntry<PolicyType>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(draft?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(draft?.areWorkflowsEnabled).toBe(true);
@@ -771,27 +748,11 @@ describe('actions/Policy', () => {
             expect(draft?.chatReportIDAdmins).toBe(Number(params.adminsChatReportID));
 
             // Report draft should be set for the expense chat
-            const expenseReportDraft = await new Promise<OnyxEntry<unknown>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            const expenseReportDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`);
             expect(expenseReportDraft).toBeTruthy();
 
             // Default categories draft should be created and enabled
-            const categoriesDraft = await new Promise<OnyxEntry<Record<string, {enabled: boolean}>>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val as Record<string, {enabled: boolean}>);
-                    },
-                });
-            });
+            const categoriesDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
 
             expect(categoriesDraft && Object.keys(categoriesDraft).length > 0).toBe(true);
             expect(Object.values(categoriesDraft ?? {}).every((c) => c.enabled === true)).toBe(true);
@@ -805,15 +766,7 @@ describe('actions/Policy', () => {
             Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, ESH_EMAIL, false, WORKSPACE_NAME, policyID, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
-            const draft = await new Promise<OnyxEntry<PolicyType>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(draft?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             expect(draft?.areWorkflowsEnabled).toBe(false);
