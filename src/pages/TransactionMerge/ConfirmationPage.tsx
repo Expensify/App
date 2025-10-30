@@ -18,11 +18,10 @@ import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionF
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
@@ -46,10 +45,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     });
     const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
     let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`);
-    console.log('target', targetTransactionParentReport);
+
+    // If coming from the search page, we might not have the report locally in the usual Onyx collection
     if (!targetTransactionParentReport && currentSearchResults?.data) {
-        targetTransactionParentReport = currentSearchResults?.data[ONYXKEYS.COLLECTION.REPORT + targetTransactionParentReportID] ?? undefined;
-        console.log('parent report is ', targetTransactionParentReport);
+        targetTransactionParentReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`] ?? undefined;
     }
 
     const policyID = targetTransactionParentReport?.policyID;

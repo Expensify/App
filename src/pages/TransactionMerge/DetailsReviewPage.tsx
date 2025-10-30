@@ -1,8 +1,6 @@
 import {emailSelector} from '@selectors/Session';
-import {merge} from '@storybook/manager-api';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -23,22 +21,19 @@ import {
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
-    getTransactionThreadReportID,
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
-import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportMetadata, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
@@ -61,16 +56,15 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
 
     if (!sourceTransaction && currentSearchResults?.data) {
-        sourceTransaction = currentSearchResults.data[ONYXKEYS.COLLECTION.TRANSACTION + mergeTransaction?.sourceTransactionID];
+        sourceTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
     }
 
     if (!targetTransaction && currentSearchResults?.data) {
-        targetTransaction = currentSearchResults.data[`ONYXKEYS.COLLECTION.TRANSACTION${mergeTransaction?.targetTransactionID ?? '-1'}`];
+        targetTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
     }
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
-    const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
 
     useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
