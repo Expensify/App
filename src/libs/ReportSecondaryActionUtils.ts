@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSplitAction(report: Report, reportTransactions: Array<OnyxEntry<Transaction>>, policy?: OnyxEntry<Policy>): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }

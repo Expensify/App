@@ -63,7 +63,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [cannotBeEditedModalVisible, setCannotBeEditedModalVisible] = useState(false);
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-    const {currentSearchHash} = useSearchContext();
+    const searchContext = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
@@ -171,7 +171,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            hash: currentSearchHash,
+            searchContext,
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
@@ -185,7 +185,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitExpenses,
         childTransactions.length,
         isBetaEnabled,
-        draftTransaction,
+        draftTransaction?.errors,
+        draftTransaction?.reportID,
+        draftTransaction?.comment?.originalTransactionID,
+        draftTransaction?.comment?.splitExpensesTotal,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
@@ -193,18 +196,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitFieldDataFromChildTransactions,
         allTransactions,
         allReports,
-        currentSearchHash,
+        allReportNameValuePairs,
+        searchContext,
         policyCategories,
         expenseReportPolicy,
         policyRecentlyUsedCategories,
+        iouReport,
+        chatReport,
+        iouActions,
+        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
-        isChatIOUReportArchived,
-        iouReport,
-        iouActions,
-        chatReport,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
