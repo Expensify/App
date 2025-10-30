@@ -87,7 +87,7 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID:  userAccountID});
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID});
     let optimizedSource = source;
     const maybeDefaultAvatarName = getCustomAvatarNameFromURL(source);
 
