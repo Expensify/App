@@ -109,7 +109,9 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && shouldHighlightSelectedItem && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused &&
+                        shouldHighlightSelectedItem &&
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
@@ -122,7 +124,9 @@ function BaseListItem<TItem extends ListItem>({
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
-                        isFocused && shouldHighlightSelectedItem && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                        isFocused &&
+                            shouldHighlightSelectedItem &&
+                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
