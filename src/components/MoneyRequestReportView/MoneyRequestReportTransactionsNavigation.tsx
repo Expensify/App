@@ -7,6 +7,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import type {SearchReportParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -18,6 +19,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
+    isFromReviewDuplicates?: boolean;
 };
 
 const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
@@ -32,7 +34,7 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
     return parentActions;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
@@ -118,7 +120,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
 
-        const backTo = Navigation.getActiveRoute();
+        let backTo = Navigation.getActiveRoute();
+        if (isFromReviewDuplicates) {
+            const currentRoute = navigationRef.getCurrentRoute();
+            const params = currentRoute?.params as SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP] | undefined;
+            backTo = params?.backTo ?? backTo;
+        }
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, backTo};
 
@@ -141,7 +148,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
 
-        const backTo = Navigation.getActiveRoute();
+        let backTo = Navigation.getActiveRoute();
+        if (isFromReviewDuplicates) {
+            const currentRoute = navigationRef.getCurrentRoute();
+            const params = currentRoute?.params as SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP] | undefined;
+            backTo = params?.backTo ?? backTo;
+        }
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, backTo};
 
