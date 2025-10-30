@@ -42,7 +42,7 @@ function IOURequestStepAccountant({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
-    }, [iouType, transactionID, reportID, action, currentUserLogin]);
+    }, [iouType, transactionID, reportID, action, currentUserLogin, introSelected]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);

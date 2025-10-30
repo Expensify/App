@@ -573,6 +573,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSmallScreenWidth,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        introSelected,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
