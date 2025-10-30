@@ -48,8 +48,8 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {rejectMoneyRequest} from './IOU';
+import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {

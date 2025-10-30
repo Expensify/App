@@ -100,7 +100,11 @@ type SearchProps = {
 
 const expenseHeaders = getExpenseHeaders();
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(
+    item: TransactionListItemType,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    allowNegativeAmount = true,
+): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -123,7 +127,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             convertedCurrency: item.convertedCurrency,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: Math.abs(item.modifiedAmount ?? item.amount),
+            amount: allowNegativeAmount ? (item.modifiedAmount ?? item.amount) : Math.abs(item.modifiedAmount ?? item.amount),
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
@@ -203,7 +207,7 @@ function toggleTransactionInList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(item, outstandingReportsByPolicyID);
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(item, outstandingReportsByPolicyID, false);
     return {
         ...selectedTransactions,
         [key]: selectedInfo,
