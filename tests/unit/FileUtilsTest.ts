@@ -47,14 +47,14 @@ describe('FileUtils', () => {
         });
 
         describe('on Android', () => {
-            let platormReplaceProperty: jest.ReplaceProperty<string>;
+            let platformReplaceProperty: jest.ReplaceProperty<string>;
 
             beforeEach(() => {
-                platormReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
+                platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
             });
 
             afterEach(() => {
-                platormReplaceProperty.restore();
+                platformReplaceProperty.restore();
             });
 
             it('should truncate the file name to safe length when length exceeds the safe length', () => {
