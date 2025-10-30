@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -111,6 +113,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                                         small
                                         text={translate('domain.retry')}
                                         onPress={() => getDomainValidationCode(accountID, domainName)}
+                                        isDisabled={isOffline}
                                     />
                                 </View>
                             )}
