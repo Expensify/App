@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -192,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +676,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
     },
     supportalNoAccess: {
@@ -1059,8 +1060,6 @@ const translations = {
         dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
-        chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
-        chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
         alternativeMethodsTitle: '領収書を追加する別の方法:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">アプリをダウンロード</a>して携帯からスキャン</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>領収書を <a href="mailto:${email}">${email}</a> に転送</label-text>`,
@@ -1069,8 +1068,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>領収書を ${phoneNumber} にテキスト送信（米国の番号のみ）</label-text>`,
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
-        deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。',
-        deniedCameraAccessInstructions: 'これらの手順',
+        deniedCameraAccess: `カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">これらの手順</a>.`,
         cameraErrorTitle: 'カメラエラー',
         cameraErrorMessage: '写真を撮る際にエラーが発生しました。もう一度お試しください。',
         locationAccessTitle: '位置情報へのアクセスを許可',
@@ -1850,10 +1848,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ目的のため、Xeroは統合を接続するために二要素認証を必要とします。',
         twoFactorAuthIsRequiredForAdminsHeader: '二要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Xeroの会計接続には二要素認証の使用が必要です。Expensifyを引き続き使用するには、有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xero との会計連携には二要素認証が必要です。Expensify を引き続きご利用いただくには、二要素認証を有効にしてください。',
         twoFactorAuthCannotDisable: '2FAを無効にできません',
         twoFactorAuthRequired: 'Xeroの接続には二要素認証（2FA）が必要であり、無効にすることはできません。',
         explainProcessToRemoveWithRecovery: '二要素認証 (2FA) を無効にするには、有効なリカバリーコードを入力してください。',
+        twoFactorAuthIsRequiredCompany: 'あなたの会社では二要素認証の使用が必須です。Expensifyを引き続きご利用いただくには、有効化してください。',
     },
     recoveryCodeForm: {
         error: {
@@ -2418,10 +2417,10 @@ ${date} - ${merchant}に${amount}`,
                     '*カテゴリーを設定します* と、チームは簡単な報告のために経費をコード化できます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *カテゴリー*をクリックします。\n' +
-                    '5. 不要なカテゴリーを無効にします。\n' +
-                    '6. 右上に自分のカテゴリーを追加します。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *カテゴリー*をクリックします。\n' +
+                    '4. 不要なカテゴリーを無効にします。\n' +
+                    '5. 右上に自分のカテゴリーを追加します。\n' +
                     '\n' +
                     `[ワークスペースカテゴリー設定へ](${workspaceCategoriesLink})。\n` +
                     '\n' +
@@ -2472,12 +2471,11 @@ ${date} - ${merchant}に${amount}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}と接続すると、経費の自動コーディングと同期が可能になり、月末の結算が容易になります。\n` +
                     '\n' +
-                    '1. *設定*をクリックします。\n' +
-                    '2. *ワークスペース*に移動します。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *会計*をクリックします。\n' +
-                    `5. ${integrationName}を探します。\n` +
-                    '6. *接続*をクリックします。\n' +
+                    '1. *ワークスペース*をクリックします。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *会計*をクリックします。\n' +
+                    `4. ${integrationName}を探します。\n` +
+                    '5. *接続*をクリックします。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2503,10 +2501,10 @@ ${date} - ${merchant}に${amount}`,
                     '*あなたのチームを招待します* と、彼らは今日から経費の追跡を開始できます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *メンバー* > *メンバーを招待*をクリックします。\n' +
-                    '5. メールアドレスまたは電話番号を入力します。\n' +
-                    '6. 必要に応じてカスタム招待メッセージを追加します！\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *メンバー* > *メンバーを招待*をクリックします。\n' +
+                    '4. メールアドレスまたは電話番号を入力します。\n' +
+                    '5. 必要に応じてカスタム招待メッセージを追加します！\n' +
                     '\n' +
                     `[ワークスペースメンバーへ](${workspaceMembersLink})。\n` +
                     '\n' +
@@ -2525,11 +2523,11 @@ ${date} - ${merchant}に${amount}`,
                     'タグを使用して、プロジェクト、クライアント、場所、部署などの追加の経費詳細を追加します。複数のレベルのタグが必要な場合は、Controlプランにアップグレードできます。\n' +
                     '\n' +
                     '1. *ワークスペース*をクリックします。\n' +
-                    '3. あなたのワークスペースを選択します。\n' +
-                    '4. *その他の機能*をクリックします。\n' +
-                    '5. *タグ*を有効にします。\n' +
-                    '6. ワークスペースエディターで*タグ*に移動します。\n' +
-                    '7. *+タグを追加*をクリックして、自分のタグを作成します。\n' +
+                    '2. あなたのワークスペースを選択します。\n' +
+                    '3. *その他の機能*をクリックします。\n' +
+                    '4. *タグ*を有効にします。\n' +
+                    '5. ワークスペースエディターで*タグ*に移動します。\n' +
+                    '6. *+タグを追加*をクリックして、自分のタグを作成します。\n' +
                     '\n' +
                     `[その他の機能へ](${workspaceMoreFeaturesLink})。\n` +
                     '\n' +
@@ -2759,6 +2757,7 @@ ${date} - ${merchant}に${amount}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと... ${isBreakLine ? '\n' : ''}何かがうまくいきませんでした。`,
         subtitle: 'リクエストを完了できませんでした。後でもう一度お試しください。',
+        wrongTypeSubtitle: 'その検索は無効です。検索条件を調整してみてください。',
     },
     setPasswordPage: {
         enterPassword: 'パスワードを入力してください',
@@ -4496,6 +4495,12 @@ ${date} - ${merchant}に${amount}`,
                     pleaseSelectCountry: '続行する前に国を選択してください',
                     pleaseSelectFeedType: '続行する前にフィードタイプを選択してください',
                 },
+                exitModal: {
+                    title: 'うまく動作していませんか？',
+                    prompt: 'カードの追加を完了していないようです。問題が発生した場合はお知らせください。解決のお手伝いをいたします。',
+                    confirmText: '問題を報告する',
+                    cancelText: 'スキップ',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月の最終日',
@@ -4510,7 +4515,8 @@ ${date} - ${merchant}に${amount}`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseCard: 'カードを選んでください',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `${feed}カードフィードから${assignee}のためにカードを選択してください。`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `<strong>${assignee}</strong>のカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
             noActiveCards: 'このフィードにはアクティブなカードがありません',
             somethingMightBeBroken:
                 '<muted-text><centered-text>あるいは、何かが壊れているかもしれません。いずれにせよ、ご不明な点があれば、<concierge-link>Concierge までお問い合わせ</concierge-link>ください。</centered-text></muted-text>',
@@ -4858,9 +4864,11 @@ ${date} - ${merchant}に${amount}`,
             textType: 'テキスト',
             dateType: '日付',
             dropdownType: 'リスト',
+            formulaType: 'Formula',
             textAlternateText: '自由入力フィールドを追加してください。',
             dateAlternateText: '日付選択用のカレンダーを追加します。',
             dropdownAlternateText: '選択肢のリストを追加してください。',
+            formulaAlternateText: '数式フィールドを追加します。',
             nameInputSubtitle: 'レポートフィールドの名前を選択してください。',
             typeInputSubtitle: '使用するレポートフィールドのタイプを選択してください。',
             initialValueInputSubtitle: 'レポートフィールドに表示する開始値を入力してください。',
@@ -6188,6 +6196,7 @@ ${date} - ${merchant}に${amount}`,
             delete: '削除',
             hold: '保留',
             unhold: '保留を解除',
+            reject: '却下',
             noOptionsAvailable: '選択した経費グループには利用可能なオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -6251,6 +6260,7 @@ ${date} - ${merchant}に${amount}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name}は${value}です`,
         },
         has: '含む',
         groupBy: 'グループ',

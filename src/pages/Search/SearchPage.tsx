@@ -57,7 +57,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    canRejectReportAction,
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isExpenseReport as isExpenseReportUtil,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -103,6 +110,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
@@ -254,6 +262,8 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -396,6 +406,35 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
+        const areSelectedTransactionsRejectable =
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const report = getReportOrDraftReport(id);
+                if (!report) {
+                    return false;
+                }
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? undefined;
+                return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
+            });
+        const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && areSelectedTransactionsRejectable;
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: Expensicons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                },
+            });
+        }
+
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
@@ -729,7 +768,7 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
@@ -886,6 +925,7 @@ function SearchPage({route}: SearchPageProps) {
                                     onSortPressedCallback={() => {
                                         setIsSorting(true);
                                     }}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter

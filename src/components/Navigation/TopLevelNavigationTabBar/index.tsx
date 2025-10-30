@@ -8,6 +8,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -74,6 +75,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 selectedTab={selectedTab}
                 isTopLevelBar
             />
+            <FloatingCameraButton />
         </View>
     );
 }
