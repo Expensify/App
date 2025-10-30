@@ -654,7 +654,6 @@ const translations = {
             `Se lasci questo spazio di lavoro, verrai sostituito come contatto tecnico da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
         leaveWorkspaceReimburser:
             'Non puoi lasciare questo spazio di lavoro poiché sei il rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o traccia i pagamenti, quindi riprova.',
-        cannotLeaveWorkspaceOutstandingReport: 'Approva tutti i report spese in sospeso che ti sono stati inviati prima di lasciare questo spazio di lavoro.',
         rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',

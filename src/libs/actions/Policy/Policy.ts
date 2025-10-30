@@ -1038,6 +1038,11 @@ function leaveWorkspace(policyID?: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: policy?.pendingAction ?? null,
+                employeeList: {
+                    [sessionEmail]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
+                    },
+                },
             },
         },
     ];
@@ -6369,25 +6374,6 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
-function removeMemberErrorMessage(policyID: string, errors: Errors) {
-    if (!policyID) {
-        return;
-    }
-
-    const workspaceMemberError: Errors = {};
-    Object.entries(errors).forEach(([key, error]) => {
-        workspaceMemberError[key] = error;
-    });
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        employeeList: {
-            [sessionEmail]: {
-                errors: workspaceMemberError.length ? workspaceMemberError : null,
-            },
-        },
-    });
-}
-
 /**
  * Set the workspace currency for the workspace confirmation form
  */
@@ -6517,7 +6503,6 @@ export {
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
     clearPolicyTitleFieldError,
-    removeMemberErrorMessage,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
 };

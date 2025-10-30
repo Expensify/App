@@ -650,7 +650,6 @@ const translations = {
         leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，你的首选导出者身份将由工作区所有者 ${workspaceOwner} 接替。`,
         leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，工作区所有者 ${workspaceOwner} 将接替你的技术联系人角色。`,
         leaveWorkspaceReimburser: '您作为报销付款人，无法离开此工作区。请在“工作区 > 进行或跟踪付款”中设置新的报销付款人，然后重试。',
-        cannotLeaveWorkspaceOutstandingReport: '在离开此工作区之前，请批准提交给您的所有未处理的报销单。',
         reimbursable: '可报销的',
         editYourProfile: '编辑您的个人资料',
         comments: '评论',

@@ -654,7 +654,6 @@ const translations = {
             `Jeśli opuścisz tę przestrzeń roboczą, w roli kontaktu technicznego zastąpi Cię ${workspaceOwner}, właściciel przestrzeni roboczej.`,
         leaveWorkspaceReimburser:
             'Nie możesz opuścić tego obszaru roboczego jako osoba wypłacająca zwroty. Ustaw nową osobę wypłacającą zwroty w Obszary robocze > Realizuj lub śledź płatności, a następnie spróbuj ponownie.',
-        cannotLeaveWorkspaceOutstandingReport: 'Zatwierdź wszystkie zaległe raporty wydatków przesłane do Ciebie, zanim opuścisz tę przestrzeń roboczą.',
         rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
         editYourProfile: 'Edytuj swój profil',

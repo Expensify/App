@@ -653,7 +653,6 @@ const translations = {
             `Als je deze werkruimte verlaat, word je als technisch contactpersoon vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
         leaveWorkspaceReimburser:
             'Je kunt deze werkruimte niet verlaten als de uitbetaler. Stel een nieuwe uitbetaler in via Workspaces > Make or track payments en probeer het daarna opnieuw.',
-        cannotLeaveWorkspaceOutstandingReport: 'Keur alle openstaande onkostendeclaraties die bij jou zijn ingediend goed voordat je deze werkruimte verlaat.',
         rateOutOfPolicy: 'Tarief buiten beleid',
         reimbursable: 'Vergoedbaar',
         editYourProfile: 'Bewerk je profiel',

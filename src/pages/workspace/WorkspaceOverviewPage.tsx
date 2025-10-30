@@ -177,7 +177,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
-    const [isCannotLeaveWorkspaceWithPendingReportsModalOpen, setIsCannotLeaveWorkspaceWithPendingReportsModalOpen] = useState(false);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -334,10 +333,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
         const userEmail = session?.email ?? '';
         const isApprover = isApproverUserAction(policy, userEmail);
-
-        if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
-            return translate('common.cannotLeaveWorkspaceOutstandingReport');
-        }
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
@@ -677,12 +672,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     />
                     <ConfirmModal
                         title={translate('common.leaveWorkspace')}
-                        isVisible={isCannotLeaveWorkspaceModalOpen || isCannotLeaveWorkspaceWithPendingReportsModalOpen}
+                        isVisible={isCannotLeaveWorkspaceModalOpen}
                         onConfirm={() => {
-                            if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
-                                setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(false);
-                                return;
-                            }
                             setIsCannotLeaveWorkspaceModalOpen(false);
                         }}
                         prompt={confirmModalPrompt()}

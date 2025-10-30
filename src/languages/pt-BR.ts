@@ -655,7 +655,6 @@ const translations = {
             `Se você sair deste espaço de trabalho, será substituído como contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
         leaveWorkspaceReimburser:
             'Você não pode sair deste espaço de trabalho como responsável pelo reembolso. Defina um novo responsável pelo reembolso em Espaços de trabalho > Fazer ou acompanhar pagamentos e tente novamente.',
-        cannotLeaveWorkspaceOutstandingReport: 'Por favor, aprove quaisquer relatórios de despesas pendentes enviados a você antes de sair deste espaço de trabalho.',
         reimbursable: 'Reembolsável',
         editYourProfile: 'Edite seu perfil',
         comments: 'Comentários',

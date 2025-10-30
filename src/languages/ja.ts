@@ -654,7 +654,6 @@ const translations = {
             `このワークスペースを退出すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
         leaveWorkspaceReimburser:
             'あなたは精算担当者であるため、このワークスペースを退出できません。Workspaces > 支払いを行うまたは追跡する で新しい精算担当者を設定してから、もう一度お試しください。',
-        cannotLeaveWorkspaceOutstandingReport: 'このワークスペースを離れる前に、あなたに提出された未承認の経費レポートを承認してください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',

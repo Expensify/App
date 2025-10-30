@@ -654,7 +654,6 @@ const translations = {
             `Wenn du diesen Arbeitsbereich verlässt, wirst du als technischer Ansprechpartner durch ${workspaceOwner}, den Arbeitsbereichsinhaber, ersetzt.`,
         leaveWorkspaceReimburser:
             'Du kannst diesen Arbeitsbereich als erstattende Person nicht verlassen. Bitte lege unter Arbeitsbereiche > Zahlungen tätigen oder nachverfolgen eine neue erstattende Person fest und versuche es dann erneut.',
-        cannotLeaveWorkspaceOutstandingReport: 'Bitte genehmigen Sie alle ausstehenden Spesenabrechnungen, die Ihnen eingereicht wurden, bevor Sie diesen Arbeitsbereich verlassen.',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinien',
         reimbursable: 'Erstattungsfähig',
         editYourProfile: 'Bearbeiten Sie Ihr Profil',

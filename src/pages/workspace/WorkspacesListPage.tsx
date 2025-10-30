@@ -43,16 +43,7 @@ import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOf
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {openOldDotLink} from '@libs/actions/Link';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
-import {
-    calculateBillNewDot,
-    clearDeleteWorkspaceError,
-    clearDuplicateWorkspace,
-    clearErrors,
-    deleteWorkspace,
-    leaveWorkspace,
-    removeMemberErrorMessage,
-    removeWorkspace,
-} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -108,33 +99,10 @@ type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'do
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 type GetDomainMenuItem = {item: DomainItem; index: number};
 
-function getEmployeeListErrors(policy: PolicyType | undefined, userEmail: string | undefined): OnyxCommon.Errors | undefined {
-    if (!policy?.employeeList || !userEmail || !policy.employeeList[userEmail]) {
-        return undefined;
-    }
-
-    const employee = policy.employeeList[userEmail];
-    return employee.errors;
-}
-
-function getCombinedErrors(policy: PolicyType | undefined, userEmail: string | undefined): OnyxCommon.Errors | undefined {
-    const policyErrors = policy?.errors;
-    const employeeErrors = getEmployeeListErrors(policy, userEmail);
-
-    if (!policyErrors && !employeeErrors) {
-        return undefined;
-    }
-
-    return {
-        ...policyErrors,
-        ...employeeErrors,
-    };
-}
-
 /**
  * Dismisses the errors on one item
  */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined, policies: Record<string, PolicyType | undefined> | undefined, userEmail?: string) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         clearDeleteWorkspaceError(policyID);
         return;
@@ -143,15 +111,6 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         removeWorkspace(policyID);
         return;
-    }
-
-    if (userEmail && policies) {
-        const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const employeeErrors = getEmployeeListErrors(policy, userEmail);
-
-        if (employeeErrors) {
-            removeMemberErrorMessage(policyID, employeeErrors);
-        }
     }
 
     clearErrors(policyID);
@@ -275,7 +234,7 @@ function WorkspacesListPage() {
         if (!policyToDelete) {
             return;
         }
-        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction, policies);
+        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
     const confirmLeaveAndHideModal = () => {
@@ -627,8 +586,8 @@ function WorkspacesListPage() {
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
                           )),
                     pendingAction: policy.pendingAction,
-                    errors: getCombinedErrors(policy, session?.email),
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction, policies, session?.email),
+                    errors: policy.errors,
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
