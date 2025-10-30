@@ -24,7 +24,6 @@ import {
     getTagLists,
     goBackFromInvalidPolicy,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
-    hasDependentTags as hasDependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -55,10 +54,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
-        [policy, policyTags],
-    );
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags)], [policy, policyTags]);
 
     const hasVisibleTags = useMemo(() => {
         if (isMultiLevelTags) {
@@ -127,29 +123,25 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const switchSingleToMultiLevelTagPrompt = (
         <Text>
             {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-            {!hasDependentTags && (
-                <>
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
-                    <TextLink
-                        onPress={() => {
-                            if (isMultiLevelTags) {
-                                downloadMultiLevelTagsCSV(policyID, () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            } else {
-                                downloadTagsCSV(policyID, () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            }
-                        }}
-                    >
-                        {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
-                    </TextLink>
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                    <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-                </>
-            )}
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+            <TextLink
+                onPress={() => {
+                    if (isMultiLevelTags) {
+                        downloadMultiLevelTagsCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    } else {
+                        downloadTagsCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    }
+                }}
+            >
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+            </TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
         </Text>
     );
 
