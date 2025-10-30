@@ -12,6 +12,7 @@ import {
     // clearValidateCodeActionError
 } from '@libs/actions/User';
 import { clearAccountMessages } from '@libs/actions/Session';
+
 function MFAFactorMagicCodePage() {
     const {translate} = useLocalize();
 
@@ -20,6 +21,7 @@ function MFAFactorMagicCodePage() {
     const [validateMagicCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const prevValidateMagicCodeAction = usePrevious(validateMagicCodeAction);
 
+    // TODO: do przedyskutowania z backendem
     const clearError = useCallback(() => {
         if (!account?.errors) {
             return;
@@ -56,10 +58,10 @@ function MFAFactorMagicCodePage() {
         <ValidateCodeActionContent
             title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
             sendValidateCode={() => resendValidateCode('jakub.kalinski+1@smwansion.com')}
-            descriptionPrimary={translate('multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent')}
-            validateCodeActionErrorField='validateMagicCode'
-            handleSubmitForm={() => validateMagicCode()} // TODO: ni mom pojencia co robia - jakies wysylanie info do contextu
-            clearError={clearError}
+            descriptionPrimary={translate('multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent', {contactMethod: 'eoeo'})}
+            validateCodeActionErrorField='validateMagicCode' // TODO: do przedyskutowania z backendem jak my to chcemy robić
+            handleSubmitForm={() => validateMagicCode()} // TODO: ni mom pojencia co robia - jakies wysylanie info do contextu najprawdopodobniej
+            clearError={clearError} // TODO: do przedyskutowania z backendem jak my to chcemy robić
             onClose={() => {
                 clearAccountMessages();
                 // TODO: jakies info zwrotne do contextu

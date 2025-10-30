@@ -30,7 +30,6 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type { NotificationType } from '@pages/MFANotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type { PromptType } from '@pages/MFAPromptPage';
-import type { FallbackFactorType } from '@pages/MFAFactorMagicCodePage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
