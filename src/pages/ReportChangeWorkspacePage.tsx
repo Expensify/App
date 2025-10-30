@@ -122,6 +122,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             session?.email,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            currentUserID,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
         ],
