@@ -278,8 +278,7 @@ function IOURequestStepAmount({
             const hasManuallySelectedParticipant = hasDifferentWorkspace || isP2PChat;
 
             if (hasManuallySelectedParticipant) {
-                const participantReportID = firstParticipant?.reportID ? firstParticipant.reportID : undefined;
-                const targetReportID = participantReportID ?? transaction?.reportID ?? reportID;
+                const targetReportID = transaction?.reportID;
                 const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
