@@ -58,8 +58,11 @@ function MoneyRequestReportGroupHeader({
     // Desktop: always show checkbox, Mobile: only in selection mode
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
+    // Conditional height: Desktop 28px, Mobile 16px (no checkbox) or 20px (with checkbox)
+    const conditionalHeight = shouldUseNarrowLayout ? {height: shouldShowCheckbox ? 20 : 16} : {height: 28};
+
     return (
-        <View style={[containerStyle, style]}>
+        <View style={[containerStyle, conditionalHeight, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                 {shouldShowCheckbox && (
                     <Checkbox

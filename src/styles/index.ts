@@ -4211,7 +4211,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportLayoutGroupHeaderDesktop: {
             paddingHorizontal: 12,
-            height: 28,
             marginTop: 16,
             marginBottom: 8,
             backgroundColor: theme.appBG,
@@ -4220,7 +4219,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportLayoutGroupHeaderMobile: {
             paddingHorizontal: 12,
-            minHeight: 44,
             marginTop: 16,
             marginBottom: 8,
             backgroundColor: theme.appBG,
