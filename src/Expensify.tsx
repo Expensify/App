@@ -52,6 +52,7 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
+import * as Sentry from '@sentry/react-native';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -184,6 +185,10 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.onReady().then(async () => {
+            const session = await FS.getSessionId();
+            Sentry.setTag('fullstorySession', session);
+        })
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
