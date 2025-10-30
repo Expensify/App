@@ -2,6 +2,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
+import { translateLocal } from 'tests/utils/TestHelper';
 
 describe('UserUtils', () => {
     it('should return default avatar if the url is for default avatar', () => {
@@ -212,7 +213,7 @@ describe('UserUtils', () => {
 
         describe.each(TEST_CASES)('$name', ({loginList, defaultEmail, expectedIndicators}) => {
             test('verifies indicator states', () => {
-                const options = UserUtils.getContactMethodsOptions(loginList, defaultEmail);
+                const options = UserUtils.getContactMethodsOptions(translateLocal, loginList, defaultEmail);
                 const indicators = options.map((o) => o?.indicator);
                 expect(indicators).toEqual(expectedIndicators);
             });
