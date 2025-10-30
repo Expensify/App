@@ -7123,6 +7123,8 @@ ${amount} dla ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'ustaw opis pokoju na:',
         clearRoomDescription: 'wyczyszczono opis pokoju',
+        changedRoomAvatar: 'Zmieniono awatar pokoju',
+        removedRoomAvatar: 'Usunięto awatar pokoju',
     },
     delegate: {
         switchAccount: 'Przełącz konta:',

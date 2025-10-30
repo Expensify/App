@@ -6985,6 +6985,8 @@ ${merchant}的${amount} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: '将房间描述设置为：',
         clearRoomDescription: '清除了房间描述',
+        changedRoomAvatar: '更改了房间头像',
+        removedRoomAvatar: '移除了房间头像',
     },
     delegate: {
         switchAccount: '切换账户：',

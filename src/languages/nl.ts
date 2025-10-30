@@ -7135,6 +7135,8 @@ ${amount} voor ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'stel de kamerbeschrijving in op:',
         clearRoomDescription: 'de kamerbeschrijving gewist',
+        changedRoomAvatar: 'De avatar van de kamer is gewijzigd',
+        removedRoomAvatar: 'De avatar van de kamer is verwijderd',
     },
     delegate: {
         switchAccount: 'Accounts wisselen:',
