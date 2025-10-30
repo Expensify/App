@@ -67,6 +67,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -76,7 +77,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 
@@ -410,14 +411,27 @@ function SearchPage({route}: SearchPageProps) {
         const areSelectedTransactionsRejectable =
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                const report = getReportOrDraftReport(id);
+                // Prefer hydrated Onyx report, if not found, fall back to Search snapshot if not yet loaded (logout/login case)
+                let report = getReportOrDraftReport(id);
                 if (!report) {
-                    return false;
+                    const snapshotEntry = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+                    if (snapshotEntry) {
+                        report = snapshotEntry as Report;
+                    } else {
+                        return false;
+                    }
                 }
                 const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? undefined;
                 return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
             });
-        const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && areSelectedTransactionsRejectable;
+
+        // Show Reject only when every selected transaction can be rejected (none already rejected)
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
+            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
+            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+
+        const shouldShowRejectOption = !isOffline && areSelectedTransactionsRejectable && hasNoRejectedTransaction;
         if (shouldShowRejectOption) {
             options.push({
                 icon: Expensicons.ThumbsDown,
@@ -590,6 +604,7 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
+        currentSearchResults,
         clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
@@ -1026,3 +1041,5 @@ SearchPage.displayName = 'SearchPage';
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;
+const isSearchTransaction = (value: unknown): value is import('@src/types/onyx/SearchResults').SearchTransaction =>
+    !!value && typeof value === 'object' && 'transactionID' in value && 'reportID' in value;
