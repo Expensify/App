@@ -47,6 +47,7 @@ describe('actions/ReportField', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
+
         // Ensure clean queues and no pending requests between tests
         SequentialQueue.resetQueue();
         HttpUtils.cancelPendingRequests();

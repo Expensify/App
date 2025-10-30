@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -27,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import type {Report} from '@src/types/onyx';
+import type {FileObject, Report} from '@src/types/onyx';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
@@ -115,6 +116,23 @@ function WorkspaceCreateReportFieldsPage({
             return errors;
         },
         [availableListValuesLength, policy?.fieldList, translate],
+    );
+
+    const handleOnValueCommitted = useCallback(
+        (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string | boolean | Date | string[] | boolean[] | FileObject[]) => {
+            // Mirror optimisticType logic from createReportField: if user enters a formula
+            // while type is Text, automatically switch the type to Formula in the form.
+            const isFormula = WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(String(initialValue));
+            if (!isFormula) {
+                return;
+            }
+            formRef.current?.resetForm({
+                ...inputValues,
+                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
+                [INPUT_IDS.INITIAL_VALUE]: String(initialValue),
+            });
+        },
+        [],
     );
 
     useEffect(() => {
@@ -211,6 +229,7 @@ function WorkspaceCreateReportFieldsPage({
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
+                                    onValueCommitted={handleOnValueCommitted(inputValues)}
                                 />
                             )}
 
