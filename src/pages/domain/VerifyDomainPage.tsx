@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
+import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
@@ -25,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-function OrderedListRow({index, children}: {index: number; children: React.ReactNode}) {
+function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.pl1]}>
@@ -51,7 +52,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
-    }, [accountID, domain]);
+    }, [accountID, domain?.validated]);
 
     useEffect(() => {
         if (!accountID) {

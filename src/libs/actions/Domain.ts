@@ -1,23 +1,25 @@
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
 
+/**
+ * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
+ */
 function getDomainValidationCode(accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: 'loading'} satisfies NullishDeep<Partial<Domain>>,
+            value: {validateCodeLoadingStatus: 'loading'},
         },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: null} satisfies NullishDeep<Partial<Domain>>,
+            value: {validateCodeLoadingStatus: null},
         },
     ];
 
@@ -25,19 +27,22 @@ function getDomainValidationCode(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: 'error'} satisfies NullishDeep<Partial<Domain>>,
+            value: {validateCodeLoadingStatus: 'error'},
         },
     ];
 
     API.read(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, {domainName}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Checks if the validation code is present in the domain's DNS records to mark the domain as validated and the user as a verified admin
+ */
 function validateDomain(accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: 'pending', domainValidationError: null} satisfies NullishDeep<Partial<Domain>>,
+            value: {validationPendingStatus: 'pending', domainValidationError: null},
         },
     ];
 
@@ -45,7 +50,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: null} satisfies NullishDeep<Partial<Domain>>,
+            value: {validationPendingStatus: null},
         },
     ];
 
@@ -53,7 +58,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: 'error'} satisfies NullishDeep<Partial<Domain>>,
+            value: {validationPendingStatus: 'error'},
         },
     ];
 
