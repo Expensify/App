@@ -570,7 +570,7 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
 /**
  * Compute personal details information for either submitter (from) or manager (to)
  */
-function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: Policy | null): string {
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: OnyxEntry<Policy>): string {
     const [field] = path;
 
     if (!personalDetails || !field) {
@@ -588,25 +588,14 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
             return personalDetails.login ?? '';
         case 'userid':
             return personalDetails.accountID !== undefined && personalDetails.accountID !== null ? String(personalDetails.accountID) : '';
-        case 'customfield1': {
-            // Get custom field from policy employeeList using the user's email
-            const email = personalDetails.login;
-            if (!email || !policy?.employeeList) {
-                return '';
-            }
-            // Note: employeeUserID is a custom text field (not a database ID), so returning empty string is valid
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            return policy.employeeList[email]?.employeeUserID ?? '';
-        }
+        case 'customfield1':
         case 'customfield2': {
-            // Get custom field from policy employeeList using the user's email
             const email = personalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            // Note: employeePayrollID is a custom text field (not a database ID), so returning empty string is valid
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            return policy.employeeList[email]?.employeePayrollID ?? '';
+            const fieldKey = field.toLowerCase() === 'customfield1' ? 'employeeUserID' : 'employeePayrollID';
+            return policy.employeeList[email]?.[fieldKey] ?? '';
         }
         default:
             return '';
