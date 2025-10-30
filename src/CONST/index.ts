@@ -2853,6 +2853,12 @@ const CONST = {
         },
     },
 
+    CATEGORY_SOURCE: {
+        AI: 'agentZero',
+        MCC: 'mccMapping',
+        MANUAL: 'manual',
+    } as const,
+
     GROWL: {
         SUCCESS: 'success',
         ERROR: 'error',
