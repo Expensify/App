@@ -51,7 +51,8 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
-    policyExpenseReportIDs: Array<string | undefined> | undefined;
+    policyReportIDs: Array<string | undefined> | undefined;
+    target?: PolicyReportField['target'];
     policy: OnyxEntry<Policy>;
 };
 
@@ -167,7 +168,7 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyReportIDs, target = CONST.REPORT_FIELD_TARGETS.EXPENSE, policy}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
@@ -179,7 +180,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type,
-        target: 'expense',
+        target,
         defaultValue: initialValue,
         values: listValues,
         disabledOptions: disabledListValues,
@@ -202,7 +203,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+        ...(policyReportIDs ?? []).map((reportID) => ({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
@@ -226,7 +227,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+        ...(policyReportIDs ?? []).map((reportID) => ({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {

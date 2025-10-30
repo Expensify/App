@@ -1999,7 +1999,15 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'workspaces/:policyID/reports/newReportField',
-        getRoute: (policyID: string) => `workspaces/${policyID}/reports/newReportField` as const,
+        getRoute: (policyID: string, target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>) => {
+            const baseRoute = `workspaces/${policyID}/reports/newReportField` as const;
+
+            if (!target) {
+                return baseRoute;
+            }
+
+            return `${baseRoute}?target=${encodeURIComponent(target)}` as const;
+        },
     },
     WORKSPACE_REPORT_FIELDS_SETTINGS: {
         route: 'workspaces/:policyID/reports/:reportFieldID/edit',

@@ -7038,6 +7038,11 @@ const CONST = {
         LIST: 'dropdown',
         FORMULA: 'formula',
     },
+    REPORT_FIELD_TARGETS: {
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
+        PAYCHECK: 'paycheck',
+    },
 
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',

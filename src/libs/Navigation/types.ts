@@ -534,6 +534,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
         policyID: string;
+        target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
