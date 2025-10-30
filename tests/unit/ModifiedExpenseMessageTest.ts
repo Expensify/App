@@ -89,19 +89,13 @@ describe('ModifiedExpenseMessage', () => {
     describe('getMovedFromOrToReportMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
-                const selfDMReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                };
+                const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
                 const result = getMovedFromOrToReportMessage(undefined, selfDMReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
-                const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                };
+                const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                 const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
@@ -110,8 +104,7 @@ describe('ModifiedExpenseMessage', () => {
             });
             it('returns "moved expense from personal space to policyName" message when moving an expense to policy expense chat with reportName and policyName', () => {
                 const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
                 const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
@@ -123,8 +116,7 @@ describe('ModifiedExpenseMessage', () => {
             });
             it('returns "changed the expense" message when moving an expense to policy expense chat without reportName', () => {
                 const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
                 const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
@@ -135,7 +127,7 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving from a report', () => {
             const movedFromReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
             };
 
             it('returns "moved expense from reportName" message', () => {
@@ -148,9 +140,8 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns "moved an expense" when reportName is empty', () => {
                 const reportWithoutName = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     reportName: '',
-                    chatType: undefined,
                 };
                 const result = getMovedFromOrToReportMessage(reportWithoutName, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
@@ -168,7 +159,7 @@ describe('ModifiedExpenseMessage', () => {
     });
 
     describe('getForAction', () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -608,9 +599,8 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'moved an expense';
 
                 const movedFromReport = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     reportName: '',
-                    chatType: undefined,
                 };
 
                 const result = getForReportAction({reportAction, policyID: report.policyID, movedFromReport});

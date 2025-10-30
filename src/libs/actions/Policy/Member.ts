@@ -16,8 +16,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
@@ -208,10 +206,12 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        prompt: translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: addedMembersLength, updated: updatedMembersLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+                        promptKeyParams: {
+                            added: addedMembersLength,
+                            updated: updatedMembersLength,
+                        },
                     },
                 },
             },
@@ -223,8 +223,10 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
