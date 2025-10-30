@@ -78,7 +78,7 @@ import Parser from '@libs/Parser';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getCorrectedAutoReportingFrequency,
@@ -12947,31 +12947,77 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
             rejectedToReportID = existingOpenReport.reportID;
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: {
-                    ...movedToReport,
-                    total: (movedToReport?.total ?? 0) - transactionAmount,
-                },
+
+            const [, , iouAction, ,] = buildOptimisticMoneyRequestEntities({
+                iouReport: movedToReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transactionAmount,
+                currency: getCurrency(transaction),
+                comment,
+                payeeEmail: getLoginByAccountID(report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '',
+                participants: [{accountID: report?.ownerAccountID}],
+                transactionID: transaction.transactionID,
+                existingTransactionThreadReportID: childReportID,
+                shouldGenerateTransactionThreadReport: false,
             });
+
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                    value: {
+                        ...movedToReport,
+                        total: (movedToReport?.total ?? 0) - transactionAmount,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
+                    value: {[iouAction.reportActionID]: iouAction},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                    value: {
+                        parentReportActionID: iouAction.reportActionID,
+                        parentReportID: rejectedToReportID,
+                    },
+                },
+            );
 
             // Add success data for existing report update
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: {pendingFields: {total: null}},
-            });
-
-            // Add failure data to revert existing report total
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: {
-                    total: movedToReport?.total ?? 0,
-                    pendingFields: {total: null},
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                    value: {pendingFields: {total: null}},
                 },
-            });
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
+                    value: {[iouAction.reportActionID]: {pendingAction: null}},
+                },
+            );
+
+            failureData.push(
+                // Add failure data to revert existing report total
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                    value: {
+                        total: movedToReport?.total ?? 0,
+                        pendingFields: {total: null},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                    value: {
+                        parentReportActionID: transactionThreadReport?.parentReportActionID,
+                        parentReportID: transactionThreadReport?.parentReportID,
+                    },
+                },
+            );
         } else {
             // When no existing open report is found, use the sharedRejectedToReportID
             // so multiple sequential rejections land in the same destination report
