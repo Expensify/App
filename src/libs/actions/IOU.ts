@@ -191,6 +191,7 @@ import {
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isProcessingReport,
     isReportApproved,
     isReportManager,
     isSelectedManagerMcTest,
@@ -10071,7 +10072,6 @@ function canIOUBePaid(
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: SearchPolicy,
-    shouldCheckApprovedState = true,
 ) {
     const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
@@ -10112,23 +10112,22 @@ function canIOUBePaid(
         policy,
     );
 
-    const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
-
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
-    const shouldBeApproved = canApproveIOU(iouReport, policy, transactions);
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, transactions);
-    return (
-        isPayer &&
-        !isOpenExpenseReport &&
-        !iouSettled &&
-        !iouReport?.isWaitingOnBankAccount &&
-        reimbursableSpend > 0 &&
-        !isChatReportArchived &&
-        !isAutoReimbursable &&
-        (!shouldBeApproved || !shouldCheckApprovedState) &&
-        !isPayAtEndExpenseReport
-    );
+    const isProcessing = isProcessingReport(iouReport);
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
+    const isApproved = isReportApproved({report: iouReport}) || isSubmittedWithoutApprovalsEnabled;
+    const isClosed = isClosedReportUtil(iouReport);
+    const isReportFinished = (isApproved || isClosed) && !iouReport?.isWaitingOnBankAccount;
+    const isIOU = isIOUReport(iouReport);
+
+    if (isIOU && isPayer && !iouSettled && reimbursableSpend > 0) {
+        return true;
+    }
+
+    return isPayer && isReportFinished && !iouSettled && reimbursableSpend > 0 && !isChatReportArchived && !isAutoReimbursable && !isPayAtEndExpenseReport;
 }
 
 function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
