@@ -6369,7 +6369,7 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
-function removePendingApproverMemberErrorMessage(policyID: string, errors: Errors) {
+function removeMemberErrorMessage(policyID: string, errors: Errors) {
     if (!policyID) {
         return;
     }
@@ -6517,7 +6517,7 @@ export {
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
     clearPolicyTitleFieldError,
-    removePendingApproverMemberErrorMessage,
+    removeMemberErrorMessage,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
 };

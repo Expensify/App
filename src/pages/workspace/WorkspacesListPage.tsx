@@ -50,7 +50,7 @@ import {
     clearErrors,
     deleteWorkspace,
     leaveWorkspace,
-    removePendingApproverMemberErrorMessage,
+    removeMemberErrorMessage,
     removeWorkspace,
 } from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -150,7 +150,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
         const employeeErrors = getEmployeeListErrors(policy, userEmail);
 
         if (employeeErrors) {
-            removePendingApproverMemberErrorMessage(policyID, employeeErrors);
+            removeMemberErrorMessage(policyID, employeeErrors);
         }
     }
 
