@@ -120,7 +120,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             return;
         }
 
-        const siblingTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+        const siblingTransactionIDs = transactions
+            .filter((transaction) => transaction.reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
