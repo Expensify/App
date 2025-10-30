@@ -423,7 +423,7 @@ function Search({
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength, isLoading: !!searchResults?.search.isLoading});
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
@@ -641,7 +641,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -654,7 +654,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -667,7 +667,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
