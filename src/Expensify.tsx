@@ -53,6 +53,7 @@ import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 import * as Sentry from '@sentry/react-native';
+import {getActivePolicies} from '@libs/PolicyUtils';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -115,6 +116,8 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -187,11 +190,31 @@ function Expensify() {
         FS.init(userMetadata);
         FS.onReady().then(async () => {
             const session = await FS.getSessionId();
-            Sentry.setTag('fullstory_session_id', session);
-            Sentry.setExtra('fullstory_session_id_extra', session);
 
+            Sentry.setContext('fullstory', {session_id: session ?? 'unknown'});
         })
     }, [userMetadata]);
+
+    useEffect(() => {
+        if (!activePolicyID) {
+            return;
+        }
+        Sentry.setTag('active_policy_id', activePolicyID);
+    }, [activePolicyID]);
+
+    useEffect(() => {
+        if (!policies || !session?.email || !activePolicyID) {
+            return;
+        }
+        const activePolicies = getActivePolicies(policies, session?.email)
+        if (activePolicies.length === 0) {
+            return;
+        }
+        Sentry.setContext('policies', {
+            active_policies: activePolicies.map((policy) => policy.id),
+            current_policy: activePolicies.map((policy) => policy.id)
+        });
+    }, [policies, session?.email, activePolicyID]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
