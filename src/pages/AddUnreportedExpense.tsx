@@ -50,9 +50,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
@@ -146,6 +146,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const formattedAmount = convertToDisplayString(amount, currency);
             searchableFields.push(formattedAmount);
 
+            // This allows users to search "2000" and find "$2,000.00" for example
+            const normalizedAmount = (amount / 100).toString();
+            searchableFields.push(normalizedAmount);
+
             return searchableFields;
         });
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);
@@ -172,10 +176,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             } else {
                 changeTransactionsReport(
                     [...selectedIds],
-                    report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
                     isASAPSubmitBetaEnabled,
                     currentUserDetails?.accountID,
                     currentUserDetails?.email ?? '',
+                    reportToConfirm,
                     policy,
                     reportNextStep,
                     policyCategories,
@@ -183,7 +187,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, currentUserDetails?.accountID, currentUserDetails?.email, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, reportToConfirm, isASAPSubmitBetaEnabled, currentUserDetails?.accountID, currentUserDetails?.email, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (
