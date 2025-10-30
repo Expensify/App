@@ -39,6 +39,12 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
 
 type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
 
+const STATUS = {
+    ERROR: 'error',
+    LOADING: 'loading',
+    PENDING: 'pending',
+} as const;
+
 function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -95,15 +101,15 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                             <OrderedListRow index={2}>
                                 <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
 
-                                {domain?.validateCodeLoadingStatus !== 'error' && (
+                                {domain?.validateCodeLoadingStatus !== STATUS.ERROR && (
                                     <CopyableTextField
                                         value={domain?.validateCode}
-                                        isLoading={domain?.validateCodeLoadingStatus === 'loading'}
+                                        isLoading={domain?.validateCodeLoadingStatus === STATUS.LOADING}
                                     />
                                 )}
                             </OrderedListRow>
 
-                            {domain?.validateCodeLoadingStatus === 'error' && (
+                            {domain?.validateCodeLoadingStatus === STATUS.ERROR && (
                                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                     <FormHelpMessage
                                         message={translate('domain.verifyDomain.codeFetchError')}
@@ -140,9 +146,9 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(accountID, domainName)}
                     message={domain?.domainValidationError ? getLatestErrorMessage({errors: domain?.domainValidationError}) : translate('domain.verifyDomain.genericError')}
-                    isAlertVisible={!!domain?.domainValidationError || domain?.validationPendingStatus === 'error'}
+                    isAlertVisible={!!domain?.domainValidationError || domain?.validationPendingStatus === STATUS.ERROR}
                     containerStyles={styles.mb5}
-                    isLoading={domain?.validationPendingStatus === 'pending'}
+                    isLoading={domain?.validationPendingStatus === STATUS.PENDING}
                 />
             </View>
         </ScreenWrapper>
