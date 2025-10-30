@@ -313,7 +313,7 @@ function ReportActionItemMessageEdit({
         }
         editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, ancestors, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
     /**
      * @param emoji
