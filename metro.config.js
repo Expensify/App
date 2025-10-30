@@ -5,6 +5,8 @@ const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const {sourceExts: defaultSourceExts, additionalExts} = require('metro-config/src/defaults/defaults');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
+const {withSentryConfig} = require('@sentry/react-native/metro');
+const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
 require('dotenv').config();
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
@@ -13,6 +15,7 @@ const expoConfig = getExpoDefaultConfig(__dirname);
 const isE2ETesting = process.env.E2E_TESTING === 'true';
 const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
 
+const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -34,6 +37,13 @@ const config = {
             },
         }),
     },
+    serializer: !isDev
+        ? {
+              customSerializer: createSentryMetroSerializer(),
+          }
+        : {},
 };
 
-module.exports = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+
+module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);

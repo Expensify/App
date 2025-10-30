@@ -332,7 +332,7 @@ class Git {
     }
 
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
-        const baseRefName = GITHUB_BASE_REF ?? CONST.DEFAULT_BASE_REF;
+        const baseRefName = GITHUB_BASE_REF ?? 'main';
 
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
@@ -403,7 +403,7 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
+    static async getChangedFileNames(fromRef: string, toRef?: string): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: CONST.GITHUB_OWNER,

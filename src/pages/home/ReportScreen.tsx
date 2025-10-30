@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -173,6 +173,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -204,9 +206,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!lastAccessedReportID) {
             return;
         }
-
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-        navigation.setParams({reportID: lastAccessedReportID});
+        Navigation.isNavigationReady().then(() => {
+            Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+            navigation.setParams({reportID: lastAccessedReportID});
+        });
     }, [isBetaEnabled, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -345,6 +348,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+
+    const reportIdRef = useRef<string | undefined>(null);
+
+    const redirectBackOnDeletedReport = useCallback(() => {
+        if (!reportIdRef.current) {
+            reportIdRef.current = reportOnyx?.reportID;
+        } else {
+            if (reportOnyx?.reportID) {
+                return;
+            }
+
+            Navigation.goBack(route.params.backTo ?? undefined);
+        }
+    }, [reportOnyx?.reportID, route.params.backTo]);
+
+    useFocusEffect(redirectBackOnDeletedReport);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -488,7 +507,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (
+                !wasReportAccessibleRef?.current &&
+                !firstRenderRef?.current &&
+                !reportID &&
+                !reportIdRef?.current &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus
+            ) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -496,7 +523,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            reportIdRef.current,
+        ],
     );
 
     const createOneTransactionThreadReport = useCallback(() => {
@@ -505,6 +541,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport(report, iouAction);
     }, [report, reportID]);
+
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
@@ -521,6 +560,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
+        // If this function is called too early (while the application is still loading), we will not have information about policies,
+        // which means we will not be able to obtain the correct link for one of the tasks.
+        // More information here: https://github.com/Expensify/App/issues/71742
+        if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
+            const {choice, inviteType} = introSelected;
+            const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+            const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+            if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+                return;
+            }
+        }
+
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
@@ -531,6 +584,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
     ]);
 
     useEffect(() => {
@@ -831,8 +888,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
+    // WideRHP should be visible only on wide layout when report is opened in RHP and contains only one expense.
+    // This view is only available for reports of type CONST.REPORT.TYPE.EXPENSE or CONST.REPORT.TYPE.IOU.
     const shouldShowWideRHP =
         route.name === SCREENS.SEARCH.REPORT_RHP &&
         !isSmallScreenWidth &&
@@ -852,8 +912,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         setIsLinkingToMessage(!!reportActionIDFromRoute);
         return null;
     }
-
-    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -876,27 +934,27 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
-                        >
-                            {headerView}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAccountManagerText}
-                                onClose={dismissBanner}
-                                onButtonPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                                icon={Expensicons.Lightbulb}
-                                shouldShowIcon
-                                shouldShowButton
-                            />
-                        )}
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                errors={reportErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
+                            >
+                                {headerView}
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                    text={chatWithAccountManagerText}
+                                    onClose={dismissBanner}
+                                    onButtonPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                    icon={Expensicons.Lightbulb}
+                                    shouldShowIcon
+                                    shouldShowButton
+                                />
+                            )}
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
