@@ -187,7 +187,9 @@ function Expensify() {
         FS.init(userMetadata);
         FS.onReady().then(async () => {
             const session = await FS.getSessionId();
-            Sentry.setTag('fullstorySession', session);
+            Sentry.setTag('fullstory_session_id', session);
+            Sentry.setExtra('fullstory_session_id', session);
+
         })
     }, [userMetadata]);
 
