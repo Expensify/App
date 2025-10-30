@@ -7449,6 +7449,27 @@ describe('ReportUtils', () => {
         it('falls back to the base report path when reportID is missing', () => {
             expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
         });
+
+        it('returns Inbox route for workspace chat even when in search context', async () => {
+            const reportID = '999';
+            const workspaceChat: Report = {
+                ...createRandomReport(parseInt(reportID, 10)),
+                reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, workspaceChat);
+            await flushPromises();
+
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
+
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+
+            await Onyx.clear();
+        });
     });
 
     describe('requiresManualSubmission', () => {
