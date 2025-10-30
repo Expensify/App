@@ -1038,11 +1038,6 @@ function leaveWorkspace(policyID?: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: policy?.pendingAction ?? null,
-                employeeList: {
-                    [sessionEmail]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
-                    },
-                },
             },
         },
     ];

@@ -117,15 +117,6 @@ function getEmployeeListErrors(policy: PolicyType | undefined, userEmail: string
     return employee.errors;
 }
 
-function hasEmployeePendingApprovalError(policy: PolicyType | undefined, userEmail: string | undefined): boolean {
-    const employeeErrors = getEmployeeListErrors(policy, userEmail);
-    if (!employeeErrors) {
-        return false;
-    }
-
-    return Object.values(employeeErrors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
-}
-
 function getCombinedErrors(policy: PolicyType | undefined, userEmail: string | undefined): OnyxCommon.Errors | undefined {
     const policyErrors = policy?.errors;
     const employeeErrors = getEmployeeListErrors(policy, userEmail);
@@ -643,7 +634,7 @@ function WorkspacesListPage() {
                         ? undefined
                         : (reimbursementAccountBrickRoadIndicator ??
                           receiptUberBrickRoadIndicator ??
-                          (shouldShowEmployeeListError(policy) || hasEmployeePendingApprovalError(policy, session?.email) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ??
+                          (shouldShowEmployeeListError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ??
                           getPolicyBrickRoadIndicatorStatus(
                               policy,
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
