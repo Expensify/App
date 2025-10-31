@@ -1,4 +1,4 @@
-import {translateLocal} from 'tests/utils/TestHelper';
+import {translateLocal} from '../utils/TestHelper';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
