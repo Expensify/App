@@ -28,12 +28,14 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+import PendingTravel from '@assets/images/pending-travel.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
@@ -106,6 +108,7 @@ import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration_
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
+import TravelAlerts from '@assets/images/simple-illustrations/simple-illustration__travelalerts.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
@@ -224,4 +227,7 @@ export {
     PaperAirplane,
     CardReplacementSuccess,
     EmptyShelves,
+    PendingTravel,
+    TravelAlerts,
+    EmptyStateTravel,
 };

@@ -3356,7 +3356,7 @@ ${merchant}的${amount} - ${date}`,
         subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理您所有的商务开支。',
         features: {
             saveMoney: '在您的预订上省钱',
-            alerts: '获取实时更新和提醒',
+            alerts: '如果您的旅行计划发生变化，获取实时提醒',
         },
         bookTravel: '预订旅行',
         bookDemo: '预订演示',
@@ -4637,6 +4637,25 @@ ${merchant}的${amount} - ${date}`,
             perDiem: {
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工的日常开支。',
+            },
+            travel: {
+                title: '旅行',
+                subtitle: '预订、管理和核对您的所有商务旅行。',
+                getStarted: {
+                    title: '开始使用 Expensify Travel',
+                    subtitle: '我们只需要您企业的更多信息，然后您就可以准备出发了。',
+                    ctaText: '开始吧',
+                },
+                reviewingRequest: {
+                    title: '收拾行李，我们已收到您的请求...',
+                    subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
+                    ctaText: '请求已发送',
+                },
+                bookOrManageYourTrip: {
+                    title: '预订或管理您的旅行',
+                    subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
+                    ctaText: '预订或管理',
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

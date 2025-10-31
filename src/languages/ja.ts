@@ -3392,7 +3392,7 @@ ${date} - ${merchant}に${amount}`,
         subtitle: 'Expensify Travelを利用して、最高の旅行オファーを手に入れ、すべてのビジネス経費を一か所で管理しましょう。',
         features: {
             saveMoney: '予約でお金を節約する',
-            alerts: 'リアルタイムの更新とアラートを受け取る',
+            alerts: '旅行計画が変更された場合のリアルタイムアラートを受け取る',
         },
         bookTravel: '旅行を予約する',
         bookDemo: 'デモを予約する',
@@ -4699,6 +4699,25 @@ ${date} - ${merchant}に${amount}`,
             perDiem: {
                 title: '日当',
                 subtitle: '日当料金を設定して、従業員の日々の支出を管理します。',
+            },
+            travel: {
+                title: '旅行',
+                subtitle: 'すべてのビジネス旅行を予約、管理、調整します。',
+                getStarted: {
+                    title: 'Expensify Travelを始めましょう',
+                    subtitle: 'お客様のビジネスについてもう少し情報が必要です。その後、準備完了です。',
+                    ctaText: '始めましょう',
+                },
+                reviewingRequest: {
+                    title: '荷物をまとめてください。リクエストを受け取りました...',
+                    subtitle: '現在、Expensify Travelの有効化リクエストを確認中です。ご心配なく、準備ができ次第お知らせします。',
+                    ctaText: 'リクエスト送信済み',
+                },
+                bookOrManageYourTrip: {
+                    title: '旅行を予約または管理',
+                    subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
+                    ctaText: '予約または管理',
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

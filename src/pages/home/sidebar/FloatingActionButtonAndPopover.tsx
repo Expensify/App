@@ -455,7 +455,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             openTravelDotLink(activePolicy?.id);
             return;
         }
-        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
@@ -550,14 +550,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                   },
               ]
             : []),
-        ...[
-            {
-                icon: Expensicons.Suitcase,
-                text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
-                onSelected: () => interceptAnonymousUser(() => openTravel()),
-            },
-        ],
+        ...(activePolicy?.isTravelEnabled
+            ? [
+                  {
+                      icon: Expensicons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
+                  },
+              ]
+            : []),
         ...(!hasSeenTour
             ? [
                   {
