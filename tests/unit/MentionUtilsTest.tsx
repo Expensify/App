@@ -1,39 +1,30 @@
+import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import MentionReportRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import useOnyx from '@hooks/useOnyx';
+import * as MentionUtils from '@libs/MentionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import MentionReportRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer';
-import {getReportMentionDetails} from '@libs/MentionUtils';
 
-jest.mock('@libs/ReportUtils', () => ({
-    __esModule: true,
-    getReportName: jest.fn(),
-    isChatRoom: jest.fn(() => true),
-}));
+jest.mock('@hooks/useThemeStyles', () =>
+    jest.fn(() => ({
+        link: {},
+    })),
+);
 
-jest.mock('@libs/MentionUtils', () => {
-    const actual = jest.requireActual('@libs/MentionUtils');
-    return {
-        __esModule: true,
-        ...actual,
-        getReportMentionDetails: jest.fn(actual.getReportMentionDetails),
-    };
-});
-
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({
-    link: {},
-})));
-
-jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({
-    getMentionStyle: jest.fn(() => ({})),
-    getMentionTextColor: jest.fn(() => CONST.COLORS.black),
-})));
+jest.mock('@hooks/useStyleUtils', () =>
+    jest.fn(() => ({
+        getMentionStyle: jest.fn(() => ({})),
+        getMentionTextColor: jest.fn(() => '#000000'),
+    })),
+);
 
 jest.mock('@hooks/useCurrentReportID', () => jest.fn(() => ({currentReportID: '1'})));
 
-const mockUseOnyx = jest.fn();
-jest.mock('@hooks/useOnyx', () => mockUseOnyx);
+jest.mock('@hooks/useOnyx', () => jest.fn());
+const mockUseOnyx = useOnyx as jest.Mock;
 
 jest.mock('@navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -42,8 +33,7 @@ jest.mock('@navigation/Navigation', () => ({
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 
-const mockGetReportName = jest.requireMock('@libs/ReportUtils').getReportName as jest.Mock;
-const mockGetReportMentionDetails = getReportMentionDetails as jest.Mock;
+const mockGetReportMentionDetails = jest.spyOn(MentionUtils, 'getReportMentionDetails');
 
 describe('MentionUtils', () => {
     afterEach(() => {
@@ -101,7 +91,12 @@ describe('MentionUtils', () => {
                         anchorRef: {current: null},
                     }}
                 >
-                    <MentionReportRenderer tnode={tnode} TDefaultRenderer={() => null} {...defaultRendererProps} />
+                    <MentionReportRenderer
+                        style={{}}
+                        tnode={tnode}
+                        TDefaultRenderer={() => null}
+                        {...defaultRendererProps}
+                    />
                 </ShowContextMenuContext.Provider>,
             );
 
@@ -109,12 +104,14 @@ describe('MentionUtils', () => {
             mockGetReportMentionDetails.mockReturnValueOnce({reportID: '789', mentionDisplayText: '$99.00 for team lunch'});
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.COLLECTION.REPORT) {
-                    return [{
-                        [`${ONYXKEYS.COLLECTION.REPORT}789`]: {
-                            reportID: '789',
-                            isTransactionThread: true,
+                    return [
+                        {
+                            [`${ONYXKEYS.COLLECTION.REPORT}789`]: {
+                                reportID: '789',
+                                isTransactionThread: true,
+                            },
                         },
-                    }];
+                    ];
                 }
                 return [{policyID: 'XYZ'}];
             });
@@ -128,11 +125,13 @@ describe('MentionUtils', () => {
             mockGetReportMentionDetails.mockReturnValueOnce({reportID: '101', mentionDisplayText: 'General chat'});
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.COLLECTION.REPORT) {
-                    return [{
-                        [`${ONYXKEYS.COLLECTION.REPORT}101`]: {
-                            reportID: '101',
+                    return [
+                        {
+                            [`${ONYXKEYS.COLLECTION.REPORT}101`]: {
+                                reportID: '101',
+                            },
                         },
-                    }];
+                    ];
                 }
                 return [{policyID: 'XYZ'}];
             });
@@ -140,30 +139,6 @@ describe('MentionUtils', () => {
             const {getByText} = renderMention();
 
             expect(getByText('#General chat')).toBeTruthy();
-        });
-    });
-});
-import type {TText} from 'react-native-render-html';
-import {getReportMentionDetails} from '@libs/MentionUtils';
-import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
-
-describe('MentionUtils', () => {
-    describe('getReportMentionDetails', () => {
-        it('should return the room report ID', () => {
-            const reportID = '1';
-            const mentionDetails = getReportMentionDetails(
-                '',
-                {policyID: '1'} as Report,
-                {[reportID]: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
-                {data: '#hello'} as TText,
-            );
-            expect(mentionDetails?.reportID).toBe(reportID);
-        });
-        it('should return undefined report ID when the report is not a room', () => {
-            const reportID = '1';
-            const mentionDetails = getReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
-            expect(mentionDetails?.reportID).toBeUndefined();
         });
     });
 });

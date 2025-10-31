@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportMentionDetails} from '@libs/MentionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {isDefaultRoom, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +41,10 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
         return null;
     }
     const {reportID, mentionDisplayText} = mentionDetails;
+    const mentionedReport = reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
+    const normalizedMentionDisplayText = mentionDisplayText?.replace(/^#/, '') ?? '';
+    const shouldPrefixWithHash = !!(mentionedReport && !isEmptyObject(mentionedReport) && (isDefaultRoom(mentionedReport) || isUserCreatedPolicyRoom(mentionedReport)));
+    const renderedMentionText = shouldPrefixWithHash ? `#${normalizedMentionDisplayText}` : normalizedMentionDisplayText;
 
     let navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
     const backTo = Navigation.getActiveRoute();
@@ -74,7 +79,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
                     role={isGroupPolicyReport ? CONST.ROLE.LINK : undefined}
                     accessibilityLabel={isGroupPolicyReport ? `/${navigationRoute}` : undefined}
                 >
-                    #{mentionDisplayText}
+                    {renderedMentionText}
                 </Text>
             )}
         </ShowContextMenuContext.Consumer>
