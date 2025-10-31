@@ -3414,7 +3414,8 @@ describe('ReportUtils', () => {
     describe('canDeleteMoneyRequestReport', () => {
         it('should allow deletion if the report is open invoice report', async () => {
             const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
-            // Wait for session data to be picked by Onyx susbscription before calling canDeleteMoneyRequestReport to avoid getting undefiend currentUserAccountID in canDeleteMoneyRequestReport as the function depends on gloabl onyx subscription to session key
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+            // since it relies on the session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.SESSION}`,
