@@ -1026,7 +1026,7 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return isManagedCardTransaction(transaction) || !transaction?.cardNumber || !transaction?.cardName;
+    return isManagedCardTransaction(transaction) || !!transaction?.cardNumber || !!transaction?.cardName;
 }
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {
