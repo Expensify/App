@@ -4,7 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -99,7 +99,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         textInputValue={searchText}
                         onChangeText={setSearchText}
                         headerMessage={headerMessage}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={onSelectDayOfMonth}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={offset.toString()}

@@ -69,7 +69,8 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.flexGrow1]}
+            submitButtonStyles={[styles.mh5]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
             shouldHideFixErrorsAlert
         >

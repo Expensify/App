@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -120,7 +120,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 headerMessage={getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue)}
                 onChangeText={setSearchValue}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
             />
         </ScrollView>
     );

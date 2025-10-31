@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -112,7 +112,7 @@ function SelectFeedType() {
             </View>
 
             <SelectionList
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setHasError(false);

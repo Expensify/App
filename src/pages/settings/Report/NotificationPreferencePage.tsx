@@ -5,7 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -60,7 +60,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 />
                 <SelectionList
                     data={notificationPreferenceOptions}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}

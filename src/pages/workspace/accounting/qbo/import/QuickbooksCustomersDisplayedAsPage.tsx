@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -65,7 +65,7 @@ function QuickbooksCustomersDisplayedAsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksCustomersDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}
             shouldSingleExecuteRowSelect

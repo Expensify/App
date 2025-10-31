@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -74,7 +74,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             displayName={QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName}
             title="workspace.accounting.defaultVendor"
             sections={sections}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}

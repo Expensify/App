@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
@@ -98,7 +98,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     initiallyFocusedOptionKey={selectedOption}
                     showScrollIndicator
                     shouldShowTooltips={false}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </ScreenWrapper>
         </Modal>

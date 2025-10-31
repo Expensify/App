@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ArrowRight} from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -18,16 +17,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
 
-const reportExistsSelector = (report: unknown) => !!report;
-
-function UserListItem<TItem extends ListItem>({
+function NewChatListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
@@ -35,8 +31,6 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-    shouldUseDefaultRightHandSideCheckmark,
-    forwardedFSClass,
     accessibilityState,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -48,18 +42,9 @@ function UserListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
-        selector: reportExistsSelector,
+        selector: (report) => !!report,
     });
 
     const reportExists = isReportInOnyx && !!item.reportID;
@@ -69,9 +54,6 @@ function UserListItem<TItem extends ListItem>({
     const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
-
-    const shouldShowCheckbox = !!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple;
-    const shouldShowRadio = !shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple;
 
     return (
         <BaseListItem
@@ -87,7 +69,6 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            shouldDisplayRBR={!shouldShowRadio && !shouldShowCheckbox}
             pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
@@ -99,7 +80,6 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldUseDefaultRightHandSideCheckmark={false}
             accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
@@ -138,7 +118,6 @@ function UserListItem<TItem extends ListItem>({
                                 shouldShowTooltip={showTooltip}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                forwardedFSClass={forwardedFSClass}
                             />
                         )}
                     </View>
@@ -151,37 +130,12 @@ function UserListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
-                    {shouldShowCheckbox && (
-                        <Checkbox
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            style={[styles.pl3]}
-                            containerStyle={[styles.m0]}
-                            isChecked={item.isSelected}
-                            onPress={handleCheckboxPress}
-                            focusable={false}
-                        />
-                    )}
-                    {shouldShowRadio && (
-                        <Checkbox
-                            containerBorderRadius={999}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            style={[styles.pl3]}
-                            containerStyle={[styles.m0]}
-                            isChecked={item.isSelected}
-                            onPress={handleCheckboxPress}
-                            focusable={false}
-                        />
-                    )}
                 </>
             )}
         </BaseListItem>
     );
 }
 
-UserListItem.displayName = 'UserListItem';
+NewChatListItem.displayName = 'NewChatListItem';
 
-export default UserListItem;
+export default NewChatListItem;

@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
@@ -197,7 +197,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 />
                 <SelectionList
                     data={feeds}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectFeed}
                     shouldUpdateFocusedIndex
                     alternateNumberOfSupportedLines={2}

@@ -23,6 +23,8 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    rightHandSideComponent = undefined,
+    accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
@@ -34,9 +36,12 @@ function SingleSelectListItem<TItem extends ListItem>({
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={item.isSelected}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
+                style={styles.ml3}
+                containerStyle={styles.m0}
             />
         );
-    }, [item, onSelectRow]);
+    }, [item, onSelectRow, styles.m0, styles.ml3]);
 
     return (
         <RadioListItem
@@ -45,7 +50,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={radioCheckboxComponent}
+            rightHandSideComponent={rightHandSideComponent ?? radioCheckboxComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -54,8 +59,9 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }

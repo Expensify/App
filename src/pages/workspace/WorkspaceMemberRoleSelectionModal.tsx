@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +56,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
                         data={items}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={onRoleChange}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
