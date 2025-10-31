@@ -17,14 +17,17 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether domain creation is pending */
     isCreationPending?: boolean;
 
-    /** Whether domain validation is pending or has failed */
-    validationPendingStatus?: 'pending' | 'error';
+    /** Whether domain validation is in progress */
+    isValidationPending?: boolean;
 
-    /** Whether domain validation is pending */
+    /** Errors that occurred when validating the domain */
     domainValidationError?: OnyxCommon.Errors;
 
-    /** Whether validation code is currently loading or has failed */
-    validateCodeLoadingStatus?: 'loading' | 'error';
+    /** Whether validation code is currently being fetched */
+    isValidateCodeLoading?: boolean;
+
+    /** Errors that occurred when fetching validation code */
+    validateCodeError?: OnyxCommon.Errors;
 }>;
 
 export default Domain;

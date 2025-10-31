@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -12,14 +13,14 @@ function getDomainValidationCode(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: 'loading'},
+            value: {isValidateCodeLoading: true, validateCodeError: null},
         },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: null},
+            value: {isValidateCodeLoading: null},
         },
     ];
 
@@ -27,7 +28,10 @@ function getDomainValidationCode(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validateCodeLoadingStatus: 'error'},
+            value: {
+                isValidateCodeLoading: null,
+                validateCodeError: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.codeFetchError'),
+            },
         },
     ];
 
@@ -42,7 +46,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: 'pending', domainValidationError: null},
+            value: {isValidationPending: true, domainValidationError: null},
         },
     ];
 
@@ -50,7 +54,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: null},
+            value: {isValidationPending: null},
         },
     ];
 
@@ -58,7 +62,10 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {validationPendingStatus: 'error'},
+            value: {
+                isValidationPending: null,
+                domainValidationError: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.genericError'),
+            },
         },
     ];
 
