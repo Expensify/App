@@ -1658,8 +1658,7 @@ describe('SidebarUtils', () => {
 
             it("should add current user prefix if the current user is the report's manager for report preview action in a DM chat", async () => {
                 const dmChat: Report = {
-                    ...createRandomReport(1, CONST.REPORT.TYPE.IOU),
-                    chatType: undefined,
+                    ...createRandomReport(1, undefined),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
                 const managerID = 123;
@@ -1756,8 +1755,7 @@ describe('SidebarUtils', () => {
 
             it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
                 const dmChat: Report = {
-                    ...createRandomReport(1, CONST.REPORT.TYPE.IOU),
-                    chatType: undefined,
+                    ...createRandomReport(1, undefined),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
                 const managerID = 123;
