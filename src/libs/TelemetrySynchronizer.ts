@@ -4,8 +4,9 @@
  * It uses Onyx.connectWithoutView as nothing here is related to the UI. We only send data to external provider and want to keep this outside of the render loop.
  */
 import * as Sentry from '@sentry/react-native';
-import FS from '@libs/Fullstory';
 import CONST from '@src/CONST';
+import FS from './Fullstory';
+
 
 /**
  * Connect to FullStory to retrieve session id from it. We want to link FullStory with Sentry for easier debugging.
