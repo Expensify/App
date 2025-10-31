@@ -60,6 +60,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         return transactions;
     }, [transactions, transactionsVisibleLimit, isExpenseReportType]);
 
+    const isLastTransaction = useCallback(
+        (index: number) => {
+            return index === visibleTransactions.length - 1;
+        },
+        [visibleTransactions],
+    );
+
     const currentColumns = useMemo(() => {
         if (isExpenseReportType) {
             return columns ?? [];
@@ -87,7 +94,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -120,7 +127,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             return;
         }
 
-        const siblingTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+        const siblingTransactionIDs = transactions
+            .filter((transaction) => transaction.reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
@@ -154,15 +163,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     return (
         <>
             {isLargeScreenWidth && (
-                <View
-                    style={[
-                        styles.searchListHeaderContainerStyle,
-                        styles.groupSearchListTableContainerStyle,
-                        styles.bgTransparent,
-                        styles.pl9,
-                        isExpenseReportType ? styles.pr10 : styles.pr3,
-                    ]}
-                >
+                <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
                     <SearchTableHeader
                         canSelectMultiple
                         type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -179,34 +180,38 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     />
                 </View>
             )}
-            {visibleTransactions.map((transaction) => (
-                <OfflineWithFeedback
-                    pendingAction={transaction.pendingAction}
-                    key={transaction.transactionID}
-                >
-                    <TransactionItemRow
-                        report={transaction.report}
-                        transactionItem={transaction}
-                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
-                        isSelected={!!transaction.isSelected}
-                        dateColumnSize={dateColumnSize}
-                        amountColumnSize={amountColumnSize}
-                        taxAmountColumnSize={taxAmountColumnSize}
-                        shouldShowTooltip={showTooltip}
-                        shouldUseNarrowLayout={!isLargeScreenWidth}
-                        shouldShowCheckbox={!!canSelectMultiple}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                        columns={currentColumns}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
-                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isExpenseReportType && styles.pr10]}
-                        isReportItemChild
-                        isInSingleTransactionReport={isInSingleTransactionReport}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    />
-                </OfflineWithFeedback>
-            ))}
+            {visibleTransactions.map((transaction, index) => {
+                const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                return (
+                    <OfflineWithFeedback
+                        pendingAction={transaction.pendingAction}
+                        key={transaction.transactionID}
+                    >
+                        <TransactionItemRow
+                            report={transaction.report}
+                            transactionItem={transaction}
+                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
+                            isSelected={!!transaction.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowTooltip={showTooltip}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                            columns={currentColumns}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
+                            style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
+                            isReportItemChild
+                            isInSingleTransactionReport={isInSingleTransactionReport}
+                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            shouldShowBottomBorder={shouldShowBottomBorder}
+                        />
+                    </OfflineWithFeedback>
+                );
+            })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                     <Button
