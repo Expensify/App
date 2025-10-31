@@ -310,7 +310,6 @@ const SCREENS = {
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
-        SET_DEFAULT_WORKSPACE: 'Money_Request_SetDefaultWorkspace',
     },
 
     TRANSACTION_DUPLICATE: {
