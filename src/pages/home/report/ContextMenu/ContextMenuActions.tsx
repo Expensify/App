@@ -18,7 +18,7 @@ import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
@@ -135,7 +135,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -209,6 +209,7 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -508,7 +509,21 @@ const ContextMenuActions: ContextMenuAction[] = [
         // the `text` and `icon`
         onPress: (
             closePopover,
-            {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, childReport, getLocalDateFromDatetime},
+            {
+                reportAction,
+                transaction,
+                selection,
+                report,
+                reportID,
+                card,
+                originalReport,
+                isTryNewDotNVPDismissed,
+                movedFromReport,
+                movedToReport,
+                childReport,
+                getLocalDateFromDatetime,
+                policyTags,
+            },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
@@ -526,11 +541,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = getForReportAction({
+                    const modifyExpenseMessage = getForReportActionTemp({
                         reportAction,
-                        policyID: report?.policyID,
                         movedFromReport,
                         movedToReport,
+                        policyTags,
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
