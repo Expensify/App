@@ -73,6 +73,11 @@ type Fullstory = {
      * Sets the identity as anonymous using the Fullstory library.
      */
     anonymize: () => void;
+
+    /**
+     * Returns the current Fullstory session ID.
+     */
+    getSessionId: () => Promise<string | undefined>;
 };
 
 /**
