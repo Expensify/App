@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -40,6 +40,8 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
+    const isTransactionThreadReport = !isEmptyObject(transactionThreadReport);
+
     // Track oldest/newest actions per report in a single pass
     const {currentReportOldest, currentReportNewest, transactionThreadOldest, transactionThreadNewest} = useMemo(() => {
         let currentReportNewestAction = null;
@@ -62,7 +64,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 }
                 // Oldest = last matching action we encounter
                 currentReportOldestAction = action;
-            } else if (!isEmptyObject(transactionThreadReport) && transactionThreadReport?.reportID === targetReportID) {
+            } else if (isTransactionThreadReport && transactionThreadReport?.reportID === targetReportID) {
                 // Same logic for transaction thread
                 if (!transactionThreadNewestAction) {
                     transactionThreadNewestAction = action;
@@ -77,7 +79,18 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             transactionThreadOldest: transactionThreadOldestAction,
             transactionThreadNewest: transactionThreadNewestAction,
         };
-    }, [reportActions, allReportActionIDs, reportID, transactionThreadReport]);
+    }, [allReportActionIDs, reportActions, reportID, transactionThreadReport?.reportID, isTransactionThreadReport]);
+
+    const isReportActionLoaded = useCallback(
+        (actionID: string | undefined) => {
+            if (!actionID) {
+                return false;
+            }
+
+            return reportActions.some((action) => action.reportActionID === actionID);
+        },
+        [reportActions],
+    );
 
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
@@ -98,19 +111,44 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             isLoadingOlderChats.current = true;
             const getOlderActionsPromises: Array<Promise<Response | void>> = [];
 
-            if (!isEmptyObject(transactionThreadReport)) {
-                getOlderActionsPromises.push(getOlderActions(reportID, currentReportOldest?.reportActionID));
+            getOlderActionsPromises.push(getOlderActions(reportID, currentReportOldest?.reportActionID));
+            if (isTransactionThreadReport) {
                 getOlderActionsPromises.push(getOlderActions(transactionThreadReport.reportID, transactionThreadOldest?.reportActionID));
-            } else {
-                getOlderActionsPromises.push(getOlderActions(reportID, currentReportOldest?.reportActionID));
             }
 
             Promise.all(getOlderActionsPromises).finally(() => {
                 isLoadingOlderChats.current = false;
             });
         },
-        [isOffline, oldestReportAction, hasOlderActions, transactionThreadReport, reportID, currentReportOldest?.reportActionID, transactionThreadOldest?.reportActionID],
+        [
+            isOffline,
+            oldestReportAction,
+            hasOlderActions,
+            reportID,
+            currentReportOldest?.reportActionID,
+            isTransactionThreadReport,
+            transactionThreadReport?.reportID,
+            transactionThreadOldest?.reportActionID,
+        ],
     );
+
+    useEffect(() => {
+        if (!isLoadingOlderChats.current) {
+            return;
+        }
+
+        const isOldestReportActionLoaded = isReportActionLoaded(currentReportOldest?.reportActionID);
+
+        if (!isTransactionThreadReport && isOldestReportActionLoaded) {
+            isLoadingOlderChats.current = false;
+            return;
+        }
+
+        const isOldestTransactionThreadReportActionLoaded = isReportActionLoaded(transactionThreadOldest?.reportActionID);
+        if (isOldestReportActionLoaded && isOldestTransactionThreadReportActionLoaded) {
+            isLoadingOlderChats.current = false;
+        }
+    }, [currentReportOldest?.reportActionID, isReportActionLoaded, isTransactionThreadReport, reportActions, transactionThreadOldest?.reportActionID, transactionThreadReport]);
 
     const loadNewerChats = useCallback(
         (force = false) => {
@@ -131,7 +169,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             isLoadingNewerChats.current = true;
             const getNewerActionsPromises: Array<Promise<Response | void>> = [];
 
-            if (!isEmptyObject(transactionThreadReport)) {
+            if (isTransactionThreadReport) {
                 getNewerActionsPromises.push(getNewerActions(reportID, currentReportNewest?.reportActionID));
                 getNewerActionsPromises.push(getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID));
             } else if (newestReportAction) {
@@ -142,8 +180,50 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 isLoadingNewerChats.current = false;
             });
         },
-        [isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportID, currentReportNewest?.reportActionID, transactionThreadNewest?.reportActionID],
+        [
+            isFocused,
+            newestReportAction,
+            hasNewerActions,
+            isOffline,
+            isTransactionThreadReport,
+            reportID,
+            currentReportNewest?.reportActionID,
+            transactionThreadReport?.reportID,
+            transactionThreadNewest?.reportActionID,
+        ],
     );
+
+    useEffect(() => {
+        if (!isLoadingNewerChats.current) {
+            return;
+        }
+
+        if (!isTransactionThreadReport) {
+            const isNewestReportActionLoaded = isReportActionLoaded(currentReportNewest?.reportActionID);
+            isLoadingNewerChats.current = false;
+            const isNewestTransactionThreadReportActionLoaded = isReportActionLoaded(transactionThreadNewest?.reportActionID);
+
+            if (isNewestReportActionLoaded && isNewestTransactionThreadReportActionLoaded) {
+                isLoadingNewerChats.current = false;
+            }
+
+            return;
+        }
+
+        const isNewestReportActionLoaded = isReportActionLoaded(newestReportAction?.reportActionID);
+
+        if (isNewestReportActionLoaded) {
+            isLoadingNewerChats.current = false;
+        }
+    }, [
+        currentReportNewest?.reportActionID,
+        isReportActionLoaded,
+        isTransactionThreadReport,
+        newestReportAction?.reportActionID,
+        reportActions,
+        transactionThreadNewest?.reportActionID,
+        transactionThreadReport,
+    ]);
 
     return {
         loadOlderChats,
