@@ -22,12 +22,12 @@ All rolled into one!
 
 You can chat with Concierge from anywhere in the app:
 
-- **On web:** Click the chat icon in the lower-right corner of any screen.  
-- **On mobile:** Tap the hamburger menu in the top-left corner, then select **Concierge**.
+- **On web:** Press the + button at the bottom left corner of the screen, select Start Chat, and type Concierge into the composer box.
+- **On mobile:** Tap Create at the bottom of your screen, select Start Chat, and type Concierge into the composer box.
 
 You can also contact Concierge by:
 - Email: **concierge@expensify.com**  
-- Text: **47777** (US only)
+- Text: **47777**
 
 # How to use Concierge AI
 
@@ -43,7 +43,7 @@ Here are a few examples you can type:
 
 # What makes Concierge AI different?
 
-Concierge isn’t just a chatbot. It’s a **hybrid agent** that adapts to your needs and understands the context.
+Concierge isn’t just a chatbot. It’s a **hybrid agent** that adapts to your needs and understands context.
 
 - **Contextual:** Ask the same question in different places (DM, report chat, workspace chat) and get tailored answers.  
 - **Hybrid:** Concierge uses AI for most questions and seamlessly escalates to a human if needed.  
