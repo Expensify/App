@@ -1,16 +1,15 @@
 import {platformAndroid} from '@rock-js/platform-android';
 import {platformIOS} from '@rock-js/platform-ios';
 import {pluginMetro} from '@rock-js/plugin-metro';
-import {providerGitHub} from '@rock-js/provider-github';
+import {providerS3} from '@rock-js/provider-s3';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
 /** @type {import('@rock-js/config').Config} */
 export default {
-    remoteCacheProvider: providerGitHub({
-        owner: 'Expensify',
-        repository: 'App',
-        token: process.env.GITHUB_TOKEN,
+    remoteCacheProvider: providerS3({
+        bucket: 'ad-hoc-expensify-cash',
+        region: 'us-east-1',
     }),
     bundler: pluginMetro(),
     platforms: {

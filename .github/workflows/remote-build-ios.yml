@@ -52,6 +52,14 @@ jobs:
           git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
           echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
 
+      - name: Configure AWS Credentials
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Rock Remote Build - iOS
         # rock v3
         uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
