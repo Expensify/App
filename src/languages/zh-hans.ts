@@ -5662,6 +5662,9 @@ ${merchant}的${amount} - ${date}`,
                     `<muted-text>为单项支出设置支出控制和默认值。您还可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时需要收据，除非被类别规则覆盖。',
+                itemizedReceiptRequiredAmount: '明细收据所需金额',
+                itemizedReceiptRequiredAmountDescription: '当支出超过此金额时需要明细收据，除非被类别规则覆盖。',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能低于常规收据所需金额（${amount}）`,
                 maxExpenseAmount: '最大报销金额',
                 maxExpenseAmountDescription: '标记超过此金额的支出，除非被类别规则覆盖。',
                 maxAge: '最大年龄',
@@ -5744,6 +5747,12 @@ ${merchant}的${amount} - ${date}`,
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
                     never: '从不要求收据',
                     always: '始终要求收据',
+                },
+                requireItemizedReceiptsOver: '要求明细收据超过',
+                requireItemizedReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
+                    never: '从不要求明细收据',
+                    always: '始终要求明细收据',
                 },
                 defaultTaxRate: '默认税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) => `转到[更多功能](${moreFeaturesLink})并启用工作流程，然后添加审批以解锁此功能。`,
@@ -5888,11 +5897,17 @@ ${merchant}的${amount} - ${date}`,
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
-                return `通过将收据更改为${newValue}来更新类别“${categoryName}”`;
+                return `通过将收据更改为${newValue}来更新类别"${categoryName}"`;
             }
-            return `将“${categoryName}”类别更改为${newValue}（之前为${oldValue}）`;
+            return `将"${categoryName}"类别更改为${newValue}（之前为${oldValue}）`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `将类别从“${oldName}”重命名为“${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `通过将明细收据更改为${newValue}来更新类别"${categoryName}"`;
+            }
+            return `将"${categoryName}"类别的明细收据更改为${newValue}（之前为${oldValue}）`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `将类别从"${oldName}"重命名为"${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `从类别“${categoryName}”中移除了描述提示“${oldValue}”`;
@@ -6633,6 +6648,7 @@ ${merchant}的${amount} - ${date}`,
             }
             return message;
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `需要明细收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止的费用：';
             switch (prohibitedExpenseType) {

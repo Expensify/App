@@ -5779,6 +5779,9 @@ ${amount} pour ${merchant} - ${date}`,
                     `<muted-text>Définissez des contrôles de dépenses et des valeurs par défaut pour chaque dépense. Vous pouvez également créer des règles pour les <a href="${categoriesPageLink}">catégories</a> et <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Montant requis pour le reçu',
                 receiptRequiredAmountDescription: 'Exiger des reçus lorsque les dépenses dépassent ce montant, sauf si une règle de catégorie le remplace.',
+                itemizedReceiptRequiredAmount: 'Montant requis pour le reçu détaillé',
+                itemizedReceiptRequiredAmountDescription: 'Exiger des reçus détaillés lorsque les dépenses dépassent ce montant, sauf si une règle de catégorie le remplace.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Le montant ne peut pas être inférieur au montant requis pour les reçus réguliers (${amount})`,
                 maxExpenseAmount: 'Montant maximum de la dépense',
                 maxExpenseAmountDescription: 'Signaler les dépenses qui dépassent ce montant, sauf si une règle de catégorie les remplace.',
                 maxAge: 'Âge maximum',
@@ -5865,6 +5868,12 @@ ${amount} pour ${merchant} - ${date}`,
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
                     never: 'Ne jamais exiger de reçus',
                     always: 'Toujours exiger des reçus',
+                },
+                requireItemizedReceiptsOver: 'Exiger des reçus détaillés au-dessus de',
+                requireItemizedReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
+                    never: 'Ne jamais exiger de reçus détaillés',
+                    always: 'Toujours exiger des reçus détaillés',
                 },
                 defaultTaxRate: 'Taux de taxe par défaut',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6015,6 +6024,12 @@ ${amount} pour ${merchant} - ${date}`,
                 return `mis à jour la catégorie "${categoryName}" en changeant Reçus en ${newValue}`;
             }
             return `a changé la catégorie "${categoryName}" en ${newValue} (précédemment ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `mis à jour la catégorie "${categoryName}" en changeant Reçus détaillés en ${newValue}`;
+            }
+            return `a changé les Reçus détaillés de la catégorie "${categoryName}" en ${newValue} (précédemment ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `a renommé la catégorie "${oldName}" en "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6779,6 +6794,7 @@ ${amount} pour ${merchant} - ${date}`,
             }
             return message;
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Reçu détaillé requis${formattedLimit ? ` au-dessus de ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
             switch (prohibitedExpenseType) {

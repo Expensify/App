@@ -270,6 +270,55 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
+
+        it('should add itemizedReceiptRequired violation if the transaction has a receipt but exceeds itemized receipt threshold', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined();
+            expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+        });
+
+        it('should not add itemizedReceiptRequired violation if the transaction does not have a receipt', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined();
+        });
+
+        it('should not add itemizedReceiptRequired violation if the amount is below the threshold', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -5000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined();
+        });
+
+        it('should not add itemizedReceiptRequired violation if the transaction has different currency than the workspace currency', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            transaction.modifiedCurrency = CONST.CURRENCY.CAD;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined();
+        });
     });
 
     describe('policyCategoryRules', () => {
@@ -293,6 +342,28 @@ describe('getViolationsOnyxData', () => {
         it('should add category specific violations', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
+        });
+
+        it('should add category-level itemizedReceiptRequired violation when category has itemized receipt threshold', () => {
+            policyCategories.Food.maxAmountNoItemizedReceipt = 5000;
+            transaction.amount = -10000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined();
+            expect(itemizedReceiptViolation?.data).toBeUndefined(); // Category-level violations don't have data
+        });
+
+        it('should use category-level itemized receipt threshold over policy-level threshold', () => {
+            policy.maxExpenseAmountNoItemizedReceipt = 10000;
+            policyCategories.Food.maxAmountNoItemizedReceipt = 5000;
+            transaction.amount = -7500; // Between category (5000) and policy (10000) thresholds
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined(); // Should use category threshold (5000)
         });
     });
 

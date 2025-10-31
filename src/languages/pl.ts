@@ -5761,6 +5761,9 @@ ${amount} dla ${merchant} - ${date}`,
                     `<muted-text>Ustaw limity wydatków i domyślne wartości dla poszczególnych wydatków. Możesz również tworzyć reguły dla <a href="${categoriesPageLink}">kategorie</a> i <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
+                itemizedReceiptRequiredAmount: 'Wymagana kwota szczegółowego paragonu',
+                itemizedReceiptRequiredAmountDescription: 'Wymagaj szczegółowych paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być niższa niż kwota wymagana dla zwykłych paragonów (${amount})`,
                 maxExpenseAmount: 'Maksymalna kwota wydatku',
                 maxExpenseAmountDescription: 'Oznacz wydatki przekraczające tę kwotę, chyba że zostaną one nadpisane przez regułę kategorii.',
                 maxAge: 'Maksymalny wiek',
@@ -5847,6 +5850,12 @@ ${amount} dla ${merchant} - ${date}`,
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
                     never: 'Nigdy nie wymagaj paragonów',
                     always: 'Zawsze wymagaj paragonów',
+                },
+                requireItemizedReceiptsOver: 'Wymagaj szczegółowych paragonów powyżej',
+                requireItemizedReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
+                    never: 'Nigdy nie wymagaj szczegółowych paragonów',
+                    always: 'Zawsze wymagaj szczegółowych paragonów',
                 },
                 defaultTaxRate: 'Domyślna stawka podatkowa',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -5997,6 +6006,12 @@ ${amount} dla ${merchant} - ${date}`,
                 return `zaktualizowano kategorię "${categoryName}", zmieniając Paragony na ${newValue}`;
             }
             return `zmieniono kategorię "${categoryName}" na ${newValue} (wcześniej ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `zaktualizowano kategorię "${categoryName}", zmieniając Szczegółowe paragony na ${newValue}`;
+            }
+            return `zmieniono Szczegółowe paragony kategorii "${categoryName}" na ${newValue} (wcześniej ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmieniono nazwę kategorii z "${oldName}" na "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6757,6 +6772,7 @@ ${amount} dla ${merchant} - ${date}`,
             }
             return message;
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Wymagany szczegółowy paragon${formattedLimit ? ` powyżej ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
             switch (prohibitedExpenseType) {

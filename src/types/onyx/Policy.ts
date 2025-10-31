@@ -1966,6 +1966,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
 
+        /** Max amount for an expense with no itemized receipt violation */
+        maxExpenseAmountNoItemizedReceipt?: number;
+
         /** Whether GL codes are enabled */
         glCodes?: boolean;
 

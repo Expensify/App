@@ -2497,6 +2497,30 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                 newValue: getTranslation(newValue),
             });
         }
+
+        if (updatedField === 'maxAmountNoItemizedReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
+
+            const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+            const getTranslation = (value?: number | string) => {
+                if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
+                }
+                if (value === 0) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
+                }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', {defaultAmount: formatAmount()});
+            };
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
+                categoryName,
+                oldValue: getTranslation(oldValue),
+                newValue: getTranslation(newValue),
+            });
+        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {

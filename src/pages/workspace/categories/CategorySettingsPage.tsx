@@ -18,7 +18,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireItemizedReceiptsOverText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -127,6 +127,13 @@ function CategorySettingsPage({
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
+
+    const requireItemizedReceiptsOverText = useMemo(() => {
+        if (!policy) {
+            return '';
+        }
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -369,6 +376,16 @@ function CategorySettingsPage({
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
+                                <MenuItemWithTopDescription
+                                    title={requireItemizedReceiptsOverText}
+                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />

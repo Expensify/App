@@ -5771,6 +5771,10 @@ ${amount} voor ${merchant} - ${date}`,
                     `<muted-text>Stel uitgavenbeperkingen en standaardinstellingen in voor individuele uitgaven. U kunt ook regels voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a> maken.</muted-text>`,
                 receiptRequiredAmount: 'Vereist bedrag voor bon',
                 receiptRequiredAmountDescription: 'Vereis bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                itemizedReceiptRequiredAmount: 'Gespecificeerde bon vereist bedrag',
+                itemizedReceiptRequiredAmountDescription:
+                    'Vereis gespecificeerde bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet lager zijn dan het bedrag dat vereist is voor reguliere bonnen (${amount})`,
                 maxExpenseAmount: 'Maximale uitgavebedrag',
                 maxExpenseAmountDescription: 'Markeer uitgaven die dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
                 maxAge: 'Maximale leeftijd',
@@ -5857,6 +5861,12 @@ ${amount} voor ${merchant} - ${date}`,
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
                     never: 'Nooit bonnen vereisen',
                     always: 'Altijd bonnen vereisen',
+                },
+                requireItemizedReceiptsOver: 'Vereis gespecificeerde bonnen boven',
+                requireItemizedReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
+                    never: 'Nooit gespecificeerde bonnen vereisen',
+                    always: 'Altijd gespecificeerde bonnen vereisen',
                 },
                 defaultTaxRate: 'Standaard belastingtarief',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6007,6 +6017,12 @@ ${amount} voor ${merchant} - ${date}`,
                 return `heeft de categorie "${categoryName}" bijgewerkt door Bonnen te wijzigen naar ${newValue}`;
             }
             return `heeft de categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `heeft de categorie "${categoryName}" bijgewerkt door Gedetailleerde bonnen te wijzigen naar ${newValue}`;
+            }
+            return `heeft de Gedetailleerde bonnen van categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6770,6 +6786,7 @@ ${amount} voor ${merchant} - ${date}`,
             }
             return message;
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Gespecificeerde bon vereist${formattedLimit ? ` boven ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';
             switch (prohibitedExpenseType) {

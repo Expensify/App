@@ -5782,6 +5782,9 @@ ${amount} per ${merchant} - ${date}`,
                     `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per <a href="${categoriesPageLink}">categorie</a> e <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
+                itemizedReceiptRequiredAmount: 'Importo richiesto per ricevuta dettagliata',
+                itemizedReceiptRequiredAmountDescription: 'Richiedi ricevute dettagliate quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere inferiore all'importo richiesto per le ricevute normali (${amount})`,
                 maxExpenseAmount: 'Importo massimo spesa',
                 maxExpenseAmountDescription: 'Contrassegna la spesa che supera questo importo, a meno che non sia sostituita da una regola di categoria.',
                 maxAge: 'Età massima',
@@ -5869,6 +5872,12 @@ ${amount} per ${merchant} - ${date}`,
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
                     never: 'Non richiedere mai ricevute',
                     always: 'Richiedi sempre le ricevute',
+                },
+                requireItemizedReceiptsOver: 'Richiedi ricevute dettagliate superiori a',
+                requireItemizedReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
+                    never: 'Non richiedere mai ricevute dettagliate',
+                    always: 'Richiedi sempre ricevute dettagliate',
                 },
                 defaultTaxRate: 'Aliquota fiscale predefinita',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6021,6 +6030,12 @@ ${amount} per ${merchant} - ${date}`,
                 return `aggiornata la categoria "${categoryName}" cambiando Ricevute in ${newValue}`;
             }
             return `ha cambiato la categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `aggiornata la categoria "${categoryName}" cambiando Ricevute dettagliate in ${newValue}`;
+            }
+            return `ha cambiato le Ricevute dettagliate della categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `rinominato la categoria "${oldName}" in "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6785,6 +6800,7 @@ ${amount} per ${merchant} - ${date}`,
             }
             return message;
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Ricevuta dettagliata richiesta${formattedLimit ? ` superiore a ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
             switch (prohibitedExpenseType) {
