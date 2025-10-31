@@ -51,6 +51,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
                 onButtonPress={() => Navigation.dismissModal()}
+                footerStyle={styles.mb5}
             />
         </ScreenWrapper>
     );
