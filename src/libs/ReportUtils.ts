@@ -5731,7 +5731,7 @@ function getReportName(
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
-            return getCardIssuedMessage({reportAction: parentReportAction});
+            return getCardIssuedMessage({reportAction: parentReportAction, translate: translateLocal});
         }
         return reportActionMessage;
     }

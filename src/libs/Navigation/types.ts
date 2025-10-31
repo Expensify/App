@@ -1373,6 +1373,14 @@ type ReportDetailsNavigatorParamList = {
     };
 };
 
+type ReportCardActivateNavigatorParamList = {
+    [SCREENS.REPORT_CARD_ACTIVATE]: {
+        reportID: string;
+        cardID: string;
+        reportActionID?: string;
+    };
+};
+
 type ReportChangeWorkspaceNavigatorParamList = {
     [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: {
         reportID: string;
@@ -2042,6 +2050,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: NavigatorScreenParams<SetDefaultWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: NavigatorScreenParams<ReportCardActivateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
@@ -2781,4 +2790,5 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
+    ReportCardActivateNavigatorParamList,
 };

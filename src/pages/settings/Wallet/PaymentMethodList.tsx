@@ -18,7 +18,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {
+    getAssignedCardSortKey,
+    getCardFeedIcon,
+    getPlaidInstitutionIconUrl,
+    isExpensifyCard,
+    isExpensifyCardPendingAction,
+    lastFourNumbersFromCardName,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -27,7 +35,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -199,11 +207,25 @@ function PaymentMethodList({
     });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
+
+    const getCardBrickRoadIndicator = useCallback(
+        (card: Card) => {
+            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            }
+            if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
+            return undefined;
+        },
+        [privatePersonalDetails],
+    );
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -296,10 +318,7 @@ function PaymentMethodList({
                     canDismissError: true,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined,
+                    brickRoadIndicator: getCardBrickRoadIndicator(card),
                     icon,
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
@@ -366,6 +385,7 @@ function PaymentMethodList({
         cardList,
         illustrations,
         translate,
+        getCardBrickRoadIndicator,
         onPress,
         shouldShowRightIcon,
         itemIconRight,

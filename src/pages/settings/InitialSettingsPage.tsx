@@ -30,7 +30,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -118,8 +118,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const walletBrickRoadIndicator = useMemo(() => {
+        if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (hasPendingCardAction) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        return undefined;
+    }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
