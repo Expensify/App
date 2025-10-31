@@ -1018,6 +1018,17 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
     return !!transaction?.managedCard;
 }
 
+/**
+ * Determine whether a transaction is imported from a credit card (personal or managed card).
+ */
+function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction?.cardName === CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) {
+        return false;
+    }
+
+    return isManagedCardTransaction(transaction) || !transaction?.cardNumber || !transaction?.cardName;
+}
+
 function getCardName(transaction: OnyxEntry<Transaction>): string {
     return transaction?.cardName ?? '';
 }
@@ -2082,6 +2093,7 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isFromCreditCardImport,
     isDuplicate,
     isPending,
     isPosted,
