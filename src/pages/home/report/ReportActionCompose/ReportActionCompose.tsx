@@ -383,21 +383,28 @@ function ReportActionCompose({
         clear: (() => void) | undefined;
     }>({clear: undefined});
 
-    const handleSendMessage = useCallback(() => {
-        'worklet';
+    const handleSendMessage = useCallback(
+        (isJsThread?: boolean) => {
+            'worklet';
 
-        const clearComposer = composerRefShared.get().clear;
-        if (!clearComposer) {
-            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
-        }
+            const clearComposer = isJsThread ? composerRef.current?.clear : composerRefShared.get().clear;
+            if (!clearComposer) {
+                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            }
 
-        if (isSendDisabled) {
-            return;
-        }
+            if (isSendDisabled) {
+                return;
+            }
 
-        // This will cause onCleared to be triggered where we actually send the message
-        clearComposer();
-    }, [isSendDisabled, composerRefShared]);
+            // This will cause onCleared to be triggered where we actually send the message
+            if (isJsThread) {
+                runOnUI(clearComposer)();
+            } else {
+                clearComposer();
+            }
+        },
+        [isSendDisabled, composerRefShared],
+    );
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
@@ -519,9 +526,7 @@ function ReportActionCompose({
                         <ComposerWithSuggestions
                             ref={(ref) => {
                                 composerRef.current = ref ?? undefined;
-                                composerRefShared.set({
-                                    clear: ref?.clear,
-                                });
+                                composerRefShared.set({clear: ref?.clear});
                             }}
                             suggestionsRef={suggestionsRef}
                             isNextModalWillOpenRef={isNextModalWillOpenRef}

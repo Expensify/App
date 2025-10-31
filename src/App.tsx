@@ -21,6 +21,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import {KeyboardStateProvider} from './components/KeyboardStateProvider';
 import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
@@ -40,7 +41,6 @@ import {PlaybackContextProvider} from './components/VideoPlayerContexts/Playback
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from './components/WideRHPContextProvider';
-import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import Expensify from './Expensify';
