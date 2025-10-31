@@ -5,8 +5,6 @@ keywords: Expense Assistant, Concierge, create expense, edit expense, manage exp
 ---
 <div id="new-expensify" markdown="1">
 
-Account > Settings > Preferences
-
 Need to create or update an expense? Just ask Concierge. Whether you're uploading a receipt, tracking mileage, or fixing a merchant name, the Expense Assistant can handle it — no forms required.
 
 # What is the Expense Assistant feature?
@@ -23,7 +21,6 @@ Concierge handles many expense tasks for you behind the scenes:
 - Applies categories based on your past behavior
 - Adds expenses to the correct report
 - Moves held expenses to a new report when other expenses are submitted
-- *(Coming soon)* Tags expenses based on past behavior
 
 # How to use the Expense Assistant with Concierge
 
@@ -89,12 +86,36 @@ No problem — just ask Concierge to fix it.
 
 Concierge will update the expense and confirm the change.
 
-# What features are coming soon to the Expense Assistant?
+# FAQ
 
-We’re actively expanding what Concierge can do with expenses. Upcoming capabilities include:
+## What features are not yet supported by the Expense Assistant?
 
-- Deleting expenses via chat
-- Categorizing all expenses from a specific merchant
-- Attaching a receipt to a specific transaction
+Some expense actions are not currently supported in chat, but may be added in the future:
+
+- Deleting an expense  
+- Categorizing all expenses from a specific merchant (e.g., “Categorize all Starbucks expenses as Coffee Meetings”)  
+- Attaching a receipt to an existing transaction via chat
+- Tagging expenses based on past behavior 
+
+If you try one of these, Concierge will let you know it's not supported. 
+---
+
+## Can I use the Expense Assistant on mobile?
+
+Yes! The Expense Assistant works the same way on both web and mobile.
+
+---
+
+## Can I create mileage expenses with Concierge?
+
+Yes — just include the number of miles and reason in your request:
+
+> “Record 20 miles for client meeting with Alice.”
+
+---
+
+## Can I create an expense without a receipt?
+
+Yes — you can log expenses with just a message. Receipts are optional unless required by your Workspace rules.
 
 </div>
