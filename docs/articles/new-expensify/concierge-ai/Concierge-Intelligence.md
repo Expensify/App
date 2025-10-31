@@ -5,8 +5,6 @@ keywords: Concierge Intelligence, how Concierge works, AI context, multi-modal a
 ---
 <div id="new-expensify" markdown="1">
 
-**Breadcrumb:** `Account > Settings > Concierge`
-
 Concierge isn’t just smart—it’s **context-aware**, multi-skilled, and built to help you get more done with less effort. This guide explains how Concierge works, what makes it intelligent, and how to get the most out of it.
 
 # How Concierge works
@@ -75,7 +73,7 @@ To chat with Concierge:
 - **On web:** Click the **Concierge** button in the navigation tabs on the left.
 - **On mobile:** Tap the hamburger menu in the top-left corner, then select **Concierge**.
 
-# TL;DR – Why Concierge is different
+# Why Concierge is different
 
 - Understands where you’re chatting from and adjusts accordingly  
 - Handles natural, multi-part questions with ease  
