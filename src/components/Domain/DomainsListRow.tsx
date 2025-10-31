@@ -61,10 +61,12 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                 <View style={[styles.flexRow, styles.workspaceThreeDotMenu]}>
                     <View style={[styles.flexRow, styles.ml2, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.workspaceListRBR, styles.pr3, styles.mt0]}>
-                            <Icon
-                                src={Expensicons.DotIndicator}
-                                fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
-                            />
+                            {!!brickRoadIndicator && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+                                />
+                            )}
                         </View>
                         {!!menuItems && (
                             <ThreeDotsMenu
