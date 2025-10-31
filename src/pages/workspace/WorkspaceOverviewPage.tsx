@@ -383,7 +383,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const getHeaderButtons = () => {
         const secondaryActions: Array<DropdownOption<string>> = [];
-        const canLeave = !isOwner && defaultApprover !== session?.email;
+        const canLeave = !isOwner;
 
         if (readOnly) {
             if (canLeave) {
