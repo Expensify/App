@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -15,18 +14,16 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
+import type { ThemeStyles } from '@styles/index';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 // TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
 type NotificationType =
     | 'authentication-successful'
     | 'authentication-failed'
-    | 'registration-failed'
     | 'transaction-approved'
     | 'transaction-denied'
     | 'you-ran-out-of-time'
-    | 'couldnt-send-magic-code'
-    | 'couldnt-send-sms-code';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
 
@@ -41,8 +38,7 @@ type NotificationData =
     | undefined;
 
 // TODO: remove, as this data will actually come from the SCENARIOS file
-const getNotificationData = (notificationType: NotificationType): NotificationData => {
-    const styles = useThemeStyles();
+const getNotificationData = (notificationType: NotificationType, styles: ThemeStyles): NotificationData => {
     switch (notificationType) {
         case 'authentication-successful':
             return {
@@ -89,7 +85,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
     const onGoBackPress = () => Navigation.dismissModal();
 
     // TODO: replace with notification which gets the actual data from SCENARIO file
-    const data = getNotificationData(route.params.notificationType);
+    const data = getNotificationData(route.params.notificationType, styles);
 
     // data2  // TODO: replace with the correct data from MFAcontext
     const {headerTitle, title, content} = {headerTitle: 'headerTitle', title: 'Title', content: 'Content'};
