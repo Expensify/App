@@ -36,12 +36,15 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     const handleGrantPermission = () => {
         setIsModalVisible(false);
-        requestContactPermission().then((status) => {
-            onFocusTextInput();
-            if (status !== RESULTS.GRANTED) {
-                return;
-            }
-            onGrant();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            requestContactPermission().then((status) => {
+                onFocusTextInput();
+                if (status !== RESULTS.GRANTED) {
+                    return;
+                }
+                onGrant();
+            });
         });
     };
 
