@@ -86,7 +86,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             return;
         }
         if (Platform.OS === 'ios') {
-            fileURI = fileURI.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
+            fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);

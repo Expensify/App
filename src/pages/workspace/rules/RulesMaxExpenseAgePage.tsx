@@ -39,7 +39,7 @@ function RulesMaxExpenseAgePage({
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);

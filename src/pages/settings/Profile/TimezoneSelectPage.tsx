@@ -50,7 +50,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 searchWords.every((word) =>
                     tz.text
                         .toLowerCase()
-                        .replace(/[^a-z0-9]/g, ' ')
+                        .replaceAll(/[^a-z0-9]/g, ' ')
                         .includes(word),
                 ),
             ),

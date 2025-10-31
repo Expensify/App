@@ -56,7 +56,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     // The backend always returns these thumbnails with a .jpg extension, even for .png images.
     // As a workaround, we remove the .1024.jpg or .320.jpg suffix only for .png images,
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
-    const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
+    const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replaceAll(/\.png\.(1024|320)\.jpg$/g, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
     const alt = htmlAttribs.alt;

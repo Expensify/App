@@ -184,7 +184,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((option) => {
-            const alternateText = option?.alternateText ? option.alternateText.trim().replace(/,$/, '') : undefined;
+            const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
             return {
                 text: option.translation,
                 keyForList: option.value,

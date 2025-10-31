@@ -66,7 +66,7 @@ function validateReportFieldListValueName(
  * Generates a field ID based on the field name.
  */
 function generateFieldID(name: string) {
-    return `field_id_${name.replace(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+    return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
 /**

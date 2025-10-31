@@ -54,7 +54,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                         return heicConverter
                             .heicTo({blob, type: CONST.IMAGE_FILE_FORMAT.JPEG})
                             .then((convertedBlob) => {
-                                const jpegFile = Object.assign(new File([convertedBlob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
+                                const jpegFile = Object.assign(new File([convertedBlob], fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
                                     uri: URL.createObjectURL(convertedBlob),
                                 });
                                 onSuccess(jpegFile as FileObject);

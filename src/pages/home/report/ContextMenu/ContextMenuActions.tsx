@@ -727,7 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
-                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+                        content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                             return openTag + modifiedContent + closeTag || '';
                         }),

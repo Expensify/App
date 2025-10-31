@@ -27,7 +27,7 @@ function getPathFromURL(url: string): string {
  * Determine if two urls have the same origin
  */
 function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
-    const removeW3 = (host: string) => host.replace(/^www\./i, '');
+    const removeW3 = (host: string) => host.replaceAll(/^www\./gi, '');
     try {
         const parsedUrl1 = new URL(url1);
         const parsedUrl2 = new URL(url2);

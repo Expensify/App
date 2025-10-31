@@ -489,7 +489,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\:/g, CONST.COLON);
+    return tag?.replaceAll('\\:', CONST.COLON);
 }
 
 /**

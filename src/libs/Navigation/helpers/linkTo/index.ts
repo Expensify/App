@@ -37,8 +37,8 @@ function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootN
     if (!focusedRouteFromPath?.path || !('backTo' in params) || !params.backTo || typeof params.backTo !== 'string') {
         return false;
     }
-    let cleanedPath = focusedRouteFromPath.path.replace(/\?.*/, '');
-    let cleanedBackTo = params.backTo.replace(/\?.*/, '');
+    let cleanedPath = focusedRouteFromPath.path.replaceAll(/\?.*/g, '');
+    let cleanedBackTo = params.backTo.replaceAll(/\?.*/g, '');
     cleanedPath = cleanedPath.endsWith('/') ? cleanedPath.slice(0, -1) : cleanedPath;
     cleanedBackTo = cleanedBackTo.endsWith('/') ? cleanedBackTo.slice(0, -1) : cleanedBackTo;
 
