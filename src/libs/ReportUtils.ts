@@ -10309,7 +10309,7 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
     });
 }
 /**
- * Get optimistic ancestor report actions the  
+ * Get optimistic ancestor report actions the
  * @param ancestors The thread report ancestors
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
@@ -10320,7 +10320,7 @@ function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionC
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
 
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
-        
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,

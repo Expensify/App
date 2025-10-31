@@ -58,7 +58,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
-    
+
     const cursorRelativePosition = useRef({
         horizontal: 0,
         vertical: 0,
