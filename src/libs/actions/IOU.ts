@@ -10205,12 +10205,11 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(expenseReport.policyID);
-    const approvalChain = getApprovalChain(policy, expenseReport);
+    const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
 
     const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport, false, policy);
+    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
 
     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10809,7 +10808,15 @@ function submitReport(
         isASAPSubmitBetaEnabled,
     });
     const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const managerIDFromApprovalChain = getAccountIDsByLogins(approvalChain).at(0);
+    let fallbackManagerID;
+    if (typeof managerIDFromApprovalChain === 'number' && managerIDFromApprovalChain !== CONST.DEFAULT_NUMBER_ID) {
+        fallbackManagerID = managerIDFromApprovalChain;
+    } else if (typeof expenseReport?.managerID === 'number' && expenseReport.managerID !== CONST.DEFAULT_NUMBER_ID) {
+        fallbackManagerID = expenseReport.managerID;
+    } else {
+        fallbackManagerID = currentUserAccountIDParam;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -10828,7 +10835,7 @@ function submitReport(
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      managerID,
+                      managerID: fallbackManagerID,
                       lastMessageText: getReportActionText(optimisticSubmittedReportAction),
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -10914,7 +10921,16 @@ function submitReport(
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
+        managerAccountID: (() => {
+            const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+            if (typeof submitToAccountID === 'number' && submitToAccountID > 0) {
+                return submitToAccountID;
+            }
+            if (typeof fallbackManagerID === 'number' && fallbackManagerID > 0) {
+                return fallbackManagerID;
+            }
+            return currentUserAccountIDParam;
+        })(),
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 

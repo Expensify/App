@@ -3,8 +3,9 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPolicyMember, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
+import {getLoginsByAccountIDs} from './PersonalDetailsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -71,9 +72,18 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const currentUserID = getCurrentUserAccountID();
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : isProcessing;
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserID;
+    const managerLogin = getLoginsByAccountIDs([managerID]).at(0) ?? '';
+    const isManagerAssigned = managerID !== CONST.DEFAULT_NUMBER_ID;
+    const isManagerMemberOfPolicy = isManagerAssigned && managerLogin ? isPolicyMember(policy, managerLogin) : false;
+    const isCurrentUserPolicyAdmin = isPolicyAdmin(policy);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval ?? false;
+    const canFallbackToCurrentUser =
+        (!isManagerMemberOfPolicy || !isManagerAssigned) &&
+        (isCurrentUserPolicyAdmin || (!isPreventSelfApprovalEnabled && isReportSubmitter));
+    const isCurrentUserManager = managerID === currentUserID || canFallbackToCurrentUser;
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
@@ -85,9 +95,6 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
 
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;

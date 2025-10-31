@@ -25,6 +25,7 @@ import type {MoneyRequestReportPreviewProps} from './types';
 function MoneyRequestReportPreview({
     allReports,
     policies,
+    policy: policyFromProps,
     iouReportID,
     policyID,
     chatReportID,
@@ -48,7 +49,12 @@ function MoneyRequestReportPreview({
         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
-    const policy = usePolicy(policyID);
+    const resolvedPolicyID = iouReport?.policyID ?? policyID ?? chatReport?.policyID ?? policyFromProps?.id;
+    const policyFromHook = usePolicy(resolvedPolicyID);
+    const policy =
+        policyFromHook ??
+        policyFromProps ??
+        (resolvedPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`] : undefined);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);

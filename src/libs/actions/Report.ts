@@ -5464,7 +5464,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         total: -(iouReport?.total ?? 0),
     };
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, true, policy);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
         expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
@@ -5714,13 +5714,30 @@ function buildOptimisticChangePolicyData(
     const managerLogin = PersonalDetailsUtils.getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
     if (isOpenOrSubmitted && managerLogin && !isPolicyMember(policy, managerLogin)) {
         newStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        const nextApproverAccountID = getNextApproverAccountID(report, true);
+        const nextApproverLogin = PersonalDetailsUtils.getLoginByAccountID(nextApproverAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        const currentUserIsValidFallback = typeof accountID === 'number' && accountID !== CONST.DEFAULT_NUMBER_ID;
+        let fallbackApproverAccountID;
+        if (
+            typeof nextApproverAccountID === 'number' &&
+            nextApproverAccountID !== CONST.DEFAULT_NUMBER_ID &&
+            !!nextApproverLogin &&
+            isPolicyMember(policy, nextApproverLogin)
+        ) {
+            fallbackApproverAccountID = nextApproverAccountID;
+        } else if (currentUserIsValidFallback) {
+            fallbackApproverAccountID = accountID;
+        } else {
+            fallbackApproverAccountID = report.managerID;
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, true, policy),
+                managerID: fallbackApproverAccountID,
             },
         });
 
