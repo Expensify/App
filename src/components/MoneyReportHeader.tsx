@@ -503,8 +503,8 @@ function MoneyReportHeader({
         if (!iouTransactionID || !reportID) {
             return;
         }
-        markAsCashAction(iouTransactionID, reportID);
-    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
+        markAsCashAction(iouTransactionID, reportID, transactionViolations);
+    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
