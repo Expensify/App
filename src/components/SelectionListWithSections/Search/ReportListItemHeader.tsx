@@ -96,14 +96,6 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
 
-        // Calculate total from transactions for orphaned reports (use convertedAmount for conversion)
-        if (reportTotal === 0 && reportItem.transactions) {
-            reportTotal = reportItem.transactions.reduce((acc, transaction) => {
-                const transactionAmount = transaction?.convertedAmount || transaction?.modifiedAmount || transaction?.amount || 0;
-                return acc + transactionAmount;
-            }, 0);
-        }
-
         if (reportTotal) {
             if (reportItem.type === CONST.REPORT.TYPE.IOU) {
                 reportTotal = Math.abs(reportTotal ?? 0);
@@ -115,7 +107,7 @@ function HeaderFirstRow<TItem extends ListItem>({
         const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
 
         return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.total, reportItem.transactions, reportItem.currency, reportItem.type]);
+    }, [reportItem.type, reportItem.total, reportItem.currency]);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
