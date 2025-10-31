@@ -73,6 +73,7 @@ describe('Transaction', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
+                [ONYXKEYS.SELF_DM_REPORT_ID]: FAKE_SELF_DM_REPORT_ID,
                 ...reportCollectionDataSet,
             },
         });

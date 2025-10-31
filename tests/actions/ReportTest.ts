@@ -1899,6 +1899,9 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
+            const SELF_DM_REPORT_ID = '10';
+            Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, SELF_DM_REPORT_ID);
+
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
             const firstIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
@@ -1946,6 +1949,7 @@ describe('actions/Report', () => {
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
             const selfDMReportID = ReportUtils.getSelfDMReportID();
+            expect(selfDMReportID).toBe(SELF_DM_REPORT_ID);
             const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
@@ -1955,8 +1959,7 @@ describe('actions/Report', () => {
                     },
                 });
             });
-            // The length is 3 to include the CREATED action
-            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(2);
         });
 
         it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {

@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import {generateReportID, getSelfDMReportID} from '@libs/ReportUtils';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
