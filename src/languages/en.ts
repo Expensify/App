@@ -5119,6 +5119,7 @@ const translations = {
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
+                inviteNewMember: 'Invite new member',
                 findMember: 'Find member',
                 chooseCardType: 'Choose a card type',
                 physicalCard: 'Physical card',
