@@ -53,7 +53,6 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
-import {getActivePolicies} from '@libs/PolicyUtils';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -116,8 +115,6 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -189,15 +186,6 @@ function Expensify() {
         // Initialize Fullstory lib
         FS.init(userMetadata);
     }, [userMetadata]);
-
-    useEffect(() => {
-        if (!session?.email || !activePolicyID || !policies) {
-            return;
-        }
-        const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
-        Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID)
-        Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies})
-    }, [session?.email, activePolicyID, policies]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
