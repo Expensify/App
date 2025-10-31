@@ -82,13 +82,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-            return (
-                <TransactionStartDateStep
-                    policyID={policyID}
-                    feed={feed}
-                    backTo={backTo}
-                />
-            );
+            return <TransactionStartDateStep />;
         case CONST.COMPANY_CARD.STEP.CARD_NAME:
             return <CardNameStep policyID={policyID} />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
