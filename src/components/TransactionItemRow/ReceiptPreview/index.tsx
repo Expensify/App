@@ -133,7 +133,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 </View>
             ) : (
                 <View style={styles.receiptPreviewEReceiptsContainer}>
-                    {shouldShowDistanceEReceipt ? (
+                    {shouldShowDistanceEReceipt && (
                         <View
                             onLayout={handleDistanceEReceiptLayout}
                             style={[
@@ -149,13 +149,15 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                                 hoverPreview
                             />
                         </View>
-                    ) : isPerDiemEReceipt ? (
+                    )}
+                    {!shouldShowDistanceEReceipt && isPerDiemEReceipt && (
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             shouldUseAspectRatio
                             receiptType="perDiem"
                         />
-                    ) : (
+                    )}
+                    {!shouldShowDistanceEReceipt && !isPerDiemEReceipt && (
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             transactionItem={transactionItem}
