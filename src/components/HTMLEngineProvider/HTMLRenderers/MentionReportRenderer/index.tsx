@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportMentionDetails} from '@libs/MentionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {isDefaultRoom, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,12 +26,12 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
     const {currentReportID: currentReportIDContext, exactlyMatch} = useContext(MentionReportContext);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const currentReportID = useCurrentReportID();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentReportIDValue = currentReportIDContext || currentReportID?.currentReportID;
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`, {canBeMissing: true});
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
@@ -40,6 +41,10 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
         return null;
     }
     const {reportID, mentionDisplayText} = mentionDetails;
+    const mentionedReport = reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
+    const normalizedMentionDisplayText = mentionDisplayText?.replace(/^#/, '') ?? '';
+    const shouldPrefixWithHash = !!(mentionedReport && !isEmptyObject(mentionedReport) && (isDefaultRoom(mentionedReport) || isUserCreatedPolicyRoom(mentionedReport)));
+    const renderedMentionText = shouldPrefixWithHash ? `#${normalizedMentionDisplayText}` : normalizedMentionDisplayText;
 
     let navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
     const backTo = Navigation.getActiveRoute();
@@ -74,7 +79,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
                     role={isGroupPolicyReport ? CONST.ROLE.LINK : undefined}
                     accessibilityLabel={isGroupPolicyReport ? `/${navigationRoute}` : undefined}
                 >
-                    #{mentionDisplayText}
+                    {renderedMentionText}
                 </Text>
             )}
         </ShowContextMenuContext.Consumer>
