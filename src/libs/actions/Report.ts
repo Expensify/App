@@ -5718,12 +5718,7 @@ function buildOptimisticChangePolicyData(
         const nextApproverLogin = PersonalDetailsUtils.getLoginByAccountID(nextApproverAccountID ?? CONST.DEFAULT_NUMBER_ID);
         const currentUserIsValidFallback = typeof accountID === 'number' && accountID !== CONST.DEFAULT_NUMBER_ID;
         let fallbackApproverAccountID;
-        if (
-            typeof nextApproverAccountID === 'number' &&
-            nextApproverAccountID !== CONST.DEFAULT_NUMBER_ID &&
-            !!nextApproverLogin &&
-            isPolicyMember(policy, nextApproverLogin)
-        ) {
+        if (typeof nextApproverAccountID === 'number' && nextApproverAccountID !== CONST.DEFAULT_NUMBER_ID && !!nextApproverLogin && isPolicyMember(policy, nextApproverLogin)) {
             fallbackApproverAccountID = nextApproverAccountID;
         } else if (currentUserIsValidFallback) {
             fallbackApproverAccountID = accountID;

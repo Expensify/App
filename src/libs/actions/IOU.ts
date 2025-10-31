@@ -10815,7 +10815,7 @@ function submitReport(
     } else if (typeof expenseReport?.managerID === 'number' && expenseReport.managerID !== CONST.DEFAULT_NUMBER_ID) {
         fallbackManagerID = expenseReport.managerID;
     } else {
-        fallbackManagerID = currentUserAccountIDParam;
+        fallbackManagerID = accountIDParam;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -10923,13 +10923,13 @@ function submitReport(
         reportID: expenseReport.reportID,
         managerAccountID: (() => {
             const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-            if (typeof submitToAccountID === 'number' && submitToAccountID > 0) {
+            if (typeof submitToAccountID === 'number' && submitToAccountID !== CONST.DEFAULT_NUMBER_ID) {
                 return submitToAccountID;
             }
-            if (typeof fallbackManagerID === 'number' && fallbackManagerID > 0) {
+            if (typeof fallbackManagerID === 'number' && fallbackManagerID !== CONST.DEFAULT_NUMBER_ID) {
                 return fallbackManagerID;
             }
-            return currentUserAccountIDParam;
+            return accountIDParam;
         })(),
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };

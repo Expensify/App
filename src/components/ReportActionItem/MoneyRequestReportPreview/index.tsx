@@ -51,10 +51,7 @@ function MoneyRequestReportPreview({
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const resolvedPolicyID = iouReport?.policyID ?? policyID ?? chatReport?.policyID ?? policyFromProps?.id;
     const policyFromHook = usePolicy(resolvedPolicyID);
-    const policy =
-        policyFromHook ??
-        policyFromProps ??
-        (resolvedPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`] : undefined);
+    const policy = policyFromHook ?? policyFromProps ?? (resolvedPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`] : undefined);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);

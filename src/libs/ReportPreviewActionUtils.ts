@@ -3,9 +3,9 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
+import {getLoginsByAccountIDs} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPolicyMember, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
-import {getLoginsByAccountIDs} from './PersonalDetailsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -80,9 +80,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const isCurrentUserPolicyAdmin = isPolicyAdmin(policy);
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval ?? false;
-    const canFallbackToCurrentUser =
-        (!isManagerMemberOfPolicy || !isManagerAssigned) &&
-        (isCurrentUserPolicyAdmin || (!isPreventSelfApprovalEnabled && isReportSubmitter));
+    const canFallbackToCurrentUser = (!isManagerMemberOfPolicy || !isManagerAssigned) && (isCurrentUserPolicyAdmin || (!isPreventSelfApprovalEnabled && isReportSubmitter));
     const isCurrentUserManager = managerID === currentUserID || canFallbackToCurrentUser;
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
