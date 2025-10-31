@@ -121,6 +121,7 @@ import {
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
@@ -743,6 +744,12 @@ function getOptionData({
     const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
     const status = personalDetail?.status ?? '';
+
+    // For 1:1 DMs, add the other participant's selected timezone
+    if (isOneOnOneChat(report)) {
+        const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
+        result.timezone = recipientPersonalDetail?.timezone;
+    }
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
