@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
-import type {ListItem, ReportListItemProps, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -10,6 +10,7 @@ import ReportItemRow from './ReportListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
+    isLoading,
     isFocused,
     showTooltip,
     isDisabled,
@@ -18,9 +19,10 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    onDEWModalOpen,
+    onCheckboxPress,
+    // onDEWModalOpen,
 }: ReportListItemProps<TItem>) {
-    const reportItem = item as unknown as TransactionReportGroupListItemType;
+    const reportItem = item as unknown as ReportListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -69,11 +71,13 @@ function ReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <ReportItemRow
-                report={reportItem}
-                onSelectRow={onSelectRow}
+                item={reportItem}
+                isActionLoading={isLoading ?? reportItem.isActionLoading}
+                isSelected={!!reportItem.isSelected}
+                showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                isDisabled={isDisabled}
-                onDEWModalOpen={onDEWModalOpen}
+                onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                // onButtonPress={}
             />
         </BaseListItem>
     );

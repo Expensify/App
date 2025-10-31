@@ -1,21 +1,16 @@
 import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
-import useOnyx from '@hooks/useOnyx';
+import type {ReportListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
@@ -23,130 +18,100 @@ import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
 import UserInfoCell from './UserInfoCell';
 
-type ReportListItemRowProps<TItem extends ListItem> = {
-    /** The report currently being looked at */
-    report: TransactionReportGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
-
-    /** Whether this section items disabled for selection */
-    isDisabled?: boolean | null;
-
-    /** Whether selecting multiple transactions at once is allowed */
-    canSelectMultiple: boolean | undefined;
-
-    /** Whether all transactions are selected */
-    isSelectAllChecked?: boolean;
-
-    /** Whether only some transactions are selected */
-    isIndeterminate?: boolean;
-
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Optional container styles */
+type ReportListItemRowProps = {
+    item: ReportListItemType;
+    showTooltip: boolean;
+    canSelectMultiple?: boolean;
+    isSelected?: boolean;
+    isActionLoading?: boolean;
+    onButtonPress?: () => void;
+    onCheckboxPress?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-function ReportListItemRow<TItem extends ListItem>({
-    report: reportItem,
-    onSelectRow,
-    onCheckboxPress,
-    isDisabled,
-    canSelectMultiple,
-    isSelectAllChecked,
-    isIndeterminate,
-    onDEWModalOpen,
+function ReportListItemRow({
+    item,
+    isSelected,
+    onCheckboxPress = () => {},
+    onButtonPress = () => {},
+    isActionLoading,
     containerStyle,
-}: ReportListItemRowProps<TItem>) {
+    showTooltip,
+    canSelectMultiple,
+}: ReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey} = useSearchContext();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
-
-    const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
-    }, [snapshot, reportItem.reportID]);
-
-    const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
-    }, [snapshot, reportItem.policyID]);
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {total, currency} = useMemo(() => {
-        let reportTotal = reportItem.total ?? 0;
+        let reportTotal = item.total ?? 0;
 
         if (reportTotal) {
-            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+            if (item.type === CONST.REPORT.TYPE.IOU) {
                 reportTotal = Math.abs(reportTotal ?? 0);
             } else {
-                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+                reportTotal *= item.type === CONST.REPORT.TYPE.EXPENSE || item.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
             }
         }
 
-        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
+        const reportCurrency = item.currency ?? CONST.CURRENCY.USD;
 
         return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
-
-    const handleOnButtonPress = () => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
-            shouldUseNarrowLayout && !!canSelectMultiple,
-            snapshotReport,
-            snapshotPolicy,
-            lastPaymentMethod,
-            currentSearchKey,
-            onDEWModalOpen,
-        );
-    };
+    }, [item.type, item.total, item.currency]);
 
     if (!isLargeScreenWidth) {
+        // return <HeaderFirstRow
+        //                 report={reportItem}
+        //                 onCheckboxPress={onCheckboxPress}
+        //                 isDisabled={isDisabled}
+        //                 canSelectMultiple={canSelectMultiple}
+        //                 avatarBorderColor={avatarBorderColor}
+        //                 isSelectAllChecked={isSelectAllChecked}
+        //                 isIndeterminate={isIndeterminate}
+        //             />
+        //             <UserInfoAndActionButtonRow
+        //                 item={reportItem}
+        //                 handleActionButtonPress={handleOnButtonPress}
+        //                 shouldShowUserInfo={showUserInfo}
+        //                 containerStyles={[styles.pr0]}
+        //             />
         // Mobile/small screen layout - simplified view
         return (
             <View style={[containerStyle, styles.gap3]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    {!!canSelectMultiple && (
+                    {/* {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
-                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled)]}
-                            disabled={!!isDisabled || reportItem.isDisabledCheckbox}
-                            accessibilityLabel={reportItem.text ?? ''}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                            disabled={!!isDisabled || item.isDisabledCheckbox}
+                            accessibilityLabel={item.text ?? ''}
                             shouldStopMouseDownPropagation
                             style={styles.mr1}
-
-                            // style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
+                            // style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                         />
-                    )}
+                    )} */}
                     <ReportActionAvatars
-                        reportID={reportItem.reportID}
+                        reportID={item.reportID}
                         size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                        shouldShowTooltip
+                        shouldShowTooltip={showTooltip}
                         singleAvatarContainerStyle={[styles.mr2]}
                     />
                     <View style={[styles.flex1, styles.gap1]}>
                         <TitleCell
-                            text={reportItem.reportName ?? ''}
+                            text={item.reportName ?? ''}
                             isLargeScreenWidth={isLargeScreenWidth}
                         />
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                             <StatusCell
-                                stateNum={reportItem.stateNum}
-                                statusNum={reportItem.statusNum}
+                                stateNum={item.stateNum}
+                                statusNum={item.statusNum}
                             />
                             <DateCell
-                                created={reportItem.created ?? ''}
-                                showTooltip
+                                created={item.created ?? ''}
+                                showTooltip={showTooltip}
                                 isLargeScreenWidth={isLargeScreenWidth}
                             />
                         </View>
@@ -156,69 +121,53 @@ function ReportListItemRow<TItem extends ListItem>({
                         currency={currency}
                     />
                 </View>
-                {!!(reportItem.from || reportItem.to) && (
+                {/* {!!(item.from || item.to) && (
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        {!!reportItem.from && (
+                        {!!item.from && (
                             <View style={[styles.flex1]}>
                                 <UserInfoCell
-                                    accountID={reportItem.from.accountID}
-                                    avatar={reportItem.from.avatar}
-                                    displayName={reportItem.from.displayName ?? reportItem.from.login ?? ''}
+                                    accountID={item.from.accountID}
+                                    avatar={item.from.avatar}
+                                    displayName={item.from.displayName ?? item.from.login ?? ''}
                                 />
                             </View>
                         )}
-                        {!!reportItem.to && (
+                        {!!item.to && (
                             <View style={[styles.flex1]}>
                                 <UserInfoCell
-                                    accountID={reportItem.to.accountID}
-                                    avatar={reportItem.to.avatar}
-                                    displayName={reportItem.to.displayName ?? reportItem.to.login ?? ''}
+                                    accountID={item.to.accountID}
+                                    avatar={item.to.avatar}
+                                    displayName={item.to.displayName ?? item.to.login ?? ''}
                                 />
                             </View>
                         )}
                     </View>
-                )}
+                )} */}
             </View>
         );
     }
 
-    // Desktop/large screen layout - column-based table view
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                {/* {!!canSelectMultiple && (
-                    <Checkbox
-                        onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
-                        isChecked={isSelectAllChecked}
-                        isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled)]}
-                        disabled={!!isDisabled || reportItem.isDisabledCheckbox}
-                        accessibilityLabel={reportItem.text ?? ''}
-                        shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
-                    />
-                )} */}
                 {!!canSelectMultiple && (
                     <Checkbox
-                        // disabled={isDisabled}
-                        onPress={() => {
-                            // onCheckboxPress(transactionItem.transactionID);
-                        }}
+                        onPress={onCheckboxPress}
                         accessibilityLabel={CONST.ROLE.CHECKBOX}
-                        // isChecked={isSelected}
+                        isChecked={isSelected}
                         style={styles.mr1}
                         wrapperStyle={styles.justifyContentCenter}
                     />
                 )}
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
                     <ReportActionAvatars
-                        reportID={reportItem.reportID}
-                        shouldShowTooltip
+                        reportID={item.reportID}
+                        shouldShowTooltip={showTooltip}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, true)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        created={reportItem.created ?? ''}
+                        created={item.created ?? ''}
                         showTooltip
                         isLargeScreenWidth
                     />
@@ -226,31 +175,31 @@ function ReportListItemRow<TItem extends ListItem>({
 
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                     <StatusCell
-                        stateNum={reportItem.stateNum}
-                        statusNum={reportItem.statusNum}
+                        stateNum={item.stateNum}
+                        statusNum={item.statusNum}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TitleCell
-                        text={reportItem.reportName ?? ''}
+                        text={item.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    {!!reportItem.from && (
+                    {!!item.from && (
                         <UserInfoCell
-                            accountID={reportItem.from.accountID}
-                            avatar={reportItem.from.avatar}
-                            displayName={reportItem.from.displayName ?? reportItem.from.login ?? ''}
+                            accountID={item.from.accountID}
+                            avatar={item.from.avatar}
+                            displayName={item.from.displayName ?? item.from.login ?? ''}
                         />
                     )}
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
-                    {!!reportItem.to && (
+                    {!!item.to && (
                         <UserInfoCell
-                            accountID={reportItem.to.accountID}
-                            avatar={reportItem.to.avatar}
-                            displayName={reportItem.to.displayName ?? reportItem.to.login ?? ''}
+                            accountID={item.to.accountID}
+                            avatar={item.to.avatar}
+                            displayName={item.to.displayName ?? item.to.login ?? ''}
                         />
                     )}
                 </View>
@@ -262,14 +211,14 @@ function ReportListItemRow<TItem extends ListItem>({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
-                        action={reportItem.action}
-                        goToItem={handleOnButtonPress}
-                        isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
-                        policyID={reportItem.policyID}
-                        reportID={reportItem.reportID}
-                        hash={reportItem.hash}
-                        amount={reportItem.total}
+                        action={item.action}
+                        goToItem={onButtonPress}
+                        isSelected={item.isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ARROW)]}>
