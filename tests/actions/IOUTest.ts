@@ -7841,7 +7841,7 @@ describe('actions/IOU', () => {
                 const amount = -10000;
                 let expenseReport: OnyxEntry<Report>;
                 let chatReport: OnyxEntry<Report>;
-                let originalTransactionID = '';
+                let originalTransactionID;
 
                 const policyID = generatePolicyID();
                 createWorkspace({
@@ -7897,7 +7897,7 @@ describe('actions/IOU', () => {
                             isMoneyRequestAction(reportAction),
                         );
                         const originalMessage = isMoneyRequestAction(iouActions?.at(0)) ? getOriginalMessage(iouActions?.at(0)) : undefined;
-                        originalTransactionID = originalMessage?.IOUTransactionID ?? '';
+                        originalTransactionID = originalMessage?.IOUTransactionID;
                     },
                 });
 
