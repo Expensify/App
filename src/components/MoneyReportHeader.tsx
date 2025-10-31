@@ -1147,10 +1147,11 @@ function MoneyReportHeader({
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                const reportID = moneyRequestReport?.reportID;
-                if (reportID) {
-                    deleteAppReport(reportID);
-                }
+                Navigation.goBack(route.params?.backTo);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    deleteAppReport(moneyRequestReport?.reportID);
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
