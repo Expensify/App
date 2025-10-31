@@ -2650,7 +2650,8 @@ ${amount} voor ${merchant} - ${date}`,
             subtitle: 'Beheer en deel je uitgaven met een accountant of start een reisgroep met vrienden.',
         },
         domainWorkspaceRestriction: {
-            subtitle: 'Alleen beheerders mogen werkruimten aanmaken. Word lid van een van de onderstaande werkruimten of neem contact op met je beheerder voor meer informatie.',
+            subtitle:
+                'Het aanmaken van werkruimtes is voorbehouden aan beheerders. Sluit je aan bij een van de onderstaande werkruimtes of neem contact op met je beheerder voor meer informatie.',
             skipForNow: 'Voor nu overslaan',
         },
     },

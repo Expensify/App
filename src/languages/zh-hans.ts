@@ -2614,10 +2614,7 @@ ${merchant}的${amount} - ${date}`,
             title: '邀请成员',
             subtitle: '与会计师管理和分享您的费用，或与朋友组建旅行团体。',
         },
-        domainWorkspaceRestriction: {
-            subtitle: '仅管理员可创建工作区。您可以加入以下任一工作区，或联系管理员了解更多信息。',
-            skipForNow: '暂时跳过',
-        },
+        domainWorkspaceRestriction: {subtitle: '工作区的创建仅限管理员。加入以下任一工作区，或联系您的管理员以获取更多信息。', skipForNow: '暂时跳过'},
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',

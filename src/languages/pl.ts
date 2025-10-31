@@ -2645,7 +2645,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
         domainWorkspaceRestriction: {
             subtitle:
-                'Tworzenie przestrzeni roboczych jest zastrzeżone dla administratorów. Dołącz do jednej z poniższych przestrzeni lub skontaktuj się z administratorem, aby uzyskać więcej informacji.',
+                'Tworzenie obszarów roboczych jest ograniczone do administratorów. Dołącz do jednego z obszarów roboczych poniżej lub skontaktuj się ze swoim administratorem, aby uzyskać więcej informacji.',
             skipForNow: 'Pomiń na razie',
         },
     },
@@ -4425,7 +4425,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',

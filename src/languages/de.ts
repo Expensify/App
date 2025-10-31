@@ -2639,9 +2639,8 @@ ${amount} für ${merchant} - ${date}`,
             subtitle: 'Verwalten und teilen Sie Ihre Ausgaben mit einem Buchhalter oder gründen Sie eine Reisegruppe mit Freunden.',
         },
         domainWorkspaceRestriction: {
-            subtitle:
-                'Das Erstellen von Arbeitsbereichen ist nur Administratoren erlaubt. Tritt einem der unten aufgeführten Arbeitsbereiche bei oder kontaktiere deinen Administrator für weitere Informationen.',
-            skipForNow: 'Für jetzt überspringen',
+            subtitle: 'Die Erstellung von Workspaces ist auf Admins beschränkt. Tritt einem der unten aufgeführten Workspaces bei oder wende dich für weitere Informationen an deinen Admin.',
+            skipForNow: 'Vorerst überspringen',
         },
     },
     featureTraining: {

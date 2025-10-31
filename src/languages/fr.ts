@@ -2635,8 +2635,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         domainWorkspaceRestriction: {
             subtitle:
-                'La création d’un espace de travail est réservée aux administrateurs. Rejoignez l’un des espaces ci-dessous ou contactez votre administrateur pour plus d’informations.',
-            skipForNow: 'Ignorer pour le moment',
+                'La création d’espaces de travail est réservée aux administrateurs. Rejoignez l’un des espaces de travail ci-dessous ou contactez votre administrateur pour plus d’informations.',
+            skipForNow: "Ignorer pour l'instant",
         },
     },
     featureTraining: {

@@ -2649,7 +2649,7 @@ ${amount} per ${merchant} - ${date}`,
         },
         domainWorkspaceRestriction: {
             subtitle:
-                'La creazione degli spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi sottostanti o contatta il tuo amministratore per maggiori informazioni.',
+                'La creazione di spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi di lavoro qui sotto oppure contatta il tuo amministratore per maggiori informazioni.',
             skipForNow: 'Salta per ora',
         },
     },
