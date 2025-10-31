@@ -1107,6 +1107,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
         to: {
@@ -1215,6 +1216,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '11111',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1323,6 +1325,7 @@ const transactionReportGroupListItems = [
         private_isArchived: '',
         reportID: '99999',
         reportName: 'Approver owes ₫44.00',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1369,6 +1372,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: reportID5,
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
         to: {
