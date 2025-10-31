@@ -6093,6 +6093,10 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
  * @param reportID - The ID of the report to reset the oldest unread report action ID for.
  */
 function resetOldestUnreadReportActionID(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, null);
 }
 
