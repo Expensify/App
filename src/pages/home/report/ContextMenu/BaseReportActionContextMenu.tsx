@@ -366,6 +366,7 @@ function BaseReportActionContextMenu({
                             movedFromReport,
                             movedToReport,
                             getLocalDateFromDatetime,
+                            translate,
                         };
 
                         if ('renderContent' in contextAction) {

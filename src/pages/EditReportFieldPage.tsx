@@ -18,6 +18,7 @@ import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {
     getReportFieldKey,
     hasViolations as hasViolationsReportUtils,
+    isAdminOwnerApproverOrReportOwner,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
     isReportFieldDisabled,
@@ -41,7 +42,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabled(report, reportField, policy);
+    const isDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -76,9 +77,11 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     const handleReportFieldDelete = () => {
-        deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
         goBack();
+        setTimeout(() => {
+            deleteReportField(report.reportID, reportField);
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);

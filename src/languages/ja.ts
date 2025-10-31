@@ -7107,6 +7107,8 @@ ${date} - ${merchant}に${amount}`,
     roomChangeLog: {
         updateRoomDescription: '部屋の説明を次のように設定します：',
         clearRoomDescription: '部屋の説明をクリアしました',
+        changedRoomAvatar: 'ルームのアバターを変更しました',
+        removedRoomAvatar: 'ルームのアバターを削除しました',
     },
     delegate: {
         switchAccount: 'アカウントを切り替える:',
