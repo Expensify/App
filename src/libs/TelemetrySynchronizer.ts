@@ -24,7 +24,7 @@ FS.onReady().then(async () => {
 });
 
 /**
- * Connect to Onyx to retrive information about user's active policies.
+ * Connect to Onyx to retrieve information about user's active policies.
  */
 let session: OnyxEntry<Session>;
 let activePolicyID: OnyxEntry<string>;
