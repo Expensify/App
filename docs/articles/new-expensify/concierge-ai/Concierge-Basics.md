@@ -1,5 +1,5 @@
 ---
-title: Concierge Basica
+title: Concierge Basics
 description: Get to know Concierge - your built-in support agent, expense assistant, and workflow manager.
 keywords: Concierge AI, support chat, contact Concierge, submit expenses, approve reports, AI help, human support, disable escalation
 ---
