@@ -6443,6 +6443,11 @@ ${amount} dla ${merchant} - ${date}`,
         newReport: {
             createReport: 'Utwórz raport',
             chooseWorkspace: 'Wybierz przestrzeń roboczą dla tego raportu.',
+            emptyReportConfirmationTitle: 'Masz już pusty raport',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Czy na pewno chcesz utworzyć kolejny raport w ${workspaceName}? Do pustych raportów możesz przejść w`,
+            emptyReportConfirmationPromptLink: 'Raporty',
+            genericWorkspaceName: 'tej przestrzeni roboczej',
         },
         genericCreateReportFailureMessage: 'Nieoczekiwany błąd podczas tworzenia tego czatu. Proszę spróbować ponownie później.',
         genericAddCommentFailureMessage: 'Nieoczekiwany błąd podczas publikowania komentarza. Spróbuj ponownie później.',
@@ -7148,6 +7153,8 @@ ${amount} dla ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'ustaw opis pokoju na:',
         clearRoomDescription: 'wyczyszczono opis pokoju',
+        changedRoomAvatar: 'Zmieniono awatar pokoju',
+        removedRoomAvatar: 'Usunięto awatar pokoju',
     },
     delegate: {
         switchAccount: 'Przełącz konta:',
