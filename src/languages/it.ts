@@ -7390,8 +7390,9 @@ ${amount} per ${merchant} - ${date}`,
         revokePage: {
             headerTitle: 'Verifica volto/impronta digitale',
             revokeContent:
-                'La verifica volto/impronta digitale è abilitata su uno o più dispositivi. La revoca dell\'accesso richiederà un codice magico per la prossima verifica volto/impronta digitale su qualsiasi dispositivo.',
-            renableContent: 'La verifica volto/impronta digitale è impostata su uno o più dispositivi, ma richiede un codice magico per essere riabilitata. Dopodiché, puoi revocare l\'accesso qui.',
+                "La verifica volto/impronta digitale è abilitata su uno o più dispositivi. La revoca dell'accesso richiederà un codice magico per la prossima verifica volto/impronta digitale su qualsiasi dispositivo.",
+            renableContent:
+                "La verifica volto/impronta digitale è impostata su uno o più dispositivi, ma richiede un codice magico per essere riabilitata. Dopodiché, puoi revocare l'accesso qui.",
             confirmationContent: 'Avrai bisogno di un codice magico per la prossima verifica volto/impronta digitale su qualsiasi dispositivo.',
             bottomButtonContent: 'Revoca accesso',
         },

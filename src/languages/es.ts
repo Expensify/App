@@ -7828,7 +7828,8 @@ ${amount} para ${merchant} - ${date}`,
             headerTitle: 'Verificación facial/huella dactilar',
             revokeContent:
                 'La verificación facial/huella dactilar está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación facial/huella dactilar en cualquier dispositivo.',
-            renableContent: 'La verificación facial/huella dactilar está configurada en uno o más dispositivos, pero requiere un código mágico para volver a habilitarla. Después de eso, puede revocar el acceso aquí.',
+            renableContent:
+                'La verificación facial/huella dactilar está configurada en uno o más dispositivos, pero requiere un código mágico para volver a habilitarla. Después de eso, puede revocar el acceso aquí.',
             confirmationContent: 'Necesitará un código mágico para la próxima verificación facial/huella dactilar en cualquier dispositivo.',
             bottomButtonContent: 'Revocar acceso',
         },

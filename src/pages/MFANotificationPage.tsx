@@ -12,18 +12,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
+import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
-import type { ThemeStyles } from '@styles/index';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 // TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
-type NotificationType =
-    | 'authentication-successful'
-    | 'authentication-failed'
-    | 'transaction-approved'
-    | 'transaction-denied'
-    | 'you-ran-out-of-time'
+type NotificationType = 'authentication-successful' | 'authentication-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
 

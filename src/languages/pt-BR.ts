@@ -7375,7 +7375,8 @@ ${amount} para ${merchant} - ${date}`,
             headerTitle: 'Verificação facial/impressão digital',
             revokeContent:
                 'A verificação facial/impressão digital está habilitada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação facial/impressão digital em qualquer dispositivo.',
-            renableContent: 'A verificação facial/impressão digital está configurada em um ou mais dispositivos, mas requer um código mágico para ser reabilitada. Depois disso, você pode revogar o acesso aqui.',
+            renableContent:
+                'A verificação facial/impressão digital está configurada em um ou mais dispositivos, mas requer um código mágico para ser reabilitada. Depois disso, você pode revogar o acesso aqui.',
             confirmationContent: 'Você precisará de um código mágico para a próxima verificação facial/impressão digital em qualquer dispositivo.',
             bottomButtonContent: 'Revogar acesso',
         },

@@ -7380,7 +7380,8 @@ ${amount} voor ${merchant} - ${date}`,
             headerTitle: 'Gezicht/vingerafdruk verificatie',
             revokeContent:
                 'Gezicht/vingerafdruk verificatie is ingeschakeld op een of meer apparaten. Het intrekken van toegang vereist een magic code voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
-            renableContent: 'Gezicht/vingerafdruk verificatie is ingesteld op een of meer apparaten, maar vereist een magic code om opnieuw in te schakelen. Daarna kunt u hier toegang intrekken.',
+            renableContent:
+                'Gezicht/vingerafdruk verificatie is ingesteld op een of meer apparaten, maar vereist een magic code om opnieuw in te schakelen. Daarna kunt u hier toegang intrekken.',
             confirmationContent: 'U heeft een magic code nodig voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
             bottomButtonContent: 'Toegang intrekken',
         },

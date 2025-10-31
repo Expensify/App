@@ -7368,7 +7368,8 @@ ${amount} dla ${merchant} - ${date}`,
             headerTitle: 'Weryfikacja twarzy/odcisku palca',
             revokeContent:
                 'Weryfikacja twarzy/odcisku palca jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu będzie wymagało magicznego kodu podczas następnej weryfikacji twarzy/odcisku palca na dowolnym urządzeniu.',
-            renableContent: 'Weryfikacja twarzy/odcisku palca jest skonfigurowana na jednym lub więcej urządzeniach, ale wymaga magicznego kodu do ponownego włączenia. Następnie możesz cofnąć dostęp tutaj.',
+            renableContent:
+                'Weryfikacja twarzy/odcisku palca jest skonfigurowana na jednym lub więcej urządzeniach, ale wymaga magicznego kodu do ponownego włączenia. Następnie możesz cofnąć dostęp tutaj.',
             confirmationContent: 'Będziesz potrzebować magicznego kodu podczas następnej weryfikacji twarzy/odcisku palca na dowolnym urządzeniu.',
             bottomButtonContent: 'Cofnij dostęp',
         },

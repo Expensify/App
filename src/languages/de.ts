@@ -7385,7 +7385,8 @@ ${amount} für ${merchant} - ${date}`,
             headerTitle: 'Gesichts-/Fingerabdruck-Verifizierung',
             revokeContent:
                 'Die Gesichts-/Fingerabdruck-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert einen Magic Code für die nächste Gesichts-/Fingerabdruck-Verifizierung auf jedem Gerät.',
-            renableContent: 'Die Gesichts-/Fingerabdruck-Verifizierung ist auf einem oder mehreren Geräten eingerichtet, erfordert jedoch einen Magic Code zur erneuten Aktivierung. Danach können Sie den Zugriff hier widerrufen.',
+            renableContent:
+                'Die Gesichts-/Fingerabdruck-Verifizierung ist auf einem oder mehreren Geräten eingerichtet, erfordert jedoch einen Magic Code zur erneuten Aktivierung. Danach können Sie den Zugriff hier widerrufen.',
             confirmationContent: 'Sie benötigen einen Magic Code für die nächste Gesichts-/Fingerabdruck-Verifizierung auf jedem Gerät.',
             bottomButtonContent: 'Zugriff widerrufen',
         },
