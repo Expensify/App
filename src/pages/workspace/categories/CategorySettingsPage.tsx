@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,10 +57,11 @@ function CategorySettingsPage({
     const {policy, categories: policyCategories} = policyData;
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const policyCategory = policyData.categories?.[categoryName] ?? Object.values(policyData.categories ?? {}).find((category) => category.previousCategoryName === categoryName);
-    const policyCurrency = policyData.policy?.outputCurrency ?? CONST.CURRENCY.USD;
+  
+    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
+    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
@@ -178,7 +179,7 @@ function CategorySettingsPage({
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={categoryName}
+                    title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -224,7 +225,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={policyCategory.name}
+                            title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
