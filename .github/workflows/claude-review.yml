@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request_target:
-    types: [ready_for_review]
+    types: [opened, ready_for_review]
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.html_url }}
@@ -16,6 +16,12 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
+      - name: Skip draft PRs on opened event
+        if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.event.pull_request.draft == true
+        run: |
+          echo "::notice::Skipping review because the PR is a draft"
+          exit 0
+
       - name: Check for excluded PRs
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
