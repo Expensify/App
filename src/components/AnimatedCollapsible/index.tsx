@@ -56,10 +56,7 @@ function AnimatedCollapsible({
     isExpanded,
     children,
     header,
-<<<<<<< HEAD
     description,
-=======
->>>>>>> main
     duration = 300,
     style,
     headerStyle,
@@ -67,11 +64,8 @@ function AnimatedCollapsible({
     expandButtonStyle,
     onPress,
     disabled = false,
-<<<<<<< HEAD
-=======
     shouldShowToggleButton = true,
     borderBottomStyle,
->>>>>>> main
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

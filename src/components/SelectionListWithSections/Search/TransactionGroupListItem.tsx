@@ -357,11 +357,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
-<<<<<<< HEAD
                             description={getDescription}
-=======
                             shouldShowToggleButton={isLargeScreenWidth}
->>>>>>> main
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}
