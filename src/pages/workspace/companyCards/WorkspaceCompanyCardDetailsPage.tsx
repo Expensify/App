@@ -136,6 +136,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             iconStyles={styles.mln2}
                             descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
                             description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                            numberOfLinesDescription={0}
                             interactive={false}
                         />
                     )}
