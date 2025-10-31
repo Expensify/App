@@ -55,19 +55,18 @@ const FS: Fullstory = {
         }
         try {
             getEnvironment().then((envName: string) => {
-                // todo: Uncomment before merge. For testing purposes only.
-                // const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                // if (
-                //     (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) ||
-                //     Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME ||
-                //     Session.isSupportAuthToken()
-                // ) {
-                //     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
-                //     if (isInitialized()) {
-                //         FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
-                //     }
-                //     return;
-                // }
+                const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+                if (
+                    (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) ||
+                    Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME ||
+                    Session.isSupportAuthToken()
+                ) {
+                    // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
+                    if (isInitialized()) {
+                        FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
+                    }
+                    return;
+                }
 
                 // If Fullstory was already initialized, we might have shutdown the session. So let's
                 // restart it before identifying the user.
