@@ -1,8 +1,8 @@
 import type {TText} from 'react-native-render-html';
-import type {Report} from '@src/types/onyx';
-import CONST from '@src/CONST';
 import {getReportMentionDetails} from '@libs/MentionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
 jest.mock('@libs/ReportUtils', () => ({
     __esModule: true,
