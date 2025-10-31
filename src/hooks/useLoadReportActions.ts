@@ -7,13 +7,6 @@ import type {Report, ReportAction, Response} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
 
-const GET_REPORT_ACTIONS_MAX_WAITING_TIME = 3000;
-function createMaxWaitingTimePromise(maxWaitingTime: number) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, maxWaitingTime);
-    });
-}
-
 type UseLoadReportActionsArguments = {
     /** The id of the current report */
     reportID: string;
@@ -112,7 +105,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getOlderActionsPromises.push(getOlderActions(reportID, currentReportOldest?.reportActionID));
             }
 
-            Promise.race([createMaxWaitingTimePromise(GET_REPORT_ACTIONS_MAX_WAITING_TIME), Promise.all(getOlderActionsPromises)]).then(() => {
+            Promise.all(getOlderActionsPromises).finally(() => {
                 isLoadingOlderChats.current = false;
             });
         },
@@ -145,7 +138,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 getNewerActionsPromises.push(getNewerActions(reportID, newestReportAction.reportActionID));
             }
 
-            Promise.race([createMaxWaitingTimePromise(GET_REPORT_ACTIONS_MAX_WAITING_TIME), Promise.all(getNewerActionsPromises)]).then(() => {
+            Promise.all(getNewerActionsPromises).finally(() => {
                 isLoadingNewerChats.current = false;
             });
         },
