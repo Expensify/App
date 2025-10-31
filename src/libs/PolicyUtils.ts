@@ -32,7 +32,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -623,6 +623,13 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
+/**
+ * Checks if policy has Dynamic External Workflow enabled
+ */
+function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
 
 /**
@@ -1303,7 +1310,7 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
 
 function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration),
     );
 }
 
@@ -1409,15 +1416,15 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
-    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
+    const groupPolicies = Object.values(policies ?? {}).filter(isPaidGroupPolicy);
     if (groupPolicies.length === 0) {
         return false;
     }
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
-function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
@@ -1705,6 +1712,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
+    hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
