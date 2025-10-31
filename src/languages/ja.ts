@@ -690,6 +690,9 @@ const translations = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        test: 'テスト',
+        deny: '拒否',
+        approve: '承認',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1881,6 +1884,12 @@ const translations = {
         error: {
             pleaseFillTwoFactorAuth: '2要素認証コードを入力してください',
             incorrect2fa: '二要素認証コードが間違っています。もう一度お試しください。',
+        },
+    },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'SMSで送信されたコードを入力してください',
+            incorrectSmsOtp: 'コードが間違っています。もう一度お試しください。',
         },
     },
     passwordConfirmationScreen: {
@@ -7330,6 +7339,38 @@ ${date} - ${merchant}に${amount}`,
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
         chooseCustomAvatar: 'またはカスタムアバターを選択',
+    },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'トランザクションを承認',
+            pageTitle: 'このトランザクションを承認してください',
+            pageContent: 'Expensify Cardのトランザクションには承認が必要です。以下で確認してください。',
+            transactionDetails: 'トランザクション詳細',
+        },
+        biometrics: {
+            biometricsNotRegistered: '生体認証（未登録）',
+            biometricsRegistered: '生体認証（登録済み）',
+            biometricsTest: '生体認証のテスト',
+            notificationTitle: '認証成功',
+            notificationFallbackContent: 'マジックコード + 2FAを使用して正常に認証しました。',
+            fallbackPageTitle: '本人確認をさせてください',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
+            fallbackPage2FAContent: '認証アプリのコードを入力してください。',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたコードを入力してください。`,
+        },
+        revokePage: {
+            headerTitle: '顔/指紋認証',
+            revokeContent: '1つ以上のデバイスで顔/指紋認証が有効になっています。アクセスの取り消しには、任意のデバイスでの次回の顔/指紋認証にマジックコードが必要になります。',
+            renableContent: '1つ以上のデバイスで顔/指紋認証が設定されていますが、再有効化にはマジックコードが必要です。その後、ここでアクセスを取り消すことができます。',
+            confirmationContent: '任意のデバイスでの次回の顔/指紋認証にマジックコードが必要になります。',
+            bottomButtonContent: 'アクセスを取り消す',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: '顔または指紋で本人確認',
+            enableBiometricsPromptContent: '顔または指紋を使用した迅速で安全な認証を有効にします—パスワードやコードは不要です。',
+            enablePasskeyPromptTitle: 'パスキーで本人確認',
+            enablePasskeyPromptContent: 'パスキーを使用した迅速で安全な認証を有効にします—パスワードやコードは不要です。',
+        },
     },
     openAppFailureModal: {
         title: '問題が発生しました...',

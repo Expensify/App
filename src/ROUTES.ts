@@ -13,6 +13,8 @@ import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import {getUrlWithParams} from './libs/Url';
+import type {NotificationType} from './pages/MFANotificationPage';
+import type {PromptType} from './pages/MFAPromptPage';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -3302,6 +3304,28 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+
+    MULTIFACTORAUTHENTICATION_MAGIC_CODE: 'multifactor-authentication/factor/magic-code',
+    MULTIFACTORAUTHENTICATION_AUTHENTICATOR: 'multifactor-authentication/factor/authenticator',
+    MULTIFACTORAUTHENTICATION_SMS_OTP: 'multifactor-authentication/factor/sms-otp',
+    MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
+
+    MULTIFACTORAUTHENTICATION_NOTIFICATION: {
+        route: 'multifactor-authentication/notification/:notificationType',
+        getRoute: (notificationType: NotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
+    },
+
+    MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
+        route: 'multifactor-authentication/approve-transaction/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `multifactor-authentication/approve-transaction/${transactionID}/${reportID}` as const,
+    },
+
+    MULTIFACTORAUTHENTICATION_PROMPT: {
+        route: 'multifactor-authentication/prompt/:promptType',
+        getRoute: (promptType: PromptType) => `multifactor-authentication/prompt/${promptType}` as const,
+    },
+
+    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
 } as const;
 
 /**

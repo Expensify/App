@@ -771,7 +771,11 @@
         "mple",
         "Selec",
         "setuptools",
-        "DYNAMICEXTERNAL"
+        "DYNAMICEXTERNAL",
+        "MULTIFACTORAUTHENTICATION",
+        "Humpty",
+        "Dumpty",
+        "multifactor"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
