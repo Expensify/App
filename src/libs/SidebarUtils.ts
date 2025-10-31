@@ -121,6 +121,7 @@ import {
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
@@ -202,7 +203,14 @@ function shouldDisplayReportInLHN(
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        !!draftComment || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        !!draftComment ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        reportAttributes?.[report?.reportID]?.requiresAttention ||
+        report.isOwnPolicyExpenseChat;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -241,7 +249,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 
@@ -295,7 +303,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
-        if (!report?.reportID) {
+        if (!report) {
             return;
         }
 
@@ -737,6 +745,12 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    // For 1:1 DMs, add the other participant's selected timezone
+    if (isOneOnOneChat(report)) {
+        const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
+        result.timezone = recipientPersonalDetail?.timezone;
+    }
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
 
@@ -1041,6 +1055,10 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
+                if (displayNamesWithTooltips.length > 2) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName}, ${translateLocal('common.and')}`;
+                }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return `${displayName} ${translateLocal('common.and')}`;
             }
