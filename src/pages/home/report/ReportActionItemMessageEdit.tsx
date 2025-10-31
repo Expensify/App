@@ -152,8 +152,7 @@ function ReportActionItemMessageEdit({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
-    const [originalParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalParentReportID}`, {canBeMissing: true});
-    const ancestors = useAncestors(originalParentReport);
+    const ancestors = useAncestors(originalReport);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
