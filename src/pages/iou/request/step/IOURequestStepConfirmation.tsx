@@ -551,7 +551,7 @@ function IOURequestStepConfirmation({
                     backToReport,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    hasViolations,
+                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 });
             });
@@ -741,7 +741,7 @@ function IOURequestStepConfirmation({
                 backToReport,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations,
+                transactionViolations,
                 isASAPSubmitBetaEnabled,
             });
         },

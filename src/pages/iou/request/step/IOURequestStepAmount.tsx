@@ -20,7 +20,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, getTransactionDetails, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -110,7 +110,6 @@ function IOURequestStepAmount({
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -231,7 +230,7 @@ function IOURequestStepAmount({
                         shouldGenerateTransactionThreadReport,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        hasViolations,
+                        transactionViolations,
                         isASAPSubmitBetaEnabled,
                     });
                     return;
@@ -340,7 +339,6 @@ function IOURequestStepAmount({
             policyCategories,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-            hasViolations,
             isASAPSubmitBetaEnabled,
         });
         navigateBack();

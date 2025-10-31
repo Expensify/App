@@ -161,6 +161,9 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -233,7 +236,7 @@ function IOURequestStepDistanceManual({
                         backToReport,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        hasViolations,
+                        transactionViolations,
                         isASAPSubmitBetaEnabled,
                     });
                     return;

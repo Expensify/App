@@ -41,7 +41,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getReportOrDraftReport, getTransactionDetails, hasViolations as hasViolationsReportUtils, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -102,7 +102,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(expenseReport?.reportID, transactionViolations);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -187,7 +186,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
-            hasViolations,
+            transactionViolations,
             isASAPSubmitBetaEnabled,
         });
     }, [

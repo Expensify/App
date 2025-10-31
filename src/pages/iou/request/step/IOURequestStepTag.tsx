@@ -7,8 +7,10 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +61,9 @@ function IOURequestStepTag({
     const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -118,7 +123,18 @@ function IOURequestStepTag({
         }
 
         if (isEditing) {
-            updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
+            updateMoneyRequestTag(
+                transactionID,
+                report?.reportID,
+                updatedTag,
+                policy,
+                policyTags,
+                policyCategories,
+                currentSearchHash,
+                currentUserPersonalDetails.accountID,
+                currentUserPersonalDetails.login ?? '',
+                isASAPSubmitBetaEnabled,
+            );
             navigateBack();
             return;
         }

@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {hasViolations as hasViolationsReportUtils, isArchivedReport} from '@libs/ReportUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +35,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -137,7 +136,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
-                    hasViolations,
+                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 });
             });

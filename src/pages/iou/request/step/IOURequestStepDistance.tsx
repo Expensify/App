@@ -50,7 +50,7 @@ import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUti
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, hasViolations as hasViolationsReportUtils, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -128,7 +128,6 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
         if (!waypoint) {
             return true;
@@ -377,7 +376,7 @@ function IOURequestStepDistance({
                     backToReport,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    hasViolations,
+                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 });
                 return;
@@ -518,6 +517,9 @@ function IOURequestStepDistance({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;

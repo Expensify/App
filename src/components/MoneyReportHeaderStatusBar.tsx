@@ -33,7 +33,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
         return parseMessage(messageArray, currentUserPersonalDetails.email ?? '');
-    }, [nextStep?.message]);
+    }, [nextStep?.message, currentUserPersonalDetails.email]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>

@@ -378,7 +378,7 @@ function IOURequestStepDistanceMap({
                     backToReport,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    hasViolations,
+                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 });
                 return;
@@ -521,6 +521,9 @@ function IOURequestStepDistanceMap({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;

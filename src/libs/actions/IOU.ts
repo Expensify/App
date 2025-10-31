@@ -171,6 +171,7 @@ import {
     hasOutstandingChildRequest,
     hasReportBeenReopened,
     hasReportBeenRetracted,
+    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -503,7 +504,7 @@ type RequestMoneyInformation = {
     shouldGenerateTransactionThreadReport: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    hasViolations: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     isASAPSubmitBetaEnabled: boolean;
 };
 
@@ -528,7 +529,7 @@ type MoneyRequestInformationParams = {
     currentReportActionID?: string;
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
-    hasViolations?: boolean;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     isASAPSubmitBetaEnabled?: boolean;
 };
 
@@ -595,7 +596,7 @@ type CreateDistanceRequestInformation = {
     backToReport?: string;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    hasViolations: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     isASAPSubmitBetaEnabled: boolean;
 };
 
@@ -764,7 +765,7 @@ type UpdateSplitTransactionsParams = {
     isNewDotRevertSplitsEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    hasViolations: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     isASAPSubmitBetaEnabled: boolean;
 };
 
@@ -3448,7 +3449,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentReportActionID,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations,
+        transactionViolations,
         isASAPSubmitBetaEnabled,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmailParam, participant} = participantParams;
@@ -3657,6 +3658,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+
+    const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations);
     const optimisticNextStep = buildNextStepNew({
         report: iouReport,
         predictedNextStatus,
@@ -3771,7 +3774,18 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
  * it creates optimistic versions of them and uses those instead
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, recentlyUsedParams = {}, moneyRequestReportID = '', currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled} = perDiemExpenseInformation;
+    const {
+        parentChatReport,
+        transactionParams,
+        participantParams,
+        policyParams = {},
+        recentlyUsedParams = {},
+        moneyRequestReportID = '',
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+    } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const {destinations: recentlyUsedDestinations} = recentlyUsedParams;
@@ -4299,7 +4313,6 @@ type GetUpdateMoneyRequestParamsType = {
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
-    hasViolations?: boolean;
     isASAPSubmitBetaEnabled?: boolean;
 };
 
@@ -4319,7 +4332,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         shouldBuildOptimisticModifiedExpenseReportAction = true,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations,
         isASAPSubmitBetaEnabled,
     } = params;
     const optimisticData: OnyxUpdate[] = [];
@@ -4743,12 +4755,13 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         ) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+            const hasViolations = hasViolationsReportUtils(iouReport?.reportID, allTransactionViolations);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
                 value: buildNextStepNew({
-                    report: updatedMoneyRequestReport ?? iouReport ?? undefined, 
-                    predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, 
+                    report: updatedMoneyRequestReport ?? iouReport ?? undefined,
+                    predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
                     shouldFixViolations,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
@@ -4971,7 +4984,6 @@ function updateMoneyRequestDate(
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
-    hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -4992,7 +5004,6 @@ function updateMoneyRequestDate(
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            hasViolations,
             isASAPSubmitBetaEnabled,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
@@ -5009,6 +5020,9 @@ function updateMoneyRequestBillable(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     if (!transactionID || !transactionThreadReportID) {
         return;
@@ -5023,6 +5037,9 @@ function updateMoneyRequestBillable(
         policy,
         policyTagList,
         policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -5034,6 +5051,9 @@ function updateMoneyRequestReimbursable(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     if (!transactionID || !transactionThreadReportID) {
         return;
@@ -5048,6 +5068,9 @@ function updateMoneyRequestReimbursable(
         policy,
         policyTagList,
         policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -5060,6 +5083,9 @@ function updateMoneyRequestMerchant(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -5077,6 +5103,9 @@ function updateMoneyRequestMerchant(
             policy,
             policyTagList,
             policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
         });
     }
     const {params, onyxData} = data;
@@ -5092,6 +5121,9 @@ function updateMoneyRequestAttendees(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -5104,6 +5136,9 @@ function updateMoneyRequestAttendees(
         policyTagList,
         policyCategories,
         violations,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
@@ -5118,6 +5153,9 @@ function updateMoneyRequestTag(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     hash?: number,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -5130,6 +5168,9 @@ function updateMoneyRequestTag(
         policyTagList,
         policyCategories,
         hash,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
@@ -5142,6 +5183,9 @@ function updateMoneyRequestTaxAmount(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges = {
         taxAmount,
@@ -5153,6 +5197,9 @@ function updateMoneyRequestTaxAmount(
         policy,
         policyTagList,
         policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
@@ -5165,10 +5212,24 @@ type UpdateMoneyRequestTaxRateParams = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 /** Updates the created tax rate of an expense */
-function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
+function updateMoneyRequestTaxRate({
+    transactionID,
+    optimisticReportActionID,
+    taxCode,
+    taxAmount,
+    policy,
+    policyTagList,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
         taxAmount,
@@ -5180,6 +5241,9 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
         policy,
         policyTagList,
         policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
@@ -5195,6 +5259,9 @@ type UpdateMoneyRequestDistanceParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -5208,6 +5275,9 @@ function updateMoneyRequestDistance({
     policyTagList = {},
     policyCategories = {},
     transactionBackup,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         ...(waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)}),
@@ -5227,6 +5297,9 @@ function updateMoneyRequestDistance({
             policy,
             policyTagList,
             policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
         });
     }
     const {params, onyxData} = data;
@@ -5285,7 +5358,10 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>,
-    hash?: number,
+    hash: number,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -5300,6 +5376,9 @@ function updateMoneyRequestCategory(
         policyCategories,
         policyRecentlyUsedCategories,
         hash,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -5345,6 +5424,9 @@ function updateMoneyRequestDistanceRate(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
     updatedTaxAmount?: number,
     updatedTaxCode?: string,
 ) {
@@ -5378,6 +5460,9 @@ function updateMoneyRequestDistanceRate(
             policy,
             policyTagList,
             policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
         });
     }
     const {params, onyxData} = data;
@@ -5611,7 +5696,7 @@ function convertBulkTrackedExpensesToIOU(
     targetReportID: string,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
-    hasViolations: boolean,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     isASAPSubmitBetaEnabled: boolean,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
@@ -5731,7 +5816,7 @@ function convertBulkTrackedExpensesToIOU(
             existingTransaction: transaction,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            hasViolations,
+            transactionViolations,
             isASAPSubmitBetaEnabled,
         });
 
@@ -5956,7 +6041,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         shouldGenerateTransactionThreadReport,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations,
+        transactionViolations,
         isASAPSubmitBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -6046,7 +6131,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         action,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations,
+        transactionViolations,
         isASAPSubmitBetaEnabled,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
@@ -6184,7 +6269,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
  * Submit per diem expense to another user
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
-    const {report, participantParams, policyParams = {}, recentlyUsedParams = {}, transactionParams, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled} = submitPerDiemExpenseInformation;
+    const {
+        report,
+        participantParams,
+        policyParams = {},
+        recentlyUsedParams = {},
+        transactionParams,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+    } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
@@ -8048,7 +8143,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         backToReport,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations,
+        transactionViolations,
         isASAPSubmitBetaEnabled,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -8186,7 +8281,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             currentUserAccountIDParam,
             currentUserEmailParam,
-            hasViolations,
+            transactionViolations,
             isASAPSubmitBetaEnabled,
         });
 
@@ -8263,7 +8358,6 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
 };
 
@@ -8283,7 +8377,6 @@ function updateMoneyRequestAmountAndCurrency({
     transactionViolations,
     currentUserAccountIDParam,
     currentUserEmailParam,
-    hasViolations,
     isASAPSubmitBetaEnabled,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
@@ -8309,7 +8402,6 @@ function updateMoneyRequestAmountAndCurrency({
             allowNegative,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            hasViolations,
             isASAPSubmitBetaEnabled,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
@@ -13672,7 +13764,7 @@ function updateSplitTransactions({
     isNewDotRevertSplitsEnabled,
     currentUserAccountIDParam,
     currentUserEmailParam,
-    hasViolations,
+    transactionViolations,
     isASAPSubmitBetaEnabled,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
@@ -13816,7 +13908,7 @@ function updateSplitTransactions({
             currentReportActionID: currentReportAction?.reportActionID,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            hasViolations,
+            transactionViolations,
             isASAPSubmitBetaEnabled,
         });
 
@@ -13860,7 +13952,6 @@ function updateSplitTransactions({
                     policyRecentlyUsedCategories,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
-                    hasViolations,
                     isASAPSubmitBetaEnabled,
                 });
                 if (currentSplit) {

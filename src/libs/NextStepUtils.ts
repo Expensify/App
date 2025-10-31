@@ -1,15 +1,12 @@
 import {format, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
-import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -17,7 +14,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getPersonalDetailsForAccountID,
-    hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
     isPayer,

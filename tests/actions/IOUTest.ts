@@ -7,10 +7,6 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
-// Default test user identifiers used when specific tests don't declare their own
-const TEST_USER_ACCOUNT_ID = 1;
-const TEST_USER_LOGIN = 'test@test.com';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -114,6 +110,10 @@ import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser,
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+// Default test user identifiers used when specific tests don't declare their own
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -852,7 +852,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
@@ -1103,7 +1103,7 @@ describe('actions/IOU', () => {
                         shouldGenerateTransactionThreadReport: true,
                         currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                         currentUserEmailParam: TEST_USER_LOGIN,
-                        hasViolations: false,
+                        transactionViolations: {},
                         isASAPSubmitBetaEnabled: false,
                     });
                     return waitForBatchedUpdates();
@@ -1327,7 +1327,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -1484,7 +1484,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             return (
@@ -1973,7 +1973,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
@@ -1998,7 +1998,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
@@ -2040,7 +2040,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -2077,7 +2077,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -2113,7 +2113,7 @@ describe('actions/IOU', () => {
                 },
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
@@ -2134,7 +2134,7 @@ describe('actions/IOU', () => {
                 },
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
@@ -2949,7 +2949,7 @@ describe('actions/IOU', () => {
                 isNewDotRevertSplitsEnabled: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -3056,7 +3056,7 @@ describe('actions/IOU', () => {
                 isNewDotRevertSplitsEnabled: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -3176,7 +3176,7 @@ describe('actions/IOU', () => {
                 isNewDotRevertSplitsEnabled: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -3224,7 +3224,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
@@ -3466,7 +3466,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -3603,7 +3603,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -3831,7 +3831,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -3935,7 +3935,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
@@ -4160,7 +4160,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -4349,7 +4349,6 @@ describe('actions/IOU', () => {
                     transactionID: transaction.transactionID,
                     transactions: {},
                     transactionThreadReportID: thread.reportID,
-                    transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
@@ -4367,7 +4366,7 @@ describe('actions/IOU', () => {
                     policyCategories: {},
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
-                    hasViolations: false,
+                    transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
             }
@@ -4689,10 +4688,10 @@ describe('actions/IOU', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
-                        currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
-                        currentUserEmailParam: TEST_USER_LOGIN,
-                        hasViolations: false,
-                        isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    transactionViolations: {},
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
 
@@ -4754,7 +4753,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
@@ -4992,7 +4991,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -5112,7 +5111,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -5297,7 +5296,7 @@ describe('actions/IOU', () => {
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
-                            hasViolations: false,
+                            transactionViolations: {},
                             isASAPSubmitBetaEnabled: false,
                         });
                     }
@@ -6023,7 +6022,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating a money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, []);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 0, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, false);
 
                 await waitForBatchedUpdates();
 
@@ -6055,7 +6054,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating the money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, []);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 0, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, false);
 
                 await waitForBatchedUpdates();
 
@@ -6240,7 +6239,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -6826,10 +6825,10 @@ describe('actions/IOU', () => {
                 policyTagList: {},
                 policyCategories: {},
                 transactions: {},
-                transactionViolations: {},
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
                 hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -6890,10 +6889,9 @@ describe('actions/IOU', () => {
                 policyTagList: {},
                 policyCategories: {},
                 transactions: {},
-                transactionViolations: {},
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
+                transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -6969,7 +6967,7 @@ describe('actions/IOU', () => {
                     shouldGenerateTransactionThreadReport: true,
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
-                    hasViolations: false,
+                    transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
             }
@@ -7058,7 +7056,7 @@ describe('actions/IOU', () => {
                     shouldGenerateTransactionThreadReport: true,
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
-                    hasViolations: false,
+                    transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
             }
@@ -7700,7 +7698,7 @@ describe('actions/IOU', () => {
                     shouldGenerateTransactionThreadReport: true,
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
-                    hasViolations: false,
+                    transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
@@ -7796,10 +7794,10 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
-                currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    transactionViolations: {},
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -7851,7 +7849,7 @@ describe('actions/IOU', () => {
                     shouldGenerateTransactionThreadReport: true,
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
-                    hasViolations: false,
+                    transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
@@ -7947,10 +7945,10 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
-                currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    transactionViolations: {},
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8702,9 +8700,9 @@ describe('actions/IOU', () => {
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
+                hasViolations: false,
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
             });
 
@@ -8830,14 +8828,13 @@ describe('actions/IOU', () => {
             const result = getPerDiemExpenseInformation({
                 parentChatReport: existingChatReport as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                hasViolations: false,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
             });
-
             // Then: Verify the result uses existing chat report
             expect(result.chatReport.reportID).toBe('chat_123');
             expect(result.chatReport.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
@@ -8921,9 +8918,6 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
             });
-
-            // Then: Verify policy expense chat handling
-            expect(result.payerAccountID).toBe(123);
             expect(result.payerEmail).toBe('policy@example.com');
             expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(result.transaction.hasEReceipt).toBe(true);

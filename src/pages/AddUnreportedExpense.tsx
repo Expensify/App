@@ -61,7 +61,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
@@ -168,9 +167,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 convertBulkTrackedExpensesToIOU(
                     [...selectedIds],
                     report.reportID,
-                    currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserDetails?.accountID,
                     currentUserDetails?.email ?? '',
-                    hasViolations,
+                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 );
             } else {
