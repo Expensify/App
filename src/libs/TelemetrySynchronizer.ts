@@ -7,7 +7,6 @@ import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
 import FS from './Fullstory';
 
-
 /**
  * Connect to FullStory to retrieve session id from it. We want to link FullStory with Sentry for easier debugging.
  */
