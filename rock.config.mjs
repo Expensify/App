@@ -17,4 +17,7 @@ export default {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
     },
+    fingerprint: {
+        env: ['USE_NGROK', 'NGROK_URL', 'SECURE_NGROK_URL'],
+    },
 };
