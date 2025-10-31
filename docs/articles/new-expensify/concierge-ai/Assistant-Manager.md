@@ -3,7 +3,7 @@ title: Assistant Manager
 description: Let Concierge act as your Assistant Manager—automating report tasks like submitting, approving, reimbursing, and exporting.
 keywords: Concierge Assistant Manager, submit report Concierge, approve report, export report, report automation, Concierge chat, AI report support
 ---
-<div id="concierge-ai" markdown="1">
+<div id="new-expensify" markdown="1">
 
 Concierge can act as your Assistant Manager—automatically submitting, approving, reimbursing, and exporting reports on your behalf. Just send a message, and Concierge will take care of it.
 
@@ -71,7 +71,7 @@ If you try to take an action that requires a higher permission level, Concierge 
 
 ## Can I use the Concierge Assistant Manager on mobile?
 
-Yes! On mobile, tap the hamburger menu in the top-left corner, then select **Settings** > **Account** > **Concierge** to start chatting.
+Yes! On mobile, Tap Create at the bottom of your screen, select Start Chat, and type Concierge into the composer box to start chatting. 
 
 ## Is there a way to see what Concierge did?
 
