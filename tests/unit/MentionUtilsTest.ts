@@ -1,30 +1,23 @@
 import type {TText} from 'react-native-render-html';
+import * as ReportUtils from '@libs/ReportUtils';
 import {getReportMentionDetails} from '@libs/MentionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-jest.mock('@libs/ReportUtils', () => ({
-    __esModule: true,
-    getReportName: jest.fn(),
-    isChatRoom: jest.fn(() => true),
-    isDefaultRoom: jest.fn(() => false),
-    isUserCreatedPolicyRoom: jest.fn(() => false),
-}));
-
-jest.mock('@libs/MentionUtils', () => {
-    const actual = jest.requireActual('@libs/MentionUtils');
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual('@libs/ReportUtils');
     return {
-        __esModule: true,
         ...actual,
-        getReportMentionDetails: jest.fn(actual.getReportMentionDetails),
+        getReportName: jest.fn(),
+        isChatRoom: jest.fn(() => true),
+        isDefaultRoom: jest.fn(() => false),
+        isUserCreatedPolicyRoom: jest.fn(() => false),
     };
 });
 
-const mockGetReportName = jest.requireMock('@libs/ReportUtils').getReportName as jest.Mock;
-const mockIsChatRoom = jest.requireMock('@libs/ReportUtils').isChatRoom as jest.Mock;
-const actualMentionUtils = jest.requireActual('@libs/MentionUtils');
-const actualGetReportMentionDetails = actualMentionUtils.getReportMentionDetails;
+const mockedReportUtils = ReportUtils as jest.Mocked<typeof import('@libs/ReportUtils')>;
+const {getReportName: mockGetReportName, isChatRoom: mockIsChatRoom} = mockedReportUtils;
 
 describe('MentionUtils', () => {
     afterEach(() => {
@@ -70,7 +63,7 @@ describe('MentionUtils integration', () => {
         mockIsChatRoom.mockReturnValue(true);
         mockGetReportName.mockReturnValue('#hello');
         const reportID = '1';
-        const mentionDetails = actualGetReportMentionDetails(
+        const mentionDetails = getReportMentionDetails(
             '',
             {policyID: '1'} as Report,
             {[reportID]: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
@@ -82,7 +75,7 @@ describe('MentionUtils integration', () => {
         mockIsChatRoom.mockReturnValue(false);
         mockGetReportName.mockReturnValue('#hello');
         const reportID = '1';
-        const mentionDetails = actualGetReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
+        const mentionDetails = getReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
         expect(mentionDetails?.reportID).toBeUndefined();
     });
 });
