@@ -107,9 +107,14 @@ function AnimatedCollapsible({
         return withTiming(!hasExpanded.get() ? 1 : 0, {duration, easing});
     });
 
+    const descriptionAnimatedHeight = useDerivedValue(() => {
+        return withTiming(!isExpanded ? descriptionHeight.get() : 0, {duration, easing});
+    });
+
     const descriptionAnimatedStyle = useAnimatedStyle(() => {
         return {
             opacity: descriptionOpacity.get(),
+            height: descriptionAnimatedHeight.get(),
         };
     }, []);
 
@@ -144,16 +149,17 @@ function AnimatedCollapsible({
                 )}
             </View>
             {!!description && (
-                <Animated.View
-                    style={[descriptionAnimatedStyle]}
-                    onLayout={(e) => {
-                        const height = e.nativeEvent.layout.height;
-                        if (height) {
-                            descriptionHeight.set(height);
-                        }
-                    }}
-                >
-                    {description}
+                <Animated.View style={descriptionAnimatedStyle}>
+                    <View
+                        onLayout={(e) => {
+                            const height = e.nativeEvent.layout.height;
+                            if (height) {
+                                descriptionHeight.set(height);
+                            }
+                        }}
+                    >
+                        {description}
+                    </View>
                 </Animated.View>
             )}
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
