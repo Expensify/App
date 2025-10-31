@@ -18,9 +18,12 @@ import ScrollView from '@components/ScrollView';
 import { View } from 'react-native';
 import Text from '@components/Text';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
+import useNetwork from '@hooks/useNetwork';
 
 function MFAFactorAuthenticatorPage() {
-    const themeStyles = useThemeStyles();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -89,7 +92,7 @@ function MFAFactorAuthenticatorPage() {
             includePaddingTop
             shouldEnableMaxHeight
             testID={MFAFactorAuthenticatorPage.displayName}
-            offlineIndicatorStyle={themeStyles.mtAuto}
+            offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -98,12 +101,12 @@ function MFAFactorAuthenticatorPage() {
             />
             <FullPageOfflineBlockingView>
                 <ScrollView
-                    style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
-                    contentContainerStyle={themeStyles.flexGrow1}
+                    style={[styles.w100, styles.h100, styles.flex1]}
+                    contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                        <Text style={themeStyles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
+                    <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
+                        <Text style={styles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
                         <MagicCodeInput
                             autoComplete='one-time-code'
                             name="twoFactorAuthCode"
@@ -114,6 +117,15 @@ function MFAFactorAuthenticatorPage() {
                             ref={inputRef}
                             autoFocus={false}
                             testID="twoFactorAuthCodeInput"
+                        />
+                        <Button
+                            success
+                            large
+                            style={[styles.w100, styles.p5, styles.mtAuto]}
+                            onPress={validateAndSubmitForm}
+                            text={translate('common.verify')}
+                            // isLoading={isValidateCodeFormSubmitting || isVerifying}
+                            isDisabled={isOffline}
                         />
                     </View>
                 </ScrollView>
