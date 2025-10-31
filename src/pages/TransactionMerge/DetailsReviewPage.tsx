@@ -19,6 +19,7 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -31,7 +32,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,6 +79,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const sourceTransactionThreadReportID = getTransactionThreadReportID(sourceTransaction);
+    const [sourceTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadReportID}`, {canBeMissing: true});
+    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionThreadReport?.policyID}`, {canBeMissing: true});
+    const [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
@@ -151,9 +155,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            const updatedValues = getMergeFieldUpdatedValues({transaction, field, fieldValue, mergeTransaction});
             setMergeTransactionKey(transactionID, {
-                [field]: fieldValue,
-                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...updatedValues,
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,
@@ -186,8 +190,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
