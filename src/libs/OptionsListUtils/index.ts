@@ -1788,7 +1788,16 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     return true;
 }
 
-function enrichOptions(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+/**
+ * Prepares report options for display by enriching them with UI-specific properties and filtering out invalid options.
+ *
+ * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
+ *
+ * @param options - Array of report options to prepare
+ * @param config - Configuration object specifying display preferences and filtering criteria
+ * @returns Array of enriched and filtered report options ready for UI display
+ */
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -1999,7 +2008,7 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = enrichOptions(selfDMChats, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2012,7 +2021,7 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = enrichOptions(recentReportOptions, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2021,7 +2030,7 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        workspaceChats = enrichOptions(workspaceChats, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
