@@ -566,6 +566,7 @@ const translations = {
         businessName: 'Nombre de la empresa',
         clear: 'Borrar',
         type: 'Tipo',
+        reportName: 'Nombre del informe',
         action: 'Acción',
         expenses: 'Gastos',
         totalSpend: 'Gasto total',
