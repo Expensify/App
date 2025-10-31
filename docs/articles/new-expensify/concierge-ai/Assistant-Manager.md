@@ -5,8 +5,6 @@ keywords: Concierge Assistant Manager, submit report Concierge, approve report, 
 ---
 <div id="concierge-ai" markdown="1">
 
-`Account > Settings > Account > Concierge`
-
 Concierge can act as your Assistant Manager—automatically submitting, approving, reimbursing, and exporting reports on your behalf. Just send a message, and Concierge will take care of it.
 
 # What is the Concierge Assistant Manager?
