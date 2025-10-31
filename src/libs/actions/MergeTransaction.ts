@@ -224,6 +224,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
             attendees: mergeTransaction.attendees,
+            originalTransactionID: mergeTransaction.originalTransactionID,
         }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
