@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -24,8 +25,8 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -71,6 +72,7 @@ import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import openSearchReport from './openSearchReport';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -84,6 +86,7 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
+    searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
 
@@ -116,6 +119,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
+            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
         },
     ];
 }
@@ -195,11 +199,22 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
+            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
         },
     };
 }
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback, onDEWModalOpen}: SearchProps) {
+function Search({
+    queryJSON,
+    searchResults,
+    onSearchListScroll,
+    contentContainerStyle,
+    handleSearch,
+    isMobileSelectionModeEnabled,
+    onSortPressedCallback,
+    searchRequestResponseStatusCode,
+    onDEWModalOpen,
+}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -371,7 +386,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    const shouldShowLoadingState =
+        !isOffline &&
+        (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -458,6 +477,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
+                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                     };
                 });
             });
@@ -494,6 +514,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
+                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                 };
             });
         }
@@ -652,7 +673,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -685,17 +705,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
-            const isInvoice = item?.report?.type === CONST.REPORT.TYPE.INVOICE;
-
-            if (!isTask && !isInvoice) {
-                markReportIDAsExpense(reportID);
-            }
+            markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            openSearchReport(reportID, backTo);
         },
         [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
@@ -764,8 +780,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }),
         [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
-
-    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
@@ -851,13 +865,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }
 
     if (hasErrors) {
+        const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                    subtitle={translate('errorPage.subtitle')}
+                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
         );
@@ -904,20 +919,22 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columnsToShow}
-                                type={type}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
-                            />
+                            <View style={[styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYear}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting={shouldShowSorting}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
@@ -963,4 +980,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+WrappedSearch.displayName = 'Search';
+export default WrappedSearch;

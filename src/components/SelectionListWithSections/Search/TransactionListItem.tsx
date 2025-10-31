@@ -188,13 +188,13 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading}
+                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? snapshotReport.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                 />

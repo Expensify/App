@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -136,6 +135,7 @@ import type {
     IssueVirtualCardParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -676,6 +677,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
     },
     supportalNoAccess: {
@@ -1050,8 +1052,6 @@ const translations = {
         dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
-        chooseReceipt: '选择要上传的收据或转发收据到',
-        chooseReceipts: '选择要上传的收据或转发收据到',
         alternativeMethodsTitle: '添加收据的其他方式：',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1060,8 +1060,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
-        deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
-        deniedCameraAccessInstructions: '这些说明',
+        deniedCameraAccess: `相机访问权限仍未授予，请按照以下步骤操作 <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">这些说明</a>.`,
         cameraErrorTitle: '相机错误',
         cameraErrorMessage: '拍照时发生错误。请再试一次。',
         locationAccessTitle: '允许位置访问',
@@ -1291,6 +1290,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} 改为 ${newValueToDisplay}（之前为 ${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `将${translatedChangedField}更改为${newMerchant}（之前为${oldMerchant}），这更新了金额为${newAmountToDisplay}（之前为${oldAmountToDisplay}）`,
+        basedOnAI: '基于过去的活动',
+        basedOnMCC: '基于工作空间规则',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `为${comment}` : '费用'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
@@ -1829,10 +1830,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: '出于安全考虑，Xero 需要双重身份验证才能连接集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。若要继续使用 Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
         explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
+        twoFactorAuthIsRequiredCompany: '贵公司要求使用双因素认证。要继续使用 Expensify，请启用该功能。',
     },
     recoveryCodeForm: {
         error: {
@@ -2394,10 +2396,10 @@ ${merchant}的${amount} - ${date}`,
                     '*设置分类*，以便您的团队可以对支出进行编码，以便于报告。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *分类*。\n' +
-                    '5. 禁用所有不需要的分类。\n' +
-                    '6. 在右上角添加自己的分类。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *分类*。\n' +
+                    '4. 禁用所有不需要的分类。\n' +
+                    '5. 在右上角添加自己的分类。\n' +
                     '\n' +
                     `[带我到工作区分类设置](${workspaceCategoriesLink})。\n` +
                     '\n' +
@@ -2448,12 +2450,11 @@ ${merchant}的${amount} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '到'} ${integrationName}，实现自动费用编码和同步，让月末结账变得轻而易举。\n` +
                     '\n' +
-                    '1. 点击 *设置*。\n' +
-                    '2. 前往 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *会计*。\n' +
-                    `5. 找到 ${integrationName}。\n` +
-                    '6. 点击 *连接*。\n' +
+                    '1. 点击 *工作区*。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *会计*。\n' +
+                    `4. 找到 ${integrationName}。\n` +
+                    '5. 点击 *连接*。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2479,10 +2480,10 @@ ${merchant}的${amount} - ${date}`,
                     '*邀请您的团队*到 Expensify，使他们可以从今天开始跟踪支出。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *成员* > *邀请成员*。\n' +
-                    '5. 输入电子邮件或电话号码。 \n' +
-                    '6. 如有需要，可添加自定义邀请信息！\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *成员* > *邀请成员*。\n' +
+                    '4. 输入电子邮件或电话号码。 \n' +
+                    '5. 如有需要，可添加自定义邀请信息！\n' +
                     '\n' +
                     `[带我到工作区成员](${workspaceMembersLink})。\n` +
                     '\n' +
@@ -2501,11 +2502,11 @@ ${merchant}的${amount} - ${date}`,
                     '使用标签添加额外的支出详情，例如项目、客户、地点和部门。如果您需要多级标签，可以升级到 Control 计划。\n' +
                     '\n' +
                     '1. 点击 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *更多功能*。\n' +
-                    '5. 启用 *标签*。\n' +
-                    '6. 导航到工作区编辑器中的 *标签*。\n' +
-                    '7. 点击 *+添加标签*以创建自己的标签。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *标签*。\n' +
+                    '5. 导航到工作区编辑器中的 *标签*。\n' +
+                    '6. 点击 *+添加标签*以创建自己的标签。\n' +
                     '\n' +
                     `[带我到更多功能](${workspaceMoreFeaturesLink})。\n` +
                     '\n' +
@@ -2732,6 +2733,7 @@ ${merchant}的${amount} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `抱歉... ${isBreakLine ? '\n' : ''}出现了问题`,
         subtitle: '您的请求无法完成。请稍后再试。',
+        wrongTypeSubtitle: '该搜索无效。请尝试调整您的搜索条件。',
     },
     setPasswordPage: {
         enterPassword: '输入密码',
@@ -4442,6 +4444,12 @@ ${merchant}的${amount} - ${date}`,
                     pleaseSelectCountry: '请在继续之前选择一个国家',
                     pleaseSelectFeedType: '请在继续之前选择一个订阅类型',
                 },
+                exitModal: {
+                    title: '出现问题了吗？',
+                    prompt: '我们注意到您尚未完成添加卡片。如果遇到问题，请告诉我们，我们会帮您解决。',
+                    confirmText: '报告问题',
+                    cancelText: '跳过',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '本月最后一天',
@@ -4456,7 +4464,7 @@ ${merchant}的${amount} - ${date}`,
             directFeed: '直接馈送',
             whoNeedsCardAssigned: '谁需要分配卡片？',
             chooseCard: '选择一张卡片',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `从${feed}卡片源中为${assignee}选择一张卡片。`,
+            chooseCardFor: ({assignee}: AssigneeParams) => `为<strong>${assignee}</strong>选择一张卡。找不到您要找的卡吗？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息流中没有活跃的卡片',
             somethingMightBeBroken:
                 '<muted-text><centered-text>或者有什么东西坏了。无论如何，如果您有任何问题，请<concierge-link>联系 Concierge</concierge-link>。</centered-text></muted-text>',
@@ -4797,9 +4805,11 @@ ${merchant}的${amount} - ${date}`,
             textType: '文本',
             dateType: '日期',
             dropdownType: '列表',
+            formulaType: '公式',
             textAlternateText: '添加一个字段用于自由文本输入。',
             dateAlternateText: '添加日历以选择日期。',
             dropdownAlternateText: '添加一个选项列表供选择。',
+            formulaAlternateText: '添加一个公式字段。',
             nameInputSubtitle: '为报告字段选择一个名称。',
             typeInputSubtitle: '选择要使用的报告字段类型。',
             initialValueInputSubtitle: '输入一个起始值以显示在报告字段中。',
@@ -5469,87 +5479,104 @@ ${merchant}的${amount} - ${date}`,
             reportFields: {
                 title: '报告字段',
                 description: `报告字段允许您指定标题级别的详细信息，与适用于单个项目费用的标签不同。这些详细信息可以包括特定的项目名称、商务旅行信息、地点等。`,
-                onlyAvailableOnPlan: '报告字段仅在Control计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>报告字段仅在Control计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `通过 Expensify + NetSuite 集成享受自动同步并减少手动输入。通过原生和自定义分段支持（包括项目和客户映射），获得深入的实时财务洞察。`,
-                onlyAvailableOnPlan: '我们的 NetSuite 集成仅在 Control 计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 NetSuite 集成仅在 Control 计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `通过Expensify + Sage Intacct集成，享受自动同步并减少手动输入。通过用户定义的维度，以及按部门、类别、地点、客户和项目（工作）进行的费用编码，获得深入的实时财务洞察。`,
-                onlyAvailableOnPlan: '我们的 Sage Intacct 集成仅在 Control 计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Sage Intacct 集成仅在 Control 计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                 title: 'QuickBooks Desktop',
                 description: `通过Expensify与QuickBooks Desktop的集成，享受自动同步并减少手动输入。通过实时双向连接以及按类别、项目、客户和项目的费用编码，实现终极效率。`,
-                onlyAvailableOnPlan: '我们的 QuickBooks Desktop 集成仅在 Control 计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 QuickBooks Desktop 集成仅在 Control 计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
                 description: `如果您想在审批流程中增加更多层级，或者只是想确保最大额的费用能被再次审核，我们可以满足您的需求。高级审批帮助您在每个层级设置适当的检查，以便控制团队的支出。`,
-                onlyAvailableOnPlan: '高级审批仅在Control计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>高级审批仅在Control计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             categories: {
                 title: '类别',
                 description: '类别允许您跟踪和整理支出。使用我们的默认类别或添加您自己的类别。',
-                onlyAvailableOnPlan: '类别在 Collect 计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>类别在 Collect 计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             glCodes: {
                 title: 'GL代码',
                 description: `为您的类别和标签添加总账代码，以便轻松将费用导出到您的会计和工资系统。`,
-                onlyAvailableOnPlan: 'GL 代码仅在 Control 计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL 代码仅在 Control 计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             glAndPayrollCodes: {
                 title: 'GL 和工资代码',
                 description: `为您的类别添加 GL 和工资代码，以便轻松将费用导出到您的会计和工资系统。`,
-                onlyAvailableOnPlan: 'GL 和工资代码仅在 Control 计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>GL 和工资代码仅在 Control 计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             taxCodes: {
                 title: '税码',
                 description: `将税码添加到您的税款中，以便轻松将费用导出到您的会计和工资系统。`,
-                onlyAvailableOnPlan: '税码仅在起价为的Control计划中提供，',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>税码仅在起价为的Control计划中提供， <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             companyCards: {
                 title: '无限公司卡',
                 description: `需要添加更多的卡片信息流吗？解锁无限公司卡，以同步所有主要发卡机构的交易。`,
-                onlyAvailableOnPlan: '这仅在Control计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>这仅在Control计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             rules: {
                 title: '规则',
                 description: `规则在后台运行，帮助您控制支出，因此您无需为小事操心。\n\n要求提供收据和描述等费用详情，设置限制和默认值，并自动化审批和支付——所有这些都在一个地方完成。`,
-                onlyAvailableOnPlan: '规则仅在控制计划中可用，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>规则仅在控制计划中可用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             perDiem: {
                 title: '每日津贴',
                 description: '每日津贴是确保员工出差时日常费用合规且可预测的好方法。享受自定义费率、默认类别以及更详细的信息，如目的地和子费率等功能。',
-                onlyAvailableOnPlan: '每日津贴仅在Control计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>每日津贴仅在Control计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             travel: {
                 title: '旅行',
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
-                onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>旅行功能在 Collect 计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             reports: {
                 title: '报告',
                 description: '报告允许您对费用进行分组，以便更容易地跟踪和整理。',
-                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>报告功能在 Collect 计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
-                onlyAvailableOnPlan: '多级标签仅在Control计划中提供，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>多级标签仅在Control计划中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             distanceRates: {
                 title: '距离费率',
                 description: '创建和管理您自己的费率，以英里或公里为单位进行跟踪，并为距离费用设置默认类别。',
-                onlyAvailableOnPlan: '在 Collect 计划中提供的距离费率，起价为',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>在 Collect 计划中提供的距离费率，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
                 description: '多级审批是一种工作流工具，适用于要求一人以上审批报销单后才能进行报销的公司。',
-                onlyAvailableOnPlan: '多级审批仅在 Control 套餐上提供，起价为 ',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>多级审批仅在 Control 套餐上提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: '每位活跃成员每月。',
@@ -5571,10 +5598,8 @@ ${merchant}的${amount} - ${date}`,
                 title: '升级到Control计划',
                 note: '解锁我们最强大的功能，包括：',
                 benefits: {
-                    startsAt: 'Control 计划起价为',
-                    perMember: '每位活跃成员每月。',
-                    learnMore: '了解更多',
-                    pricing: '关于我们的计划和定价。',
+                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                        `<muted-text>Control 计划起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`} <a href="${learnMoreMethodsRoute}">了解更多</a> 关于我们的计划和定价。</muted-text>`,
                     benefit1: '高级会计连接（NetSuite、Sage Intacct 等）',
                     benefit2: '智能费用规则',
                     benefit3: '多级审批工作流程',
@@ -6157,6 +6182,7 @@ ${merchant}的${amount} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} 是 ${value}`,
         },
         has: '有',
         groupBy: '组别',
