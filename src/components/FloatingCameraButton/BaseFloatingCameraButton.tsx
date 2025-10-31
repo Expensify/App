@@ -1,6 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -18,13 +20,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Icon from './Icon';
-import {Camera} from './Icon/Expensicons';
-import {PressableWithoutFeedback} from './Pressable';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
-function FloatingCameraButton() {
+type BaseFloatingCameraButtonProps = {
+    icon: IconAsset;
+};
+
+function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,7 +84,7 @@ function FloatingCameraButton() {
             >
                 <Icon
                     fill={textLight}
-                    src={Camera}
+                    src={icon}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                 />
@@ -89,6 +93,6 @@ function FloatingCameraButton() {
     );
 }
 
-FloatingCameraButton.displayName = 'FloatingCameraButton';
+BaseFloatingCameraButton.displayName = 'BaseFloatingCameraButton';
 
-export default FloatingCameraButton;
+export default BaseFloatingCameraButton;
