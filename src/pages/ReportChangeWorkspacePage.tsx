@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -83,7 +83,13 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-            } else if (!shouldSkip && isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+            } else if (
+                isExpenseReport(report) &&
+                isPolicyAdmin(policy) &&
+                report.ownerAccountID &&
+                !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID)) &&
+                !isPolicyOwner(policy, currentUserID)
+            ) {
                 const employeeList = policy?.employeeList;
                 changeReportPolicyAndInviteSubmitter(
                     report,
