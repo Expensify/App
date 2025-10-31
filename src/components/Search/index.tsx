@@ -902,7 +902,7 @@ function Search({
         navigation.setParams({q: newQuery});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;

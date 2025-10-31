@@ -1705,7 +1705,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
-                columnWidth = {...getWidthStyle(variables.w44), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w40), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};

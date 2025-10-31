@@ -821,8 +821,10 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
 
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
+ * @param data - The search results data (array or object)
+ * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
  */
-function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'], checkOnlyReports = false) {
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
@@ -846,12 +848,12 @@ function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListIt
     }
 
     for (const key in data) {
-        if (isTransactionEntry(key)) {
+        if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
             if (shouldShowTransactionYear(item)) {
                 return true;
             }
-        } else if (isReportActionEntry(key)) {
+        } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
                 const date = action.created;
@@ -1394,7 +1396,7 @@ function getReportSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-): TransactionGroupListItemType[] {
+): TransactionReportGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -1420,6 +1422,7 @@ function getReportSections(
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+    const doesDataContainAPastYearReport = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1458,6 +1461,7 @@ function getReportSections(
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
+                    shouldShowYear: doesDataContainAPastYearReport,
                 };
 
                 if (isIOUReport) {
@@ -2320,6 +2324,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.ARROW]: false,
         };
     }
 
