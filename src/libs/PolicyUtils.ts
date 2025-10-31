@@ -1399,13 +1399,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>, translate: LocalizedTranslate) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translate('workspace.type.collect');
         default:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translate('workspace.type.free');
     }
 }
