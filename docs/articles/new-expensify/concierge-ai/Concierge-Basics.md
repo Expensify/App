@@ -41,14 +41,6 @@ Here are a few examples you can type:
 
 > **Tip:** The more specific you are, the better the response.
 
-# What makes Concierge AI different?
-
-Concierge isn’t just a chatbot. It’s a **hybrid agent** that adapts to your needs and understands context.
-
-- **Contextual:** Ask the same question in different places (DM, report chat, workspace chat) and get tailored answers.  
-- **Hybrid:** Concierge uses AI for most questions and seamlessly escalates to a human if needed.  
-- **Multi-modal:** No need to choose between support, expense, or approval bots—Concierge handles them all.
-
 # What can Concierge AI do?
 
 Concierge can help you:
@@ -72,15 +64,6 @@ Absolutely. Just say you’d like to chat with a human, and we’ll connect you�
 
 If you’re working with an onboarding specialist or account manager, Concierge can schedule a call with them for you.
 
-# How does Concierge AI protect my data?
-
-Concierge is built with privacy at its core:
-- Your data stays inside Expensify and is only accessed as needed.  
-- AI systems never see more than what's required to respond to your message.  
-- We have **zero-retention** agreements with AI providers, meaning your data is never stored or reused.
-
-There’s no risk of another customer seeing your data—because they can’t.
-
 # How to disable human escalation in Concierge AI
 
 Prefer an AI-only experience? You can prevent Concierge from escalating your messages to a human.
@@ -88,5 +71,35 @@ Prefer an AI-only experience? You can prevent Concierge from escalating your mes
 **To disable escalation:**
 1. Go to `Account > Settings > Preferences`.  
 2. Toggle off **Allow Concierge to escalate to humans**.
+
+# FAQ
+
+## Is Concierge a real person?
+
+Not exactly. Concierge is an AI-powered assistant that helps with support, expenses, and approvals. But if it can’t help—or if you prefer a human—it’ll bring in a real person automatically.
+
+## Do I have to use special commands to talk to Concierge?
+
+Nope! Just type naturally, like you’re messaging a coworker. You can ask questions, give instructions, or even send receipts directly in the chat.
+
+## What happens if Concierge doesn’t understand my question?
+
+If something’s unclear, Concierge will ask for more details. And if it still can’t help, it’ll escalate to a human who can jump in.
+
+## Can I use Concierge on both web and mobile?
+
+Yes! Concierge is available everywhere—desktop, mobile app, email, and even SMS. Wherever you start a chat, Concierge will follow the conversation across platforms.
+
+## Is it safe to send receipts or sensitive info to Concierge?
+
+Yes. Concierge only sees what it needs to help with your request. Expensify doesn’t use your data to train public AI models, and we have zero-retention agreements with our partners.
+
+## What if I change my mind and want to talk to a human?
+
+Just say so! You can type “Talk to a human” at any time and you’ll be connected with a real support rep.
+
+## Can I turn off human support completely?
+
+Yes. If you’d rather stick with AI-only replies, you can disable human escalation from your preferences. You can do this via `Account > Settings > Preferences` and toggle off **Allow Concierge to escalate to humans**.
 
 </div>
