@@ -5,6 +5,7 @@ import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
@@ -70,8 +71,12 @@ function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
+function setTravelProvisioningNextStep(nextStepRoute?: Route) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
+}
+
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep};

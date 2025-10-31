@@ -148,6 +148,10 @@ type UberReceiptPartner = {
      * name of the organization in uber
      */
     organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
@@ -1979,6 +1983,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
+
+        /** Email address of the technical contact */
+        technicalContact?: string;
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
