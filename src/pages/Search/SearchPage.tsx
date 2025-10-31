@@ -44,6 +44,7 @@ import {
     getLastPolicyPaymentMethod,
     getPayOption,
     getReportType,
+    getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
@@ -71,6 +72,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -128,12 +130,16 @@ function SearchPage({route}: SearchPageProps) {
         ],
         [selectedTransactions],
     );
+    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
+    const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         activeAdminPolicies,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
+        currency: selectedBulkCurrency,
+        formattedAmount: totalFormattedAmount,
     });
 
     useEffect(() => {
@@ -177,7 +183,12 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType) => {
+        (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
+            // TODO: We need to handle 2 cases for invoice
+            // - hasAdditionalData for the first time payment
+            // - only has paymentMethod > We need to get the bankID from that payment method and so on
+            // - At the moment account type of all bank accounts are `bankAccount` no matter what it's business or personal.
+            const hasAdditionalData = !isEmptyObject(additionalData);
             if (!hash) {
                 return;
             }
@@ -246,6 +257,7 @@ function SearchPage({route}: SearchPageProps) {
                           reportID: report.reportID,
                           amount: report.total,
                           paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                          
                       }))
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
