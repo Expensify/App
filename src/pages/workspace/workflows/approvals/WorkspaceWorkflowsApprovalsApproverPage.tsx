@@ -1,4 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
+import lodashMapKeys from 'lodash/mapKeys';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
@@ -31,6 +32,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [currentApprovalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: (personalDetailsValues) => lodashMapKeys(personalDetailsValues, (value, key) => value?.login ?? key),
+    });
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
 
     const approverIndex = Number(route.params.approverIndex) ?? 0;
@@ -149,6 +154,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     approverIndex,
                     currentApprovalWorkflow,
                     policy,
+                    personalDetailsByEmail,
                 });
             }
 
@@ -158,7 +164,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 goBack();
             }
         },
-        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack],
+        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
     );
 
     const subtitle = useMemo(
