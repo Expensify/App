@@ -598,18 +598,6 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
     const transactionIDs = Object.keys(selectedTransactions);
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-        data: Object.fromEntries(
-            transactionIDs.map((transactionID) => [
-                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                {
-                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                    allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
-                },
-            ]),
-        ) as Partial<SearchTransaction>,
-    });
-
     const transactionsByReport: Record<string, string[]> = {};
     transactionIDs.forEach((transactionID) => {
         const reportID = selectedTransactions[transactionID].reportID;
