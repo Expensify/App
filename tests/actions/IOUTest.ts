@@ -6511,7 +6511,6 @@ describe('actions/IOU', () => {
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false, undefined, undefined, false)).toBeFalsy();
 
-            // When onlyShowPayElsewhere is true, it should return true for negative amounts
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true, undefined, undefined, false)).toBeTruthy();
         });
     });
