@@ -559,6 +559,8 @@ function IOURequestStepScan({
                 return;
             }
 
+            // Set file type as 'image/png' since the test receipt is a PNG file
+            // prepareRequestPayload requires the file type to properly construct the FormData for API upload
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, 'image/png', true);
             removeDraftTransactions(true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);

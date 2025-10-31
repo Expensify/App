@@ -17,7 +17,7 @@ function validateReceiptFile(
             return;
         }
 
-        onSuccess({uri: receiptPath, name: receiptFilename, type: receiptType, source: receiptPath} as unknown as File);
+        onSuccess({uri: receiptPath, name: receiptFilename, type: receiptType, source: receiptPath} as File);
     });
 }
 
