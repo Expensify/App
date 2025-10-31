@@ -153,7 +153,6 @@ import {
     findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getAllPolicyReports,
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
