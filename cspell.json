@@ -774,7 +774,7 @@
         "DYNAMICEXTERNAL",
         "MULTIFACTORAUTHENTICATION",
         "Humpty",
-        "Dumpty",
+        "Dumpty"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
