@@ -34,7 +34,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
-            <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Icon
                     src={Expensicons.Globe}
                     fill={theme.icon}
@@ -58,7 +58,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
             </View>
 
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                <View style={[styles.flexRow, styles.workspaceThreeDotMenu]}>
+                <View style={[styles.flexRow, styles.justifyContentEnd]}>
                     <View style={[styles.flexRow, styles.ml2, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.workspaceListRBR, styles.pr3, styles.mt0]}>
                             {!!brickRoadIndicator && (
