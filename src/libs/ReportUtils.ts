@@ -10269,7 +10269,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 }
 
 /**
- * Get optimistic data of parent report action
+ * Get optimistic data of the parent report action
  * @param report The report that is updated
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
@@ -10309,18 +10309,23 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
     });
 }
 /**
- * Get optimistic data the ancestor report actions
- * @param report The report that is updated
+ * Get optimistic ancestor report actions the  
+ * @param ancestors The thread report ancestors
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
 function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
-    return ancestors.reduce<OnyxUpdate[]>((optimisticData, {report: ancestorReport, reportAction: ancestorReportAction}) => {
+    let previousActionDeleted = false;
+    return ancestors.reduce<OnyxUpdate[]>((optimisticData, {report: ancestorReport, reportAction: ancestorReportAction}, index) => {
+        const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
+
+        previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
+        
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
             value: {
-                [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type),
+                [ancestorReportAction.reportActionID]: updatedReportAction,
             },
         });
         return optimisticData;
