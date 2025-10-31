@@ -757,11 +757,11 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe('Test Report Name');
         });
 
-        fit("should return report's name when no reportName available on transaction", async () => {
+        it("should return report's name when no reportName available on transaction", async () => {
             // Given a random report
             const reportID = 456;
             const report = {
-                ...createRandomReport(reportID),
+                ...createRandomReport(reportID, undefined),
                 reportName: 'Test Report Name',
             };
 
