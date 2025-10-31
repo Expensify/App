@@ -65,6 +65,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
             if (isRHPOnReportInSearch) {

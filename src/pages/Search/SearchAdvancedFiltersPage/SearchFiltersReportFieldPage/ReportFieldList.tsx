@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
 
 type ReportFieldListProps = {
@@ -26,7 +28,8 @@ type ListItem = {
 
 function ReportFieldList({field, close}: ReportFieldListProps) {
     const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
-    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: (form) => form?.[formKey]}, [formKey]);
+    const formSelector = useCallback((form: OnyxEntry<SearchAdvancedFiltersForm>) => form?.[formKey], [formKey]);
+    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: formSelector}, [formKey]);
 
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
