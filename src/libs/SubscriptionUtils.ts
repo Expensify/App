@@ -63,12 +63,6 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let billingDisputePending: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
-    callback: (value) => (billingDisputePending = value),
-});
-
 let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
@@ -185,7 +179,7 @@ function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>
 /**
  * @returns Whether there is a billing dispute pending.
  */
-function hasBillingDisputePending() {
+function hasBillingDisputePending(billingDisputePending: number | undefined) {
     return !!billingDisputePending;
 }
 
@@ -319,7 +313,11 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): SubscriptionStatus | undefined {
+function getSubscriptionStatus(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -356,7 +354,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, re
         }
     }
     // 5. Billing disputed by cardholder
-    if (hasBillingDisputePending()) {
+    if (hasBillingDisputePending(billingDisputePending)) {
         return {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
             isError: true,
@@ -416,15 +414,15 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, re
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError === false;
 }
 
 /**
