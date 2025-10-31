@@ -6608,6 +6608,9 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
+            AVATAR: 'avatar',
+            STATUS: 'status',
+            ARROW: 'arrow',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

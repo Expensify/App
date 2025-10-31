@@ -1704,6 +1704,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+                columnWidth = {...getWidthStyle(variables.w44), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 if (isDateColumnFullWidth) {
                     columnWidth = styles.flex1;
@@ -1735,6 +1741,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ARROW:
+                columnWidth = {...getWidthStyle(variables.w16), ...styles.alignItemsCenter};
                 break;
             default:
                 columnWidth = styles.flex1;

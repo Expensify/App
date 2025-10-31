@@ -20,6 +20,7 @@ import type {
     SortOrder,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import ReportListItem from '@components/SelectionListWithSections/Search/ReportListItem';
 import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -1626,7 +1627,10 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return TaskListItem;
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || groupBy) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return ReportListItem;
+    }
+    if (groupBy) {
         return TransactionGroupListItem;
     }
     return TransactionListItem;
@@ -2260,13 +2264,41 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
+ * @param isExpenseReportType: true when we are displaying expense report search results (type:expense-report).
  */
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
     isTaskView = false,
+    isExpenseReportType = false,
 ): Record<SearchColumnType, boolean> {
+    if (isExpenseReportType) {
+        return {
+            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ARROW]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.IN]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: false,
+        };
+    }
+
     if (isTaskView) {
         return {
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -2287,6 +2319,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
             [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
         };
     }
 
@@ -2316,6 +2349,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
           };
 
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
