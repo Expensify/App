@@ -16,6 +16,10 @@ const ELECTRON_EVENTS = {
     SILENT_UPDATE: 'silent-update',
     OPEN_LOCATION_SETTING: 'open-location-setting',
     CHECK_LOCATION_PERMISSION: 'check-location-permission',
+    SECURE_STORE_SET: 'secure-store-set',
+    SECURE_STORE_GET: 'secure-store-get',
+    SECURE_STORE_DELETE: 'secure-store-delete',
+    SECURE_STORE_CAN_USE_AUTH: 'secure-store-can-use-auth',
 } as const;
 
 export default ELECTRON_EVENTS;
