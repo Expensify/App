@@ -126,13 +126,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
                 setSelectedTransactions([]);
-                setSearchContextData((prevState) => ({
-                    ...prevState,
-                    selectedTransactionIDs: [],
-                    shouldTurnOffSelectionMode,
-                }));
 
-                areTransactionsEmpty.current = true;
                 return;
             }
 
