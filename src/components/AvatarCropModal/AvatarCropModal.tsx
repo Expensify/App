@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
@@ -319,10 +319,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    onClose?.();
-                });
+                onClose?.();
                 onSave?.(newImage);
             })
             .catch(() => {
