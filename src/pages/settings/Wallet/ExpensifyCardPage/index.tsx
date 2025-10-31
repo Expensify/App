@@ -88,6 +88,7 @@ function ExpensifyCardPage({
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
+    const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
 
     useEffect(() => {
         return () => {
@@ -99,8 +100,8 @@ function ExpensifyCardPage({
     }, [pin]);
 
     useEffect(() => {
-        setIsNotFound(!cardsToShow);
-    }, [cardList, cardsToShow]);
+        setIsNotFound(!currentCard);
+    }, [cardList, cardsToShow, currentCard]);
 
     useEffect(() => {
         resetValidateActionCodeSent();
@@ -129,10 +130,10 @@ function ExpensifyCardPage({
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const currency = getCurrencyKeyByCountryCode(currencyList, currentCard?.nameValuePairs?.feedCountry);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
-    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
+    const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
+    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
