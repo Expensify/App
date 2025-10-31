@@ -1,7 +1,7 @@
 ---
 title: Join Your Company's Workspace
 description: Learn how to join your company's workspace, set up your profile, add expenses, and secure your account in New Expensify.
-keywords: [New Expensify, join workspace, setup profile, add expense, enable two-factor authentication, SmartScan, Concierge]
+keywords: [New Expensify, join workspace, set up profile, add expense, enable two-factor authentication, SmartScan, Concierge]
 ---
 
 
