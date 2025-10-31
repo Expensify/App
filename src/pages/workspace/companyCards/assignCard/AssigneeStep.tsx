@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -16,34 +15,35 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
+import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
-type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
-};
-
-function AssigneeStep({policy, feed}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
@@ -59,6 +59,8 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
     };
+
+    useAssignCardStepNavigation(policyID, feed, route.params?.backTo);
 
     const submit = () => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
@@ -103,7 +105,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
             return;
         }
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
