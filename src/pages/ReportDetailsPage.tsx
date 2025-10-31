@@ -333,8 +333,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
     const reportName = getReportName(report, undefined, undefined, undefined, undefined, reportAttributes);
 
-
-
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -692,6 +690,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
                             textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
                             shouldUseFullTitle={shouldUseFullTitle}
+                            shouldParseHtml
                         />
                     </View>
                     {isPolicyAdmin ? (
