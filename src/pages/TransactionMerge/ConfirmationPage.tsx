@@ -110,7 +110,19 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModal();
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
+    }, [
+        targetTransaction,
+        mergeTransaction,
+        sourceTransaction,
+        transactionID,
+        targetTransactionThreadReportID,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+    ]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;

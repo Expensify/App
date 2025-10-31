@@ -24,7 +24,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getTransactionDetails, hasViolations as hasViolationsReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -186,7 +186,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, reportToConfirm, isASAPSubmitBetaEnabled, currentUserDetails?.accountID, currentUserDetails?.email, policy, reportNextStep, policyCategories]);
+    }, [
+        selectedIds,
+        translate,
+        report,
+        reportToConfirm,
+        isASAPSubmitBetaEnabled,
+        currentUserDetails?.accountID,
+        currentUserDetails?.email,
+        policy,
+        reportNextStep,
+        policyCategories,
+        transactionViolations,
+    ]);
 
     const footerContent = useMemo(() => {
         return (

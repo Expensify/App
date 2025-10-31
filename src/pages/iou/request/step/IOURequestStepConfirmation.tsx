@@ -576,6 +576,8 @@ function IOURequestStepConfirmation({
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
+            transactionViolations,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
@@ -622,7 +624,18 @@ function IOURequestStepConfirmation({
                 isASAPSubmitBetaEnabled,
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
+        [
+            report,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            recentlyUsedDestinations,
+            transactionViolations,
+            isASAPSubmitBetaEnabled,
+        ],
     );
 
     const trackExpense = useCallback(
@@ -761,6 +774,8 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             receiptFiles,
             backToReport,
+            transactionViolations,
+            isASAPSubmitBetaEnabled,
         ],
     );
 

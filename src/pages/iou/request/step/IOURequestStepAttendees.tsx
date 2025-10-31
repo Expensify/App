@@ -77,7 +77,21 @@ function IOURequestStepAttendees({
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
+    }, [
+        attendees,
+        backTo,
+        isEditing,
+        policy,
+        policyCategories,
+        policyTags,
+        previousAttendees,
+        reportID,
+        transactionID,
+        transactionViolations,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

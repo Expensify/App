@@ -3883,8 +3883,6 @@ describe('actions/IOU', () => {
         let createIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
         let transaction: OnyxEntry<Transaction>;
         let thread: OptimisticChatReport;
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
         let IOU_REPORT_ID: string | undefined;
         let reportActionID;
         const REPORT_ACTION: OnyxEntry<ReportAction> = {
@@ -5957,7 +5955,19 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined, []);
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReportID,
+                category,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyRecentlyUsedCategories: [],
+                hash: 0,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                isASAPSubmitBetaEnabled: false,
+            });
 
             await waitForBatchedUpdates();
 
@@ -6022,7 +6032,19 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating a money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 0, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, false);
+                updateMoneyRequestCategory({
+                    transactionID,
+                    transactionThreadReportID: '3',
+                    category,
+                    policy: fakePolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    policyRecentlyUsedCategories: [],
+                    hash: 0,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    isASAPSubmitBetaEnabled: false,
+                });
 
                 await waitForBatchedUpdates();
 
@@ -6054,7 +6076,19 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating the money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 0, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, false);
+                updateMoneyRequestCategory({
+                    transactionID,
+                    transactionThreadReportID: '3',
+                    category,
+                    policy: fakePolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    policyRecentlyUsedCategories: [],
+                    hash: 0,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    isASAPSubmitBetaEnabled: false,
+                });
 
                 await waitForBatchedUpdates();
 
@@ -6827,7 +6861,6 @@ describe('actions/IOU', () => {
                 transactions: {},
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
-                hasViolations: false,
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
             });
@@ -9243,7 +9276,6 @@ describe('actions/IOU', () => {
         let iouReport: OnyxEntry<Report>;
         let transaction: OnyxEntry<Transaction>;
         let policy: OnyxEntry<Policy>;
-        const TEST_USER_ACCOUNT_ID = 1;
         const MANAGER_ACCOUNT_ID = 2;
         const ADMIN_ACCOUNT_ID = 3;
 

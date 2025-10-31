@@ -442,6 +442,8 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         reportID,
         lastSelectedDistanceRates,
+        transactionViolations,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const getError = () => {
@@ -544,6 +546,9 @@ function IOURequestStepDistance({
         transaction?.routes,
         report?.reportID,
         policy,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(

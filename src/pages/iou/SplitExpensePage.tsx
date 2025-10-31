@@ -213,6 +213,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         iouReport,
         iouActions,
         chatReport,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+        transactionViolations,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(

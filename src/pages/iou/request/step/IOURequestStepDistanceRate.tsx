@@ -106,19 +106,19 @@ function IOURequestStepDistanceRate({
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
             if (isEditing && transaction?.transactionID) {
-                updateMoneyRequestDistanceRate(
-                    transaction.transactionID,
-                    reportID,
-                    customUnitRateID,
+                updateMoneyRequestDistanceRate({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: reportID,
+                    rateID: customUnitRateID,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
-                    currentUserPersonalDetails.accountID,
-                    currentUserPersonalDetails.login ?? '',
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     isASAPSubmitBetaEnabled,
-                    taxAmount,
-                    taxRateExternalID,
-                );
+                    updatedTaxAmount: taxAmount,
+                    updatedTaxCode: taxRateExternalID,
+                });
             }
         }
 

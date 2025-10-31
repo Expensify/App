@@ -4972,20 +4972,34 @@ function getUpdateTrackExpenseParams(
     };
 }
 
+type UpdateMoneyRequestDateParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    value: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
 /** Updates the created date of an expense */
-function updateMoneyRequestDate(
-    transactionID: string,
-    transactionThreadReportID: string,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    value: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-) {
+function updateMoneyRequestDate({
+    transactionID,
+    transactionThreadReportID,
+    transactions,
+    transactionViolations,
+    value,
+    policy,
+    policyTags,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: UpdateMoneyRequestDateParams) {
     const transactionChanges: TransactionChanges = {
         created: value,
     };
@@ -5152,10 +5166,10 @@ function updateMoneyRequestTag(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    hash?: number,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     isASAPSubmitBetaEnabled: boolean,
+    hash?: number,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -5349,20 +5363,34 @@ function updateMoneyRequestDistance({
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
+type UpdateMoneyRequestCategoryParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    category: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    hash: number;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
 /** Updates the category of an expense */
-function updateMoneyRequestCategory(
-    transactionID: string,
-    transactionThreadReportID: string,
-    category: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>,
-    hash: number,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-) {
+function updateMoneyRequestCategory({
+    transactionID,
+    transactionThreadReportID,
+    category,
+    policy,
+    policyTagList,
+    policyCategories,
+    policyRecentlyUsedCategories,
+    hash,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: UpdateMoneyRequestCategoryParams) {
     const transactionChanges: TransactionChanges = {
         category,
     };
@@ -5416,20 +5444,34 @@ function updateMoneyRequestDescription(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
+type UpdateMoneyRequestDistanceRateParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    rateID: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+    updatedTaxAmount?: number;
+    updatedTaxCode?: string;
+};
+
 /** Updates the distance rate of an expense */
-function updateMoneyRequestDistanceRate(
-    transactionID: string,
-    transactionThreadReportID: string,
-    rateID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-    updatedTaxAmount?: number,
-    updatedTaxCode?: string,
-) {
+function updateMoneyRequestDistanceRate({
+    transactionID,
+    transactionThreadReportID,
+    rateID,
+    policy,
+    policyTagList,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+    updatedTaxAmount,
+    updatedTaxCode,
+}: UpdateMoneyRequestDistanceRateParams) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),

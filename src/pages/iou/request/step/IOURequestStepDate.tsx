@@ -90,19 +90,19 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(
+            updateMoneyRequestDate({
                 transactionID,
-                reportID,
-                duplicateTransactions,
-                duplicateTransactionViolations,
-                newCreated,
+                transactionThreadReportID: reportID,
+                transactions: duplicateTransactions,
+                transactionViolations: duplicateTransactionViolations,
+                value: newCreated,
                 policy,
                 policyTags,
                 policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
-            );
+            });
         }
 
         navigateBack();
