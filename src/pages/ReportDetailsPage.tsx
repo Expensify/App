@@ -704,12 +704,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 </>
             )}
             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
-                <ParentNavigationSubtitle
-                    parentNavigationSubtitleData={parentNavigationSubtitleData}
-                    parentReportID={report?.parentReportID}
-                    parentReportActionID={report?.parentReportActionID}
-                    pressableStyles={[styles.mt1, styles.mw100]}
-                />
+                <View style={[styles.w100, styles.mt1]}>
+                    <ParentNavigationSubtitle
+                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                        parentReportID={report?.parentReportID}
+                        parentReportActionID={report?.parentReportActionID}
+                        pressableStyles={[styles.mw100]}
+                    />
+                </View>
             )}
         </View>
     );
@@ -751,12 +753,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
 
     const nameSectionFurtherDetailsContent = (
-        <ParentNavigationSubtitle
-            parentNavigationSubtitleData={parentNavigationSubtitleData}
-            parentReportID={report?.parentReportID}
-            parentReportActionID={report?.parentReportActionID}
-            pressableStyles={[styles.mt1, styles.mw100]}
-        />
+        <View style={[styles.w100, styles.mt1]}>
+            <ParentNavigationSubtitle
+                parentNavigationSubtitleData={parentNavigationSubtitleData}
+                parentReportID={report?.parentReportID}
+                parentReportActionID={report?.parentReportActionID}
+                pressableStyles={[styles.mw100]}
+            />
+        </View>
     );
 
     const nameSectionTitleField = !!titleField && (
