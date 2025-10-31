@@ -254,6 +254,7 @@ const SCREENS = {
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
+        MULTIFACTORAUTHENTICATION: 'MultiFactorAuthentication',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -813,6 +814,16 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
+    MULTIFACTORAUTHENTICATION: {
+        MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
+        AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',
+        SMS_OTP: 'MultifactorAuthentication_Sms_Top',
+        BIOMETRICS_TEST: 'MultifactorAuthentication_Biometrics_Test',
+        NOTIFICATION: 'MultifactorAuthentication_Notification',
+        APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
+        PROMPT: 'MultifactorAuthentication_Prompt',
+        REVOKE: 'MultifactorAuthentication_Revoke',
+    }
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

@@ -27,7 +27,9 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type { NotificationType } from '@pages/MFANotificationPage';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type { PromptType } from '@pages/MFAPromptPage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -2080,6 +2082,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION]: NavigatorScreenParams<MultiFactorAuthenticationParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2678,6 +2681,24 @@ type TestToolsModalModalNavigatorParamList = {
     };
 };
 
+type MultiFactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.BIOMETRICS_TEST]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
+        notificationType: NotificationType;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
+        transactionID: string;
+        reportID: string;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
+        promptType: PromptType;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: undefined;
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2781,4 +2802,5 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
+    MultiFactorAuthenticationParamList,
 };

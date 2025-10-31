@@ -110,6 +110,12 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import OpenPadlock from '@assets/images/open-padlock.svg';
+import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
+import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
+import RunOutOfTime from '@assets/images/running-out-of-time.svg';
+import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
+import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 
 export {
     Abracadabra,
@@ -224,4 +230,10 @@ export {
     PaperAirplane,
     CardReplacementSuccess,
     EmptyShelves,
+    OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
+    RunOutOfTime,
+    HumptyDumpty,
+    EncryptionMan,
 };

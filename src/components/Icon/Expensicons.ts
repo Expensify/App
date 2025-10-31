@@ -225,6 +225,7 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import Fingerprint from '@assets/images/fingerprint.svg';
 
 export {
     ReceiptBody,
@@ -454,4 +455,5 @@ export {
     XeroExport,
     ArrowCircleClockwise,
     PlusCircle,
+    Fingerprint,
 };
