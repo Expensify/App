@@ -75,7 +75,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
-            const shouldSkip = currentUserID === report.ownerAccountID;
             if (isIOUReport(reportID)) {
                 const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
                 if (!invite?.policyExpenseChatReportID) {
