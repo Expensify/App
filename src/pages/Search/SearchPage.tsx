@@ -54,6 +54,7 @@ import {
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -69,6 +70,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isManagedCardTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -274,7 +276,7 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const [isSorting, setIsSorting] = useState(false);
-    let searchResults;
+    let searchResults: SearchResults | undefined;
     if (currentSearchResults?.data) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
@@ -494,29 +496,40 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        if (selectedTransactionsKeys.length === 2 && isMergeActionFromReportView(selectedTransactionsKeys, searchResults)) {
+        if (selectedTransactionsKeys.length === 2 && searchResults?.data) {
             const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[0]}`];
             const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[1]}`];
 
-            const report1 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1.reportID}`];
-            const report2 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2.reportID}`];
+            if (
+                isMergeActionFromReportView(
+                    [transaction1, transaction2],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactionsKeys[0]}`]],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionsKeys[0]}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionsKeys[0]}`]],
+                )
+            ) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: Expensicons.ArrowCollapse,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                    onSelected: () => {
+                        let targetTransactionID = transaction1?.transactionID;
+                        let sourceTransactionID = transaction2?.transactionID;
 
-            options.push({
-                text: translate('common.merge'),
-                icon: Expensicons.ArrowCollapse,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                onSelected: () => {
-                    const targetTransactionID = selectedTransactionsKeys[0];
-                    const sourceTransactionID = selectedTransactionsKeys[1];
+                        if (isManagedCardTransaction(transaction2)) {
+                            targetTransactionID = transaction2?.transactionID;
+                            sourceTransactionID = transaction1?.transactionID;
+                        }
 
-                    if (!targetTransactionID || !sourceTransactionID) {
-                        return;
-                    }
-
-                    setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
-                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
-                },
-            });
+                        setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
+                        console.log(transaction1, transaction2);
+                        if (shouldNavigateToReceiptReview([transaction1, transaction2])) {
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
+                        } else {
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
+                        }
+                    },
+                });
+            }
         }
 
         const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);

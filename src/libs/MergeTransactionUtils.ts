@@ -133,7 +133,8 @@ const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+    console.log('checking');
+    return transactions.every((transaction) => transaction?.receipt?.receiptID || transaction?.receipt?.filename);
 }
 
 // Check if whether merge value is truly "empty" (null, undefined, empty string, or empty array)

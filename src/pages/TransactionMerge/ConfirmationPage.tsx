@@ -47,7 +47,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`);
 
     // If coming from the search page, we might not have the report locally in the usual Onyx collection
-    if (!targetTransactionParentReport && currentSearchResults?.data) {
+    if (hash) {
         targetTransactionParentReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`] ?? undefined;
     }
 
