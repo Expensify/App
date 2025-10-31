@@ -125,6 +125,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
+                setSelectedTransactions([]);
                 setSearchContextData((prevState) => ({
                     ...prevState,
                     selectedTransactionIDs: [],
