@@ -30,9 +30,9 @@ import type SCREENS from '@src/SCREENS';
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flexRow, styles.pl1]}>
-            <Text>{index}. </Text>
-            <View style={styles.flex1}>{children}</View>
+        <View style={[styles.flexRow, styles.flex1]}>
+            <Text style={styles.pr1}>{index}.</Text>
+            {children}
         </View>
     );
 }
@@ -93,14 +93,16 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
 
                         <View>
                             <OrderedListRow index={2}>
-                                <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
+                                <View style={styles.flex1}>
+                                    <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
 
-                                {!domain?.validateCodeError && (
-                                    <CopyableTextField
-                                        value={domain?.validateCode}
-                                        isLoading={domain?.isValidateCodeLoading}
-                                    />
-                                )}
+                                    {!domain?.validateCodeError && (
+                                        <CopyableTextField
+                                            value={domain?.validateCode}
+                                            isLoading={domain?.isValidateCodeLoading}
+                                        />
+                                    )}
+                                </View>
                             </OrderedListRow>
 
                             {!!domain?.validateCodeError && (
