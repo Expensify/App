@@ -11,11 +11,11 @@ Welcome to Expensify! If you've received an invite to join your company's worksp
 
 # Getting invited to your company's workspace
 
-Ask one of your company's Expensify workspace admins to send you an invite by doing the following:
+Ask one of your company's Expensify workspace admins to send you an invite using these steps: 
 
 1. Click **Workspaces** on the left-hand navigation menu.
 2. Click on the workspace that you should be joining.
-3. Click **Members** > **+ Invite member**
+3. Click **Members** > **Invite member**
 
 Now, check your email inbox for the invite to join your company's workspace. If you don't see it, check your **Spam** and **Archive** folders.
 
