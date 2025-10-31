@@ -1,4 +1,3 @@
-import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -59,9 +58,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         sourceTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
         targetTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
     }
-
-    console.log('sourceTransaction', sourceTransaction);
-    console.log('targetTransaction', targetTransaction);
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);

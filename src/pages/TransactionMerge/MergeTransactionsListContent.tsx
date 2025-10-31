@@ -22,9 +22,8 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportUtils';
 import {getCreated} from '@libs/TransactionUtils';
-import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
