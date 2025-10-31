@@ -739,7 +739,6 @@ type UpdateSplitTransactionsParams = {
     chatReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
     isChatReportArchived?: boolean;
-    isNewDotRevertSplitsEnabled: boolean;
 };
 
 type ReplaceReceipt = {
@@ -13509,7 +13508,6 @@ function updateSplitTransactions({
     chatReport,
     firstIOU,
     isChatReportArchived,
-    isNewDotRevertSplitsEnabled,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -13532,7 +13530,7 @@ function updateSplitTransactions({
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && isNewDotRevertSplitsEnabled;
+    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let changesInReportTotal = 0;
     // Validate custom unit rate before proceeding with split
