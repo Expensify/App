@@ -26,6 +26,8 @@ interface FSPageLikeConstructor {
 
 type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
 
+type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
+
 type Fullstory = {
     /**
      * Fullstory class used for page tracking.
@@ -46,6 +48,11 @@ type Fullstory = {
      * Executes a function when the Fullstory library is ready, either by initialization or by observing the start event.
      */
     onReady: () => Promise<unknown>;
+
+    /**
+     * Whether Fullstory should be initialized.
+     */
+    shouldInitialize: ShouldInitialize;
 
     /**
      * Sets the identity consent status using the Fullstory library.
@@ -164,4 +171,4 @@ type MultipleFSClassProps<T extends `${string}FSClass`> =
      */
     Partial<Record<T, FSClass>>;
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps, ShouldInitialize};
