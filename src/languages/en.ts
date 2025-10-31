@@ -7325,6 +7325,7 @@ const translations = {
         biometrics: {
             biometricsNotRegistered: 'Biometrics (Not registered)',
             biometricsRegistered: 'Biometrics (Registered)',
+            biometricsTest: 'Testing Biometrics',
             notificationTitle: 'Authentication successful',
             notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
             fallbackPageTitle: "Let's verify it's you",

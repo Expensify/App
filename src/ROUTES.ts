@@ -3308,6 +3308,7 @@ const ROUTES = {
     MULTIFACTORAUTHENTICATION_MAGIC_CODE: 'multifactor-authentication/factor/magic-code',
     MULTIFACTORAUTHENTICATION_AUTHENTICATOR: 'multifactor-authentication/factor/authenticator',
     MULTIFACTORAUTHENTICATION_SMS_OTP: 'multifactor-authentication/factor/sms-otp',
+    MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
     
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
         route: 'multifactor-authentication/notification/:notificationType',

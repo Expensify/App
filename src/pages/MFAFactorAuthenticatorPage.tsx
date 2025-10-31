@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import useNetwork from '@hooks/useNetwork';
+import AccountUtils from '@libs/AccountUtils';
 
 function MFAFactorAuthenticatorPage() {
     const styles = useThemeStyles();
@@ -30,6 +31,7 @@ function MFAFactorAuthenticatorPage() {
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
+    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     const clearAccountErrorsIfPresent = useCallback(() => {
         if (!account?.errors) {
@@ -124,7 +126,7 @@ function MFAFactorAuthenticatorPage() {
                             style={[styles.w100, styles.p5, styles.mtAuto]}
                             onPress={validateAndSubmitForm}
                             text={translate('common.verify')}
-                            // isLoading={isValidateCodeFormSubmitting || isVerifying}
+                            isLoading={isValidateCodeFormSubmitting}
                             isDisabled={isOffline}
                         />
                     </View>

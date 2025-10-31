@@ -818,6 +818,7 @@ const SCREENS = {
         MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
         AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',
         SMS_OTP: 'MultifactorAuthentication_Sms_Top',
+        BIOMETRICS_TEST: 'MultifactorAuthentication_Biometrics_Test',
         NOTIFICATION: 'MultifactorAuthentication_Notification',
         APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
         PROMPT: 'MultifactorAuthentication_Prompt',

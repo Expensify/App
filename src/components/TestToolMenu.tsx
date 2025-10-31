@@ -9,7 +9,6 @@ import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account as AccountOnyx} from '@src/types/onyx';
 import { View } from 'react-native';
 import type { TranslationPaths } from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -31,13 +30,10 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // ONLY FOR TESTING: this whole section needs to be removed later
-    const transactionID = '9084365218195969699';
-    const reportID = '3711684730350502';
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const navigateToApproveTransactionPage = singleExecution(waitForNavigate(() => {
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID, reportID));
+    const navigateToBiometricsTestPage = singleExecution(waitForNavigate(() => {
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST);
     }));
 
     // Check if the user is authenticated to show options that require authentication
@@ -97,7 +93,7 @@ function TestToolMenu() {
                             <Button
                                 small
                                 text={translate('common.test')}
-                                onPress={() => navigateToApproveTransactionPage()}
+                                onPress={() => navigateToBiometricsTestPage()}
                             />
                         </View>
                     </TestToolRow>
