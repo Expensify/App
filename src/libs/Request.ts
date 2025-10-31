@@ -4,6 +4,7 @@ import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import * as Sentry from '@sentry/react-native';
 
 let middlewares: Middleware[] = [];
 
@@ -15,7 +16,10 @@ function makeXHR(request: Request): Promise<Response | void> {
 }
 
 function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<Response | void> {
-    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
+    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request)).then(response => {
+        Sentry.getActiveSpan()?.setAttribute('requestId', response?.requestID ?? 'unknown');
+        return response
+    });
 }
 
 function addMiddleware(middleware: Middleware) {
