@@ -173,6 +173,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -430,6 +431,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         actionReportID,
                         CONST.IOU.ACTION.SUBMIT,
                         actionableWhisperReportActionID,
+                        introSelected,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                     );
@@ -443,7 +445,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID, introSelected);
                     },
                 });
                 items.push({
@@ -453,7 +455,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID, introSelected);
                     },
                 });
             }
@@ -572,6 +574,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSmallScreenWidth,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        introSelected,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
