@@ -690,6 +690,7 @@ const translations = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        actionRequired: 'Action requise',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -2844,6 +2845,8 @@ ${amount} pour ${merchant} - ${date}`,
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
+        bbaAdded: 'Compte bancaire professionnel ajouté !',
+        bbaAddedDescription: 'Il est prêt à être utilisé pour les paiements.',
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",

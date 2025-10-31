@@ -687,6 +687,7 @@ const translations = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        actionRequired: '需要操作',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -2815,6 +2816,8 @@ ${merchant}的${amount} - ${date}`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
+        bbaAdded: '企业银行账户已添加！',
+        bbaAddedDescription: '已准备好用于付款。',
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
