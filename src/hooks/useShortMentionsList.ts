@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
+import {getEmailDomainInfo} from '@libs/LoginUtils';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 /**
@@ -13,6 +13,7 @@ export default function useShortMentionsList() {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
+    const {domain: currentUserDomain, isPublicDomain: isCurrentUserPublicDomain} = getEmailDomainInfo(currentUserPersonalDetails.login ?? '');
     const availableLoginsList = useMemo(() => {
         if (!personalDetails) {
             return [];
@@ -20,12 +21,14 @@ export default function useShortMentionsList() {
 
         return Object.values(personalDetails)
             .map((personalDetail) => {
-                if (!personalDetail?.login) {
+                if (!personalDetail?.login || isCurrentUserPublicDomain) {
                     return;
                 }
 
+                const {domain: personalDetailDomain, isPublicDomain: isPersonalDetailPublicDomain} = getEmailDomainInfo(personalDetail.login);
+
                 // If the emails are not in the same private domain, we don't want to highlight them
-                if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
+                if (isPersonalDetailPublicDomain || personalDetailDomain !== currentUserDomain) {
                     return;
                 }
 
@@ -33,7 +36,7 @@ export default function useShortMentionsList() {
                 return username;
             })
             .filter((login): login is string => !!login);
-    }, [currentUserPersonalDetails.login, personalDetails]);
+    }, [currentUserDomain, isCurrentUserPublicDomain, personalDetails]);
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {

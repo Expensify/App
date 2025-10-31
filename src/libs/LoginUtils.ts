@@ -40,6 +40,17 @@ function isEmailPublicDomain(email: string): boolean {
 }
 
 /**
+ * Get the domain and whether it is public domain for an email
+ */
+function getEmailDomainInfo(email: string) {
+    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
+    return {
+        domain: emailDomain,
+        isPublicDomain: PUBLIC_DOMAINS_SET.has(emailDomain),
+    };
+}
+
+/**
  * Check if number is valid
  * @returns a valid phone number formatted
  */
@@ -114,4 +125,5 @@ export {
     postSAMLLogin,
     handleSAMLLoginError,
     formatE164PhoneNumber,
+    getEmailDomainInfo,
 };
