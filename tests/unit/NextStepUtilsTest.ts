@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {buildNextStepNew, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {buildNextStep, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,7 +105,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStepNew({
+                const result = buildNextStep({
                     report: emptyReport,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -137,7 +137,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStepNew({
+                const result = buildNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -172,7 +172,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStepNew({
+                const result = buildNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -219,7 +219,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: true}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -260,7 +260,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, harvesting: {enabled: true}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -301,7 +301,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY, harvesting: {enabled: true}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -343,7 +343,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, autoReportingOffset: 2, harvesting: {enabled: true}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -385,7 +385,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {
                                 ...policy,
@@ -431,7 +431,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {
                                 ...policy,
@@ -477,7 +477,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP, harvesting: {enabled: true}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -516,7 +516,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: false,
                         },
                     }).then(() => {
-                        const result = buildNextStepNew({
+                        const result = buildNextStep({
                             report,
                             policy: {...policy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: false}},
                             currentUserAccountIDParam: currentUserAccountID,
@@ -553,7 +553,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStepNew({
+                const result = buildNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -591,7 +591,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -649,7 +649,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, employeeList: {[currentUserEmail]: {submitsTo: strangeEmail}}},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -692,7 +692,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, employeeList: {[strangeEmail]: {submitsTo: currentUserEmail}}},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -715,7 +715,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -753,7 +753,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -791,7 +791,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -816,7 +816,7 @@ describe('libs/NextStepUtils', () => {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, role: 'user'},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -854,7 +854,7 @@ describe('libs/NextStepUtils', () => {
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
-                const result = buildNextStepNew({
+                const result = buildNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -896,7 +896,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -927,7 +927,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    const result = buildNextStepNew({
+                    const result = buildNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,

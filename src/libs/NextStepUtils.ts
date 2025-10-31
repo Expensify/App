@@ -19,7 +19,7 @@ import {
     isPayer,
 } from './ReportUtils';
 
-type BuildNextStepNewParams = {
+type BuildNextStepParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     currentUserAccountIDParam?: number;
@@ -115,7 +115,7 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
  */
-function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
     const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
         params;
 
@@ -472,4 +472,4 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     return optimisticNextStep;
 }
 
-export {parseMessage, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations, buildNextStepNew};
+export {parseMessage, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations, buildNextStep};

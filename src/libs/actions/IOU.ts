@@ -69,7 +69,7 @@ import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -2161,7 +2161,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         optimisticData.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.SET,
-            value: buildNextStepNew({
+            value: buildNextStep({
                 report: iou.report,
                 predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
                 shouldFixViolations,
@@ -3660,7 +3660,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations);
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: iouReport,
         predictedNextStatus,
         shouldFixViolations: false,
@@ -3934,7 +3934,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
-    const optimisticNextStep = buildNextStepNew({report: iouReport, predictedNextStatus, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled});
+    const optimisticNextStep = buildNextStep({report: iouReport, predictedNextStatus, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled});
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
@@ -4759,7 +4759,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
-                value: buildNextStepNew({
+                value: buildNextStep({
                     report: updatedMoneyRequestReport ?? iouReport ?? undefined,
                     predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
                     shouldFixViolations,
@@ -9926,7 +9926,7 @@ function getPayMoneyRequestParams({
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
         currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
-        optimisticNextStep = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStep = buildNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
     }
 
     const optimisticChatReport = {
@@ -10430,7 +10430,7 @@ function approveMoneyRequest(
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
 
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -10626,7 +10626,7 @@ function reopenReport(
     const optimisticReopenedReportAction = buildOptimisticReopenedReportAction();
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -10766,7 +10766,7 @@ function retractReport(
     const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -10918,7 +10918,7 @@ function unapproveExpenseReport(
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
         policy,
@@ -11066,7 +11066,7 @@ function submitReport(
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
         policy,
@@ -11209,7 +11209,7 @@ function cancelPayment(
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
     const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.APPROVED;
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: expenseReport,
         predictedNextStatus: statusNum,
         policy,
@@ -11340,7 +11340,7 @@ function cancelPayment(
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-        value: buildNextStepNew({
+        value: buildNextStep({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
         }),
@@ -14158,7 +14158,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 function assignReportToMe(report: OnyxTypes.Report, accountID: number, email: string, policy: OnyxEntry<OnyxTypes.Policy>, hasViolations: boolean, isASAPSubmitBetaEnabled: boolean) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: {...report, managerID: accountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
         shouldFixViolations: false,
@@ -14241,7 +14241,7 @@ function addReportApprover(
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: {...report, managerID: newApproverAccountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
         shouldFixViolations: false,
