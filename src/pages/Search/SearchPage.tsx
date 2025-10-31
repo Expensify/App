@@ -68,6 +68,7 @@ import {
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
+    canRejectReportAction,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -289,6 +290,7 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
