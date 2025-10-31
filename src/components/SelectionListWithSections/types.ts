@@ -559,6 +559,11 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     searchTransactions: (pageSize?: number) => void;
 };
 
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
+};
+
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
@@ -1022,6 +1027,7 @@ export type {
     TableListItemProps,
     TaskListItemType,
     TaskListItemProps,
+    ReportListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
     TransactionSelectionListItem,
