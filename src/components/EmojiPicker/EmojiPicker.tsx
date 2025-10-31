@@ -183,7 +183,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      */
-    const selectEmoji = (emoji: string, emojiObject: Emoji) => {
+    const selectEmoji = (emoji: string, emojiObject: Emoji, preferredSkinTone: number) => {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         if (!isEmojiPickerVisible) {
@@ -192,7 +192,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         hideEmojiPicker(false);
         if (typeof onEmojiSelected.current === 'function') {
-            onEmojiSelected.current(emoji, emojiObject);
+            onEmojiSelected.current(emoji, emojiObject, preferredSkinTone);
         }
     };
 
