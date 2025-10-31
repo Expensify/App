@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -7,7 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +34,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const policyID = policy?.id;
     const config = policy?.connections?.netsuite.options.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT>>();
+    const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
     const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
@@ -63,6 +64,14 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         [config?.invoiceItemPreference, policyID, goBack],
     );
 
+    // Update focused index when selectedValue changes (after an error reverts the selection)
+    useEffect(() => {
+        const selectedIndex = options.findIndex((option) => option.isSelected);
+        if (selectedIndex !== -1 && selectionListRef.current) {
+            selectionListRef.current?.updateFocusedIndex(selectedIndex);
+        }
+    }, [selectedValue, options]);
+
     return (
         <ConnectionLayout
             headerTitle="workspace.netsuite.invoiceItem.label"
@@ -81,19 +90,24 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
-                contentContainerStyle={[styles.minHeight32]}
+                style={[styles.flexGrow1, styles.flexShrink1, styles.minHeight32]}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink1, styles.minHeight32]}
             >
                 <SelectionList
+                    ref={selectionListRef}
                     data={options}
-                    onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
+                    onSelectRow={(selection: SelectorType) => {
+                        selectInvoicePreference(selection as MenuListItem);
+                    }}
                     ListItem={RadioListItem}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
+                    style={{containerStyle: [styles.pb0]}}
                 />
             </OfflineWithFeedback>
             {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
-                <View>
+                <View style={[styles.flexGrow1, styles.flexShrink1]}>
                     <OfflineWithFeedback
                         key={translate('workspace.netsuite.invoiceItem.label')}
                         pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
