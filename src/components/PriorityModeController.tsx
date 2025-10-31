@@ -92,10 +92,10 @@ export default function PriorityModeController() {
         if (!shouldShowModal) {
             return;
         }
-        const isNarrowLayout = getIsNarrowLayout();
-        const shouldHideModalOnNavigation = (isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT);
+        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
 
-        if (shouldHideModalOnNavigation) {
+        // Hide focus modal when settings button is pressed from the prompt.
+        if (isNavigatingToPriorityModePage) {
             setShouldShowModal(false);
         }
     }, [currentRouteName, shouldShowModal]);
