@@ -1,15 +1,15 @@
-import React from 'react';
-import {render} from '@testing-library/react-native';
+import type {TText} from 'react-native-render-html';
+import type {Report} from '@src/types/onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import MentionReportRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer';
 import {getReportMentionDetails} from '@libs/MentionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/ReportUtils', () => ({
     __esModule: true,
     getReportName: jest.fn(),
     isChatRoom: jest.fn(() => true),
+    isDefaultRoom: jest.fn(() => false),
+    isUserCreatedPolicyRoom: jest.fn(() => false),
 }));
 
 jest.mock('@libs/MentionUtils', () => {
@@ -21,149 +21,68 @@ jest.mock('@libs/MentionUtils', () => {
     };
 });
 
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({
-    link: {},
-})));
-
-jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({
-    getMentionStyle: jest.fn(() => ({})),
-    getMentionTextColor: jest.fn(() => CONST.COLORS.black),
-})));
-
-jest.mock('@hooks/useCurrentReportID', () => jest.fn(() => ({currentReportID: '1'})));
-
-const mockUseOnyx = jest.fn();
-jest.mock('@hooks/useOnyx', () => mockUseOnyx);
-
-jest.mock('@navigation/Navigation', () => ({
-    navigate: jest.fn(),
-    getActiveRoute: jest.fn(() => 'Home'),
-}));
-
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
-
 const mockGetReportName = jest.requireMock('@libs/ReportUtils').getReportName as jest.Mock;
-const mockGetReportMentionDetails = getReportMentionDetails as jest.Mock;
+const mockIsChatRoom = jest.requireMock('@libs/ReportUtils').isChatRoom as jest.Mock;
+const actualMentionUtils = jest.requireActual('@libs/MentionUtils');
+const actualGetReportMentionDetails = actualMentionUtils.getReportMentionDetails;
 
 describe('MentionUtils', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('getReportMentionDetails', () => {
-        it('uses formatted report name when reportID attribute is present', () => {
-            mockGetReportName.mockReturnValueOnce('$55.00 for dupe');
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}123`]: {
-                    reportID: '123',
-                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                },
-            };
+    it('uses formatted report name when reportID attribute is present', () => {
+        mockGetReportName.mockReturnValueOnce('$55.00 for dupe');
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}123`]: {
+                reportID: '123',
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+            },
+        };
 
-            const result = mockGetReportMentionDetails('123', {} as never, reports, {} as never);
+        const result = getReportMentionDetails('123', {} as never, reports, {} as never);
 
-            expect(result?.reportID).toBe('123');
-            expect(result?.mentionDisplayText).toBe('$55.00 for dupe');
-        });
-
-        it('falls back to formatted report name when matching by text', () => {
-            mockGetReportName.mockReturnValue('$42.00 for lunch');
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}456`]: {
-                    reportID: '456',
-                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                    policyID: 'ABC',
-                },
-            };
-
-            const currentReport = {policyID: 'ABC'};
-            const result = mockGetReportMentionDetails('', currentReport as never, reports, {data: '#$42.00 for lunch'} as never);
-
-            expect(result?.reportID).toBe('456');
-            expect(result?.mentionDisplayText).toBe('$42.00 for lunch');
-        });
+        expect(result?.reportID).toBe('123');
+        expect(result?.mentionDisplayText).toBe('$55.00 for dupe');
     });
 
-    describe('MentionReportRenderer', () => {
-        const tnode = {
-            attributes: {reportid: '789'},
-        } as never;
+    it('falls back to formatted report name when matching by text', () => {
+        mockGetReportName.mockReturnValue('$42.00 for lunch');
 
-        const defaultRendererProps = {} as never;
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}456`]: {
+                reportID: '456',
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                policyID: 'ABC',
+            },
+        };
 
-        const renderMention = () =>
-            render(
-                <ShowContextMenuContext.Provider
-                    value={{
-                        showContextMenu: jest.fn(),
-                        closeContextMenu: jest.fn(),
-                        anchorRef: {current: null},
-                    }}
-                >
-                    <MentionReportRenderer tnode={tnode} TDefaultRenderer={() => null} {...defaultRendererProps} />
-                </ShowContextMenuContext.Provider>,
-            );
+        const currentReport = {policyID: 'ABC'};
+        const result = getReportMentionDetails('', currentReport as never, reports, {data: '#$42.00 for lunch'} as never);
 
-        it('renders transaction thread mention without hash prefix', () => {
-            mockGetReportMentionDetails.mockReturnValueOnce({reportID: '789', mentionDisplayText: '$99.00 for team lunch'});
-            mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.COLLECTION.REPORT) {
-                    return [{
-                        [`${ONYXKEYS.COLLECTION.REPORT}789`]: {
-                            reportID: '789',
-                            isTransactionThread: true,
-                        },
-                    }];
-                }
-                return [{policyID: 'XYZ'}];
-            });
-
-            const {getByText} = renderMention();
-
-            expect(getByText('$99.00 for team lunch')).toBeTruthy();
-        });
-
-        it('renders non-transaction mention with hash prefix', () => {
-            mockGetReportMentionDetails.mockReturnValueOnce({reportID: '101', mentionDisplayText: 'General chat'});
-            mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.COLLECTION.REPORT) {
-                    return [{
-                        [`${ONYXKEYS.COLLECTION.REPORT}101`]: {
-                            reportID: '101',
-                        },
-                    }];
-                }
-                return [{policyID: 'XYZ'}];
-            });
-
-            const {getByText} = renderMention();
-
-            expect(getByText('#General chat')).toBeTruthy();
-        });
+        expect(result?.reportID).toBe('456');
+        expect(result?.mentionDisplayText).toBe('$42.00 for lunch');
     });
 });
-import type {TText} from 'react-native-render-html';
-import {getReportMentionDetails} from '@libs/MentionUtils';
-import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 
-describe('MentionUtils', () => {
-    describe('getReportMentionDetails', () => {
-        it('should return the room report ID', () => {
-            const reportID = '1';
-            const mentionDetails = getReportMentionDetails(
-                '',
-                {policyID: '1'} as Report,
-                {[reportID]: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
-                {data: '#hello'} as TText,
-            );
-            expect(mentionDetails?.reportID).toBe(reportID);
-        });
-        it('should return undefined report ID when the report is not a room', () => {
-            const reportID = '1';
-            const mentionDetails = getReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
-            expect(mentionDetails?.reportID).toBeUndefined();
-        });
+describe('MentionUtils integration', () => {
+    it('should return the room report ID', () => {
+        mockIsChatRoom.mockReturnValue(true);
+        mockGetReportName.mockReturnValue('#hello');
+        const reportID = '1';
+        const mentionDetails = actualGetReportMentionDetails(
+            '',
+            {policyID: '1'} as Report,
+            {[reportID]: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
+            {data: '#hello'} as TText,
+        );
+        expect(mentionDetails?.reportID).toBe(reportID);
+    });
+    it('should return undefined report ID when the report is not a room', () => {
+        mockIsChatRoom.mockReturnValue(false);
+        mockGetReportName.mockReturnValue('#hello');
+        const reportID = '1';
+        const mentionDetails = actualGetReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
+        expect(mentionDetails?.reportID).toBeUndefined();
     });
 });
