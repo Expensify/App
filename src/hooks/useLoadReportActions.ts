@@ -109,16 +109,11 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             }
 
             isLoadingOlderChats.current = true;
-            const getOlderActionsPromises: Array<Promise<Response | void>> = [];
 
-            getOlderActionsPromises.push(getOlderActions(reportID, currentReportOldest?.reportActionID));
+            getOlderActions(reportID, currentReportOldest?.reportActionID);
             if (isTransactionThreadReport) {
-                getOlderActionsPromises.push(getOlderActions(transactionThreadReport.reportID, transactionThreadOldest?.reportActionID));
+                getOlderActions(transactionThreadReport.reportID, transactionThreadOldest?.reportActionID);
             }
-
-            Promise.all(getOlderActionsPromises).finally(() => {
-                isLoadingOlderChats.current = false;
-            });
         },
         [
             isOffline,
@@ -167,18 +162,13 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             }
 
             isLoadingNewerChats.current = true;
-            const getNewerActionsPromises: Array<Promise<Response | void>> = [];
 
             if (isTransactionThreadReport) {
-                getNewerActionsPromises.push(getNewerActions(reportID, currentReportNewest?.reportActionID));
-                getNewerActionsPromises.push(getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID));
+                getNewerActions(reportID, currentReportNewest?.reportActionID);
+                getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID);
             } else if (newestReportAction) {
-                getNewerActionsPromises.push(getNewerActions(reportID, newestReportAction.reportActionID));
+                getNewerActions(reportID, newestReportAction.reportActionID);
             }
-
-            Promise.all(getNewerActionsPromises).finally(() => {
-                isLoadingNewerChats.current = false;
-            });
         },
         [
             isFocused,
