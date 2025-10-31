@@ -7355,6 +7355,39 @@ ${amount} pour ${merchant} - ${date}`,
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} vous a invité à essayer Expensify\nSalut ! Je viens de nous obtenir *3 mois gratuits* pour essayer Expensify, la façon la plus rapide de gérer les notes de frais.\n\nVoici un *reçu de test* pour vous montrer comment cela fonctionne :`,
     },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Approuver la transaction',
+            pageTitle: 'Veuillez approuver cette transaction',
+            pageContent: 'Une transaction Expensify Card nécessite votre approbation, veuillez la consulter ci-dessous.',
+            transactionDetails: 'Détails de la transaction',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biométrie (Non enregistrée)',
+            biometricsRegistered: 'Biométrie (Enregistrée)',
+            biometricsTest: 'Test de biométrie',
+            notificationTitle: 'Authentification réussie',
+            notificationFallbackContent: 'Vous avez authentifié avec succès en utilisant le code magique + 2FA.',
+            fallbackPageTitle: 'Vérifions que c\'est vous',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod}.`,
+            fallbackPage2FAContent: 'Veuillez entrer votre code d\'authentification.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code envoyé à ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Vérification faciale/empreinte digitale',
+            revokeContent:
+                'La vérification faciale/empreinte digitale est activée sur un ou plusieurs appareils. La révocation de l\'accès nécessitera un code magique pour la prochaine vérification faciale/empreinte digitale sur n\'importe quel appareil.',
+            renableContent: 'La vérification faciale/empreinte digitale est configurée sur un ou plusieurs appareils, mais nécessite un code magique pour être réactivée. Après cela, vous pouvez révoquer l\'accès ici.',
+            confirmationContent: 'Vous aurez besoin d\'un code magique pour la prochaine vérification faciale/empreinte digitale sur n\'importe quel appareil.',
+            bottomButtonContent: 'Révoquer l\'accès',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Vérifiez-vous avec votre visage ou votre empreinte digitale',
+            enableBiometricsPromptContent: 'Activez une vérification rapide et sécurisée à l\'aide de votre visage ou de votre empreinte digitale—aucun mot de passe ni code requis.',
+            enablePasskeyPromptTitle: 'Vérifiez-vous avec une clé d\'accès',
+            enablePasskeyPromptContent: 'Activez une vérification rapide et sécurisée à l\'aide d\'une clé d\'accès - aucun mot de passe ni code requis.',
+        },
+    },
     export: {
         basicExport: 'Exportation basique',
         reportLevelExport: 'Toutes les données - niveau rapport',

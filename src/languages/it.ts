@@ -7360,6 +7360,39 @@ ${amount} per ${merchant} - ${date}`,
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
     },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Approva transazione',
+            pageTitle: 'Per favore approva questa transazione',
+            pageContent: 'Una transazione Expensify Card richiede la tua approvazione, per favore esaminala qui sotto.',
+            transactionDetails: 'Dettagli della transazione',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometria (Non registrata)',
+            biometricsRegistered: 'Biometria (Registrata)',
+            biometricsTest: 'Test biometria',
+            notificationTitle: 'Autenticazione riuscita',
+            notificationFallbackContent: 'Ti sei autenticato con successo utilizzando il codice magico + 2FA.',
+            fallbackPageTitle: 'Verifichiamo che sei tu',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Per favore inserisci il codice magico inviato a ${contactMethod}.`,
+            fallbackPage2FAContent: 'Per favore inserisci il tuo codice autenticatore.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Per favore inserisci il codice inviato a ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Verifica volto/impronta digitale',
+            revokeContent:
+                'La verifica volto/impronta digitale è abilitata su uno o più dispositivi. La revoca dell\'accesso richiederà un codice magico per la prossima verifica volto/impronta digitale su qualsiasi dispositivo.',
+            renableContent: 'La verifica volto/impronta digitale è impostata su uno o più dispositivi, ma richiede un codice magico per essere riabilitata. Dopodiché, puoi revocare l\'accesso qui.',
+            confirmationContent: 'Avrai bisogno di un codice magico per la prossima verifica volto/impronta digitale su qualsiasi dispositivo.',
+            bottomButtonContent: 'Revoca accesso',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verificati con il tuo volto o impronta digitale',
+            enableBiometricsPromptContent: 'Abilita la verifica rapida e sicura utilizzando il tuo volto o impronta digitale—nessuna password o codice richiesto.',
+            enablePasskeyPromptTitle: 'Verificati con una passkey',
+            enablePasskeyPromptContent: 'Abilita la verifica rapida e sicura utilizzando una passkey - nessuna password o codice richiesto.',
+        },
+    },
     export: {
         basicExport: 'Esportazione basica',
         reportLevelExport: 'Tutti i dati - livello report',

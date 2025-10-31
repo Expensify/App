@@ -7344,6 +7344,39 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Aprovar transação',
+            pageTitle: 'Por favor, aprove esta transação',
+            pageContent: 'Uma transação do Expensify Card requer sua aprovação, por favor, revise-a abaixo.',
+            transactionDetails: 'Detalhes da transação',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometria (Não registrada)',
+            biometricsRegistered: 'Biometria (Registrada)',
+            biometricsTest: 'Testando biometria',
+            notificationTitle: 'Autenticação bem-sucedida',
+            notificationFallbackContent: 'Você foi autenticado com sucesso usando código mágico + 2FA.',
+            fallbackPageTitle: 'Vamos verificar se é você',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}.`,
+            fallbackPage2FAContent: 'Por favor, insira seu código de autenticação.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código enviado para ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Verificação facial/impressão digital',
+            revokeContent:
+                'A verificação facial/impressão digital está habilitada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação facial/impressão digital em qualquer dispositivo.',
+            renableContent: 'A verificação facial/impressão digital está configurada em um ou mais dispositivos, mas requer um código mágico para ser reabilitada. Depois disso, você pode revogar o acesso aqui.',
+            confirmationContent: 'Você precisará de um código mágico para a próxima verificação facial/impressão digital em qualquer dispositivo.',
+            bottomButtonContent: 'Revogar acesso',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verifique-se com seu rosto ou impressão digital',
+            enableBiometricsPromptContent: 'Habilite verificação rápida e segura usando seu rosto ou impressão digital—nenhuma senha ou código necessário.',
+            enablePasskeyPromptTitle: 'Verifique-se com uma senha biométrica',
+            enablePasskeyPromptContent: 'Habilite verificação rápida e segura usando uma senha biométrica - nenhuma senha ou código necessário.',
+        },
+    },
 
     avatarPage: {
         title: 'Editar foto de perfil',

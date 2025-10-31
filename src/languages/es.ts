@@ -7797,6 +7797,39 @@ ${amount} para ${merchant} - ${date}`,
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} te invitó a probar Expensify\n\n¡Hola! Acabo de conseguirnos *3 meses gratis* para probar Expensify, la forma más rápida de gestionar gastos.\n\nAquí tienes un *recibo de prueba* para mostrarte cómo funciona:`,
     },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Aprobar transacción',
+            pageTitle: 'Por favor, apruebe esta transacción',
+            pageContent: 'Una transacción de Expensify Card requiere su aprobación, por favor revísela a continuación.',
+            transactionDetails: 'Detalles de la transacción',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometría (No registrada)',
+            biometricsRegistered: 'Biometría (Registrada)',
+            biometricsTest: 'Prueba de biometría',
+            notificationTitle: 'Autenticación exitosa',
+            notificationFallbackContent: 'Se ha autenticado exitosamente usando código mágico + 2FA.',
+            fallbackPageTitle: 'Verifiquemos que eres tú',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código mágico enviado a ${contactMethod}.`,
+            fallbackPage2FAContent: 'Por favor, ingrese su código de autenticación.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código enviado a ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Verificación facial/huella dactilar',
+            revokeContent:
+                'La verificación facial/huella dactilar está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación facial/huella dactilar en cualquier dispositivo.',
+            renableContent: 'La verificación facial/huella dactilar está configurada en uno o más dispositivos, pero requiere un código mágico para volver a habilitarla. Después de eso, puede revocar el acceso aquí.',
+            confirmationContent: 'Necesitará un código mágico para la próxima verificación facial/huella dactilar en cualquier dispositivo.',
+            bottomButtonContent: 'Revocar acceso',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verifíquese con su rostro o huella dactilar',
+            enableBiometricsPromptContent: 'Habilite la verificación rápida y segura usando su rostro o huella dactilar—no se requieren contraseñas ni códigos.',
+            enablePasskeyPromptTitle: 'Verifíquese con una clave de acceso',
+            enablePasskeyPromptContent: 'Habilite la verificación rápida y segura usando una clave de acceso - no se requieren contraseñas ni códigos.',
+        },
+    },
     export: {
         basicExport: 'Exportar básico',
         reportLevelExport: 'Todos los datos - a nivel de informe',

@@ -7354,6 +7354,39 @@ ${amount} für ${merchant} - ${date}`,
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} hat dich eingeladen, Expensify auszuprobieren\nHey! Ich habe uns gerade *3 Monate kostenlos* gesichert, um Expensify auszuprobieren, den schnellsten Weg, um Ausgaben zu verwalten.\n\nHier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Transaktion genehmigen',
+            pageTitle: 'Bitte genehmigen Sie diese Transaktion',
+            pageContent: 'Eine Expensify Card Transaktion erfordert Ihre Genehmigung, bitte überprüfen Sie sie unten.',
+            transactionDetails: 'Transaktionsdetails',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometrie (Nicht registriert)',
+            biometricsRegistered: 'Biometrie (Registriert)',
+            biometricsTest: 'Biometrie testen',
+            notificationTitle: 'Authentifizierung erfolgreich',
+            notificationFallbackContent: 'Sie haben sich erfolgreich mit Magic Code + 2FA authentifiziert.',
+            fallbackPageTitle: 'Lassen Sie uns überprüfen, dass Sie es sind',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Bitte geben Sie den an ${contactMethod} gesendeten Magic Code ein.`,
+            fallbackPage2FAContent: 'Bitte geben Sie Ihren Authenticator-Code ein.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Bitte geben Sie den an ${contactMethod} gesendeten Code ein.`,
+        },
+        revokePage: {
+            headerTitle: 'Gesichts-/Fingerabdruck-Verifizierung',
+            revokeContent:
+                'Die Gesichts-/Fingerabdruck-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert einen Magic Code für die nächste Gesichts-/Fingerabdruck-Verifizierung auf jedem Gerät.',
+            renableContent: 'Die Gesichts-/Fingerabdruck-Verifizierung ist auf einem oder mehreren Geräten eingerichtet, erfordert jedoch einen Magic Code zur erneuten Aktivierung. Danach können Sie den Zugriff hier widerrufen.',
+            confirmationContent: 'Sie benötigen einen Magic Code für die nächste Gesichts-/Fingerabdruck-Verifizierung auf jedem Gerät.',
+            bottomButtonContent: 'Zugriff widerrufen',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verifizieren Sie sich mit Ihrem Gesicht oder Fingerabdruck',
+            enableBiometricsPromptContent: 'Aktivieren Sie eine schnelle, sichere Verifizierung mit Ihrem Gesicht oder Fingerabdruck—keine Passwörter oder Codes erforderlich.',
+            enablePasskeyPromptTitle: 'Verifizieren Sie sich mit einem Passkey',
+            enablePasskeyPromptContent: 'Aktivieren Sie eine schnelle, sichere Verifizierung mit einem Passkey - keine Passwörter oder Codes erforderlich.',
+        },
+    },
     export: {
         basicExport: 'Basis Export',
         reportLevelExport: 'Alle Daten - Berichtsebene',
