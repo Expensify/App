@@ -12577,6 +12577,7 @@ export {
     hasUnresolvedCardFraudAlert,
     getUnresolvedCardFraudAlertAction,
     shouldBlockSubmitDueToStrictPolicyRules,
+    isWorkspaceChat,
 };
 export type {
     Ancestor,
