@@ -3080,7 +3080,7 @@ function getDisplayNameForParticipant({
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (shouldFallbackToHidden && longName === translateLocal('common.hidden')) {
-        return formatPhoneNumber(longName);
+        return longName;
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
