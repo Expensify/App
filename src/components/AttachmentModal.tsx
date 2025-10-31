@@ -1,5 +1,5 @@
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -427,20 +427,30 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    iouAction ?? CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    draftTransactionID ?? transaction?.transactionID,
-                                    report?.reportID,
-                                    Navigation.getActiveRoute(),
-                                ),
-                            );
-                        });
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRoute(),
+                            ),
+                        );
                     }
                 }}
+                // onDismiss={() => {
+                //     if (isReplaceReceipt.current) {
+                //         Navigation.navigate(
+                //             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                //                 iouAction ?? CONST.IOU.ACTION.EDIT,
+                //                 iouType,
+                //                 draftTransactionID ?? transaction?.transactionID,
+                //                 report?.reportID,
+                //                 Navigation.getActiveRoute(),
+                //             ),
+                //         );
+                //     }
+                // }}
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;
