@@ -21,7 +21,7 @@ type PromptType = 'enable-biometrics' | 'enable-passkey';
 
 type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
-type PromptcontentData =
+type PromptContentData =
     | {
           animation: DotLottieAnimation;
           title: TranslationPaths;
@@ -29,7 +29,7 @@ type PromptcontentData =
       }
     | undefined;
 
-const getPromptContentData = (promptType: PromptType): PromptcontentData => {
+const getPromptContentData = (promptType: PromptType): PromptContentData => {
     switch (promptType) {
         case 'enable-biometrics':
             return {

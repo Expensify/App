@@ -106,7 +106,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
                     title={title}
                     subtitle={content}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={styles.p1} // "sometimes maybe good sometimes maybe bad" - we can either decide on one padding for all those screens or get that from MFAcontext which is jsut plain stupid
+                    containerStyle={styles.p1} // "sometimes maybe good sometimes maybe bad" - we have to decide on one padding for all those screens
                     testID={MFANotificationPage.displayName}
                 />
             </View>
