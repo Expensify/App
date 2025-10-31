@@ -35,7 +35,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {openWorkspace} from '@libs/actions/Policy/Policy';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -63,6 +64,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     canRejectReportAction,
+    checkBulkRejectHydration,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -73,6 +75,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -85,7 +88,6 @@ import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
-import { getTransactionViolationsOfTransaction } from '@libs/TransactionUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -168,6 +170,48 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    // Check hydration status and prefetch missing data for bulk reject
+    const bulkRejectHydrationStatus = useMemo(() => {
+        if (Object.keys(selectedTransactions).length === 0) {
+            return {areHydrated: true, missingReportIDs: [], missingPolicyIDs: []};
+        }
+        return checkBulkRejectHydration(selectedTransactions, policies);
+    }, [selectedTransactions, policies]);
+
+    // Prefetch missing report and policy data when items are selected
+    const lastPrefetchKeyRef = useRef('');
+    useEffect(() => {
+        const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
+
+        // If hydrated or nothing selected, clear and exit
+        if (areHydrated) {
+            lastPrefetchKeyRef.current = '';
+            return;
+        }
+        if (isOffline) {
+            return;
+        }
+
+        const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
+        if (key === lastPrefetchKeyRef.current) {
+            return;
+        }
+
+        // Prefetch once per unique set of missing IDs
+        missingReportIDs.forEach((id) => id && openReport(id));
+        missingPolicyIDs.forEach((id) => id && openWorkspace(id, []));
+
+        lastPrefetchKeyRef.current = key;
+    }, [bulkRejectHydrationStatus, isOffline]);
+
+    // Allow retry on reconnect
+    const prevIsOffline = usePrevious(isOffline);
+    useEffect(() => {
+        if (prevIsOffline && !isOffline) {
+            lastPrefetchKeyRef.current = '';
+        }
+    }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -450,6 +494,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
+                disabled: isRejectDisabled,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -643,6 +688,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedReportIDs,
         selectedTransactionReportIDs,
         isBetaBulkPayEnabled,
+        bulkRejectHydrationStatus,
     ]);
 
     const handleDeleteExpenses = () => {
