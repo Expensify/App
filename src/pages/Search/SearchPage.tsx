@@ -79,6 +79,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
+import { getTransactionViolationsOfTransaction } from '@libs/TransactionUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -417,7 +418,13 @@ function SearchPage({route}: SearchPageProps) {
                 const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? undefined;
                 return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
             });
-        const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && areSelectedTransactionsRejectable;
+
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
+            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
+            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+
+        const shouldShowRejectOption = !isOffline && areSelectedTransactionsRejectable && hasNoRejectedTransaction;
         if (shouldShowRejectOption) {
             options.push({
                 icon: Expensicons.ThumbsDown,
