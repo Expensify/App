@@ -100,7 +100,18 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH && action.payload.name === options.sidebarScreen && state.routes.length > 1;
+    const isSidebarAction = (action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) && action.payload.name === options.sidebarScreen;
+    if (!isSidebarAction) {
+        return false;
+    }
+
+    const sidebarExists = state.routes.some((route) => route.name === options.sidebarScreen);
+    return sidebarExists;
+}
+
+// If only one central screen is displayed on a wide layout and GO_BACK action is performed, we need to pop the entire navigator
+function shouldPopEntireNavigator(state: StackState, action: CommonActions.Action | StackActionType) {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK && !getIsNarrowLayout() && state.routes.length === 2;
 }
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
@@ -115,6 +126,11 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 }
                 // On wide screen do nothing as we want to keep the central pane screen and the sidebar is visible.
                 return state;
+            }
+
+            if (shouldPopEntireNavigator(state, action)) {
+                const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions) as StackNavigationState<ParamListBase>;
+                return stackRouter.getStateForAction(stateAfterPop, StackActions.pop(), configOptions);
             }
             return stackRouter.getStateForAction(state, action, configOptions);
         },

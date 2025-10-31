@@ -1,5 +1,6 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -16,6 +17,7 @@ function WorkspacesEmptyStateComponent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
 
     return (
         <EmptyStateComponent
@@ -28,13 +30,17 @@ function WorkspacesEmptyStateComponent() {
             headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
             lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
             headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-            buttons={[
-                {
-                    success: true,
-                    buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                    buttonText: translate('workspace.new.newWorkspace'),
-                },
-            ]}
+            buttons={
+                isRestrictedPolicyCreation
+                    ? []
+                    : [
+                          {
+                              success: true,
+                              buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                              buttonText: translate('workspace.new.newWorkspace'),
+                          },
+                      ]
+            }
         />
     );
 }
