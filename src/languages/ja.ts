@@ -678,6 +678,9 @@ const translations = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        test: 'テスト',
+        deny: '拒否',
+        approve: '承認',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

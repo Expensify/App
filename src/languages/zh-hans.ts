@@ -679,6 +679,9 @@ const translations = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        test: '测试',
+        deny: '拒绝',
+        approve: '批准',
     },
     supportalNoAccess: {
         title: '慢一点',

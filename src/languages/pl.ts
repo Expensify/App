@@ -678,6 +678,9 @@ const translations = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        test: 'Test',
+        deny: 'Odrzuć',
+        approve: 'Zatwierdź',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',

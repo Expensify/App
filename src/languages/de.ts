@@ -680,6 +680,9 @@ const translations = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
+        test: 'Test',
+        deny: 'Ablehnen',
+        approve: 'Genehmigen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',

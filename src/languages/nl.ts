@@ -677,6 +677,9 @@ const translations = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        test: 'Test',
+        deny: 'Weigeren',
+        approve: 'Goedkeuren',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

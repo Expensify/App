@@ -680,6 +680,9 @@ const translations = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        test: 'Testar',
+        deny: 'Negar',
+        approve: 'Aprovar',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
