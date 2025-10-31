@@ -233,7 +233,9 @@ function ExpensifyCardPage({
                                             <FormHelpMessage
                                                 isError
                                                 shouldShowRedDotIndicator
-                                                message={translate('cardPage.missingPrivateDetails', {profileSettingsLink: `${environmentURL}/settings/profile`})}
+                                                message={translate('cardPage.missingPrivateDetails', {
+                                                    missingDetailsLink: `${environmentURL}/${ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID))}`,
+                                                })}
                                                 style={[styles.ph5, styles.mv2]}
                                                 shouldRenderMessageAsHTML
                                             />
