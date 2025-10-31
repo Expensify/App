@@ -2016,18 +2016,21 @@ function pushTransactionViolationsOnyxData(
                       ...tagListUpdate,
                       tags: {
                           ...Object.fromEntries(Object.entries(tags).filter(([tagName]) => !tagListUpdateKeys.includes(tagName) || tagsUpdate[tagName] == null)),
-                          ...Object.entries(tagsUpdate).reduce<PolicyTags>((accTags, [tagName, tagUpdate]) => {
-                              if (tagUpdate == null) {
-                                  return accTags;
-                              }
-                              return {
-                                  ...accTags,
-                                  [tagName]: {
+                          ...((): PolicyTags => {
+                              const mergedTags: PolicyTags = Object.fromEntries(
+                                  Object.entries(tags).filter(([tagName]) => !tagListUpdateKeys.includes(tagName) || tagsUpdate[tagName] == null),
+                              );
+                              for (const [tagName, tagUpdate] of Object.entries(tagsUpdate)) {
+                                  if (tagUpdate == null) {
+                                      continue;
+                                  }
+                                  mergedTags[tagName] = {
                                       ...(tags[tagName] ?? {}),
                                       ...tagUpdate,
-                                  },
-                              };
-                          }, {}),
+                                  };
+                              }
+                              return mergedTags;
+                          })(),
                       },
                   };
                   return acc;
