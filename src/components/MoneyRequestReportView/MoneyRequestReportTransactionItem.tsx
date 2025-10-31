@@ -82,7 +82,7 @@ function MoneyRequestReportTransactionItem({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
@@ -150,7 +150,10 @@ function MoneyRequestReportTransactionItem({
                     columns={columns}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
-                    style={[styles.p3]}
+                    style={[styles.p3, isLargeScreenWidth && styles.pr0]}
+                    onButtonPress={() => {
+                        handleOnPress(transaction.transactionID);
+                    }}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

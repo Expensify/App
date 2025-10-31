@@ -144,6 +144,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const formattedAmount = convertToDisplayString(amount, currency);
             searchableFields.push(formattedAmount);
 
+            // This allows users to search "2000" and find "$2,000.00" for example
+            const normalizedAmount = (amount / 100).toString();
+            searchableFields.push(normalizedAmount);
+
             return searchableFields;
         });
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);

@@ -13,7 +13,7 @@ type CloseContextMenuCallback = () => void;
 
 type BaseReactionsProps = {
     /** Callback to fire when an emoji is selected. */
-    onEmojiSelected: (emoji: Emoji, emojiReactions: OnyxEntry<ReportActionReactions>) => void;
+    onEmojiSelected: (emoji: Emoji, emojiReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => void;
 
     /**
      * Will be called when the emoji picker is about to show.

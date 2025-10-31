@@ -432,6 +432,7 @@ function updateAvatar(
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
+// TODO remove when no longer needed
 /**
  * Replaces the user's avatar image with a default avatar
  */

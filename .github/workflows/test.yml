@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [ 1, 2, 3, 4 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
