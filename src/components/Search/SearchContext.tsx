@@ -136,7 +136,6 @@ function SearchContextProvider({children}: ChildrenProps) {
             if (searchContextData.selectedReports.length === 0 && isEmptyObject(searchContextData.selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
                 return;
             }
-
             setSearchContextData((prevState) => ({
                 ...prevState,
                 shouldTurnOffSelectionMode,
@@ -153,8 +152,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             searchContextData.selectedReports.length,
             searchContextData.selectedTransactions,
             searchContextData.shouldTurnOffSelectionMode,
-            shouldShowSelectAllMatchingItems,
-            selectAllMatchingItems,
+            setSelectedTransactions,
         ],
     );
 
