@@ -160,6 +160,7 @@ function BaseSelectionList<TItem extends ListItem>({
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
+
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
