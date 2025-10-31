@@ -54,6 +54,7 @@ import type {
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
+    UpdateRoomAvatarParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
@@ -111,6 +112,7 @@ import {
     buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticRoomAvatarUpdatedReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticSelfDMReport,
     buildOptimisticUnHoldReportAction,
@@ -877,7 +879,15 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
     API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+/**
+ * Helper function to build optimistic, success, and failure Onyx updates
+ * when updating or removing a report's avatar.
+ *
+ * @param reportID - The report ID of the policy room.
+ * @param [file] - (Optional) The selected image file to update the avatar with.
+ * If not provided, the existing avatar will be removed.
+ */
+function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -920,8 +930,65 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             },
         },
     ];
+
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Updates the avatar for a group chat.
+ */
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Updates the avatar for a policy room.
+ */
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const avatarURL = file?.uri ?? '';
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+
+    const optimisticAction = buildOptimisticRoomAvatarUpdatedReportAction(avatarURL);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticAction.reportActionID]: optimisticAction},
+    });
+
+    // Update the report with last action details
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastActorAccountID: currentUserAccountID,
+            lastVisibleActionCreated: optimisticAction.created,
+            lastMessageText: (optimisticAction.message as Message[]).at(0)?.text,
+        },
+    });
+
+    // Add success data to clear pending action
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticAction.reportActionID]: {
+                pendingAction: null,
+            },
+        },
+    });
+
+    const parameters: UpdateRoomAvatarParams = {reportID, file, reportActionID: optimisticAction.reportActionID};
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
@@ -6184,6 +6251,7 @@ export {
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,
+    updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
     updateLastVisitTime,
