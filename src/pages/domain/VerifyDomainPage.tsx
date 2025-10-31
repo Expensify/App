@@ -44,7 +44,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const accountID = route.params?.accountID;
+    const accountID = route.params.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();

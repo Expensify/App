@@ -22,7 +22,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountID = route.params?.accountID;
+    const accountID = route.params.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
 
     useEffect(() => {
