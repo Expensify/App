@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen, waitFor, within} from '@testing-library/react-native';
 import CONST from '@src/CONST';
