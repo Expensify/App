@@ -1,8 +1,13 @@
-import type {WorkspaceDuplicateNavigatorParamList} from '@navigation/types';
+import type {WorkspaceDuplicateNavigatorParamList, WorkspacesDomainModalNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const WORKSPACES_LIST_TO_RHP: Partial<Record<keyof WorkspaceDuplicateNavigatorParamList, string[]>> = {
-    [SCREENS.WORKSPACE_DUPLICATE.ROOT]: [SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES, SCREENS.WORKSPACE_DUPLICATE.ROOT],
-};
+const WORKSPACES_LIST_TO_RHP = {
+    [SCREENS.WORKSPACES_LIST]: [
+        SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES,
+        SCREENS.WORKSPACE_DUPLICATE.ROOT,
+        SCREENS.WORKSPACES_VERIFY_DOMAIN,
+        SCREENS.WORKSPACES_DOMAIN_VERIFIED,
+    ] satisfies Array<keyof WorkspaceDuplicateNavigatorParamList | keyof WorkspacesDomainModalNavigatorParamList>,
+} as Record<typeof SCREENS.WORKSPACES_LIST, string[]>;
 
 export default WORKSPACES_LIST_TO_RHP;
