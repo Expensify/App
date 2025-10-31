@@ -17,7 +17,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether domain creation is pending */
     isCreationPending?: boolean;
 
-    /** Whether domain validation is in progress */
+    /** Whether domain validation is pending */
     isValidationPending?: boolean;
 
     /** Errors that occurred when validating the domain */
