@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type * as OnyxTypes from '@src/types/onyx';
 import {localeCompare} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
@@ -250,10 +252,10 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildUserReadableQueryString', () => {
-        const emptyReports = {} as any;
-        const emptyCardList = {} as any;
-        const emptyCardFeeds = {} as any;
-        const emptyPolicies = {} as any;
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
         const emptyTaxRates: Record<string, string[]> = {};
         const currentUserAccountID = 0;
 
@@ -271,16 +273,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
-                queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
-                emptyPolicies,
-                currentUserAccountID,
-            );
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
@@ -299,16 +292,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
-                queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
-                emptyPolicies,
-                currentUserAccountID,
-            );
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
 
             expect(result).toBe('type:expense status:all merchant:Uber');
         });
@@ -322,24 +306,17 @@ describe('SearchQueryUtils', () => {
             }
 
             const queryJSON = buildSearchQueryJSON(canonicalQueryString);
-            const policies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {name: 'Team Space'},
-            } as any;
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
+                    name: 'Team Space',
+                } as OnyxTypes.Policy,
+            };
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
-                queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
-                policies,
-                currentUserAccountID,
-            );
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });

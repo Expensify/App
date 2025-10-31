@@ -419,7 +419,7 @@ function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQuer
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
-        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? (result.rawFilterList as RawQueryFilter[]) : [];
+        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? result.rawFilterList : [];
         const storedRawFilters = manualQueryRawFilterStore.get(query);
         if (storedRawFilters && storedRawFilters.length > 0) {
             result.rawFilterList = storedRawFilters;
@@ -487,13 +487,14 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
         return undefined;
     }
 
-    const sanitizedFilters = queryJSON.rawFilterList.map((rawFilter) => {
+    const sanitizedFilters = queryJSON.rawFilterList.reduce<RawQueryFilter[]>((accumulator, rawFilter) => {
         if (!rawFilter) {
-            return rawFilter;
+            return accumulator;
         }
 
         if (rawFilter.isDefault) {
-            return rawFilter;
+            accumulator.push(rawFilter);
+            return accumulator;
         }
 
         const rawValue = rawFilter.value;
@@ -502,21 +503,20 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
         let updatedValue: string | string[] = Array.isArray(rawValue) ? rawValue.map((value) => value?.toString() ?? '') : (rawValue?.toString() ?? '');
 
         if (isRecognizedFilterKey) {
-            updatedValue = getUpdatedFilterValue(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, Array.isArray(updatedValue) ? updatedValue : updatedValue) as
-                | string
-                | string[];
+            updatedValue = getUpdatedFilterValue(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, updatedValue);
         }
 
-        return {
+        accumulator.push({
             ...rawFilter,
             value: updatedValue,
-        };
-    }) as RawQueryFilter[];
+        });
+        return accumulator;
+    }, []);
 
     const seenKeys = new Set<string>();
 
     for (let index = sanitizedFilters.length - 1; index >= 0; index -= 1) {
-        const filter = sanitizedFilters[index];
+        const filter = sanitizedFilters.at(index);
 
         if (!filter) {
             continue;
