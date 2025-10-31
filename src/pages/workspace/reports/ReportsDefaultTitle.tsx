@@ -82,7 +82,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN,CONST.POLICY.ACCESS_VARIANTS.AUDITOR, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

@@ -3199,6 +3199,7 @@ const CONST = {
             PAID: 'paid',
             ADMIN: 'admin',
             CONTROL: 'control',
+            AUDITOR: 'auditor'
         },
         DEFAULT_MAX_EXPENSE_AGE: 90,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
