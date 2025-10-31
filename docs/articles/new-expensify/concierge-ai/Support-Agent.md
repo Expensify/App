@@ -3,9 +3,8 @@ title: Support Agent
 description: Learn how the Concierge Support Agent can answer questions, troubleshoot issues, and connect you to real-time help in Expensify.
 keywords: Concierge Support, Support Agent, Expensify help, AI support, troubleshoot Expensify, how to contact Concierge, onboarding call, Expensify chat support
 ---
-Account > Help and Feedback > Concierge
 
-<div id="concierge-ai" markdown="1">
+<div id="new-expensify" markdown="1">
 
 Concierge is your AI-powered support agent inside Expensify—available 24/7 to answer questions, troubleshoot problems, and connect you with a human if needed.
 
@@ -19,8 +18,8 @@ Anyone with an Expensify account can contact Concierge for help—whether you're
 
 You can ask Concierge for help from anywhere in Expensify:
 
-- **Web:** Click the chat icon in the lower-right corner  
-- **Mobile:** Tap the hamburger menu in the top-left corner, then tap **Concierge**  
+- **Web:** Press the + button at the bottom left corner of the screen, select Start Chat, and type Concierge into the composer box.
+- **Mobile:** Tap Create at the bottom of your screen, select Start Chat, and type Concierge into the composer box.
 - **Workspace chat:** Mention Concierge in a chat room (e.g., `#admins`)  
 - **Report or expense threads:** Ask a question in the thread  
 - **Email:** Send a message to concierge@expensify.com  
