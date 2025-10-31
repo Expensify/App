@@ -1945,7 +1945,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
-            const selfDMReportID = ReportUtils.findSelfDMReportID();
+            const selfDMReportID = ReportUtils.getSelfDMReportID();
             const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,

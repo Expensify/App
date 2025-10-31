@@ -112,12 +112,12 @@ import {
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
+    buildOptimisticSelfDMReport,
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findLastAccessedReport,
-    findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getChatByParticipants,
@@ -144,6 +144,7 @@ import {
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
+    getSelfDMReportID,
     getTitleReportField,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
@@ -1045,7 +1046,7 @@ function openReport(
         const transaction = allTransactions?.[transactionID];
 
         if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+            const selfDMReportID = getSelfDMReportID();
 
             if (selfDMReportID) {
                 const generatedReportActionID = rand64();
@@ -1326,7 +1327,7 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = findSelfDMReportID();
+        const selfDMReportID = getSelfDMReportID();
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -4908,7 +4909,68 @@ function deleteAppReport(reportID: string | undefined) {
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    const selfDMReportID = findSelfDMReportID();
+    const selfDMReportID = getSelfDMReportID();
+    let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let createdAction: ReportAction;
+
+    if (!selfDMReport) {
+        const currentTime = DateUtils.getDBTime();
+        selfDMReport = buildOptimisticSelfDMReport(currentTime, selfDMReportID);
+        createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    ...selfDMReport,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [createdAction.reportActionID]: createdAction,
+                },
+            },
+        );
+
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    // created self DM action has different ID so we have to clean it
+                    [createdAction.reportActionID]: null,
+                },
+            },
+        );
+    }
 
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];

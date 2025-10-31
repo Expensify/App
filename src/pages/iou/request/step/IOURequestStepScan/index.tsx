@@ -52,7 +52,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
@@ -153,7 +153,7 @@ function IOURequestStepScan({
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({

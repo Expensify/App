@@ -13,7 +13,7 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
+import {getReportName, getReportOrDraftReport, getSelfDMReportID, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getAttendeesListDisplayString, getCurrency, getReimbursable, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
@@ -274,7 +274,7 @@ function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
     const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     if (isUnreportedExpense) {
-        return findSelfDMReportID();
+        return getSelfDMReportID();
     }
 
     return transaction.reportID;

@@ -1179,6 +1179,17 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1813,13 +1824,8 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeReportID;
 }
 
-function findSelfDMReportID(): string | undefined {
-    if (!allReports) {
-        return;
-    }
-
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+function getSelfDMReportID(): string | undefined {
+    return selfDMReportID;
 }
 
 /**
@@ -2346,7 +2352,6 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
@@ -6306,7 +6311,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: selfDMReportID ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6659,7 +6664,6 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
     const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
@@ -12192,7 +12196,7 @@ export {
     doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
-    findSelfDMReportID,
+    getSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,

@@ -40,7 +40,7 @@ function TrackExpensePage() {
                 IOU.startMoneyRequest(
                     CONST.IOU.TYPE.TRACK,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                    ReportUtils.getSelfDMReportID() || ReportUtils.generateReportID(),
                 );
 
                 if (!hasSeenTrackTraining && !isOffline) {
