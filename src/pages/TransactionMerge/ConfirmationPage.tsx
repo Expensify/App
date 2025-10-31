@@ -20,6 +20,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -33,22 +34,23 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const {transactionID, backTo, hash} = route.params;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    console.log('confirm');
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
+    let [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+    let [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
     const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
     let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`);
 
-    // If coming from the search page, we might not have the report locally in the usual Onyx collection
-    if (hash) {
+    // If coming from the search page, we might not have data locally in the usual Onyx collection, get it from the snapshot
+    if (hash && currentSearchResults?.data) {
         targetTransactionParentReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`] ?? undefined;
+        sourceTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
+        targetTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
     }
 
     const policyID = targetTransactionParentReport?.policyID;
@@ -68,12 +70,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         setIsMergingExpenses(true);
         mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
 
-        Navigation.dismissModalWithReport({reportID});
+        if (hash) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
+        } else {
+            Navigation.dismissModalWithReport({reportID});
+        }
     }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, policy, policyTags, policyCategories]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionParentReport?.reportID) {
-        console.log('loading meta', isLoadingOnyxValue(mergeTransactionMetadata));
-        console.log('loading report', targetTransactionParentReport?.reportID);
         return <FullScreenLoadingIndicator />;
     }
 

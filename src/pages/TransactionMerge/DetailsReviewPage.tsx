@@ -55,13 +55,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
 
-    if (!sourceTransaction && currentSearchResults?.data) {
+    if (hash && currentSearchResults?.data) {
         sourceTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
-    }
-
-    if (!targetTransaction && currentSearchResults?.data) {
         targetTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
     }
+
+    console.log('sourceTransaction', sourceTransaction);
+    console.log('targetTransaction', targetTransaction);
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);

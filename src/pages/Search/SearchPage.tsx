@@ -501,10 +501,12 @@ function SearchPage({route}: SearchPageProps) {
             const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[1]}`];
 
             if (
+                transaction1 &&
+                transaction2 &&
                 isMergeActionFromReportView(
                     [transaction1, transaction2],
-                    [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactionsKeys[0]}`]],
-                    [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionsKeys[0]}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionsKeys[0]}`]],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]],
                 )
             ) {
                 options.push({
@@ -515,13 +517,13 @@ function SearchPage({route}: SearchPageProps) {
                         let targetTransactionID = transaction1?.transactionID;
                         let sourceTransactionID = transaction2?.transactionID;
 
+                        // If we reached here, only one of the transactions can be a card transaction
                         if (isManagedCardTransaction(transaction2)) {
                             targetTransactionID = transaction2?.transactionID;
                             sourceTransactionID = transaction1?.transactionID;
                         }
 
                         setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
-                        console.log(transaction1, transaction2);
                         if (shouldNavigateToReceiptReview([transaction1, transaction2])) {
                             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
                         } else {
