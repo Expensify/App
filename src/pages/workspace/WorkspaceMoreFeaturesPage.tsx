@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Hoverable from '@components/Hoverable';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -464,27 +465,36 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const renderItem = useCallback(
         (item: Item) => (
-            <View
-                key={item.titleTranslationKey}
-                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0)]}
-            >
-                <ToggleSettingOptionRow
-                    icon={item.icon}
-                    disabled={item.disabled}
-                    disabledAction={item.disabledAction}
-                    title={translate(item.titleTranslationKey)}
-                    titleStyle={styles.textStrong}
-                    subtitle={translate(item.subtitleTranslationKey)}
-                    switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
-                    isActive={item.isActive}
-                    pendingAction={item.pendingAction}
-                    onToggle={item.action}
-                    showLockIcon={item.disabled}
-                    errors={item.errors}
-                    onCloseError={item.onCloseError}
-                    onPress={item.onPress}
-                />
-            </View>
+            <Hoverable>
+                {(hovered) => (
+                    <View
+                        key={item.titleTranslationKey}
+                        style={[
+                            styles.workspaceSectionMoreFeaturesItem,
+                            shouldUseNarrowLayout && styles.flexBasis100,
+                            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
+                            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
+                        ]}
+                    >
+                        <ToggleSettingOptionRow
+                            icon={item.icon}
+                            disabled={item.disabled}
+                            disabledAction={item.disabledAction}
+                            title={translate(item.titleTranslationKey)}
+                            titleStyle={styles.textStrong}
+                            subtitle={translate(item.subtitleTranslationKey)}
+                            switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
+                            isActive={item.isActive}
+                            pendingAction={item.pendingAction}
+                            onToggle={item.action}
+                            showLockIcon={item.disabled}
+                            errors={item.errors}
+                            onCloseError={item.onCloseError}
+                            onPress={item.onPress}
+                        />
+                    </View>
+                )}
+            </Hoverable>
         ),
         [styles, StyleUtils, shouldUseNarrowLayout, translate],
     );
