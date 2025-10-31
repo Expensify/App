@@ -30,6 +30,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
         <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentBetween]}>
             {transactions.map((transaction, index) => {
                 const receiptURIs = getThumbnailAndImageURIs(transaction);
+                console.log(receiptURIs);
                 const isSelected = selectedReceiptID === transaction.receipt?.receiptID;
                 return (
                     <View
