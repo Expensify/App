@@ -378,8 +378,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         pendingAction,
         receipt: receipt?.source
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
-            : undefined,
-        hasEReceipt: !receipt?.source,
+            : {},
         filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
@@ -390,9 +389,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         reimbursable,
         inserted: DateUtils.getDBTime(),
         participants,
-        cardID: existingTransaction?.cardID,
-        cardName: existingTransaction?.cardName,
-        cardNumber: existingTransaction?.cardNumber,
     };
 }
 

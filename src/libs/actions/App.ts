@@ -445,33 +445,40 @@ function endSignOnTransition() {
     return resolveSignOnTransitionToFinishPromise();
 }
 
+type CreateWorkspaceWithPolicyDraftParams = {
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    policyOwnerEmail?: string;
+    policyName?: string;
+    transitionFromOldDot?: boolean;
+    makeMeAdmin?: boolean;
+    backTo?: string;
+    policyID?: string;
+    currency?: string;
+    file?: File;
+    routeToNavigateAfterCreate?: Route;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+};
+
 /**
  * Create a new draft workspace and navigate to it
- *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [policyID] Optional, Policy id.
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
- * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(
-    policyOwnerEmail = '',
-    policyName = '',
-    transitionFromOldDot = false,
-    makeMeAdmin = false,
-    backTo = '',
-    policyID = '',
-    currency?: string,
-    file?: File,
-    routeToNavigateAfterCreate?: Route,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        transitionFromOldDot = false,
+        makeMeAdmin = false,
+        backTo = '',
+        policyID = '',
+        currency,
+        file,
+        routeToNavigateAfterCreate,
+        lastUsedPaymentMethod,
+    } = params;
+
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
@@ -531,7 +538,7 @@ function savePolicyDraftByNewWorkspace(
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         endSignOnTransition();
@@ -553,7 +560,13 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
+            introSelected,
+            policyOwnerEmail,
+            policyName,
+            transitionFromOldDot: true,
+            makeMeAdmin,
+        });
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {

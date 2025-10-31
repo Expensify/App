@@ -658,6 +658,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The list of attendees */
     newAttendees?: Attendee[];
+
+    /** Source of category change (agentZero, mccMapping, or manual) */
+    source?: string;
 };
 
 /** Model of a `travel update` report action */

@@ -271,11 +271,22 @@ function getForReportAction({
 
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let categoryLabel = translateLocal('common.category');
+
+        // Add attribution suffix based on source
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+        }
+
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.category ?? '',
             reportActionOriginalMessage?.oldCategory ?? '',
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.category'),
+            categoryLabel,
             true,
             setFragments,
             removalFragments,
