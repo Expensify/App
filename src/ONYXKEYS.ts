@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
+import type {TranslationPaths} from './languages/types';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
@@ -62,6 +63,9 @@ const ONYXKEYS = {
 
     // draft status
     CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
+    // draft status in custom mode (date and time)
+    STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE: 'statusDraftCustomClearAfterDate',
 
     // keep edit message focus state
     INPUT_FOCUSED: 'inputFocused',
@@ -389,8 +393,8 @@ const ONYXKEYS = {
     /** Onboarding customized choices to display to the user based on their profile when signing up */
     ONBOARDING_CUSTOM_CHOICES: 'onboardingCustomChoices',
 
-    /** Onboarding error message to be displayed to the user */
-    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
+    /** Onboarding error message translation key to be displayed to the user */
+    ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY: 'onboardingErrorMessageTranslationKey',
 
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
@@ -1119,6 +1123,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
+    [ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE]: string;
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
@@ -1187,7 +1192,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
-    [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
+    [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
@@ -1213,7 +1218,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
-    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
+    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;

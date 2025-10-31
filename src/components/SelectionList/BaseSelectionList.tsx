@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputKeyPressEventData, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -11,6 +11,8 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
@@ -57,6 +59,7 @@ function BaseSelectionList<TItem extends ListItem>({
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
+    includeSafeAreaPaddingBottom = true,
     showListEmptyContent,
     showLoadingPlaceholder,
     showScrollIndicator = true,
@@ -78,6 +81,8 @@ function BaseSelectionList<TItem extends ListItem>({
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const activeElementRole = useActiveElementRole();
+    const {isKeyboardShown} = useKeyboardState();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
@@ -91,6 +96,11 @@ function BaseSelectionList<TItem extends ListItem>({
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
+    );
+
+    const paddingBottomStyle = useMemo(
+        () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
+        [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
@@ -239,7 +249,7 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     );
 
-    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
@@ -306,7 +316,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={!!alternateNumberOfSupportedLines}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
                 wrapperStyle={style?.listItemWrapperStyle}
@@ -363,7 +373,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
     return (
-        <View style={[styles.flex1, style?.containerStyle]}>
+        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()

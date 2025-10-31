@@ -2,6 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import FloatingActionButton from '@components/FloatingActionButton';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
@@ -20,7 +21,8 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
-jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
 // Mock useIsHomeRouteActive to avoid navigation state issues
 jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
@@ -51,6 +53,10 @@ describe('FloatingActionButton hover', () => {
         jest.clearAllMocks();
     });
 
+    beforeAll(() => {
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+    });
+
     it('changes background color on hover', () => {
         renderFAB();
         const fab = screen.getByTestId('floating-action-button');
@@ -68,5 +74,24 @@ describe('FloatingActionButton hover', () => {
         // Test hover out
         fireEvent(fab, 'hoverOut');
         expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
+    });
+
+    it('should render animated button if LHB is visible', () => {
+        renderFAB();
+
+        // Get the animated container by testID
+        const animatedContainer = screen.getByTestId('fab-animated-container');
+
+        expect(animatedContainer).toBeVisible();
+    });
+
+    it('should render regular button if LHB is not visible', () => {
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+        renderFAB();
+
+        // Get the container by testID
+        const container = screen.getByTestId('fab-container');
+
+        expect(container).toBeVisible();
     });
 });

@@ -15,7 +15,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -179,6 +178,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -657,6 +657,7 @@ const translations = {
         pinned: 'Fijado',
         read: 'Leído',
         copyToClipboard: 'Copiar al portapapeles',
+        thisIsTakingLongerThanExpected: 'Está tardando más de lo esperado...',
         domains: 'Dominios',
     },
     supportalNoAccess: {
@@ -1035,8 +1036,6 @@ const translations = {
         uploadMultiple: 'Subir recibos',
         desktopSubtitleSingle: 'o arrastra y suéltalo aquí',
         desktopSubtitleMultiple: 'o arrástralos y suéltalos aquí',
-        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
-        chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         alternativeMethodsTitle: 'Otras formas de añadir recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</label-text>`,
@@ -1046,8 +1045,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</label-text>`,
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
-        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
-        deniedCameraAccessInstructions: 'estas instrucciones',
+        deniedCameraAccess: `No se ha concedido el acceso a la cámara, siga <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">estas instrucciones</a>.`,
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
@@ -1278,6 +1276,8 @@ const translations = {
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+        basedOnAI: 'basado en actividad pasada',
+        basedOnMCC: 'basado en regla del espacio de trabajo',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Informe de facturación #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
@@ -1835,8 +1835,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Tu conexión de contabilidad con Xero requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
+        twoFactorAuthIsRequiredXero: 'Tu conexión de contabilidad con Xero requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
+        twoFactorAuthIsRequiredCompany: 'Tu empresa requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
@@ -2404,10 +2404,10 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({workspaceCategoriesLink}) =>
                     '*Configura categorías* para que tu equipo pueda clasificar los gastos y facilitar los informes.\n\n' +
                     '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '3. Selecciona tu espacio de trabajo.\n' +
-                    '4. Haz clic en *Categorías*.\n' +
-                    '5. Desactiva cualquier categoría que no necesites.\n' +
-                    '6. Añade tus propias categorías en la esquina superior derecha.\n\n' +
+                    '2. Selecciona tu espacio de trabajo.\n' +
+                    '3. Haz clic en *Categorías*.\n' +
+                    '4. Desactiva cualquier categoría que no necesites.\n' +
+                    '5. Añade tus propias categorías en la esquina superior derecha.\n\n' +
                     `[Ir a la configuración de categorías del espacio de trabajo](${workspaceCategoriesLink}).\n\n` +
                     `![Configura categorías](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
             },
@@ -2478,10 +2478,10 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({workspaceMembersLink}) =>
                     '*Invita a tu equipo* a Expensify para que empiecen a organizar gastos hoy mismo.\n\n' +
                     '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '3. Selecciona tu espacio de trabajo.\n' +
-                    '4. Haz clic en *Miembros* > *Invitar miembro*.\n' +
-                    '5. Introduce correos o teléfonos.\n' +
-                    '6. Añade un mensaje personalizado si lo deseas.\n\n' +
+                    '2. Selecciona tu espacio de trabajo.\n' +
+                    '3. Haz clic en *Miembros* > *Invitar miembro*.\n' +
+                    '4. Introduce correos o teléfonos.\n' +
+                    '5. Añade un mensaje personalizado si lo deseas.\n\n' +
                     `[Ir a miembros del espacio de trabajo](${workspaceMembersLink}).\n\n` +
                     `![Invita a tu equipo](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
@@ -2496,11 +2496,11 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Usa etiquetas para añadir detalles como proyectos, clientes, ubicaciones y departamentos. Si necesitas múltiples niveles, puedes mejorar al plan Controlar.\n\n' +
                     '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '3. Selecciona tu espacio de trabajo.\n' +
-                    '4. Haz clic en *Más funciones*.\n' +
-                    '5. Habilita *Etiquetas*.\n' +
-                    '6. Navega a *Etiquetas* en el editor del espacio.\n' +
-                    '7. Haz clic en *+ Añadir etiqueta* para crear la tuya.\n\n' +
+                    '2. Selecciona tu espacio de trabajo.\n' +
+                    '3. Haz clic en *Más funciones*.\n' +
+                    '4. Habilita *Etiquetas*.\n' +
+                    '5. Navega a *Etiquetas* en el editor del espacio.\n' +
+                    '6. Haz clic en *+ Añadir etiqueta* para crear la tuya.\n\n' +
                     `[Ir a más funciones](${workspaceMoreFeaturesLink}).\n\n` +
                     `![Configura etiquetas](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
@@ -4507,6 +4507,12 @@ ${amount} para ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Seleccione un país antes de continuar',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
+                exitModal: {
+                    title: '¿Algo no funciona?',
+                    prompt: 'Notamos que no terminaste de añadir tus tarjetas. Si encontraste un problema, háznoslo saber para que podamos ayudarte a solucionarlo.',
+                    confirmText: 'Informar problema',
+                    cancelText: 'Saltar',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
@@ -4521,7 +4527,8 @@ ${amount} para ${merchant} - ${date}`,
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Elige una tarjeta para ${assignee} del feed de tarjetas ${feed}.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Elige una tarjeta para <strong>${assignee}</strong>. ¿No encuentras la tarjeta que buscas? <concierge-link>Avísanos.</concierge-link>`,
             noActiveCards: 'No hay tarjetas activas en este feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>O algo podría estar roto. De cualquier manera, si tienes alguna pregunta, <concierge-link>contacta a Concierge</concierge-link>.</centered-text></muted-text>',
@@ -6292,6 +6299,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} es ${value}`,
         },
         has: 'Tiene',
         groupBy: 'Agrupar por',
