@@ -4,6 +4,7 @@ import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/Re
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import {ACHAccount} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -596,14 +597,9 @@ describe('libs/NextStepUtils', () => {
                         policy: {
                             ...policy,
                             achAccount: {
-                                bankAccountID: 1,
                                 accountNumber: '123456789',
-                                routingNumber: '987654321',
-                                addressName: 'Test Address',
-                                bankName: 'Test Bank',
-                                reimburser: 'test@expensify.com',
-                            },
-                        },
+                            } as ACHAccount,
+                        } as Policy,
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
@@ -901,14 +897,9 @@ describe('libs/NextStepUtils', () => {
                         policy: {
                             ...policy,
                             achAccount: {
-                                bankAccountID: 1,
                                 accountNumber: '123456789',
-                                routingNumber: '987654321',
-                                addressName: 'Test Address',
-                                bankName: 'Test Bank',
-                                reimburser: 'test@expensify.com',
-                            },
-                        },
+                            } as ACHAccount,
+                        } as Policy,
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
