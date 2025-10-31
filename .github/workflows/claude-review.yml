@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Skip draft PRs on opened event
-        if: github.event_name == 'pull_request_target' && github.event.action == 'opened' && github.event.pull_request.draft == true
+        if: github.event.action == 'opened' && github.event.pull_request.draft == true
         run: |
           echo "::notice::Skipping review because the PR is a draft"
           exit 0
