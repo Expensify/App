@@ -54,7 +54,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList({
@@ -84,6 +84,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -92,7 +93,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, draftComments, options.personalDetails, options.reports]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, draftComments, options.personalDetails, options.reports, countryCode]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -165,6 +166,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
+            countryCode,
+            false,
         );
 
         return [newSections, headerMessage];
@@ -176,8 +179,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        countryCode,
     ]);
 
     const selectAccountant = useCallback(
