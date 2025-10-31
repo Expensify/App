@@ -478,7 +478,6 @@ function ReportActionsList({
 
         prevHandleReportChangeMarkAsRead.current = handleReportChangeMarkAsRead;
         prevHandleAppVisibilityMarkAsRead.current = handleAppVisibilityMarkAsRead;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
 
     useEffect(() => {
