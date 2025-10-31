@@ -4,7 +4,7 @@ import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/Re
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import {ACHAccount} from '@src/types/onyx/Policy';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

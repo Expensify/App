@@ -635,6 +635,7 @@ function IOURequestStepConfirmation({
             recentlyUsedDestinations,
             transactionViolations,
             isASAPSubmitBetaEnabled,
+            hasViolations,
         ],
     );
 

@@ -305,6 +305,8 @@ function IOURequestStepDistanceManual({
             action,
             distance,
             localeCompare,
+            transactionViolations,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
