@@ -459,7 +459,7 @@ function NumberWithSymbolForm({
                     <View
                         id={NUMBER_VIEW_ID}
                         onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                        style={[, styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                        style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                     >
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
