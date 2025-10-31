@@ -66,8 +66,8 @@ function MFAFactorAuthenticatorPage() {
 
         setFormError({});
 
-        validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData); // TODO: zweryfikowac czy jest to odpowiedni endpoint i czy powinien byc handlowany w taki sposob
-        Navigation.dismissModal(); // TODO: Jakies szmery bajery tutaj - wiemy ze jesli tutaj jestesmy to jest to nasz drugi factor czyli pewnie jakies handlowanie contextu i nawigacja do powiadomienia
+        validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData); // TODO: verify whether this is the appropriate endpoint and whether it should be handled this way
+        Navigation.dismissModal(); // TODO: we know that if we are here, this is our second factor, which is probably some context trading and navigation to notifications
     }, [translate, twoFactorAuthCode, shouldClearData]);
 
     useFocusEffect(
