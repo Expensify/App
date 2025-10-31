@@ -126,7 +126,6 @@ function SearchContextProvider({children}: ChildrenProps) {
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
                 setSelectedTransactions([]);
-
                 return;
             }
 
