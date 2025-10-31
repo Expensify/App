@@ -1871,6 +1871,12 @@ const translations = {
             incorrect2fa: '二要素認証コードが間違っています。もう一度お試しください。',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'SMSで送信されたコードを入力してください',
+            incorrectSmsOtp: 'コードが間違っています。もう一度お試しください。',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'パスワードが更新されました！',
         allSet: '準備完了です。新しいパスワードを安全に保管してください。',

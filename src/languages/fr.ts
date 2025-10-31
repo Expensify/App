@@ -1882,6 +1882,12 @@ const translations = {
             incorrect2fa: "Code d'authentification à deux facteurs incorrect. Veuillez réessayer.",
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Veuillez entrer le code envoyé par SMS',
+            incorrectSmsOtp: 'Code incorrect. Veuillez réessayer.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Mot de passe mis à jour !',
         allSet: 'Tout est prêt. Gardez votre nouveau mot de passe en sécurité.',

@@ -1851,6 +1851,12 @@ const translations = {
             incorrect2fa: '两步验证代码不正确。请重试。',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: '请输入通过短信发送的代码',
+            incorrectSmsOtp: '代码不正确。请重试。',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: '密码已更新！',
         allSet: '一切就绪。请妥善保管您的新密码。',

@@ -1873,6 +1873,12 @@ const translations = {
             incorrect2fa: 'Codice di autenticazione a due fattori errato. Per favore riprova.',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Inserisci il codice inviato via SMS',
+            incorrectSmsOtp: 'Codice errato. Per favore riprova.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password aggiornato!',
         allSet: 'Tutto pronto. Tieni al sicuro la tua nuova password.',

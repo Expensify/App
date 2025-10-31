@@ -1874,6 +1874,12 @@ const translations = {
             incorrect2fa: 'Onjuiste twee-factor authenticatiecode. Probeer het opnieuw.',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Voer de via SMS verzonden code in',
+            incorrectSmsOtp: 'Onjuiste code. Probeer het opnieuw.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Wachtwoord bijgewerkt!',
         allSet: 'Je bent klaar. Bewaar je nieuwe wachtwoord veilig.',

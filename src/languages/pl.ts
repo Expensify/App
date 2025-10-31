@@ -1871,6 +1871,12 @@ const translations = {
             incorrect2fa: 'Nieprawidłowy kod uwierzytelniania dwuskładnikowego. Proszę spróbować ponownie.',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Proszę wprowadzić kod wysłany przez SMS',
+            incorrectSmsOtp: 'Nieprawidłowy kod. Proszę spróbować ponownie.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Hasło zaktualizowane!',
         allSet: 'Wszystko gotowe. Zachowaj swoje nowe hasło w bezpiecznym miejscu.',

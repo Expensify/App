@@ -1855,6 +1855,12 @@ const translations = {
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
         },
     },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Por favor, ingrese el código enviado por SMS',
+            incorrectSmsOtp: 'Código incorrecto. Por favor, inténtelo de nuevo.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: '¡Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
