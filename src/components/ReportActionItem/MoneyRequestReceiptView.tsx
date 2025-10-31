@@ -225,17 +225,18 @@ function MoneyRequestReceiptView({
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        if (hasOnlyReportCreationError) {
+        if (!hasOnlyReportCreationError) {
+            revert(transaction, getLastModifiedExpense(report?.reportID));
+            clearError(transaction.transactionID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+        }
+        if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
             navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
-            return;
         }
-        revert(transaction, getLastModifiedExpense(report?.reportID));
-        clearError(transaction.transactionID);
-        clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, iouReport, chatIOUReport, isChatIOUReportArchived]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, iouReport, chatIOUReport, isChatIOUReportArchived, reportCreationError]);
 
     let receiptStyle: StyleProp<ViewStyle>;
 
