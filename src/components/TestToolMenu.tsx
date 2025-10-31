@@ -1,20 +1,20 @@
 import React from 'react';
+import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { View } from 'react-native';
-import type { TranslationPaths } from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import Navigation from '@libs/Navigation/Navigation';
-import useSingleExecution from '@hooks/useSingleExecution';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -32,9 +32,11 @@ function TestToolMenu() {
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const navigateToBiometricsTestPage = singleExecution(waitForNavigate(() => {
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST);
-    }));
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();

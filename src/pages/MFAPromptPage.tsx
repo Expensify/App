@@ -1,45 +1,47 @@
 import React from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import LottieAnimations from '@components/LottieAnimations';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type { TranslationPaths } from '@src/languages/types';
+import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
 type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
-type PromptcontentData = {
-    animation: DotLottieAnimation;
-    title: TranslationPaths;
-    subtitle: TranslationPaths;
-} | undefined;
+type PromptcontentData =
+    | {
+          animation: DotLottieAnimation;
+          title: TranslationPaths;
+          subtitle: TranslationPaths;
+      }
+    | undefined;
 
-const getPromptContentData = (promptType: PromptType) : PromptcontentData => {
+const getPromptContentData = (promptType: PromptType): PromptcontentData => {
     switch (promptType) {
         case 'enable-biometrics':
             return {
                 animation: LottieAnimations.Fingerprint,
-                title: "multiFactorAuthentication.prompts.enableBiometricsPromptTitle",
-                subtitle: "multiFactorAuthentication.prompts.enableBiometricsPromptContent",
+                title: 'multiFactorAuthentication.prompts.enableBiometricsPromptTitle',
+                subtitle: 'multiFactorAuthentication.prompts.enableBiometricsPromptContent',
             };
         case 'enable-passkey':
             return {
                 animation: LottieAnimations.Fingerprint,
-                title: "multiFactorAuthentication.prompts.enablePasskeyPromptTitle",
-                subtitle: "multiFactorAuthentication.prompts.enablePasskeyPromptContent",
+                title: 'multiFactorAuthentication.prompts.enablePasskeyPromptTitle',
+                subtitle: 'multiFactorAuthentication.prompts.enablePasskeyPromptContent',
             };
         default:
             return undefined;
@@ -54,7 +56,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const contentData = getPromptContentData(route.params.promptType);
 
     if (!contentData) {
-        return <NotFoundPage/>
+        return <NotFoundPage />;
     }
 
     const onConfirm = () => {

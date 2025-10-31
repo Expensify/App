@@ -1,3 +1,4 @@
+import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -23,11 +24,14 @@ import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
+import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+import OpenPadlock from '@assets/images/open-padlock.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
@@ -50,6 +54,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import RunOutOfTime from '@assets/images/running-out-of-time.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -68,6 +73,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
+import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
@@ -110,12 +116,6 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import OpenPadlock from '@assets/images/open-padlock.svg';
-import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
-import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
-import RunOutOfTime from '@assets/images/running-out-of-time.svg';
-import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
-import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 
 export {
     Abracadabra,

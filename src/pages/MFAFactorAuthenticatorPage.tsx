@@ -1,26 +1,26 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, validateTwoFactorAuth} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@hooks/useThemeStyles';
-import ScreenWrapper from '@components/ScreenWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Navigation from '@libs/Navigation/Navigation';
-import ScrollView from '@components/ScrollView';
-import { View } from 'react-native';
-import Text from '@components/Text';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
-import useNetwork from '@hooks/useNetwork';
-import AccountUtils from '@libs/AccountUtils';
 
 function MFAFactorAuthenticatorPage() {
     const styles = useThemeStyles();
@@ -110,7 +110,7 @@ function MFAFactorAuthenticatorPage() {
                     <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
                         <Text style={styles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
                         <MagicCodeInput
-                            autoComplete='one-time-code'
+                            autoComplete="one-time-code"
                             name="twoFactorAuthCode"
                             value={twoFactorAuthCode}
                             onChangeText={onCodeInput}
@@ -136,6 +136,6 @@ function MFAFactorAuthenticatorPage() {
     );
 }
 
-MFAFactorAuthenticatorPage.displayName = 'MFAFactorAuthenticatorPage'
+MFAFactorAuthenticatorPage.displayName = 'MFAFactorAuthenticatorPage';
 
 export default MFAFactorAuthenticatorPage;

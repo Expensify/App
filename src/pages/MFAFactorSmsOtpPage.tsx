@@ -2,14 +2,14 @@ import React from 'react';
 import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
 
 function MFAFactorSmsOtpPage() {
-    // TODO: Get phoneNumber from account/session when available i dont really know where from 
+    // TODO: Get phoneNumber from account/session when available i dont really know where from
     const phoneNumber = '+48660939866';
 
-        /**
+    /**
      * Fake verify function for magic code / authenticator / sms flows.
      * Does nothing (no-op) and resolves immediately.
      */
-    function verifySmsOtp(code?: string){
+    function verifySmsOtp(code?: string) {
         // Intentionally no-op. Keep a log to help debugging.
         // eslint-disable-next-line no-console
         console.log('[fakeMFA] verifyMagicCode called with:', code);

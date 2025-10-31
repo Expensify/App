@@ -1,22 +1,22 @@
-import React, {useState, useCallback, useRef, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
-import Text from '@components/Text';
-import RenderHTML from '@components/RenderHTML';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearAccountMessages} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
@@ -35,54 +35,45 @@ type MFAValidateCodePageProps = {
     description: TranslationPaths;
     contactMethod: string;
     autoComplete: AutoCompleteVariant;
-    
+
     // Error messages
     errorMessages: {
         empty: TranslationPaths;
         invalid: TranslationPaths;
     };
-    
+
     // Resend button text
     resendButtonText: TranslationPaths;
-    
+
     // Submit handler from context
     onSubmit: (code: string) => void;
-    
+
     // Optional: external loading state (from context)
     isVerifying?: boolean;
 };
 
-function MFAValidateCodePage({
-    title,
-    description,
-    contactMethod,
-    autoComplete,
-    errorMessages,
-    resendButtonText,
-    onSubmit,
-    isVerifying = false,
-}: MFAValidateCodePageProps) {
+function MFAValidateCodePage({title, description, contactMethod, autoComplete, errorMessages, resendButtonText, onSubmit, isVerifying = false}: MFAValidateCodePageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    
+
     // Onyx data
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    
+
     // Local state
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
-    
+
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const hasInitiallySentCodeRef = useRef(false);
-    
+
     // Derived state
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
@@ -112,8 +103,7 @@ function MFAValidateCodePage({
 
     // Auto-blur on error
     useEffect(() => {
-        if (!(inputRef.current && hasError && 
-              (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {
+        if (!(inputRef.current && hasError && (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {
             return;
         }
         inputRef.current.blur();
@@ -151,16 +141,19 @@ function MFAValidateCodePage({
     /**
      * Handle code input and clear formError upon text change
      */
-    const onCodeInput = useCallback((text: string) => {
-        setFormError({});
-        setCanShowError(false);
-        setInputCode(text);
-        
-        // Clear backend errors
-        if (account?.errors) {
-            clearAccountMessages();
-        }
-    }, [account?.errors]);
+    const onCodeInput = useCallback(
+        (text: string) => {
+            setFormError({});
+            setCanShowError(false);
+            setInputCode(text);
+
+            // Clear backend errors
+            if (account?.errors) {
+                clearAccountMessages();
+            }
+        },
+        [account?.errors],
+    );
 
     const resendValidationCode = useCallback(() => {
         resendValidateCode(contactMethod);
@@ -208,15 +201,7 @@ function MFAValidateCodePage({
 
         // Call the submit callback (from context)
         onSubmit(inputCode);
-
-    }, [
-        account?.isLoading,
-        account?.errors,
-        inputCode,
-        errorMessages,
-        onSubmit,
-        isVerifying,
-    ]);
+    }, [account?.isLoading, account?.errors, inputCode, errorMessages, onSubmit, isVerifying]);
 
     const onGoBackPress = useCallback(() => {
         Navigation.goBack();
@@ -249,10 +234,7 @@ function MFAValidateCodePage({
                 accessibilityLabel={translate(resendButtonText)}
             >
                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
-                    {hasError 
-                        ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') 
-                        : translate(resendButtonText)
-                    }
+                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}
                 </Text>
             </PressableWithFeedback>
         );
@@ -265,9 +247,7 @@ function MFAValidateCodePage({
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                {translate(description, {contactMethod})}
-            </Text>
+            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>{translate(description, {contactMethod})}</Text>
             <View style={[styles.mh5]}>
                 <MagicCodeInput
                     isDisableKeyboard
@@ -300,4 +280,3 @@ function MFAValidateCodePage({
 MFAValidateCodePage.displayName = 'MFAValidateCodePage';
 
 export default MFAValidateCodePage;
-

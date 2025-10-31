@@ -11,7 +11,7 @@ function MFAFactorMagicCodePage() {
      * Fake verify function for magic code / authenticator / sms flows.
      * Does nothing (no-op) and resolves immediately.
      */
-    function verifyMagicCode(code?: string){
+    function verifyMagicCode(code?: string) {
         // Intentionally no-op. Keep a log to help debugging.
         // eslint-disable-next-line no-console
         console.log('[fakeMFA] verifyMagicCode called with:', code);

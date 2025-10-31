@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -36,8 +36,8 @@ function MFAScenarioBiometricsTestPage() {
                 <BlockingView
                     icon={Illustrations.OpenPadlock}
                     contentFitImage="fill"
-                    iconWidth = {variables.openPadlockWidth}
-                    iconHeight = {variables.openPadlockHeight}
+                    iconWidth={variables.openPadlockWidth}
+                    iconHeight={variables.openPadlockHeight}
                     title={translate('multiFactorAuthentication.biometrics.biometricsTest')}
                     containerStyle={styles.p1}
                     testID={MFAScenarioBiometricsTestPage.displayName}

@@ -1726,8 +1726,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.route,
                         [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.route,
                         [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: ROUTES.MULTIFACTORAUTHENTICATION_REVOKE,
-                    }
-                }
+                    },
+                },
             },
         },
 

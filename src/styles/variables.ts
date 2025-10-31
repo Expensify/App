@@ -391,5 +391,5 @@ export default {
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
     simpleSmartscanWidth: 204,
-    simpleSmartscanHeight:204,
+    simpleSmartscanHeight: 204,
 } as const;

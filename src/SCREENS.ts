@@ -823,7 +823,7 @@ const SCREENS = {
         APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
         PROMPT: 'MultifactorAuthentication_Prompt',
         REVOKE: 'MultifactorAuthentication_Revoke',
-    }
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

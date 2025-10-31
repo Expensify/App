@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
-import type { ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,24 +12,33 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type { MultiFactorAuthenticationParamList } from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
-import type { SvgProps } from 'react-native-svg';
+import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 // TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
-type NotificationType = 'authentication-successful' | 'authentication-failed' | 'registration-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time' | 'couldnt-send-magic-code' | 'couldnt-send-sms-code';
+type NotificationType =
+    | 'authentication-successful'
+    | 'authentication-failed'
+    | 'registration-failed'
+    | 'transaction-approved'
+    | 'transaction-denied'
+    | 'you-ran-out-of-time'
+    | 'couldnt-send-magic-code'
+    | 'couldnt-send-sms-code';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
 
 // TODO: remove, as this data will actually come from the SCENARIOS file
-type NotificationData = {
-    illustration: React.FC<SvgProps>;
-    iconWidth: number;
-    iconHeight: number;
-    padding: ViewStyle;
-} | undefined;
+type NotificationData =
+    | {
+          illustration: React.FC<SvgProps>;
+          iconWidth: number;
+          iconHeight: number;
+          padding: ViewStyle;
+      }
+    | undefined;
 
 // TODO: remove, as this data will actually come from the SCENARIOS file
 const getNotificationData = (notificationType: NotificationType): NotificationData => {
@@ -82,12 +92,12 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
     const data = getNotificationData(route.params.notificationType);
 
     // data2  // TODO: replace with the correct data from MFAcontext
-    const {headerTitle, title, content} = {headerTitle: "headerTitle", title: "Title", content: "Content"};
+    const {headerTitle, title, content} = {headerTitle: 'headerTitle', title: 'Title', content: 'Content'};
 
     if (!data) {
-        return <NotFoundPage/>;
+        return <NotFoundPage />;
     }
-    
+
     return (
         // No FullPageOfflineBlockingView here as there is no more cominication through network at this point
         <ScreenWrapper testID={MFANotificationPage.displayName}>
@@ -100,8 +110,8 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
                 <BlockingView
                     icon={data.illustration}
                     contentFitImage="fill"
-                    iconWidth = {data.iconWidth}
-                    iconHeight = {data.iconHeight}
+                    iconWidth={data.iconWidth}
+                    iconHeight={data.iconHeight}
                     title={title}
                     subtitle={content}
                     subtitleStyle={styles.textSupporting}

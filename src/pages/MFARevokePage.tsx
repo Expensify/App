@@ -1,15 +1,14 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Text from '@components/Text';
-import ConfirmModal from '@components/ConfirmModal';
-import Button from '@components/Button';
-
 
 function MFARevokePage() {
     const {translate} = useLocalize();
@@ -19,7 +18,7 @@ function MFARevokePage() {
     const isAccessRevokedOnAllDevices = false; // TODO: replace with actual logic
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
-    
+
     const showConfirmModal = () => {
         setConfirmModalVisibility(true);
     };
@@ -44,9 +43,7 @@ function MFARevokePage() {
                 {isAccessRevokedOnAllDevices ? (
                     <>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.mt5, styles.ph5]}>
-                                {translate('multiFactorAuthentication.revokePage.renableContent')}
-                            </Text>
+                            <Text style={[styles.mt5, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.renableContent')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.m5]}>
                             <Button
@@ -60,9 +57,7 @@ function MFARevokePage() {
                 ) : (
                     <>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.mt5, styles.ph5]}>
-                                {translate('multiFactorAuthentication.revokePage.revokeContent')}
-                            </Text>
+                            <Text style={[styles.mt5, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.revokeContent')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.m5]}>
                             <Button

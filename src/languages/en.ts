@@ -1872,7 +1872,7 @@ const translations = {
         error: {
             pleaseFillSmsOtp: 'Please enter the code sent via SMS',
             incorrectSmsOtp: 'Incorrect code. Please try again.',
-        }
+        },
     },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
@@ -7329,13 +7329,14 @@ const translations = {
             notificationTitle: 'Authentication successful',
             notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
             fallbackPageTitle: "Let's verify it's you",
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) =>  `Please enter the magic code sent to ${contactMethod}.`,
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
             fallbackPage2FAContent: 'Please enter your authenticator code.',
             fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Face/fingerprint verification',
-            revokeContent: 'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            revokeContent:
+                'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
             renableContent: 'Face/fingerprint verification is set up on one or more devices, but requires a magic code to re-enable. After that, you can revoke access here.',
             confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
             bottomButtonContent: 'Revoke access',
@@ -7345,7 +7346,7 @@ const translations = {
             enableBiometricsPromptContent: 'Enable quick, secure verification using your face or fingerprint—no passwords or codes required.',
             enablePasskeyPromptTitle: 'Verify yourself with a passkey',
             enablePasskeyPromptContent: 'Enable quick, secure verification using a passkey - no passwords or codes required.',
-        }
+        },
     },
 };
 
