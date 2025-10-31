@@ -197,7 +197,6 @@ function MoneyRequestReceiptView({
         [transaction, parentReportAction],
     );
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
-    const hasOnlyReportCreationError = useMemo(() => isEmptyObject(errorsWithoutReportCreation) && !isEmptyObject(reportCreationError), [errorsWithoutReportCreation, reportCreationError]);
     const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
@@ -225,7 +224,7 @@ function MoneyRequestReceiptView({
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        if (!hasOnlyReportCreationError) {
+        if (!isEmptyObject(errorsWithoutReportCreation)) {
             revert(transaction, getLastModifiedExpense(report?.reportID));
             clearError(transaction.transactionID);
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
