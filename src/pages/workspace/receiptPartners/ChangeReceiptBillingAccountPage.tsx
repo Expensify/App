@@ -35,7 +35,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOption, setSelectedOption] = useState<string>('');
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
@@ -130,8 +130,8 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode);
+    }, [debouncedSearchTerm, sections, countryCode]);
 
     return (
         <AccessOrNotFoundWrapper

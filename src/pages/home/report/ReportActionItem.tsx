@@ -94,6 +94,7 @@ function ReportActionItem({
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
@@ -115,6 +116,7 @@ function ReportActionItem({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             allReports={allReports}
+            introSelected={introSelected}
             policies={policies}
             action={action}
             report={report}
@@ -158,6 +160,7 @@ function ReportActionItem({
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+            bankAccountList={bankAccountList}
         />
     );
 }

@@ -43,14 +43,14 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
 
-    const initialDiscountInfo = getEarlyDiscountInfo();
+    const initialDiscountInfo = getEarlyDiscountInfo(firstDayFreeTrial);
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
     const [isDismissed, setIsDismissed] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         const intervalID = setInterval(() => {
-            setDiscountInfo(getEarlyDiscountInfo());
+            setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
         }, 1000);
 
         return () => clearInterval(intervalID);

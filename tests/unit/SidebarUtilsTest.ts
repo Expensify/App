@@ -351,6 +351,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
+                isReportArchived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -364,6 +365,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
+                isReportArchived: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -845,8 +847,7 @@ describe('SidebarUtils', () => {
         it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
             // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
-                ...createRandomReport(4),
-                chatType: 'policyAdmins',
+                ...createRandomReport(4, 'policyAdmins'),
                 lastMessageHtml: 'removed 0 user',
                 lastMessageText: 'removed 0 user',
                 lastVisibleActionCreated: '2025-01-20 12:30:03.784',
@@ -896,6 +897,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
+                isReportArchived: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -905,8 +907,7 @@ describe('SidebarUtils', () => {
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
             // When a report has last action with mention of an account that has no name
             const report: Report = {
-                ...createRandomReport(4),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 lastMessageText: '@unexisting@gmail.com',
                 lastVisibleActionCreated: '2025-01-20 12:30:03.784',
             };
@@ -959,6 +960,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
+                isReportArchived: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -979,8 +981,7 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: undefined,
+                    ...createRandomReport(1, undefined),
                     policyID: CONST.POLICY.ID_FAKE,
                 };
                 const reportNameValuePairs = {};
@@ -1007,6 +1008,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1018,8 +1020,7 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const report: Report = {
-                    ...createRandomReport(2),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyID: policy.id,
                     policyName: policy.name,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1058,8 +1059,7 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const report: Report = {
-                    ...createRandomReport(2),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyID: policy.id,
                     policyName: policy.name,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1083,6 +1083,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1095,8 +1096,7 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const policyExpenseChat: Report = {
-                    ...createRandomReport(2),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyID: policy.id,
                     policyName: policy.name,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1208,6 +1208,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -1220,8 +1221,7 @@ describe('SidebarUtils', () => {
                     pendingAction: null,
                 };
                 const report: Report = {
-                    ...createRandomReport(3),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyID: '1',
                     policyName: policy.name,
                 };
@@ -1249,6 +1249,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1267,8 +1268,7 @@ describe('SidebarUtils', () => {
                     accountID: 12345,
                 };
                 const report: Report = {
-                    ...createRandomReport(4),
-                    chatType: 'policyRoom',
+                    ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                     lastMessageHtml: 'invited 1 user',
                     lastMessageText: 'invited 1 user',
                     lastVisibleActionCreated: '2025-01-20 12:30:03.784',
@@ -1319,6 +1319,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1326,8 +1327,7 @@ describe('SidebarUtils', () => {
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
-                    ...createRandomReport(4),
-                    chatType: 'policyExpenseChat',
+                    ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     pendingAction: null,
                     isOwnPolicyExpenseChat: true,
                 };
@@ -1378,6 +1378,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1390,8 +1391,7 @@ describe('SidebarUtils', () => {
                 chatReportR14932.reportID = '6';
 
                 const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: 'policyExpenseChat',
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     pendingAction: null,
                     isOwnPolicyExpenseChat: true,
                     parentReportID: iouReportR14932.reportID,
@@ -1449,6 +1449,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1565,6 +1566,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1572,8 +1574,7 @@ describe('SidebarUtils', () => {
 
             it('uses adminAccountID as actor if last action is an admin-submit report action', async () => {
                 const report: Report = {
-                    ...createRandomReport(0),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     isOwnPolicyExpenseChat: true,
                 };
                 const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> = {
@@ -1648,6 +1649,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    isReportArchived: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -1721,7 +1723,7 @@ describe('SidebarUtils', () => {
 
                 // Given a report with empty reportID
                 reports['1'] = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     reportID: '',
                     reportName: 'Invalid Report',
                     isPinned: false,

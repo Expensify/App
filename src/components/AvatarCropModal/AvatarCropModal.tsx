@@ -41,9 +41,6 @@ type AvatarCropModalProps = {
     /** Callback to be called when user closes the modal */
     onClose?: () => void;
 
-    /** Callback to be called when user presses the back button */
-    onBackButtonPress?: () => void;
-
     /** Callback to be called when user saves the image */
     onSave?: (newImage: File | CustomRNImageManipulatorResult) => void;
 
@@ -58,7 +55,7 @@ type AvatarCropModalProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, onBackButtonPress, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
+function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -278,17 +275,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
-        runOnUI(() => {
-            rotation.set((value) => value - 90);
+        rotation.set((value) => value - 90);
 
-            const oldTranslateX = translateX.get();
-            translateX.set(translateY.get());
-            translateY.set(oldTranslateX * -1);
+        const oldTranslateX = translateX.get();
+        translateX.set(translateY.get());
+        translateY.set(oldTranslateX * -1);
 
-            const oldOriginalImageHeight = originalImageHeight.get();
-            originalImageHeight.set(originalImageWidth.get());
-            originalImageWidth.set(oldOriginalImageHeight);
-        })();
+        const oldOriginalImageHeight = originalImageHeight.get();
+        originalImageHeight.set(originalImageWidth.get());
+        originalImageWidth.set(oldOriginalImageHeight);
     }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
@@ -374,7 +369,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
-                    onBackButtonPress={onBackButtonPress ?? onClose}
+                    onBackButtonPress={onClose}
                 />
                 <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
                 <GestureHandlerRootView
