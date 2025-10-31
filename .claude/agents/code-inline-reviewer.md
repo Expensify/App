@@ -268,15 +268,26 @@ CRITICAL: **DO NOT** use the Bash tool for inline comments:
 
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "src/components/ReportActionsList.tsx"
+  path: 'src/components/ReportActionsList.tsx'
   line: 128
-  body: "<Body of the comment according to the Comment Format>"
+  body: '<Body of the comment according to the Comment Format>'
 ```
 
 If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
 
 ```bash
-gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
+gh pr comment --body 'LGTM :feelsgood:. Thank you for your hard work!'
+```
+
+**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+
+Example:
+```bash
+# Good
+gh pr comment --body 'Use `useMemo` to optimize performance'
+
+# Bad
+gh pr comment --body "Use `useMemo` to optimize performance"
 ```
 
 ## Comment Format
