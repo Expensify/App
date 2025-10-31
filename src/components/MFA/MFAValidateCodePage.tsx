@@ -247,7 +247,12 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>{translate(description, {contactMethod})}</Text>
+            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                {
+                    // @ts-expect-error translation can have or not have parameters
+                    translate(description, {contactMethod})
+                }
+            </Text>
             <View style={[styles.mh5]}>
                 <MagicCodeInput
                     isDisableKeyboard
