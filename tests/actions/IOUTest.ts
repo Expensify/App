@@ -9252,6 +9252,9 @@ describe('actions/IOU', () => {
                 undefined,
                 undefined,
                 undefined,
+                1,
+                'test@example.com',
+                false,
             );
             await waitForBatchedUpdates();
 

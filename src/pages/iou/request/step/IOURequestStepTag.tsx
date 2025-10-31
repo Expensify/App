@@ -130,10 +130,10 @@ function IOURequestStepTag({
                 policy,
                 policyTags,
                 policyCategories,
-                currentSearchHash,
                 currentUserPersonalDetails.accountID,
                 currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
+                currentSearchHash,
             );
             navigateBack();
             return;
