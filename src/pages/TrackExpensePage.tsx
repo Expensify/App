@@ -9,9 +9,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
+import {getSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import {confirmReadyToOpenApp} from '@userActions/App';
+import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,16 +31,16 @@ function TrackExpensePage() {
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            App.confirmReadyToOpenApp();
+            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current || isLoadingHasSeenTrackTraining) {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(
+                startMoneyRequest(
                     CONST.IOU.TYPE.TRACK,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    ReportUtils.getSelfDMReportID() || ReportUtils.generateReportID(),
+                    getSelfDMReportID() || generateReportID(),
                 );
 
                 if (!hasSeenTrackTraining && !isOffline) {

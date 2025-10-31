@@ -4915,7 +4915,7 @@ function deleteAppReport(reportID: string | undefined) {
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
-        selfDMReport = buildOptimisticSelfDMReport(currentTime, selfDMReportID);
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
         createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
         optimisticData.push(
             {

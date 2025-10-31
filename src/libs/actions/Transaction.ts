@@ -675,7 +675,7 @@ function changeTransactionsReport(
 
     if (!selfDMReport && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
-        selfDMReport = buildOptimisticSelfDMReport(currentTime, selfDMReportID);
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
 
         // Add optimistic updates for self DM report
