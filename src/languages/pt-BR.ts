@@ -680,6 +680,7 @@ const translations = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        reportName: 'Nome do relatório',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -4417,7 +4418,6 @@ ${amount} para ${merchant} - ${date}`,
             displayedAsTagDescription: 'O departamento será selecionável para cada despesa individual no relatório de um funcionário.',
             displayedAsReportFieldDescription: 'A seleção de departamento será aplicada a todas as despesas no relatório de um funcionário.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Escolha como lidar com o Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
-
             expenseTypes: 'Tipos de despesas',
             expenseTypesDescription: 'Seus tipos de despesas do Sage Intacct serão importados para o Expensify como categorias.',
             accountTypesDescription: 'Seu plano de contas do Sage Intacct será importado para o Expensify como categorias.',
@@ -7343,7 +7343,6 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
-
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',

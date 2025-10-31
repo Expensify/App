@@ -678,6 +678,7 @@ const translations = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        reportName: 'Nazwa raportu',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -4418,7 +4419,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
