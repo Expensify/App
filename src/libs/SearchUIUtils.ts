@@ -2373,6 +2373,48 @@ function getColumnsToShow(
     return columns;
 }
 
+function getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections: SearchTypeMenuSection[]): {flattenedMenuItems: SearchTypeMenuItem[]; defaultTodoIndex: number} {
+    const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+    const defaultTodoItem = getDefaultTodoSuggestedSearch(typeMenuSections);
+    let defaultTodoIndex = defaultTodoItem ? flattenedMenuItems.indexOf(defaultTodoItem) : -1;
+
+    if (defaultTodoItem && defaultTodoIndex === -1) {
+        const todoSectionIndex = typeMenuSections.findIndex((section) => section.translationPath === 'common.todo');
+        if (todoSectionIndex !== -1) {
+            const todoSection = typeMenuSections.at(todoSectionIndex);
+            const todoSectionItemIndex = todoSection?.menuItems?.indexOf(defaultTodoItem);
+            if (typeof todoSectionItemIndex === 'number' && todoSectionItemIndex !== -1) {
+                const precedingItemsCount = typeMenuSections.slice(0, todoSectionIndex).reduce((acc, section) => acc + (section.menuItems?.length ?? 0), 0);
+                defaultTodoIndex = precedingItemsCount + todoSectionItemIndex;
+            }
+        }
+    }
+
+    return {
+        flattenedMenuItems,
+        defaultTodoIndex,
+    };
+}
+
+function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
+    const todoSection = typeMenuSections.find((section) => section.translationPath === 'common.todo');
+    if (!todoSection) {
+        return undefined;
+    }
+
+    const approveItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+    if (approveItem) {
+        return approveItem;
+    }
+
+    const submitItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+    if (submitItem) {
+        return submitItem;
+    }
+
+    return todoSection.menuItems.at(0);
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -2413,6 +2455,8 @@ export {
     getWithdrawalTypeOptions,
     getActionOptions,
     getColumnsToShow,
+    getFlattenedMenuItemsWithDefaultTodoIndex,
     getHasOptions,
+    getDefaultTodoSuggestedSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

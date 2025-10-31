@@ -1,14 +1,23 @@
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import LottieAnimations from '@components/LottieAnimations';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@hooks/useSearchTypeMenuSections');
+
+const mockUseSearchTypeMenuSections = jest.mocked(useSearchTypeMenuSections);
 
 // Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -32,6 +41,35 @@ const createPaidGroupPolicy = (isPolicyExpenseChatEnabled = true) => ({
     role: CONST.POLICY.ROLE.ADMIN,
 });
 
+const SEARCH_KEY_VALUES = Object.values(CONST.SEARCH.SEARCH_KEYS) as Array<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>>;
+
+const createMockMenuItem = (key: ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, overrides: Partial<SearchTypeMenuItem> = {}): SearchTypeMenuItem => ({
+    key,
+    translationPath: 'common.submit',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    icon: {} as IconAsset,
+    searchQuery: '',
+    searchQueryJSON: undefined,
+    hash: CONST.DEFAULT_NUMBER_ID,
+    similarSearchHash: CONST.DEFAULT_NUMBER_ID,
+    ...overrides,
+});
+
+const buildSuggestedSearchMocks = (
+    itemOverrides: Partial<Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem>> = {},
+    visibilityOverrides: Partial<Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>> = {},
+) => {
+    const suggestedSearches = {} as Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem>;
+    const suggestedSearchesVisibility = {} as Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>;
+
+    SEARCH_KEY_VALUES.forEach((key) => {
+        suggestedSearches[key] = itemOverrides[key] ?? createMockMenuItem(key);
+        suggestedSearchesVisibility[key] = visibilityOverrides[key] ?? false;
+    });
+
+    return {suggestedSearches, suggestedSearchesVisibility};
+};
+
 describe('EmptySearchView', () => {
     afterEach(async () => {
         jest.clearAllMocks();
@@ -43,6 +81,13 @@ describe('EmptySearchView', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        const {suggestedSearches, suggestedSearchesVisibility} = buildSuggestedSearchMocks();
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [],
+            suggestedSearchesReady: true,
+            suggestedSearches,
+            suggestedSearchesVisibility,
+        });
     });
 
     describe('type is Expense', () => {
@@ -126,6 +171,45 @@ describe('EmptySearchView', () => {
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
+                const submitMenuItem: SearchTypeMenuItem = {
+                    key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+                    translationPath: 'common.submit',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: {} as IconAsset,
+                    searchQuery: queryString,
+                    searchQueryJSON: queryJSON,
+                    hash: queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID,
+                    similarSearchHash: queryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID,
+                    emptyState: {
+                        headerMedia: LottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptySubmitResults.title',
+                        subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                        buttons: [
+                            {
+                                buttonText: 'report.newReport.createReport',
+                                buttonAction: () => {},
+                            },
+                        ],
+                    },
+                };
+                const todoSection: SearchTypeMenuSection = {
+                    translationPath: 'common.todo',
+                    menuItems: [submitMenuItem],
+                };
+                const {suggestedSearches, suggestedSearchesVisibility} = buildSuggestedSearchMocks(
+                    {
+                        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: submitMenuItem,
+                    },
+                    {
+                        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: true,
+                    },
+                );
+                mockUseSearchTypeMenuSections.mockReturnValue({
+                    typeMenuSections: [todoSection],
+                    suggestedSearchesReady: true,
+                    suggestedSearches,
+                    suggestedSearchesVisibility,
+                });
 
                 // When rendering the EmptySearchView component
                 render(
@@ -160,6 +244,40 @@ describe('EmptySearchView', () => {
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
+                const submitMenuItem: SearchTypeMenuItem = {
+                    key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+                    translationPath: 'common.submit',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: {} as IconAsset,
+                    searchQuery: queryString,
+                    searchQueryJSON: queryJSON,
+                    hash: queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID,
+                    similarSearchHash: queryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID,
+                    emptyState: {
+                        headerMedia: LottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptySubmitResults.title',
+                        subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                        buttons: [],
+                    },
+                };
+                const todoSection: SearchTypeMenuSection = {
+                    translationPath: 'common.todo',
+                    menuItems: [submitMenuItem],
+                };
+                const {suggestedSearches, suggestedSearchesVisibility} = buildSuggestedSearchMocks(
+                    {
+                        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: submitMenuItem,
+                    },
+                    {
+                        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: true,
+                    },
+                );
+                mockUseSearchTypeMenuSections.mockReturnValue({
+                    typeMenuSections: [todoSection],
+                    suggestedSearchesReady: true,
+                    suggestedSearches,
+                    suggestedSearchesVisibility,
+                });
 
                 // When rendering the EmptySearchView component
                 render(

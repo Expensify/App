@@ -21,19 +21,30 @@ jest.mock('@components/AvatarWithDisplayName.tsx');
 // Mock search context
 const mockSearchContext = {
     currentSearchHash: 12345,
-    selectedReports: {},
-    selectedTransactionIDs: [],
+    currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
     selectedTransactions: {},
+    selectedTransactionIDs: [],
+    selectedReports: [],
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
-    setSelectedReports: jest.fn(),
-    clearSelectedTransactions: jest.fn(),
+    shouldResetSearchQuery: false,
+    shouldDefaultToTodo: true,
+    shouldShowFiltersBarLoading: false,
+    showSelectAllMatchingItems: false,
+    areAllMatchingItemsSelected: false,
+    lastSearchType: undefined,
     setLastSearchType: jest.fn(),
     setCurrentSearchHashAndKey: jest.fn(),
+    setCurrentSearchQueryJSON: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    clearSelectedTransactions: jest.fn(),
+    removeTransaction: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     shouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
+    setShouldResetSearchQuery: jest.fn(),
+    setShouldDefaultToTodo: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
@@ -95,7 +106,6 @@ const createReportListItem = (
 const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
                     report={reportItem}

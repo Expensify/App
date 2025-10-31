@@ -1,9 +1,9 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -25,9 +25,9 @@ import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getFlattenedMenuItemsWithDefaultTodoIndex, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
@@ -47,7 +48,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, suggestedSearchesReady} = useSearchTypeMenuSections();
+    const shouldShowSkeleton = !suggestedSearchesReady;
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -67,8 +69,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, shouldDefaultToTodo, setShouldDefaultToTodo} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
+    const isDefaultQuery = queryJSON ? isDefaultExpensesQuery(queryJSON) : true;
 
     // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
     // dont animate them in. We only animate in items that a user gains access to later on
@@ -82,7 +85,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         });
     }, [typeMenuSections]);
 
+    const disableDefaultSelection = useCallback(() => {
+        if (!shouldDefaultToTodo) {
+            return;
+        }
+        setShouldDefaultToTodo(false);
+    }, [shouldDefaultToTodo, setShouldDefaultToTodo]);
+
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
@@ -97,6 +108,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
+                    disableDefaultSelection();
                     clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
@@ -137,6 +149,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             currentUserAccountID,
             allPolicies,
+            disableDefaultSelection,
         ],
     );
 
@@ -199,15 +212,62 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
+    const {flattenedMenuItems, defaultTodoIndex} = useMemo(() => getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections), [typeMenuSections]);
+    const shouldUseDefaultSelection = shouldDefaultToTodo && isDefaultQuery;
+    const shouldFallbackToTodoDefault = shouldUseDefaultSelection && defaultTodoIndex !== -1;
+
+    useEffect(() => {
+        if (!shouldUseDefaultSelection || defaultTodoIndex === -1) {
+            return;
+        }
+
+        const defaultMenuItem = flattenedMenuItems.at(defaultTodoIndex);
+        if (!defaultMenuItem) {
+            return;
+        }
+
+        if (defaultMenuItem.similarSearchHash === similarSearchHash) {
+            disableDefaultSelection();
+            return;
+        }
+
+        disableDefaultSelection();
+        clearAllFilters();
+        clearSelectedTransactions();
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
+    }, [shouldUseDefaultSelection, defaultTodoIndex, flattenedMenuItems, similarSearchHash, disableDefaultSelection, clearSelectedTransactions]);
+
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+        const similarSearchIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+
+        if (!shouldFallbackToTodoDefault) {
+            return similarSearchIndex;
+        }
+
+        if (similarSearchIndex === defaultTodoIndex) {
+            return similarSearchIndex;
+        }
+
+        const similarSearchItem = similarSearchIndex !== -1 ? flattenedMenuItems.at(similarSearchIndex) : undefined;
+        if (similarSearchItem && (similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.APPROVE || similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)) {
+            return similarSearchIndex;
+        }
+
+        return defaultTodoIndex;
+    }, [flattenedMenuItems, similarSearchHash, isSavedSearchActive, shouldFallbackToTodoDefault, defaultTodoIndex]);
+
+    if (shouldShowSkeleton) {
+        return (
+            <View style={[styles.flex1]}>
+                <SuggestedSearchSkeleton />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
@@ -236,6 +296,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     const focused = activeItemIndex === flattenedIndex;
 
                                     const onPress = singleExecution(() => {
+                                        disableDefaultSelection();
                                         clearAllFilters();
                                         clearSelectedTransactions();
                                         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
