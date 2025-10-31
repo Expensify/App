@@ -708,6 +708,11 @@ const ONYXKEYS = {
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
 
+        /**
+         *  Represents the ID of the oldest unread report action for a given report,
+         *  sent by the backend when opening a report. This is used to initially open
+         *  the correct report action page from store.
+         */
         REPORT_OLDEST_UNREAD_REPORT_ACTION_ID: 'reportOldestUnreadReportActionID_',
 
         /** Used for identifying user as admin of a domain */
