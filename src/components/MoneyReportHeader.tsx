@@ -1261,7 +1261,8 @@ function MoneyReportHeader({
                 return;
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                Navigation.goBack(route.params?.backTo);
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                Navigation.goBack(backToRoute);
             }
             handleDeleteTransactions();
         });
