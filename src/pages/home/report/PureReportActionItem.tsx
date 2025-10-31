@@ -205,6 +205,9 @@ type PureReportActionItemProps = {
     /** All the data of the policy collection */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
+    /** Model of onboarding selected */
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -314,7 +317,7 @@ type PureReportActionItemProps = {
         reportAction: OnyxTypes.ReportAction,
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number | undefined,
+        paramSkinTone: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
@@ -324,6 +327,7 @@ type PureReportActionItemProps = {
         reportID: string | undefined,
         actionName: IOUAction,
         reportActionID: string,
+        introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -407,6 +411,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     allReports,
     policies,
+    introSelected,
     action,
     report,
     policy,
@@ -706,8 +711,8 @@ function PureReportActionItem({
     );
 
     const toggleReaction = useCallback(
-        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
+        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
         },
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
@@ -789,6 +794,7 @@ function PureReportActionItem({
                             reportActionReportID,
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
+                            introSelected,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -802,14 +808,14 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
                         },
                     },
                 );
@@ -974,6 +980,7 @@ function PureReportActionItem({
         formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
+        introSelected,
     ]);
 
     /**
@@ -1528,7 +1535,7 @@ function PureReportActionItem({
                             reportAction={action}
                             emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
+                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -1537,7 +1544,7 @@ function PureReportActionItem({
                                         signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
+                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1855,6 +1862,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        deepEqual(prevProps.introSelected, nextProps.introSelected) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&

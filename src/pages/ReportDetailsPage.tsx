@@ -91,6 +91,7 @@ import {
     isThread as isThreadUtil,
     isTrackExpenseReport as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
+    isWorkspaceChat as isWorkspaceChatUtil,
     isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
@@ -172,6 +173,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -295,6 +297,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -429,6 +432,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         actionReportID,
                         CONST.IOU.ACTION.SUBMIT,
                         actionableWhisperReportActionID,
+                        introSelected,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                     );
@@ -442,7 +446,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID, introSelected);
                     },
                 });
                 items.push({
@@ -452,7 +456,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID, introSelected);
                     },
                 });
             }
@@ -571,6 +575,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSmallScreenWidth,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        introSelected,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -727,8 +732,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    furtherDetailsNumberOfLines={isPolicyExpenseChat ? 0 : undefined}
-                    furtherDetailsStyle={isPolicyExpenseChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
+                    furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
+                    furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord

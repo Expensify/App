@@ -642,6 +642,18 @@ const translations = {
         help: '助けて',
         expenseReport: '経費報告書',
         expenseReports: '経費報告書',
+        leaveWorkspace: 'ワークスペースから退出',
+        leaveWorkspaceConfirmation: 'このワークスペースを退出すると、このワークスペースに経費を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を閲覧できなくなります。',
+        leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、承認ワークフローでは、ワークスペースのオーナーである${workspaceOwner}があなたの代わりになります。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、あなたは優先エクスポート担当者として、ワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
+        leaveWorkspaceReimburser:
+            'あなたは精算担当者であるため、このワークスペースを退出できません。Workspaces > 支払いを行うまたは追跡する で新しい精算担当者を設定してから、もう一度お試しください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
@@ -1305,6 +1317,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName}を${newValueToDisplay}（以前は${oldValueToDisplay}）に`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
+        basedOnAI: '過去のアクティビティに基づく',
+        basedOnMCC: 'ワークスペースルールに基づく',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -1848,10 +1862,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ目的のため、Xeroは統合を接続するために二要素認証を必要とします。',
         twoFactorAuthIsRequiredForAdminsHeader: '二要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Xeroの会計接続には二要素認証の使用が必要です。Expensifyを引き続き使用するには、有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xero との会計連携には二要素認証が必要です。Expensify を引き続きご利用いただくには、二要素認証を有効にしてください。',
         twoFactorAuthCannotDisable: '2FAを無効にできません',
         twoFactorAuthRequired: 'Xeroの接続には二要素認証（2FA）が必要であり、無効にすることはできません。',
         explainProcessToRemoveWithRecovery: '二要素認証 (2FA) を無効にするには、有効なリカバリーコードを入力してください。',
+        twoFactorAuthIsRequiredCompany: 'あなたの会社では二要素認証の使用が必須です。Expensifyを引き続きご利用いただくには、有効化してください。',
     },
     recoveryCodeForm: {
         error: {
@@ -5085,6 +5100,18 @@ ${date} - ${merchant}に${amount}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリーログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー総数: ${count}`,
             importMembers: 'メンバーをインポート',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} には承認すべき未処理の経費レポートがあります。ワークスペースから削除する前に、承認するよう依頼するか、そのレポートの管理を引き継いでください。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡で新しい支払担当者を設定してから、もう一度お試しください。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、優先エクスポーターをワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、技術連絡先をワークスペースのオーナーである${workspaceOwner}に変更します。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} には対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',
