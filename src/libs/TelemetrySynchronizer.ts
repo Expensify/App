@@ -6,11 +6,11 @@
 import * as Sentry from '@sentry/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import FS from '@libs/Fullstory';
-import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
+import FS from './Fullstory';
+import {getActivePolicies} from './PolicyUtils';
 
 /**
  * Connect to FullStory to retrieve session id from it. We want to link FullStory with Sentry for easier debugging.
