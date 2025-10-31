@@ -38,14 +38,15 @@ function MFAScenarioApproveTransactionPage() {
         Navigation.goBack();
     }, []);
 
-    const fakeBiometryCall = useCallback(() => {}); // TODO: replace with proper logic from MFAContext
+    // const fakeBiometryCall = useCallback(() => {}); // TODO: replace with proper logic from MFAContext
 
     // TODO: replace with the correct logic
     const approveTransaction = useCallback(() => {
-        if (!isBiometryAvailable) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+        if (isBiometryAvailable) {
+            return;
         }
-        fakeBiometryCall();
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+        // fakeBiometryCall();
     }, [isBiometryAvailable]);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
