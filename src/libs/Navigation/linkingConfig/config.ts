@@ -865,6 +865,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.route,
+                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
@@ -1030,6 +1033,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
+                            path: ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
                             path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
