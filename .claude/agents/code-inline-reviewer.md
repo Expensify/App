@@ -248,9 +248,9 @@ CRITICAL: **DO NOT** use the Bash tool for inline comments:
 
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "src/components/ReportActionsList.tsx"
+  path: 'src/components/ReportActionsList.tsx'
   line: 128
-  body: "<Body of the comment according to the Comment Format>"
+  body: '<Body of the comment according to the Comment Format>'
 ```
 
 If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
