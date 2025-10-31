@@ -49,6 +49,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 
     /** TestID indicating order */
     testID?: number;
+
+    /** Whether to parse HTML in the fullTitle. Defaults to true for backward compatibility */
+    shouldParseHtml?: boolean;
 };
 
 export default DisplayNamesProps;
