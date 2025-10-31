@@ -653,7 +653,7 @@ function MoneyRequestView({
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
     // If the view is readonly, we don't need the transactionThread dependency, only the parent expense report
-    if ((!readonly && !transactionThreadReport?.reportID) || (readonly && !parentReport?.reportID) || !transaction?.transactionID) {
+    if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -661,17 +661,16 @@ function MoneyRequestView({
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {/* {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && ( */}
-                {/*     <MoneyRequestReceiptView */}
-                {/*         allReports={allReports} */}
-                {/*         report={report} */}
-                {/*         parentReportProp={parentReport} */}
-                {/*         readonly={readonly} */}
-                {/*         updatedTransaction={updatedTransaction} */}
-                {/*         isFromReviewDuplicates={isFromReviewDuplicates} */}
-                {/*         mergeTransactionID={mergeTransactionID} */}
-                {/*     /> */}
-                {/* )} */}
+                {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
+                    <MoneyRequestReceiptView
+                        allReports={allReports}
+                        report={transactionThreadReport}
+                        readonly={readonly}
+                        updatedTransaction={updatedTransaction}
+                        isFromReviewDuplicates={isFromReviewDuplicates}
+                        mergeTransactionID={mergeTransactionID}
+                    />
+                )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
                         <Icon
