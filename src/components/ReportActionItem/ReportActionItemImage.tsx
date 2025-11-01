@@ -35,7 +35,7 @@ type ReportActionItemImageProps = {
     isThumbnail?: boolean;
 
     /** URI for the image or local numeric reference for the image  */
-    image?: string;
+    image?: string | number;
 
     /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
