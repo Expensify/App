@@ -3304,6 +3304,12 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.to;
 }
 
+function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): boolean {
+    const whisperedTo = getOriginalMessage(action)?.whisperedTo;
+    const systemAccountIDs = new Set(Object.values(CONST.ACCOUNT_ID));
+    return whisperedTo?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3481,6 +3487,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    isSystemUserMentioned,
 };
 
 export type {LastVisibleMessage};
