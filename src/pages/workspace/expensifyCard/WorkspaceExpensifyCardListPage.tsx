@@ -262,7 +262,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
                         ListFooterComponent={
                             <Text
-                                style={[styles.textMicroSupporting, styles.p5]}
+                                style={[styles.textMicroSupporting, styles.p5, footerHeight === 0 && {opacity: 0}]}
                                 onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
                             >
                                 {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
