@@ -42,7 +42,7 @@ function appendSetupCategoriesOnboardingData(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     isSetupCategoriesTaskParentReportArchived: boolean,
     currentUserAccountID: number,
-    hasOutstandingChildTask?: boolean,
+    hasOutstandingChildTask: boolean,
     parentReportAction?: OnyxEntry<ReportAction>,
 ) {
     const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(
@@ -321,19 +321,33 @@ function getPolicyCategories(policyID: string) {
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
-function setWorkspaceCategoryEnabled(
-    policyID: string,
-    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
-    isSetupCategoriesTaskParentReportArchived: boolean,
-    setupCategoryTaskReport: OnyxEntry<Report>,
-    setupCategoryTaskParentReport: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    hasOutstandingChildTask?: boolean,
-    parentReportAction?: OnyxEntry<ReportAction>,
-    policyCategories: PolicyCategories = {},
-    policyTagLists: PolicyTagLists = {},
-    allTransactionViolations: OnyxCollection<TransactionViolations> = {},
-) {
+type SetWorkspaceCategoryEnabledParams = {
+    policyID: string;
+    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>;
+    isSetupCategoriesTaskParentReportArchived: boolean;
+    setupCategoryTaskReport: OnyxEntry<Report>;
+    setupCategoryTaskParentReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    parentReportAction?: OnyxEntry<ReportAction>;
+    policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
+    allTransactionViolations?: OnyxCollection<TransactionViolations>;
+};
+
+function setWorkspaceCategoryEnabled({
+    policyID,
+    categoriesToUpdate,
+    isSetupCategoriesTaskParentReportArchived,
+    setupCategoryTaskReport,
+    setupCategoryTaskParentReport,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    parentReportAction,
+    policyCategories = {},
+    policyTagLists = {},
+    allTransactionViolations = {},
+}: SetWorkspaceCategoryEnabledParams) {
     const optimisticPolicyCategoriesData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
@@ -1002,19 +1016,33 @@ function clearCategoryErrors(policyID: string, categoryName: string, policyCateg
     });
 }
 
-function deleteWorkspaceCategories(
-    policyID: string,
-    categoryNamesToDelete: string[],
-    isSetupCategoriesTaskParentReportArchived: boolean,
-    setupCategoryTaskReport: OnyxEntry<Report>,
-    setupCategoryTaskParentReport: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    hasOutstandingChildTask?: boolean,
-    parentReportAction?: OnyxEntry<ReportAction>,
-    policyTagLists: PolicyTagLists = {},
-    policyCategories: PolicyCategories = {},
-    transactionViolations: OnyxCollection<TransactionViolations> = {},
-) {
+type DeleteWorkspaceCategoriesParams = {
+    policyID: string;
+    categoryNamesToDelete: string[];
+    isSetupCategoriesTaskParentReportArchived: boolean;
+    setupCategoryTaskReport: OnyxEntry<Report>;
+    setupCategoryTaskParentReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    parentReportAction?: OnyxEntry<ReportAction>;
+    policyTagLists?: PolicyTagLists;
+    policyCategories?: PolicyCategories;
+    transactionViolations?: OnyxCollection<TransactionViolations>;
+};
+
+function deleteWorkspaceCategories({
+    policyID,
+    categoryNamesToDelete,
+    isSetupCategoriesTaskParentReportArchived,
+    setupCategoryTaskReport,
+    setupCategoryTaskParentReport,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    parentReportAction,
+    policyTagLists = {},
+    policyCategories = {},
+    transactionViolations = {},
+}: DeleteWorkspaceCategoriesParams) {
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;

@@ -71,7 +71,7 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -169,7 +169,15 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.setWorkspaceCategoryEnabled({
+                policyID: fakePolicy.id,
+                categoriesToUpdate,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -214,7 +222,15 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.deleteWorkspaceCategories({
+                policyID: fakePolicy.id,
+                categoryNamesToDelete: categoriesToDelete,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

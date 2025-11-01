@@ -100,6 +100,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
@@ -152,17 +153,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(
-                policyId,
-                {[categoryName]: {name: categoryName, enabled: value}},
-                isSetupCategoryTaskParentReportArchived,
+            setWorkspaceCategoryEnabled({
+                policyID: policyId,
+                categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 policyCategories,
                 policyTagLists,
                 allTransactionViolations,
-            );
+                hasOutstandingChildTask,
+            });
         },
         [
             policyId,
@@ -283,17 +285,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(
-            policyId,
-            selectedCategories,
-            isSetupCategoryTaskParentReportArchived,
+        deleteWorkspaceCategories({
+            policyID: policyId,
+            categoryNamesToDelete: selectedCategories,
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
             policyTagLists,
             policyCategories,
-            allTransactionViolations,
-        );
+            transactionViolations: allTransactionViolations,
+        });
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -398,17 +401,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
-                            policyId,
-                            categoriesToDisable,
-                            isSetupCategoryTaskParentReportArchived,
+                        setWorkspaceCategoryEnabled({
+                            policyID: policyId,
+                            categoriesToUpdate: categoriesToDisable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
-                        );
+                            hasOutstandingChildTask,
+                        });
                     },
                 });
             }
@@ -430,17 +434,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
-                            policyId,
-                            categoriesToEnable,
-                            isSetupCategoryTaskParentReportArchived,
+                        setWorkspaceCategoryEnabled({
+                            policyID: policyId,
+                            categoriesToUpdate: categoriesToEnable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
-                        );
+                            hasOutstandingChildTask,
+                        });
                     },
                 });
             }

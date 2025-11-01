@@ -12,6 +12,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -74,7 +75,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useOutstandingChildTask(taskItem.report);
-    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
+    const parentReportAction = useParentReportAction(taskItem.report);
+    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, parentReportAction, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {

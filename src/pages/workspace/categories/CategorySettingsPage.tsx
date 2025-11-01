@@ -75,6 +75,7 @@ function CategorySettingsPage({
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
@@ -138,19 +139,18 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(
+        setWorkspaceCategoryEnabled({
             policyID,
-            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-            isSetupCategoryTaskParentReportArchived,
+            categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            undefined,
-            undefined,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             policyCategories,
             policyTagLists,
             allTransactionViolations,
-        );
+            hasOutstandingChildTask,
+        });
     };
 
     const navigateToEditCategory = () => {
@@ -160,19 +160,18 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(
+        deleteWorkspaceCategories({
             policyID,
-            [categoryName],
-            isSetupCategoryTaskParentReportArchived,
+            categoryNamesToDelete: [categoryName],
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            undefined,
-            undefined,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
             policyTagLists,
             policyCategories,
-            allTransactionViolations,
-        );
+            transactionViolations: allTransactionViolations,
+        });
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

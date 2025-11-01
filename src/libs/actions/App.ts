@@ -457,7 +457,6 @@ type CreateWorkspaceWithPolicyDraftParams = {
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    hasOutstandingChildTask?: boolean;
 };
 
 /**
@@ -474,7 +473,6 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         policyID = '',
         currency,
         file,
-        hasOutstandingChildTask,
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
     } = params;
@@ -488,7 +486,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, hasOutstandingChildTask, lastUsedPaymentMethod);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -511,7 +509,6 @@ function savePolicyDraftByNewWorkspace(
     makeMeAdmin = false,
     currency = '',
     file?: File,
-    hasOutstandingChildTask?: boolean,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     createWorkspace({
@@ -523,7 +520,6 @@ function savePolicyDraftByNewWorkspace(
         currency,
         file,
         lastUsedPaymentMethod,
-        hasOutstandingChildTask,
     });
 }
 

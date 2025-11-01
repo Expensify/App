@@ -27,7 +27,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived, parentReportAction);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, parentReportAction, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
         return null;
