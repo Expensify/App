@@ -261,7 +261,8 @@ describe('actions/Task', () => {
     });
 
     describe('createTaskAndNavigate', () => {
-        const mockParentReportID = 'parent_report_123';
+        const mockParentReport = getFakeReport();
+        const mockParentReportID = mockParentReport.reportID;
         const mockTitle = 'Test Task';
         const mockDescription = 'This is a test task description';
         const mockAssigneeEmail = 'assignee@example.com';
@@ -358,7 +359,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -404,7 +405,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate without assignee chat report
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -464,7 +465,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with markdown flag
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -502,7 +503,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with default policy ID
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -547,7 +548,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with assignee as current user
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockCurrentUserEmail,
@@ -602,7 +603,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with undefined parent report ID
             createTaskAndNavigate({
-                parentReportID: undefined, // parentReportID is undefined
+                parentReport: undefined,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -637,7 +638,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with empty quick action
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: mockParentReport,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
