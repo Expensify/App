@@ -109,7 +109,7 @@ function IOURequestStepUpgrade({
                 break;
             default:
         }
-    }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, backTo, navigateWithMicrotask, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
