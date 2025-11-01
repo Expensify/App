@@ -6748,22 +6748,31 @@ ${date} - ${merchant}に${amount}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} アルコール`;
-                case 'gambling':
-                    return `${preMessage} ギャンブル`;
-                case 'tobacco':
-                    return `${preMessage} タバコ`;
-                case 'adultEntertainment':
-                    return `${preMessage} アダルトエンターテインメント`;
-                case 'hotelIncidentals':
-                    return `${preMessage} ホテル雑費`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `アルコール`;
+                    case 'gambling':
+                        return `ギャンブル`;
+                    case 'tobacco':
+                        return `タバコ`;
+                    case 'adultEntertainment':
+                        return `アダルトエンターテインメント`;
+                    case 'hotelIncidentals':
+                        return `ホテル雑費`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',

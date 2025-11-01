@@ -6786,22 +6786,31 @@ ${amount} dla ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alkohol`;
-                case 'gambling':
-                    return `${preMessage} hazardowanie`;
-                case 'tobacco':
-                    return `${preMessage} tytoń`;
-                case 'adultEntertainment':
-                    return `${preMessage} rozrywka dla dorosłych`;
-                case 'hotelIncidentals':
-                    return `${preMessage} wydatki hotelowe`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alkohol`;
+                    case 'gambling':
+                        return `hazardowanie`;
+                    case 'tobacco':
+                        return `tytoń`;
+                    case 'adultEntertainment':
+                        return `rozrywka dla dorosłych`;
+                    case 'hotelIncidentals':
+                        return `wydatki hotelowe`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Wymagana recenzja',
