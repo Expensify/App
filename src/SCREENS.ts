@@ -254,6 +254,7 @@ const SCREENS = {
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
+        DOMAIN: 'Domain',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -813,6 +814,8 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
+    WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
+    WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

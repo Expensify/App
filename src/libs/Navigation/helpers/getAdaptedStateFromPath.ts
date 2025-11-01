@@ -16,6 +16,7 @@ import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
+import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
@@ -90,7 +91,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
-            path: ROUTES.WORKSPACES_LIST.route,
+            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
         };
     }
 
