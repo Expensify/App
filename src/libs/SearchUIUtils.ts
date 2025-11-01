@@ -2315,7 +2315,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ARROW]: true,
             [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
             [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
             [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
@@ -2353,7 +2352,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.ARROW]: false,
         };
     }
 
