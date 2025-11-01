@@ -164,7 +164,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -477,6 +477,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
+
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
 
         /** Existing routes */
         routes?: Routes;

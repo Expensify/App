@@ -22,9 +22,8 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportUtils';
 import {getCreated} from '@libs/TransactionUtils';
-import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,7 +49,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;
 
@@ -113,13 +112,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
         if (!sourceTransaction || !targetTransaction) {
             return;
-        }
-
-        // It's a temporary solution to ensure the source report is loaded, so we can display reportName in the merge transaction details page
-        // We plan to remove this in next phase of merge expenses project
-        const sourceReport = getReportOrDraftReport(sourceTransaction.reportID);
-        if (!sourceReport) {
-            openReport(sourceTransaction.reportID);
         }
 
         const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
