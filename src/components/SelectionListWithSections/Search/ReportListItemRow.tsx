@@ -103,19 +103,17 @@ function ReportListItemRow({
                             />
                         </View>
                     </View>
-                    <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsCenter, styles.gap1]}>
+                    <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
                         <TotalCell
                             total={total}
                             currency={currency}
                         />
-                        <View style={[styles.w100, styles.flexRow, styles.justifyContentEnd]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.flexShrink0, {opacity: 0.5}]}
-                                small
-                            />
-                        </View>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={{opacity: 0.5}}
+                            small
+                        />
                     </View>
                 </View>
             </View>
