@@ -752,6 +752,7 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
+    // eslint-disable-next-line unicorn/prefer-set-has
     const heightsIPhonesWithNotches = [812, 896, 844, 926];
     return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
 }

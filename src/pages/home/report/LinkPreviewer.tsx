@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_HEIGHT = 180;
 const MAX_IMAGE_WIDTH = 340;

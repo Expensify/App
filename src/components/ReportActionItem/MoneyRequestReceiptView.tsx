@@ -74,6 +74,7 @@ type MoneyRequestReceiptViewProps = {
     isDisplayedInWideRHP?: boolean;
 };
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
@@ -83,6 +84,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI,
 ];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 function MoneyRequestReceiptView({

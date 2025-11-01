@@ -54,6 +54,7 @@ describe('actions/Tour', () => {
 
         describe('NewDot users', () => {
             const onboardingChoices = Object.values(CONST.ONBOARDING_CHOICES);
+            // eslint-disable-next-line unicorn/prefer-set-has
             const onboardingDemoChoices: OnboardingPurpose[] = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE];
             const accountID = 2;
             const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);

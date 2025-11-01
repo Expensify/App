@@ -85,6 +85,7 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
+            // eslint-disable-next-line unicorn/prefer-set-has
             const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
 
             if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
@@ -93,6 +94,7 @@ function UploadFile({
             }
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
 
         const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));

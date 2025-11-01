@@ -101,6 +101,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
             const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+            // eslint-disable-next-line unicorn/prefer-set-has
             const existingScreenKeys = sidebarRoutes.map(getKey);
 
             const focusedRoute = findFocusedRoute(state);
