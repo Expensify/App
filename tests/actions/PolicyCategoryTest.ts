@@ -1,10 +1,13 @@
+import {act} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Category from '@src/libs/actions/Policy/Category';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -238,6 +241,134 @@ describe('actions/PolicyCategory', () => {
                         Onyx.disconnect(connection);
                         expect(policyCategories?.[categoryNameToDelete]).toBeFalsy();
 
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('enablePolicyCategories', () => {
+        it('Disable categories feature should also disable all category lists', async () => {
+            // Given the policy data consisting of policy workspace, categories lists & tags
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                areCategoriesEnabled: true,
+            };
+            const fakeCategories = createRandomPolicyCategories(3);
+            const fakeTags = createRandomPolicyTags('Fake tag', 3);
+
+            // Then pause the network requests to test the offline behaviour
+            mockFetch?.pause?.();
+            await act(async () => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+                await waitForBatchedUpdates();
+            });
+
+            // Then disable the categories feature
+            Category.enablePolicyCategories(fakePolicy.id, false, fakeTags, fakeCategories, undefined, false);
+
+            // Then verify the categories feature are disabled and all the lists are disabled too (offline + online behaviour)
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === false)).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.areCategoriesEnabled).toBe(false);
+                        expect(policy?.requiresCategory).toBe(false);
+                        expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+        it('Re-enable categories feature should enable all category lists', async () => {
+            // Give policy data consisting of policy workspace with categories feature disabled, categories lists & tags
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                areCategoriesEnabled: false,
+            };
+            const fakeCategories = createRandomPolicyCategories(3);
+            const fakeTags = createRandomPolicyTags('Fake tag', 3);
+
+            // Then pause the network requests to test the offline behaviour
+            mockFetch?.pause?.();
+
+            await act(async () => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+                await waitForBatchedUpdates();
+            });
+
+            // Then enable the categories feature
+            Category.enablePolicyCategories(fakePolicy.id, true, fakeTags, fakeCategories, undefined, false);
+
+            // Then verify the categories feature are enabled and all the lists are enabled too (offline + online behaviour)
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === true)).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.areCategoriesEnabled).toBe(true);
+                        expect(policy?.requiresCategory).toBe(true);
+                        expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
                         resolve();
                     },
                 });
