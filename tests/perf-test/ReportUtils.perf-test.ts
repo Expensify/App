@@ -1,5 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import usePolicyData from '@hooks/usePolicyData';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -14,16 +16,19 @@ import {
     getTransactionDetails,
     getWorkspaceChats,
     getWorkspaceIcon,
+    pushTransactionViolationsOnyxData,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -210,6 +215,82 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+    });
+
+    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 100 expenses on each report', async () => {
+        // Current policy with categories and tags enabled but does not require them
+        const policy = {
+            ...createRandomPolicy(1),
+            areCategoriesEnabled: true,
+            areTagsEnabled: true,
+
+            requiresCategory: false,
+            requiresTag: false,
+        };
+
+        // Simulate a policy optimistic data when requires categories and tags is updated eg (setRequiresCategory)
+        const policyOptimisticData = {
+            requiresCategory: true,
+            requiresTag: true,
+        };
+
+        // Create a report collection with 1000 reports linked to the policy
+        const reportCollection = Object.values(getMockedReports(10000)).reduce<Record<string, Report>>((acc, report) => {
+            acc[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {
+                ...report,
+                policyID: policy.id,
+            };
+            return acc;
+        }, {});
+
+        // Create a transaction collection with 8 transactions for each report
+        const transactionCollection = Object.values(reportCollection).reduce<Record<string, Transaction>>((acc, report, index) => {
+            for (let transactionIndex = 0; transactionIndex < 100; transactionIndex++) {
+                const transactionID = index * 10 + transactionIndex;
+
+                // Create a transaction with no category and no tag
+                acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+                    ...createRandomTransaction(transactionID),
+                    reportID: report.reportID,
+                    category: undefined,
+                    tag: undefined,
+                };
+            }
+            return acc;
+        }, {});
+
+        const reportActionsCollection = Object.values(transactionCollection).reduce<Record<string, Record<string, ReportAction>>>((acc, transaction, index) => {
+            acc[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] = {
+                [index.toString()]: {
+                    ...createRandomReportAction(index + 1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUReportID: transaction.reportID,
+                        IOUTransactionID: transaction.transactionID,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                    },
+                },
+            };
+            return acc;
+        }, {});
+
+        const policyTags = createRandomPolicyTags('Tags', 8);
+        const policyCategories = createRandomPolicyCategories(8);
+        await Onyx.multiSet({
+            ...reportCollection,
+            ...transactionCollection,
+            ...reportActionsCollection,
+            [ONYXKEYS.COLLECTION.POLICY]: {[policy.id]: policy},
+            [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[policy.id]: policyTags},
+            [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[policy.id]: policyCategories},
+        });
+        await waitForBatchedUpdates();
+        const {
+            result: {current: policyData},
+        } = renderHook(() => usePolicyData(policy.id));
+        const onyxData = {optimisticData: [], failureData: []};
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {
