@@ -23,7 +23,8 @@ import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
@@ -61,7 +62,7 @@ function IOURequestStepUpgrade({
     );
 
     const navigateWithMicrotask = (route: Route) => {
-        if (true) {
+        if (isWebOrDesktop) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
         } else {
             Navigation.navigate(route);
