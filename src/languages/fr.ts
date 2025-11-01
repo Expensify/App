@@ -12,6 +12,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -796,18 +797,32 @@ const translations = {
         continueInWeb: "continuer vers l'application web",
     },
     validateCodeModal: {
-        successfulSignInTitle: 'Abracadabra, vous êtes connecté !',
+        successfulSignInTitle: dedent(`
+            Abracadabra, vous êtes connecté(e) !
+        `),
         successfulSignInDescription: "Retournez à votre onglet d'origine pour continuer.",
         title: 'Voici votre code magique',
-        description: "Veuillez entrer le code depuis l'appareil où il a été initialement demandé.",
-        doNotShare: 'Ne partagez votre code avec personne. Expensify ne vous le demandera jamais !',
+        description: dedent(`
+            Veuillez saisir le code sur l’appareil
+            où il a été initialement demandé
+        `),
+        doNotShare: dedent(`
+            Ne partagez votre code avec personne.
+            Expensify ne vous le demandera jamais !
+        `),
         or: ', ou',
         signInHere: 'connectez-vous ici',
         expiredCodeTitle: 'Code magique expiré',
         expiredCodeDescription: "Revenez à l'appareil d'origine et demandez un nouveau code",
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
-        tfaRequiredTitle: 'Authentification à deux facteurs\nrequise',
-        tfaRequiredDescription: "Veuillez entrer le code d'authentification à deux facteurs\nlà où vous essayez de vous connecter.",
+        tfaRequiredTitle: dedent(`
+            Authentification à deux facteurs
+            obligatoire
+        `),
+        tfaRequiredDescription: dedent(`
+            Veuillez saisir le code d'authentification à deux facteurs
+            là où vous essayez de vous connecter.
+        `),
         requestOneHere: 'demandez-en un ici.',
     },
     moneyRequestConfirmationList: {
@@ -1855,8 +1870,11 @@ const translations = {
         noAuthenticatorApp: "Vous n'aurez plus besoin d'une application d'authentification pour vous connecter à Expensify.",
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Gardez ces codes de récupération en sécurité !',
-        codesLoseAccess:
-            "Si vous perdez l'accès à votre application d'authentification et n'avez pas ces codes, vous perdrez l'accès à votre compte.\n\nRemarque : La configuration de l'authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.",
+        codesLoseAccess: dedent(`
+            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
+
+            Remarque : la configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+        `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer.',
         stepVerify: 'Vérifier',
         scanCode: 'Scannez le code QR en utilisant votre',
@@ -2421,19 +2439,20 @@ ${amount} pour ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Ajouter des validations de dépenses',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Ajoutez des validations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.\n` +
-                    '\n' +
-                    `Voici comment faire :\n` +
-                    '\n' +
-                    '1. Allez dans *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace de travail.\n' +
-                    '3. Cliquez sur *Plus de fonctionnalités*.\n' +
-                    '4. Activez *Flux de travail*.\n' +
-                    '5. Accédez à *Flux de travail* dans l’éditeur de l’espace de travail.\n' +
-                    '6. Activez *Ajouter des validations*.\n' +
-                    `7. Vous serez défini comme validateur des dépenses. Vous pourrez changer cela pour un autre administrateur après avoir invité votre équipe.\n` +
-                    '\n' +
-                    `[Aller à plus de fonctionnalités](${workspaceMoreFeaturesLink}).`,
+                    dedent(`
+                        *Ajoutez des approbations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.
+
+                        Voici comment faire :
+
+                        1. Accédez à *Espaces de travail*.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Plus de fonctionnalités*.
+                        4. Activez *Flux de travail*.
+                        5. Accédez à *Flux de travail* dans l’éditeur de l’espace de travail.
+                        6. Activez *Ajouter des approbations*.
+                        7. Vous serez défini comme approbateur des dépenses. Vous pourrez le remplacer par n’importe quel administrateur après avoir invité votre équipe.
+
+                        [Aller à Plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créez](${workspaceConfirmationLink}) un espace de travail`,
@@ -2442,165 +2461,212 @@ ${amount} pour ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Créez un [espace de travail](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*Créez un espace de travail* pour suivre les dépenses, scanner les reçus, discuter, et plus encore.\n\n' +
-                    '1. Cliquez sur *Espaces de travail* > *Nouvel espace de travail*.\n\n' +
-                    `*Votre nouvel espace est prêt !* [Voir maintenant](${workspaceSettingsLink}).`,
+                    dedent(`
+                        *Créez un espace de travail* pour suivre les dépenses, scanner des reçus, discuter, et plus encore.
+
+                        1. Cliquez sur *Espaces de travail* > *Nouvel espace de travail*.
+
+                        *Votre nouvel espace de travail est prêt !* [Découvrez-le](${workspaceSettingsLink}).`),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configurez les [catégories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*Configurez les catégories* pour que votre équipe puisse coder les dépenses facilement.\n\n' +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Catégories*.\n' +
-                    '4. Désactivez les catégories inutiles.\n' +
-                    '5. Ajoutez vos propres catégories en haut à droite.\n\n' +
-                    `[Accéder aux paramètres de catégories](${workspaceCategoriesLink}).\n\n` +
-                    `![Configurer les catégories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *Configurez les catégories* afin que votre équipe puisse coder les dépenses et faciliter la création de rapports.
+
+                        1. Cliquez sur *Espaces de travail*.
+                        3. Sélectionnez votre espace de travail.
+                        4. Cliquez sur *Catégories*.
+                        5. Désactivez les catégories dont vous n’avez pas besoin.
+                        6. Ajoutez vos propres catégories en haut à droite.
+
+                        [Accéder aux paramètres des catégories de l’espace de travail](${workspaceCategoriesLink}).
+
+                        ![Configurer les catégories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Soumettre une dépense',
-                description:
-                    '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Créer une dépense*.\n' +
-                    '3. Saisissez un montant ou scannez un reçu.\n' +
-                    `4. Ajoutez l’email ou numéro de téléphone de votre responsable.\n` +
-                    '5. Cliquez sur *Créer*.\n\n' +
-                    'Et voilà, c’est fait !',
+                description: dedent(`
+                    *Soumettre une dépense* en saisissant un montant ou en scannant un reçu.
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Créer une dépense*.
+                    3. Saisissez un montant ou scannez un reçu.
+                    4. Ajoutez l’adresse e-mail ou le numéro de téléphone de votre responsable.
+                    5. Cliquez sur *Créer*.
+
+                    Et voilà !
+                `),
             },
             adminSubmitExpenseTask: {
                 title: 'Soumettre une dépense',
-                description:
-                    '*Soumettez une dépense* en saisissant un montant ou en scannant un reçu.\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Créer une dépense*.\n' +
-                    '3. Saisissez un montant ou scannez un reçu.\n' +
-                    '4. Confirmez les détails.\n' +
-                    '5. Cliquez sur *Créer*.\n\n' +
-                    'Et voilà, c’est fait !',
+                description: dedent(`
+                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Créer une dépense*.
+                    3. Saisissez un montant ou scannez un reçu.
+                    4. Confirmez les détails.
+                    5. Cliquez sur *Créer*.
+
+                    Et c’est terminé !
+                `),
             },
             trackExpenseTask: {
                 title: 'Suivre une dépense',
-                description:
-                    '*Suivez une dépense* dans n’importe quelle devise, avec ou sans reçu.\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Créer une dépense*.\n' +
-                    '3. Saisissez un montant ou scannez un reçu.\n' +
-                    '4. Choisissez votre espace *personnel*.\n' +
-                    '5. Cliquez sur *Créer*.\n\n' +
-                    'Et voilà, aussi simple que ça.',
+                description: dedent(`
+                    *Suivez une dépense* dans n'importe quelle devise, que vous ayez un reçu ou non.
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Créer une dépense*.
+                    3. Saisissez un montant ou scannez un reçu.
+                    4. Choisissez votre espace *personnel*.
+                    5. Cliquez sur *Créer*.
+
+                    Et voilà ! Oui, c'est aussi simple que ça.
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Connectez${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '-vous à votre' : '-vous à'} ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n` +
-                    '\n' +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Comptabilité*.\n' +
-                    `4. Trouvez ${integrationName}.\n` +
-                    '5. Cliquez sur *Connecter*.\n\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Accéder à la comptabilité](${workspaceAccountingLink}).\n\n![Connecter ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+                        Connectez ${
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'
+                        } ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
+
+                        1. Cliquez sur *Workspaces*.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Accounting*.
+                        4. Recherchez ${integrationName}.
+                        5. Cliquez sur *Connect*.
+
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? dedent(`[Accéder à la comptabilité](${workspaceAccountingLink}).
+
+                                      ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connecter [votre carte pro](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `Connectez votre carte pro pour importer et coder automatiquement les dépenses.\n\n` +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Cartes professionnelles*.\n' +
-                    '4. Suivez les instructions pour connecter votre carte.\n\n' +
-                    `[Accéder à la connexion carte pro](${corporateCardLink}).`,
+                    dedent(`
+                        Connectez votre carte d’entreprise pour importer et coder automatiquement les dépenses.
+
+                        1. Cliquez sur *Espaces de travail*.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Cartes d’entreprise*.
+                        4. Suivez les instructions pour connecter votre carte.
+
+                        [Aller connecter mes cartes d’entreprise](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invitez votre équipe* sur Expensify pour qu’ils commencent à suivre leurs dépenses dès aujourd’hui.\n\n' +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Membres* > *Inviter un membre*.\n' +
-                    '4. Entrez des emails ou numéros de téléphone.\n' +
-                    '5. Ajoutez un message personnalisé si vous le souhaitez !\n\n' +
-                    `[Accéder aux membres](${workspaceMembersLink}).\n\n` +
-                    `![Inviter votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *Invitez votre équipe* sur Expensify afin qu’elle puisse commencer à suivre les dépenses dès aujourd’hui.
+
+                        1. Cliquez sur *Espaces de travail*.
+                        3. Sélectionnez votre espace de travail.
+                        4. Cliquez sur *Membres* > *Inviter un membre*.
+                        5. Saisissez des e-mails ou des numéros de téléphone.
+                        6. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
+
+                        [Accéder aux membres de l’espace de travail](${workspaceMembersLink}).
+
+                        ![Invitez votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*Configurez les catégories et tags* pour aider votre équipe à coder les dépenses plus facilement.\n\n' +
-                    `Importez-les automatiquement en [connectant votre logiciel comptable](${workspaceAccountingLink}), ou configurez-les manuellement dans les [paramètres de l’espace](${workspaceCategoriesLink}).`,
+                    dedent(`
+                        *Configurez des catégories et des étiquettes* afin que votre équipe puisse coder les dépenses pour un reporting simplifié.
+
+                        Importez-les automatiquement en [connectant votre logiciel de comptabilité](${workspaceAccountingLink}), ou configurez-les manuellement dans les [paramètres de votre espace de travail](${workspaceCategoriesLink}).`),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configurer les [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Utilisez les tags pour ajouter des détails comme projets, clients, emplacements et départements. Pour plusieurs niveaux de tags, passez au plan Control.\n\n' +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Fonctionnalités supplémentaires*.\n' +
-                    '4. Activez *Tags*.\n' +
-                    '5. Allez dans *Tags* dans l’éditeur.\n' +
-                    '6. Cliquez sur *+ Ajouter un tag* pour en créer un.\n\n' +
-                    `[Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).\n\n` +
-                    `![Configurer les tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        Utilisez des étiquettes pour ajouter des détails supplémentaires aux dépenses, comme des projets, des clients, des lieux et des services. Si vous avez besoin de plusieurs niveaux d’étiquettes, vous pouvez passer au forfait Control.
+
+                        1. Cliquez sur *Espaces de travail*.
+                        3. Sélectionnez votre espace de travail.
+                        4. Cliquez sur *Plus de fonctionnalités*.
+                        5. Activez *Étiquettes*.
+                        6. Accédez à *Étiquettes* dans l’éditeur de l’espace de travail.
+                        7. Cliquez sur *+ Ajouter une étiquette* pour créer la vôtre.
+
+                        [Accéder à plus de fonctionnalités](${workspaceMoreFeaturesLink}).
+
+                        ![Configurer les étiquettes](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invitez votre [comptable](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invitez votre comptable* à collaborer dans votre espace de travail et à gérer les dépenses de votre entreprise.\n' +
-                    '\n' +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
-                    '2. Sélectionnez votre espace.\n' +
-                    '3. Cliquez sur *Membres*.\n' +
-                    '4. Cliquez sur *Inviter un membre*.\n' +
-                    '5. Saisissez l’adresse e-mail de votre comptable.\n' +
-                    '\n' +
-                    `[Invitez votre comptable maintenant](${workspaceMembersLink}).`,
+                    dedent(`
+                        *Invitez votre comptable* à collaborer dans votre espace de travail et à gérer les dépenses de votre entreprise.
+
+                        1. Cliquez sur *Espaces de travail*.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Membres*.
+                        4. Cliquez sur *Inviter un membre*.
+                        5. Saisissez l’adresse e-mail de votre comptable.
+
+                        [Invitez votre comptable maintenant](${workspaceMembersLink}).`),
             },
             startChatTask: {
                 title: 'Démarrer un chat',
-                description:
-                    '*Démarrez un chat* avec quelqu’un grâce à son email ou numéro.\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Démarrer un chat*.\n' +
-                    '3. Entrez un email ou numéro de téléphone.\n\n' +
-                    'S’ils ne sont pas encore sur Expensify, une invitation sera envoyée automatiquement.\n\n' +
-                    'Chaque chat devient aussi un email ou SMS auquel ils peuvent répondre.',
+                description: dedent(`
+                    *Démarrez une discussion* avec n'importe qui en utilisant son adresse e-mail ou son numéro de téléphone.
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Démarrer une discussion*.
+                    3. Saisissez une adresse e-mail ou un numéro de téléphone.
+
+                    S'ils n'utilisent pas encore Expensify, ils seront invités automatiquement.
+
+                    Chaque discussion sera également envoyée sous forme d'e-mail ou de SMS, auxquels ils pourront répondre directement.
+                `),
             },
             splitExpenseTask: {
                 title: 'Partager une dépense',
-                description:
-                    '*Partagez une dépense* avec une ou plusieurs personnes.\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Démarrer un chat*.\n' +
-                    '3. Entrez des emails ou numéros de téléphone.\n' +
-                    '4. Cliquez sur le bouton gris *+* > *Partager une dépense*.\n' +
-                    '5. Créez la dépense : *Manuelle*, *Scan*, ou *Distance*.\n\n' +
-                    'Ajoutez plus de détails si vous le souhaitez, ou envoyez simplement. On vous rembourse vite !',
+                description: dedent(`
+                    *Divisez des dépenses* avec une ou plusieurs personnes.
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Démarrer une discussion*.
+                    3. Saisissez des adresses e-mail ou des numéros de téléphone.
+                    4. Cliquez sur le bouton *+* gris dans la discussion > *Diviser la dépense*.
+                    5. Créez la dépense en sélectionnant *Manuel*, *Scanner* ou *Distance*.
+
+                    N’hésitez pas à ajouter plus de détails si vous le souhaitez, ou envoyez-la simplement. On s’occupe de vous faire rembourser !
+                `),
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Vérifiez les [paramètres de l’espace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Voici comment vérifier et mettre à jour vos paramètres :\n' +
-                    '1. Cliquez sur Espaces de travail.\n' +
-                    '2. Sélectionnez votre espace de travail.\n' +
-                    '3. Vérifiez et mettez à jour vos paramètres.\n' +
-                    `[Accéder à votre espace de travail.](${workspaceSettingsLink})`,
+                    dedent(`
+                        Voici comment consulter et mettre à jour les paramètres de votre espace de travail :
+                        1. Cliquez sur Espaces de travail.
+                        2. Sélectionnez votre espace de travail.
+                        3. Consultez et mettez à jour vos paramètres.
+                        [Accéder à votre espace de travail.](${workspaceSettingsLink})`),
             },
             createReportTask: {
                 title: 'Créer votre premier rapport',
-                description:
-                    'Voici comment créer un rapport :\n\n' +
-                    `1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
-                    '2. Choisissez *Créer un rapport*.\n' +
-                    '3. Cliquez sur *Ajouter une dépense*.\n' +
-                    '4. Ajoutez votre première dépense.\n\n' +
-                    'Et voilà !',
+                description: dedent(`
+                    Voici comment créer un rapport :
+
+                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Choisissez *Créer un rapport*.
+                    3. Cliquez sur *Ajouter une dépense*.
+                    4. Ajoutez votre première dépense.
+
+                    Et voilà !
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2615,8 +2681,14 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
             onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
                 hasIntroSelected
-                    ? '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de votre essai gratuit de 30 jours en suivant les étapes ci-dessous.'
-                    : '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et dépenses de votre équipe. Pour profiter pleinement de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration ci-dessous.',
+                    ? dedent(`
+                        # Votre essai gratuit a commencé ! Procédons à la configuration.
+                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, tirez le meilleur parti de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
+                    `)
+                    : dedent(`
+                        # Votre essai gratuit a commencé ! Commençons la configuration.
+                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de vos 30 jours d’essai gratuit, suivez simplement les étapes de configuration restantes ci-dessous !
+                    `),
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
@@ -3338,8 +3410,11 @@ ${amount} pour ${merchant} - ${date}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale pour les signataires, utilisateurs autorisés et bénéficiaires effectifs.',
         PDSandFSG: 'Documents de divulgation PDS + FSG',
-        PDSandFSGDescription:
-            "Notre partenariat avec Corpay utilise une connexion API pour tirer parti de leur vaste réseau de partenaires bancaires internationaux afin d'alimenter les Remboursements Globaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Guide des Services Financiers (FSG) et le Document de Révélation de Produit (PDS) de Corpay.\n\nVeuillez lire attentivement les documents FSG et PDS car ils contiennent des détails complets et des informations importantes sur les produits et services offerts par Corpay. Conservez ces documents pour référence future.",
+        PDSandFSGDescription: dedent(`
+            Notre partenariat avec Corpay exploite une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les Remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG) et le Product Disclosure Statement (PDS) de Corpay.
+
+            Veuillez lire attentivement les documents FSG et PDS, car ils contiennent des informations complètes et importantes sur les produits et services offerts par Corpay. Conservez ces documents pour référence ultérieure.
+        `),
         pleaseUpload: "Veuillez télécharger ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que directeur de l'entité commerciale.",
         enterSignerInfo: 'Entrez les informations du signataire',
         thisStep: 'Cette étape a été complétée',
@@ -4168,31 +4243,53 @@ ${amount} pour ${merchant} - ${date}`,
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Rapports de dépenses',
-                        reimbursableDescription: 'Les dépenses personnelles seront exportées sous forme de rapports de dépenses vers NetSuite.',
-                        nonReimbursableDescription: "Les dépenses des cartes d'entreprise seront exportées sous forme de rapports de dépenses vers NetSuite.",
+                        reimbursableDescription: dedent(`
+                            Les dépenses payées de votre poche seront exportées sous forme d’écritures comptables vers le compte NetSuite indiqué ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Les dépenses des cartes d’entreprise seront exportées sous forme d’écritures comptables vers le compte NetSuite spécifié ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Factures fournisseurs',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Les dépenses payées de votre poche seront exportées sous forme d’écritures comptables vers le compte NetSuite indiqué ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Les dépenses des cartes d’entreprise seront exportées sous forme d’écritures comptables vers le compte NetSuite spécifié ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Écritures de journal',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Les dépenses payées de votre poche seront exportées sous forme d’écritures comptables vers le compte NetSuite indiqué ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Les dépenses des cartes d’entreprise seront exportées sous forme d’écritures comptables vers le compte NetSuite spécifié ci-dessous.
+
+                            Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                        `),
                     },
+                    reimbursableDescription: dedent(`
+                        Les dépenses payées de votre poche seront exportées sous forme d’écritures comptables vers le compte NetSuite indiqué ci-dessous.
+
+                        Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                    `),
+                    nonReimbursableDescription: dedent(`
+                        Les dépenses des cartes d’entreprise seront exportées sous forme d’écritures comptables vers le compte NetSuite spécifié ci-dessous.
+
+                        Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
+                    `),
                 },
             },
             advancedConfig: {
@@ -6229,7 +6326,10 @@ ${amount} pour ${merchant} - ${date}`,
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour créer un rapport.',
             },
             emptyInvoiceResults: {
-                title: "Vous n'avez pas encore créé de factures.",
+                title: dedent(`
+                    Vous n'avez encore créé
+                    aucune facture
+                `),
                 subtitle: 'Envoyez une facture ou faites un essai de Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
             },
@@ -6796,17 +6896,16 @@ ${amount} pour ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned: 'Reçu et détails de la dépense ajoutés manuellement.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Reçu requis';
-            if (formattedLimit ?? category) {
-                message += 'terminé';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'limite de catégorie';
-                }
+            if (formattedLimit && category) {
+                return `Reçu requis au-delà de la limite de catégorie de ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Reçu obligatoire au-delà de ${formattedLimit}`;
+            }
+            if (category) {
+                return `Reçu obligatoire au-delà de la limite de catégorie`;
+            }
+            return 'Reçu requis';
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
@@ -7221,7 +7320,10 @@ ${amount} pour ${merchant} - ${date}`,
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour ajouter un copilote. Il devrait arriver d'ici une à deux minutes.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod} pour mettre à jour votre copilote.`,
         notAllowed: 'Pas si vite...',
-        noAccessMessage: "En tant que copilote, vous n'avez pas accès à cette page. Désolé !",
+        noAccessMessage: dedent(`
+            En tant que copilote, vous n'avez pas accès à
+            cette page. Désolé !
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `En tant que <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilote</a> de ${accountOwnerEmail}, vous n'avez pas la permission d'entreprendre cette action. Désolé de ne pas pouvoir effectuer cette action.`,
         copilotAccess: 'Accès Copilot',
