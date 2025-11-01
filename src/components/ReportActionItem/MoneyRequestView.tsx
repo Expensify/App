@@ -150,7 +150,8 @@ function MoneyRequestView({
     }, [parentReportAction]);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest);
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
     const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
     const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
@@ -205,7 +206,7 @@ function MoneyRequestView({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
-    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
@@ -254,10 +255,15 @@ function MoneyRequestView({
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
     const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
     const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
-    const canEditReport = useMemo(
-        () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
-        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
-    );
+    const canEditReport = useMemo(() => {
+        const isEditableReport = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+
+        if (!isPerDiemRequest) {
+            return isEditableReport;
+        }
+
+        return isEditableReport && !!policyForMovingExpensesID && !shouldSelectPolicy;
+    }, [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policyForMovingExpensesID, shouldSelectPolicy]);
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
