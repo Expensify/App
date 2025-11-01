@@ -33,6 +33,9 @@ type MoneyRequestReportPreviewProps = {
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
+    /** The policy associated with the preview, if already available */
+    policy?: OnyxEntry<Policy>;
+
     /** All the data of the action */
     action: ReportAction;
 

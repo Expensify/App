@@ -10871,7 +10871,15 @@ function submitReport(
         isASAPSubmitBetaEnabled,
     });
     const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const managerIDFromApprovalChain = getAccountIDsByLogins(approvalChain).at(0);
+    let fallbackManagerID;
+    if (typeof managerIDFromApprovalChain === 'number' && managerIDFromApprovalChain !== CONST.DEFAULT_NUMBER_ID) {
+        fallbackManagerID = managerIDFromApprovalChain;
+    } else if (typeof expenseReport?.managerID === 'number' && expenseReport.managerID !== CONST.DEFAULT_NUMBER_ID) {
+        fallbackManagerID = expenseReport.managerID;
+    } else {
+        fallbackManagerID = accountIDParam;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -10890,7 +10898,7 @@ function submitReport(
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      managerID,
+                      managerID: fallbackManagerID,
                       lastMessageText: getReportActionText(optimisticSubmittedReportAction),
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -10976,7 +10984,16 @@ function submitReport(
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
+        managerAccountID: (() => {
+            const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+            if (typeof submitToAccountID === 'number' && submitToAccountID !== CONST.DEFAULT_NUMBER_ID) {
+                return submitToAccountID;
+            }
+            if (typeof fallbackManagerID === 'number' && fallbackManagerID !== CONST.DEFAULT_NUMBER_ID) {
+                return fallbackManagerID;
+            }
+            return accountIDParam;
+        })(),
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 

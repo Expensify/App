@@ -1082,6 +1082,7 @@ function PureReportActionItem({
                 <MoneyRequestReportPreview
                     allReports={allReports}
                     policies={policies}
+                    policy={policy}
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
