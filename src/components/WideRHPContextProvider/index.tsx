@@ -153,9 +153,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        // Check the focused route to avoid glitching when quickly close and open RHP.
-        if (wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
-            return true;
+        if (isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
+            return !!state?.routes.at(-1)?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
         }
 
         return false;
