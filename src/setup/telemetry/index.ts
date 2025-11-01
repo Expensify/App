@@ -21,8 +21,6 @@ export default function (): void {
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
     });
-
-    Sentry.captureMessage('Sentry initialized successfully!');
 }
 
 export {navigationIntegration};

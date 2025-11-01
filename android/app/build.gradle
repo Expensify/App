@@ -3,6 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
+apply plugin: "io.sentry.android.gradle"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
@@ -194,6 +195,28 @@ android {
         if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
             setIgnore(true)
         }
+    }
+}
+
+sentry {
+    // Upload source maps, ProGuard/R8 mappings, and native symbols
+    autoUploadProguardMapping = true
+    uploadNativeSymbols = true
+    includeNativeSources = true
+    
+    // Enable React Native source map upload (includes Debug IDs from Metro)
+    autoUploadReactNativeSourceMaps = true
+    
+    tracingInstrumentation {
+        enabled = false
+    }
+    
+    // Must match the release in Sentry.init() runtime call
+    releaseName = "new.expensify@${android.defaultConfig.versionName}"
+    
+    // Upload for all release builds except development
+    autoUpload = !project.gradle.startParameter.taskNames.any { 
+        it.contains("Development")
     }
 }
 
