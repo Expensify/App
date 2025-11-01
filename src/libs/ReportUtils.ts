@@ -9693,16 +9693,23 @@ function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | und
 }
 
 /**
+ * Returns the pending action for a money request report by inspecting its parent report action.
+ */
+function getMoneyRequestReportPendingAction(reportOrID: OnyxEntry<Report> | string): PendingAction | undefined {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
+    if (!isMoneyRequestReport(report)) {
+        return undefined;
+    }
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    return parentReportAction?.pendingAction;
+}
+
+/**
  * Return true if the expense report is marked for deletion.
  */
 function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
-    if (!isMoneyRequestReport(report)) {
-        return false;
-    }
-
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const pendingAction = getMoneyRequestReportPendingAction(reportOrID);
+    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
@@ -12600,6 +12607,7 @@ export {
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    getMoneyRequestReportPendingAction,
     isOneOnOneChat,
     isOneTransactionThread,
     isOpenExpenseReport,
