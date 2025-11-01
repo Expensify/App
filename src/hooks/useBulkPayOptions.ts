@@ -52,7 +52,7 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
