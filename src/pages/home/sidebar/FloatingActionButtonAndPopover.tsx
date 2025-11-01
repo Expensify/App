@@ -429,7 +429,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
                     const targetAccountPersonalDetails = personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as OnyxTypes.PersonalDetails);
-                    targetAccountPersonalDetails.accountID  = targetAccountPersonalDetails?.accountID ?? quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID;
+                    targetAccountPersonalDetails.accountID = targetAccountPersonalDetails?.accountID ?? quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
                     navigateToQuickAction({
                         isValidReport,
@@ -437,7 +437,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         selectOption,
                         lastDistanceExpenseType,
                         targetAccountPersonalDetails,
-                        currentUserAccountID: currentUserPersonalDetails.accountID
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                     });
                 });
             };
@@ -481,7 +481,30 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         }
 
         return [];
-    }, [translate, styles.pt3, styles.pb2, quickAction, policyChatForActivePolicy, quickActionReport, quickActionPolicy, isReportArchived, isRestrictedToPreferredPolicy, quickActionTitle, quickActionAvatars, quickActionSubtitle, shouldUseNarrowLayout, isDelegateAccessRestricted, isValidReport, selectOption, lastDistanceExpenseType, personalDetails, currentUserPersonalDetails.accountID, showDelegateNoAccessModal, reportID, allTransactionDrafts]);
+    }, [
+        translate,
+        styles.pt3,
+        styles.pb2,
+        quickAction,
+        policyChatForActivePolicy,
+        quickActionReport,
+        quickActionPolicy,
+        isReportArchived,
+        isRestrictedToPreferredPolicy,
+        quickActionTitle,
+        quickActionAvatars,
+        quickActionSubtitle,
+        shouldUseNarrowLayout,
+        isDelegateAccessRestricted,
+        isValidReport,
+        selectOption,
+        lastDistanceExpenseType,
+        personalDetails,
+        currentUserPersonalDetails.accountID,
+        showDelegateNoAccessModal,
+        reportID,
+        allTransactionDrafts,
+    ]);
 
     const isTravelEnabled = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
