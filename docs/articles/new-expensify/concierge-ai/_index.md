@@ -1,5 +1,6 @@
 ---
 hidden: true
+sort_order: manual
 ---
 
-<!-- This file prevents auto-discovery so articles follow _routes.yml order -->
+<!-- This hidden index prevents auto-discovery and uses _routes.yml ordering -->
