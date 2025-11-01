@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -15,7 +17,8 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
-    getCurrencySymbol: jest.fn().mockReturnValue('$'),
+    ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
+    isValidCurrencyCode: jest.fn().mockImplementation((code: string) => ['USD'].includes(code)),
 }));
 
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
@@ -63,6 +66,7 @@ describe('OptimisticReportNames', () => {
             } as unknown as ReportNameValuePairs,
         },
         allTransactions: {},
+        isOffline: false,
     };
 
     beforeEach(() => {
@@ -115,7 +119,7 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeReportNameIfNeeded(mockReport, update, mockContext);
-            expect(result).toEqual('Expense Report - $200.00');
+            expect(result?.name).toEqual('Expense Report - $200.00');
         });
 
         test('should return null when name would not change', () => {

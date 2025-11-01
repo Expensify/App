@@ -71,6 +71,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         allPolicies: mockPolicies,
         allReportNameValuePairs: {},
         allTransactions: {},
+        isOffline: false,
     };
 
     beforeAll(async () => {
@@ -235,6 +236,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     50,
                 ),
                 allReportNameValuePairs: {},
+                isOffline: false,
             };
 
             const updates = Array.from({length: 20}, (_, i) => ({
@@ -259,6 +261,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 allPolicies: {},
                 allReportNameValuePairs: {},
                 allTransactions: {},
+                isOffline: false,
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({
