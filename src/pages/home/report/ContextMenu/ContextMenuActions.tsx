@@ -256,8 +256,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone);
+            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };

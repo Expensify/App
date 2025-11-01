@@ -437,6 +437,17 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
 }
 
 /**
+ * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
+ */
+const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
+    if (value !== null && Number.isInteger(Number(value))) {
+        return Number(value);
+    }
+
+    return CONST.EMOJI_DEFAULT_SKIN_TONE;
+};
+
+/**
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
@@ -675,6 +686,7 @@ export {
     replaceEmojis,
     suggestEmojis,
     getEmojiCodeWithSkinColor,
+    getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     getEmojiReactionDetails,

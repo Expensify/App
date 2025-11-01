@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
@@ -28,13 +28,6 @@ function BaseQuickEmojiReactions({
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
-    const onEmojiSelectedWithReactions = useCallback(
-        (emoji: Emoji, skinTone: number) => {
-            onEmojiSelected(emoji, emojiReactions, skinTone);
-        },
-        [onEmojiSelected, emojiReactions],
-    );
-
     return (
         <View style={styles.quickReactionsContainer}>
             {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
@@ -46,7 +39,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
                         />
                     </View>
                 </Tooltip>
@@ -55,7 +48,7 @@ function BaseQuickEmojiReactions({
                 isContextMenu
                 onPressOpenPicker={onPressOpenPicker}
                 onWillShowPicker={onWillShowPicker}
-                onSelectEmoji={onEmojiSelectedWithReactions}
+                onSelectEmoji={(emoji) => onEmojiSelected(emoji, emojiReactions)}
                 reportAction={reportAction}
                 setIsEmojiPickerActive={setIsEmojiPickerActive}
             />
