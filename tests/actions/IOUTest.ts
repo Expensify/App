@@ -3420,15 +3420,18 @@ describe('actions/IOU', () => {
         it('updates the expense request and expense report when paid while offline', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
 
             mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policyID = generatePolicyID();
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
+                        policyID,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3442,6 +3445,20 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.POLICY,
+                                waitForCollectionCallback: true,
+                                callback: (allPolicies) => {
+                                    Onyx.disconnect(connection);
+                                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
                                     resolve();
                                 },
                             });
@@ -3464,6 +3481,9 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            policyParams: {
+                                policy,
+                            },
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
@@ -3481,7 +3501,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
-                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                     resolve();
                                 },
@@ -3532,7 +3552,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
-                                    const updatedIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                                    const updatedIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                                     const updatedChatReport = Object.values(allReports ?? {}).find((report) => report?.reportID === expenseReport?.chatReportID);
                                     expect(updatedIOUReport).toEqual(
                                         expect.objectContaining({
@@ -3558,14 +3578,18 @@ describe('actions/IOU', () => {
         it('shows an error when paying results in an error', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
 
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policyID = generatePolicyID();
+
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
+                        policyID,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3579,6 +3603,20 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.POLICY,
+                                waitForCollectionCallback: true,
+                                callback: (allPolicies) => {
+                                    Onyx.disconnect(connection);
+                                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
                                     resolve();
                                 },
                             });
@@ -3601,6 +3639,9 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            policyParams: {
+                                policy,
+                            },
                             shouldGenerateTransactionThreadReport: true,
                             currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                             currentUserEmailParam: TEST_USER_LOGIN,
@@ -3618,7 +3659,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
-                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                     resolve();
                                 },
@@ -6960,15 +7001,25 @@ describe('actions/IOU', () => {
         it('pendingAction is not null after canceling the payment failed', async () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
+            const policyID = generatePolicyID();
             createWorkspace({
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
+                policyID,
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.POLICY,
+                waitForCollectionCallback: true,
+                callback: (allPolicies) => {
+                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                },
             });
             await waitForBatchedUpdates();
 
@@ -6998,6 +7049,9 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    policyParams: {
+                        policy,
+                    },
                     shouldGenerateTransactionThreadReport: true,
                     currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                     currentUserEmailParam: TEST_USER_LOGIN,
@@ -7012,7 +7066,7 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.REPORT,
                 waitForCollectionCallback: true,
                 callback: (allReports) => {
-                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                 },
             });
 
@@ -7049,17 +7103,27 @@ describe('actions/IOU', () => {
         it('pendingAction is not null after paying the money request', async () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
+            const policyID = generatePolicyID();
             createWorkspace({
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
+                policyID,
             });
             await waitForBatchedUpdates();
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.POLICY,
+                waitForCollectionCallback: true,
+                callback: (allPolicies) => {
+                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                },
+            });
 
             // Get the policy expense chat report
             await getOnyxData({
@@ -7087,9 +7151,12 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    policyParams: {
+                        policy,
+                    },
                     shouldGenerateTransactionThreadReport: true,
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
-                    currentUserEmailParam: TEST_USER_LOGIN,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
                     transactionViolations: {},
                     isASAPSubmitBetaEnabled: false,
                 });
@@ -7101,7 +7168,7 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.REPORT,
                 waitForCollectionCallback: true,
                 callback: (allReports) => {
-                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                 },
             });
 

@@ -3663,7 +3663,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticNextStep = buildNextStep({
         report: iouReport,
         predictedNextStatus,
-        shouldFixViolations: false,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
