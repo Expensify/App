@@ -1615,6 +1615,8 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
+        TAG_ACTIVE_POLICY: 'active_policy_id',
+        CONTEXT_POLICIES: 'Policies',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
