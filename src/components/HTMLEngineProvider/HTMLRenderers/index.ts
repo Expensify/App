@@ -1,5 +1,6 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
+import ClickableRenderer from './ClickableRenderer';
 import CodeRenderer from './CodeRenderer';
 import ConciergeLinkRenderer from './ConciergeLinkRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
@@ -40,6 +41,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
     'concierge-link': ConciergeLinkRenderer,
+    clickable: ClickableRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

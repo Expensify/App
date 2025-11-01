@@ -173,6 +173,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
+            clickable: HTMLElementModel.fromCustomModel({
+                tagName: 'clickable',
+                contentModel: HTMLContentModel.textual,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
