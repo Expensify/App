@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
@@ -108,7 +109,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-
+    const onboardingValues = useOnboardingValues();
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
@@ -148,6 +149,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                     currentOnboardingPurposeSelected,
                     currentOnboardingCompanySize,
                     onboardingInitialPath,
+                    onboardingValues,
                 }),
                 linkingConfig.config,
             );

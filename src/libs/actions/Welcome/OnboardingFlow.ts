@@ -16,17 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
-let onboardingValues: Onboarding;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        onboardingValues = value;
-    },
-});
-
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
@@ -37,6 +26,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
+    onboardingValues: OnyxEntry<Onboarding>;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -103,6 +93,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
+        onboardingValues,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
