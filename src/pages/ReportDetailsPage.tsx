@@ -23,6 +23,7 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -794,9 +795,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         </OfflineWithFeedback>
     );
 
+    const ancestors = useAncestors(parentReport);
+
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
+            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
             return;
         }
 
