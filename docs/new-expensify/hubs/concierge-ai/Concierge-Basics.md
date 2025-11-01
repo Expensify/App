@@ -40,7 +40,7 @@ Here are a few examples you can type:
 - “Submit my April travel report.”  
 - “Approve Alice’s report with the Uber expense.”
 
-> **Tip:** The more specific you are, the better the response.
+**Tip:** The more specific you are, the better the response.
 
 # What makes Concierge AI different?
 
@@ -65,7 +65,7 @@ New features are added regularly.
 
 Yes! Just be clear in your message. Concierge can understand multi-step instructions like:
 
-> “Is this report reimbursable? And can you create a $25 taxi expense for it?”
+“Is this report reimbursable? And can you create a $25 taxi expense for it?”
 
 # Can I talk to a real person instead of Concierge AI?
 
@@ -87,7 +87,7 @@ There’s no risk of another customer seeing your data—because they can’t.
 Prefer an AI-only experience? You can prevent Concierge from escalating your messages to a human.
 
 **To disable escalation:**
-1. Go to `Account > Settings > Preferences`.  
+1. Go to **Account > Preferences**.  
 2. Toggle off **Allow Concierge to escalate to humans**.
 
 </div>
