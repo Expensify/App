@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -22,7 +23,7 @@ import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
@@ -48,6 +49,8 @@ function IOURequestStepUpgrade({
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     const feature = useMemo(
         () =>
@@ -56,6 +59,14 @@ function IOURequestStepUpgrade({
                 .find((f) => f.alias === upgradePath),
         [upgradePath],
     );
+
+    const navigateWithMicrotask = (route: Route) => {
+        if (true) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+        } else {
+            Navigation.navigate(route);
+        }
+    };
 
     const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
@@ -83,16 +94,17 @@ function IOURequestStepUpgrade({
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID: expenseReportID});
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID)));
+
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)));
+                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)),
-                );
+                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             default:
         }
