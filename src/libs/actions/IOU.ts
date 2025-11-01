@@ -48,7 +48,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString, getCurrencyUnit} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -13412,6 +13412,52 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
     });
 }
 
+/**
+ * Evenly distribute the draft split expense amounts across all split items.
+ * Remainders are added to the first or last item to ensure the total matches the original amount.
+ *
+ * Notes:
+ * - Works entirely on the provided `draftTransaction` to avoid direct Onyx reads.
+ * - Uses `calculateAmount` utility to handle currency subunits and rounding consistently with existing logic.
+ */
+function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!draftTransaction) {
+        return;
+    }
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const currency = getCurrency(draftTransaction);
+    const total = getAmount(draftTransaction);
+
+    if (!originalTransactionID || splitExpenses.length === 0) {
+        return;
+    }
+
+    // Floor-allocation with remainder added to the last split so the last is always the largest
+    const splitCount = splitExpenses.length;
+    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const totalInCurrencySubunit = (total / 100) * currencyUnit;
+    const baseShareSubunit = Math.floor(totalInCurrencySubunit / splitCount);
+    const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * splitCount;
+    const lastIndex = splitCount - 1;
+
+    const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
+        const subunitAmount = baseShareSubunit + (index === lastIndex ? remainderSubunit : 0);
+        const amountInCents = Math.round((subunitAmount * 100) / currencyUnit);
+        return {
+            ...splitExpense,
+            amount: amountInCents,
+        };
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
+}
+
 function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
@@ -14155,6 +14201,7 @@ export {
     initSplitExpense,
     initSplitExpenseItemData,
     addSplitExpenseField,
+    evenlyDistributeSplitExpenseAmounts,
     updateSplitExpenseAmountField,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,
