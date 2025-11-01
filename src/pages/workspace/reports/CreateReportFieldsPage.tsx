@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -38,7 +38,7 @@ const defaultDate = DateUtils.extractDate(new Date().toString());
 function WorkspaceCreateReportFieldsPage({
     policy,
     route: {
-        params: {policyID},
+        params: {policyID, target},
     },
 }: CreateReportFieldsPageProps) {
     const styles = useThemeStyles();
@@ -46,17 +46,35 @@ function WorkspaceCreateReportFieldsPage({
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
-    const policyExpenseReportIDsSelector = useCallback(
+    const fieldTarget = useMemo(() => {
+        if (target && Object.values(CONST.REPORT_FIELD_TARGETS).includes(target)) {
+            return target;
+        }
+
+        return CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    }, [target]);
+    const reportTypeForTarget = useMemo(() => {
+        switch (fieldTarget) {
+            case CONST.REPORT_FIELD_TARGETS.INVOICE:
+                return CONST.REPORT.TYPE.INVOICE;
+            case CONST.REPORT_FIELD_TARGETS.PAYCHECK:
+                return CONST.REPORT.TYPE.PAYCHECK;
+            default:
+                return CONST.REPORT.TYPE.EXPENSE;
+        }
+    }, [fieldTarget]);
+
+    const policyReportIDsSelector = useCallback(
         (reports: OnyxCollection<Report>) =>
             Object.values(reports ?? {})
-                .filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE)
+                .filter((report) => report?.policyID === policyID && report.type === reportTypeForTarget)
                 .map((report) => report?.reportID),
-        [policyID],
+        [policyID, reportTypeForTarget],
     );
 
-    const [policyExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+    const [policyReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
-        selector: policyExpenseReportIDsSelector,
+        selector: policyReportIDsSelector,
     });
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
@@ -70,11 +88,12 @@ function WorkspaceCreateReportFieldsPage({
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
                 listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
                 disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
-                policyExpenseReportIDs,
+                policyReportIDs,
+                target: fieldTarget,
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, formDraft, policy, policyExpenseReportIDs],
+        [availableListValuesLength, formDraft, policy, policyReportIDs, fieldTarget],
     );
 
     const validateForm = useCallback(
