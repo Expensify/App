@@ -212,6 +212,7 @@ function WorkspacesListPage() {
 
         deleteWorkspace(
             policyIDToDelete,
+            activePolicyID,
             policyNameToDelete,
             lastAccessedWorkspacePolicyID,
             defaultCardFeeds,

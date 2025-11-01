@@ -218,13 +218,24 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
+        deleteWorkspace(
+            policy.id,
+            activePolicyID,
+            policyName,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastPaymentMethod,
+        );
         if (isOffline) {
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
