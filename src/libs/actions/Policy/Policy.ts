@@ -2439,14 +2439,11 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
     if (deprecatedIntroSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && deprecatedIntroSelected.createWorkspace) {
         const createWorkspaceTaskReport = {reportID: deprecatedIntroSelected.createWorkspace};
-        console.log('createWorkspaceTaskReport', createWorkspaceTaskReport);
         const {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
         } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false);
-
-        console.log('optimisticCreateWorkspaceTaskData', optimisticCreateWorkspaceTaskData);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);

@@ -175,6 +175,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             policyCategories,
             policyTagLists,
             allTransactionViolations,
+            hasOutstandingChildTask,
         ],
     );
 

@@ -63,19 +63,6 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-
-        allReportActions = actions;
-    },
-});
-
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -407,7 +394,7 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`,
             value: {
-                hasOutstandingChildTask: hasOutstandingChildTask,
+                hasOutstandingChildTask,
             },
         });
         failureData.push({
@@ -982,18 +969,6 @@ function getShareDestination(
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
     };
-}
-
-/**
- * Returns the parentReportAction if the given report is a thread/task.
- */
-function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
-    // If the report is not a thread report, then it won't have a parent and an empty object can be returned.
-    if (!report?.parentReportID || !report.parentReportActionID) {
-        return undefined;
-    }
-
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
 /**

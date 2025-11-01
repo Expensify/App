@@ -61,6 +61,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             currentUserPersonalDetails.accountID,
             isQuickSettingsFlow,
             backTo,
+            hasOutstandingChildTask,
+            parentReportAction,
         ],
     );
 

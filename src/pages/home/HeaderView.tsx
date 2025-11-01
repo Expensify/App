@@ -89,7 +89,7 @@ type HeaderViewProps = {
     report: OnyxEntry<Report>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<ReportAction>;
+    parentReportAction?: OnyxEntry<ReportAction>;
 
     /** The reportID of the current report */
     reportID: string | undefined;
