@@ -150,7 +150,7 @@ type MoneyRequestConfirmationListFooterProps = {
     receiptFilename: string;
 
     /** The path of the receipt */
-    receiptPath: string;
+    receiptPath: string | number;
 
     /** The report action ID */
     reportActionID: string | undefined;
