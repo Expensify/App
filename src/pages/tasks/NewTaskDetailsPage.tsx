@@ -29,6 +29,7 @@ type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamLis
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -74,7 +75,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             createTaskAndNavigate({
-                parentReportID: task?.parentReportID,
+                parentReport: taskReport,
                 title: values.taskTitle,
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',
