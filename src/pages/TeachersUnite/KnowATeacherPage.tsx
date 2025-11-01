@@ -87,7 +87,7 @@ function KnowATeacherPage() {
 
             return errors;
         },
-        [loginList, translate],
+        [countryCode, loginList, translate],
     );
 
     return (
