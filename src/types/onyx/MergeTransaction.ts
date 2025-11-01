@@ -57,6 +57,9 @@ type MergeTransaction = {
 
     /** The attendees of the transaction */
     attendees?: Attendee[];
+
+    /** ID of the original transaction */
+    originalTransactionID?: string;
 };
 
 export default MergeTransaction;
