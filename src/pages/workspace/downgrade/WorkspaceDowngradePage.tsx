@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,14 +30,16 @@ type WorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], [policies, policyID]);
+    const {accountID} = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isDowngradeWarningModalOpen, setIsDowngradeWarningModalOpen] = useState(false);
 
-    const canPerformDowngrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const canPerformDowngrade = useMemo(() => canModifyPlan(policies, accountID, policyID), [accountID, policies, policyID]);
     const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
     const onDowngradeToTeam = () => {
@@ -59,6 +62,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
             });
@@ -71,6 +75,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         }
 
         setIsDowngradeWarningModalOpen(false);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
