@@ -13,7 +13,7 @@ import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
@@ -5581,7 +5581,11 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return getUnreportedTransactionMessage();
+        return getUnreportedTransactionMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+        return getMovedTransactionMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -6680,21 +6684,57 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(report: OnyxEntry<Report>) {
+function getMovedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
+    const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+
+    const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+    const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+
+    const report = fromReport ?? toReport;
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = getReportURLForCurrentContext(report?.reportID);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
+    let reportUrl = getReportURLForCurrentContext(report?.reportID);
+    if (typeof fromReportID === 'undefined') {
+        return translateLocal('iou.movedTransactionTo', {
+            reportUrl,
+            reportName,
+        });
+    }
+    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        const selfDMReportID = findSelfDMReportID();
+        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        return translateLocal('iou.movedUnreportedTransaction', {
+            reportUrl,
+        });
+    }
+    return translateLocal('iou.movedTransactionFrom', {
+        reportUrl,
+        reportName,
+    });
 }
 
-function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
-    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('iou.unreportedTransaction', {
+function getUnreportedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
+    const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+
+    const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+
+    const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
+
+    let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
+
+    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        const selfDMReportID = findSelfDMReportID();
+        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        return translateLocal('iou.unreportedTransaction', {
+            reportUrl,
+        });
+    }
+
+    return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
+        reportName,
     });
-    return message;
 }
 
 function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) {
@@ -7125,11 +7165,14 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
 function buildOptimisticTransactionAction(
     type: typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION | typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
     transactionThreadReportID: string | undefined,
-    targetReportID: string,
+    originalReportID: string,
 ): ReportAction {
-    const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = getReportURLForCurrentContext(targetReportID);
-    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+    const reportName = allReports?.[originalReportID]?.reportName ?? '';
+    const url = getReportURLForCurrentContext(originalReportID);
+    const [actionText, messageHtml] =
+        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
+            ? [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
+            : ['moved this expense from your personal space', 'moved this expense from your personal space'];
 
     return {
         actionName: type,
@@ -7137,7 +7180,7 @@ function buildOptimisticTransactionAction(
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION ? {toReportID: targetReportID} : {fromReportID: targetReportID},
+        originalMessage: {fromReportID: originalReportID},
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -7162,8 +7205,8 @@ function buildOptimisticTransactionAction(
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string) {
-    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, toReportID);
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string): ReportAction {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, fromReportID);
 }
 
 /**
