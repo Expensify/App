@@ -6487,7 +6487,9 @@ describe('actions/IOU', () => {
             };
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy)).toBeFalsy();
         });
+    });
 
+    describe('canIOUBePaid - negative total with pay elsewhere', () => {
         it('should return true if the report has negative total and onlyShowPayElsewhere is true', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
