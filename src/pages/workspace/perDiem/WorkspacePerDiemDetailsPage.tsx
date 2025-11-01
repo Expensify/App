@@ -35,6 +35,40 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const customUnit = getPerDiemCustomUnit(policy);
+    const customUnitID = customUnit?.customUnitID;
+
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+                if (
+                    transaction &&
+                    customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitRateID === rateID &&
+                    transaction?.comment?.customUnit?.subRates?.some((subRate) => subRate.id === subRateID)
+                ) {
+                    transactionIDs.add(transaction?.transactionID);
+                }
+                return transactionIDs;
+            }, new Set<string>());
+        },
+        canBeMissing: true,
+    });
+
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations) => {
+            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
+                return undefined;
+            }
+            return Object.fromEntries(
+                Object.entries(violations ?? {}).filter(([key]) => {
+                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+                    return eligibleTransactionIDs?.has(id);
+                }),
+            );
+        },
+        canBeMissing: true,
+    });
 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
@@ -46,16 +80,22 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
 
     const handleDeletePerDiemRate = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, [
-            {
-                destination: selectedRate?.name ?? '',
-                subRateName: selectedSubRate?.name ?? '',
-                rate: selectedSubRate?.rate ?? 0,
-                currency: selectedRate?.currency ?? '',
-                rateID,
-                subRateID,
-            },
-        ]);
+        deleteWorkspacePerDiemRates(
+            policyID,
+            customUnit,
+            [
+                {
+                    destination: selectedRate?.name ?? '',
+                    subRateName: selectedSubRate?.name ?? '',
+                    rate: selectedSubRate?.rate ?? 0,
+                    currency: selectedRate?.currency ?? '',
+                    rateID,
+                    subRateID,
+                },
+            ],
+            Array.from(eligibleTransactionIDs ?? []),
+            transactionViolations,
+        );
         setDeletePerDiemConfirmModalVisible(false);
         Navigation.goBack();
     };
