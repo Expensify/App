@@ -79,8 +79,7 @@ If something's not supported yet, Concierge will let you know or escalate the re
 
 No problem—just ask Concierge to update or fix the expense.
 
-Example:  
-> “Oops, that Starbucks expense was $7, not $5. Can you fix it?”
+Example:  “Oops, that Starbucks expense was $7, not $5. Can you fix it?”
 
 Concierge will update the amount and confirm the change.
 
