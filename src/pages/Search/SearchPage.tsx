@@ -459,8 +459,8 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
-            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[0]}`];
-            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[1]}`];
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
 
             if (
                 isMergeActionFromReportView(

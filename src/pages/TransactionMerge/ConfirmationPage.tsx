@@ -34,6 +34,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, backTo, hash} = route.params;
+
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});

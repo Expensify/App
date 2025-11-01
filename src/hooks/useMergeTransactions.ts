@@ -15,6 +15,7 @@ type UseMergeTransactionsReturn = {
 };
 
 function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
     const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
@@ -24,7 +25,8 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
         canBeMissing: true,
     });
 
-    let targetTransaction, sourceTransaction;
+    let targetTransaction;
+    let sourceTransaction;
 
     // Always use transactions from the search snapshot if we're coming from the Reports page
     if (hash) {
