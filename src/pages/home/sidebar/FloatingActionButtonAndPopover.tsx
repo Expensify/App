@@ -428,8 +428,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    const targetAccountPersonalDetails = personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as OnyxTypes.PersonalDetails);
-                    targetAccountPersonalDetails.accountID = targetAccountPersonalDetails?.accountID ?? quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID;
+                    const targetAccountPersonalDetails = {
+                        ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                        accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    };
 
                     navigateToQuickAction({
                         isValidReport,

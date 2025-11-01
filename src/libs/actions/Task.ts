@@ -923,7 +923,7 @@ function clearOutTaskInfoAndNavigate(
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
-    const assigneeAccountID = assigneePersonalDetails?.accountID ?? 0;
+    const assigneeAccountID = assigneePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     if (assigneePersonalDetails && assigneeAccountID > 0) {
         setAssigneeValue(currentUserAccountID, assigneePersonalDetails, reportID, chatReport, assigneeAccountID === currentUserAccountID, skipConfirmation);
     }
