@@ -1,6 +1,7 @@
 ---
+title: Concierge AI
 hidden: true
-sort_order: manual
+order: manual
 ---
 
-<!-- This hidden index prevents auto-discovery and uses _routes.yml ordering -->
+<!-- This file controls ordering; it is not displayed as an article -->
