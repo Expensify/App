@@ -48,10 +48,6 @@ const FS: Fullstory = {
     },
 
     anonymize: () => FullStory.anonymize(),
-
-    getSessionId: () => {
-        return FullStory.getCurrentSession();
-    },
 };
 
 export default FS;
