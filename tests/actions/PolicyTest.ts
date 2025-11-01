@@ -1142,7 +1142,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, undefined, teamPolicy.name, undefined, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {

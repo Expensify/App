@@ -330,8 +330,8 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(activePolicy: Policy, activeAdminWorkspaces: Policy[]): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicy.id)) {
+function getInvoicePrimaryWorkspace(activePolicy: OnyxEntry<Policy>, activeAdminWorkspaces: Policy[]): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicy?.id)) {
         return activePolicy;
     }
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));

@@ -240,7 +240,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
+    }, [
+        policy?.id,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        defaultCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastPaymentMethod,
+        isOffline,
+        activePolicyID,
+    ]);
 
     const handleLeaveWorkspace = useCallback(() => {
         if (!policy?.id) {

@@ -26,7 +26,6 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -57,7 +56,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
@@ -139,7 +137,7 @@ function MoneyRequestParticipantsSelector({
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
-    const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [policy, currentUserLogin]);
+    const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const showImportContacts = isNative && !isCategorizeOrShareAction && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
@@ -387,7 +385,7 @@ function MoneyRequestParticipantsSelector({
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(policy as Policy, activeAdminWorkspaces)?.id;
+                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(policy, activeAdminWorkspaces)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,
