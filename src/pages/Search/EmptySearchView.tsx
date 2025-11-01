@@ -522,6 +522,7 @@ function EmptySearchViewContent({
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
+        currentUserPersonalDetails.accountID,
     ]);
 
     return (

@@ -205,6 +205,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         iouReport,
         iouActions,
         chatReport,
+        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(

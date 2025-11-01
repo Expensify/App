@@ -645,7 +645,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 style={[styles.w100, styles.mb3]}
             />
         );
-    }, [isGroupChat, isThread, isChatRoom, icons, report, styles.avatarXLarge, styles.smallEditIconAccount, styles.mt6, styles.w100, styles.mb3, moneyRequestReport?.reportID]);
+    }, [
+        isChatRoom,
+        isThread,
+        isGroupChat,
+        icons,
+        report,
+        styles.avatarXLarge,
+        styles.smallEditIconAccount,
+        styles.mt6,
+        styles.w100,
+        styles.mb3,
+        policy,
+        participants,
+        moneyRequestReport?.reportID,
+    ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
 
