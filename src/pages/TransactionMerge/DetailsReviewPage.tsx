@@ -17,6 +17,7 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -27,7 +28,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, backTo, hash} = route.params;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     let [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
@@ -87,9 +87,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue);
+
             setMergeTransactionKey(transactionID, {
-                [field]: fieldValue,
-                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...updatedValues,
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,

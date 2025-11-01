@@ -1,24 +1,16 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {areTransactionsEligibleForMerge, getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {
-    getReportOrDraftReport,
-    getReportTransactions,
-    getTransactionDetails,
-    isCurrentUserSubmitter,
-    isIOUReport,
-    isMoneyRequestReportEligibleForMerge,
-    isReportManager,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isPerDiemRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getTransactionViolationsOfTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -34,8 +26,8 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
 /**
  * Sets merge transaction data for a specific transaction
  */
-function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
+function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
 /**
