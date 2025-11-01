@@ -51,6 +51,9 @@ type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
 
     /** Whether disable the animations */
     disableAnimation?: boolean;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 };
 
 export type {ValidateCodeActionContentProps, ValidateCodeActionModalProps};

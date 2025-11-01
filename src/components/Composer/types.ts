@@ -1,5 +1,5 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;
@@ -7,7 +7,7 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
