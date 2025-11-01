@@ -89,7 +89,7 @@ type HeaderViewProps = {
     report: OnyxEntry<Report>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction?: OnyxEntry<ReportAction>;
+    parentReportAction: OnyxEntry<ReportAction> | null;
 
     /** The reportID of the current report */
     reportID: string | undefined;
@@ -371,7 +371,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction ?? undefined);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
