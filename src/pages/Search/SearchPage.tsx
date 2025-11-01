@@ -35,6 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -53,13 +54,16 @@ import {
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
 import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isManagedCardTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -255,12 +259,22 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
         },
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
+
+    const [isSorting, setIsSorting] = useState(false);
+    let searchResults: SearchResults | undefined;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -444,6 +458,49 @@ function SearchPage({route}: SearchPageProps) {
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
+        }
+
+        if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
+
+            if (
+                isMergeActionFromReportView(
+                    selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]],
+                    [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]],
+                )
+            ) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: Expensicons.ArrowCollapse,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                    onSelected: () => {
+                        let targetTransactionID = transaction1?.transactionID;
+
+                        if (selectedTransactionsKeys.length === 1) {
+                            setupMergeTransactionData(targetTransactionID, {targetTransactionID});
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransactionID, Navigation.getActiveRoute()));
+                            return;
+                        }
+
+                        let sourceTransactionID = transaction2?.transactionID;
+
+                        // If we reached here, only one of the transactions can be a card transaction
+                        if (isManagedCardTransaction(transaction2)) {
+                            targetTransactionID = transaction2?.transactionID;
+                            sourceTransactionID = transaction1?.transactionID;
+                        }
+
+                        setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
+                        if (shouldNavigateToReceiptReview([transaction1, transaction2])) {
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
+                        } else {
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
+                        }
+                    },
+                });
+            }
         }
 
         const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
@@ -675,15 +732,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-
-    const [isSorting, setIsSorting] = useState(false);
-
-    let searchResults;
-    if (currentSearchResults?.data) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
-    }
 
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
