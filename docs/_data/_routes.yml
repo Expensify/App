@@ -105,9 +105,20 @@ platforms:
         description: Use Expensify's chat feature to split bills, chat with employees, and manage payments.
         
       - href: concierge-ai
-        title: Concierge AI
-        icon: /assets/images/concierge-avatar.svg
-        description: Learn about Concierge AI and what it can do.
+      title: Concierge AI
+      icon: /assets/images/concierge-avatar.svg
+      description: Learn about Concierge AI and what it can do.
+      articles:
+        - href: Concierge-Basics
+          title: Concierge Basics
+        - href: Concierge-Intelligence
+          title: Concierge Intelligence
+        - href: Expense-Assistant
+          title: Expense Assistant
+        - href: Support-Agent
+          title: Support Agent
+        - href: Assistant-Manager
+          title: Assistant Manager
 
       - href: workspaces
         title: Workspaces
