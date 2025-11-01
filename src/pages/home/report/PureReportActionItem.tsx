@@ -393,6 +393,9 @@ type PureReportActionItemProps = {
     /** Current user's account id */
     currentUserAccountID?: number;
 
+    /** Whether the flatlist is reverted */
+    isReverted?: boolean;
+
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 };
@@ -462,6 +465,7 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    isReverted,
     bankAccountList,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -1504,6 +1508,7 @@ function PureReportActionItem({
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                    isReverted={isReverted}
                                 />
                             )}
                         </AttachmentContext.Provider>
