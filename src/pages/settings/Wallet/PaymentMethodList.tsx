@@ -215,7 +215,7 @@ function PaymentMethodList({
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
-                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
+                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card)) {
@@ -236,7 +236,7 @@ function PaymentMethodList({
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
@@ -270,7 +270,7 @@ function PaymentMethodList({
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!assignedCardsGroupedItem.errors) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }
@@ -297,7 +297,7 @@ function PaymentMethodList({
                     errors: card.errors,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     icon,
@@ -436,6 +436,7 @@ function PaymentMethodList({
                     pendingAction={item.pendingAction}
                     errors={item.errors}
                     errorRowStyles={styles.ph6}
+                    shouldShowErrorMessages={false}
                     canDismissError={item.canDismissError}
                 >
                     <MenuItem

@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
-import type {BankAccountList, FundList} from '@src/types/onyx';
+import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
@@ -407,8 +407,8 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
-    const combinedPaymentMethods = {...bankList, ...fundList};
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>, cardList: OnyxEntry<CardList>): boolean {
+    const combinedPaymentMethods = {...bankList, ...fundList, ...cardList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
 }
