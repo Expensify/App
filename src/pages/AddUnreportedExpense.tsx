@@ -163,7 +163,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT));
+                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, isASAPSubmitBetaEnabled);
             } else {
                 changeTransactionsReport(
                     [...selectedIds],
@@ -178,7 +178,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isBetaEnabled, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (

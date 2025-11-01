@@ -150,6 +150,8 @@ function IOURequestStepDistanceMap({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
         (participants: Participant[]) => {
@@ -345,8 +347,8 @@ function IOURequestStepDistanceMap({
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
+                            isASAPSubmitBetaEnabled,
                         },
-                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     });
                     return;
                 }
@@ -374,7 +376,7 @@ function IOURequestStepDistanceMap({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
-                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    isASAPSubmitBetaEnabled,
                 });
                 return;
             }
@@ -437,7 +439,7 @@ function IOURequestStepDistanceMap({
         lastSelectedDistanceRates,
         localeCompare,
         backToReport,
-        isBetaEnabled,
+        isASAPSubmitBetaEnabled,
         customUnitRateID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,

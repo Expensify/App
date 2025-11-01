@@ -102,6 +102,7 @@ function SubmitDetailsPage({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: GpsPoint) => {
         if (!transaction) {
@@ -133,7 +134,7 @@ function SubmitDetailsPage({
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     isLinkedTrackedExpenseReportArchived,
                 },
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                isASAPSubmitBetaEnabled,
             });
         } else {
             requestMoney({
@@ -162,7 +163,7 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                isASAPSubmitBetaEnabled,
             });
         }
     };

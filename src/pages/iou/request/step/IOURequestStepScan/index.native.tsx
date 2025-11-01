@@ -197,6 +197,8 @@ function IOURequestStepScan({
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
@@ -331,7 +333,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
-                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -355,12 +357,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
-                        isASAPSubmitBetaEnabled: ,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isBetaEnabled],
+        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(

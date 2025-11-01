@@ -95,6 +95,7 @@ function IOURequestStepDistanceManual({
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
@@ -203,7 +204,7 @@ function IOURequestStepDistanceManual({
                                 customUnitRateID,
                                 attendees: transaction?.comment?.attendees,
                             },
-                            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                            isASAPSubmitBetaEnabled,
                         });
                         return;
                     }
@@ -230,7 +231,7 @@ function IOURequestStepDistanceManual({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
-                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -296,7 +297,7 @@ function IOURequestStepDistanceManual({
             lastSelectedDistanceRates,
             localeCompare,
             backToReport,
-            isBetaEnabled,
+            isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
             personalPolicy?.autoReporting,
