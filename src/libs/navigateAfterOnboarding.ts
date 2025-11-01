@@ -2,7 +2,7 @@ import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
+import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
@@ -26,8 +26,9 @@ const navigateAfterOnboarding = (
     } else {
         const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
-        // we don't want to navigate to newly created workspaces after onboarding is completed.
-        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
+        // We need to send the user to the #admins room from the policy that was created while onboarding, not newly created workspaces nor selfDM chats
+        // See https://github.com/Expensify/App/issues/61417 and https://github.com/Expensify/App/issues/73559 for more details.
+        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
             reportID = lastAccessedReportID;
         }
     }
