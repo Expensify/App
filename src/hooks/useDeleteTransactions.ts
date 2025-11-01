@@ -67,13 +67,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return transactionID === IOUTransactionID;
                 }),
             }));
-
             const deletedTransactionIDs: string[] = [];
             const deletedTransactionThreadReportIDs = new Set<string>();
             const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
                 (acc, item) => {
                     const {transaction} = item;
-                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+                    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.comment?.originalTransactionID}`];
+                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
                     if (isExpenseSplit && originalTransactionID) {

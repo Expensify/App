@@ -266,6 +266,9 @@ function MoneyReportHeader({
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const currentTransaction = transactions.at(0);
+    const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -279,7 +282,7 @@ function MoneyReportHeader({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -874,6 +877,7 @@ function MoneyReportHeader({
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
+            originalTransaction: originalIOUTransaction,
             violations,
             policy,
             reportNameValuePairs,
@@ -881,7 +885,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
+    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -1006,7 +1010,6 @@ function MoneyReportHeader({
                     return;
                 }
 
-                const currentTransaction = transactions.at(0);
                 initSplitExpense(allTransactions, allReports, currentTransaction);
             },
         },
@@ -1015,7 +1018,6 @@ function MoneyReportHeader({
             icon: Expensicons.ArrowCollapse,
             value: CONST.REPORT.SECONDARY_ACTIONS.MERGE,
             onSelected: () => {
-                const currentTransaction = transactions.at(0);
                 if (!currentTransaction) {
                     return;
                 }

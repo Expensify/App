@@ -244,8 +244,9 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
