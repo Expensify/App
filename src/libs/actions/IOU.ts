@@ -201,6 +201,7 @@ import {
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
+    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -8300,7 +8301,7 @@ function prepareToCleanUpMoneyRequest(
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport;
     const currency = getCurrency(transaction);
-    const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
+    let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     const transactionPendingDelete = transactionIDsPendingDeletion?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
@@ -8344,8 +8345,8 @@ function prepareToCleanUpMoneyRequest(
                 : updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, amountDiff, currency, true, false, isTransactionOnHold, unheldAmountDiff);
     }
 
+    const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
     if (updatedIOUReport) {
-        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
@@ -8374,6 +8375,23 @@ function prepareToCleanUpMoneyRequest(
 
     if (updatedReportPreviewAction && reportPreviewAction?.childMoneyRequestCount && reportPreviewAction?.childMoneyRequestCount > 0) {
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+    }
+
+    if (
+        updatedReportPreviewAction &&
+        reportPreviewAction?.childVisibleActionCount &&
+        reportPreviewAction?.childVisibleActionCount > 0 &&
+        reportAction.childVisibleActionCount &&
+        reportAction.childVisibleActionCount > 0
+    ) {
+        const optimisticReportPreviewActionForChildVisibleActionCount = updateOptimisticParentReportAction(
+            reportPreviewAction as ReportAction,
+            lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            reportAction.childVisibleActionCount,
+        );
+
+        updatedReportPreviewAction = {...updatedReportPreviewAction, ...optimisticReportPreviewActionForChildVisibleActionCount};
     }
 
     return {
