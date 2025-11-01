@@ -2659,6 +2659,11 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Invita membri',
             subtitle: 'Gestisci e condividi le tue spese con un commercialista o avvia un gruppo di viaggio con gli amici.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La creazione di spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi di lavoro qui sotto oppure contatta il tuo amministratore per maggiori informazioni.',
+            skipForNow: 'Salta per ora',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',

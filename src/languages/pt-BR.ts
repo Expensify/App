@@ -2652,6 +2652,11 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Convidar membros',
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'A criação de espaços de trabalho está restrita aos administradores. Entre em um dos espaços de trabalho abaixo ou contate seu administrador para obter mais informações.',
+            skipForNow: 'Pular por enquanto',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não me mostre isso novamente',
@@ -4431,7 +4436,6 @@ ${amount} para ${merchant} - ${date}`,
             displayedAsTagDescription: 'O departamento será selecionável para cada despesa individual no relatório de um funcionário.',
             displayedAsReportFieldDescription: 'A seleção de departamento será aplicada a todas as despesas no relatório de um funcionário.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Escolha como lidar com o Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
-
             expenseTypes: 'Tipos de despesas',
             expenseTypesDescription: 'Seus tipos de despesas do Sage Intacct serão importados para o Expensify como categorias.',
             accountTypesDescription: 'Seu plano de contas do Sage Intacct será importado para o Expensify como categorias.',
@@ -7375,7 +7379,6 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
-
     avatarPage: {
         title: 'Editar foto de perfil',
         upload: 'Carregar',
