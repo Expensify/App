@@ -6,7 +6,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
@@ -111,8 +110,11 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
+                        promptKeyParams: {
+                            rates: ratesLength,
+                        },
                     },
                 },
             },
@@ -124,7 +126,10 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -364,6 +369,16 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
+function fetchPerDiemRates(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+    const parameters = {
+        policyID,
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
+}
+
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -376,4 +391,5 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
+    fetchPerDiemRates,
 };

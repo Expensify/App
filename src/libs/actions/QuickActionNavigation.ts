@@ -14,6 +14,7 @@ type NavigateToQuickActionParams = {
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void;
     lastDistanceExpenseType?: DistanceExpenseType;
     targetAccountPersonalDetails?: PersonalDetails | null;
+    currentUserAccountID: number;
 };
 
 function getQuickActionRequestType(action: QuickActionName | undefined, lastDistanceExpenseType?: DistanceExpenseType): IOURequestType | undefined {
@@ -36,7 +37,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
 }
 
 function navigateToQuickAction(params: NavigateToQuickActionParams) {
-    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails} = params;
+    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID} = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
@@ -55,7 +56,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID, targetAccountPersonalDetails), false);
+            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID, targetAccountPersonalDetails), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:

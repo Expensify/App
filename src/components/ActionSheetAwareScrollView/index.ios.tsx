@@ -1,10 +1,12 @@
-import React, {useCallback} from 'react';
+import React, {forwardRef, useCallback} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
 import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-function ActionSheetAwareScrollView({style, children, ref, ...props}: ActionSheetAwareScrollViewProps) {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
@@ -36,7 +38,7 @@ function ActionSheetAwareScrollView({style, children, ref, ...props}: ActionShee
             {children}
         </Reanimated.ScrollView>
     );
-}
+});
 
 export default ActionSheetAwareScrollView;
 

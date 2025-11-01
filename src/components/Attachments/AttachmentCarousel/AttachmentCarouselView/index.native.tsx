@@ -23,7 +23,7 @@ function AttachmentCarouselView({
     setShouldShowArrows,
     onAttachmentError,
     onNavigate,
-    onClose,
+    onSwipeDown,
     setPage,
     attachmentID,
 }: AttachmentCarouselViewProps) {
@@ -103,7 +103,7 @@ function AttachmentCarouselView({
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onClose={onClose}
+                        onSwipeDown={onSwipeDown}
                         ref={pagerRef}
                         reportID={report?.reportID}
                     />

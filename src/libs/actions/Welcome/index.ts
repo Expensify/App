@@ -8,18 +8,18 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingPurpose} from '@src/types/onyx';
+import type {Account, OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GetOnboardingInitialPathParamsType, OnboardingCompanySize} from './OnboardingFlow';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 import {startOnboardingFlow} from './OnboardingFlow';
 
-type OnboardingData = Onboarding | undefined;
-
 let isLoadingReportData = true;
-let onboarding: OnboardingData;
+let onboarding: Onboarding | undefined;
+let account: Account | undefined;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -44,6 +44,12 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
+        // Don't trigger onboarding if we are showing the require 2FA page
+        const shouldShowRequire2FAPage = account && !!account.needsTwoFactorAuthSetup && (!account.requiresTwoFactorAuth || !!account.twoFactorAuthSetupInProgress);
+        if (shouldShowRequire2FAPage) {
+            return;
+        }
+
         if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
@@ -52,7 +58,22 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
         // The value `undefined` should not be used here because `testDriveModalDismissed` may not always exist in `onboarding`.
         // So we only compare it to `false` to avoid unintentionally opening the test drive modal.
         if (onboarding?.testDriveModalDismissed === false) {
-            startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                // Check if we're already on the test drive modal route or if navigation is in progress to prevent duplicate navigation
+                const currentRoute = Navigation.getActiveRoute();
+                if (currentRoute?.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+                    return;
+                }
+
+                startOnboardingFlow({
+                    onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
+                    isUserFromPublicDomain: false,
+                    hasAccessiblePolicies: false,
+                    currentOnboardingCompanySize: undefined,
+                    currentOnboardingPurposeSelected: undefined,
+                });
+            });
+
             return;
         }
 
@@ -81,7 +102,7 @@ function checkServerDataReady() {
  * Check if the onboarding data is loaded
  */
 function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
+    if (onboarding === undefined || account === undefined) {
         return;
     }
 
@@ -100,8 +121,8 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: string) {
-    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
+function setOnboardingErrorMessage(value: TranslationPaths | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -162,6 +183,16 @@ function completeHybridAppOnboarding() {
         HybridAppModule.completeOnboarding({status: true});
     });
 }
+
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+        checkOnboardingDataReady();
+    },
+});
 
 // We use `connectWithoutView` here since this connection only updates a module-level variable
 // and doesn't need to trigger component re-renders.

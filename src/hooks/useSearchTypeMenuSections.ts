@@ -1,15 +1,17 @@
 import {createPoliciesSelector} from '@selectors/Policy';
-import {useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Permissions from '@libs/Permissions';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
+import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -52,9 +54,64 @@ const useSearchTypeMenuSections = () => {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
+
+    const handlePendingConfirm = useCallback(() => {
+        pendingReportCreation?.onConfirm();
+        setPendingReportCreation(null);
+    }, [pendingReportCreation, setPendingReportCreation]);
+
+    const handlePendingCancel = useCallback(() => {
+        setPendingReportCreation(null);
+    }, [setPendingReportCreation]);
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingReportCreation?.policyID,
+        policyName: pendingReportCreation?.policyName ?? '',
+        onConfirm: handlePendingConfirm,
+        onCancel: handlePendingCancel,
+    });
+
+    const createReportWithConfirmation = useCallback(
+        ({policyID, policyName, onSuccess, personalDetails}: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: PersonalDetails}) => {
+            const accountID = currentUserLoginAndAccountID?.accountID;
+            if (!accountID) {
+                return;
+            }
+
+            const personalDetailsForCreation = personalDetails ?? (getPersonalDetailsForAccountID(accountID) as PersonalDetails | undefined);
+            if (!personalDetailsForCreation) {
+                return;
+            }
+
+            const executeCreate = () => {
+                const {reportID: createdReportID} = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
+                onSuccess(createdReportID);
+            };
+
+            if (hasEmptyReportsForPolicy(reports, policyID, accountID)) {
+                setPendingReportCreation({
+                    policyID,
+                    policyName,
+                    onConfirm: executeCreate,
+                });
+                return;
+            }
+
+            executeCreate();
+        },
+        [currentUserLoginAndAccountID?.accountID, hasViolations, isASAPSubmitBetaEnabled, reports, setPendingReportCreation],
+    );
+
+    useEffect(() => {
+        if (!pendingReportCreation) {
+            return;
+        }
+        openCreateReportConfirmation();
+    }, [pendingReportCreation, openCreateReportConfirmation]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -70,7 +127,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 isASAPSubmitBetaEnabled,
                 hasViolations,
-                reports,
+                createReportWithConfirmation,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -84,11 +141,11 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            reports,
+            createReportWithConfirmation,
         ],
     );
 
-    return {typeMenuSections};
+    return {typeMenuSections, CreateReportConfirmationModal};
 };
 
 export default useSearchTypeMenuSections;

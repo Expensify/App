@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
@@ -37,11 +37,12 @@ type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigat
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
-function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
@@ -154,9 +155,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         if (
             !availableOptions.userToInvite &&
             excludedUsers[
-                parsePhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode)).possible
-                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode))
-                    : processedLogin
+                parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
@@ -165,6 +164,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
             !!availableOptions.userToInvite,
             processedLogin,
+            countryCode,
+            false,
         );
     }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
 
@@ -188,6 +189,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}

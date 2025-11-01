@@ -145,11 +145,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !currentOnboardingCompanySize)) {
+    if (
+        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
+    ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
@@ -168,6 +171,13 @@ const getOnboardingMessages = (hasIntroSelected = false, locale?: Locale) => {
             DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
+        autoCompleted: false,
+        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+        mediaAttributes: {},
     };
     const createReportTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
@@ -342,7 +352,17 @@ const getOnboardingMessages = (hasIntroSelected = false, locale?: Locale) => {
 
     const onboardingManageTeamMessage: OnboardingMessage = {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {hasIntroSelected}),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+        tasks: [
+            createWorkspaceTask,
+            testDriveAdminTask,
+            addAccountingIntegrationTask,
+            connectCorporateCardTask,
+            inviteTeamTask,
+            setupCategoriesAndTags,
+            setupCategoriesTask,
+            setupTagsTask,
+            addExpenseApprovalsTask,
+        ],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {

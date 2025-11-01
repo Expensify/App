@@ -20,7 +20,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -96,8 +95,11 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importTagsSuccessfulDescription',
+                        promptKeyParams: {
+                            tags: tagsLength,
+                        },
                     },
                 },
             },
@@ -109,7 +111,10 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -490,8 +495,15 @@ function clearPolicyTagErrors({policyID, tagName, tagListIndex, policyTags}: Cle
     });
 }
 
-function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type ClearPolicyTagListErrorFieldProps = {
+    policyID: string;
+    tagListIndex: number;
+    errorField: string;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagListErrorField({policyID, tagListIndex, errorField, policyTags}: ClearPolicyTagListErrorFieldProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag) {
         return;
@@ -530,7 +542,7 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
     if (!tagList) {
@@ -646,7 +658,13 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
-function enablePolicyTags(policyID: string, enabled: boolean) {
+type EnablePolicyTagsProps = {
+    policyID: string;
+    enabled: boolean;
+    policyTags?: PolicyTagLists;
+};
+
+function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -685,8 +703,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
         ],
     };
 
-    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
-    if (!policyTagList) {
+    if (!policyTags) {
         const defaultTagList: PolicyTagLists = {
             Tag: {
                 name: 'Tag',
@@ -706,7 +723,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             value: null,
         });
     } else if (!enabled) {
-        const policyTag = PolicyUtils.getTagLists(policyTagList).at(0);
+        const policyTag = PolicyUtils.getTagLists(policyTags).at(0);
 
         if (!policyTag) {
             return;
@@ -741,7 +758,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the tags data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -792,7 +810,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
+                    },
                 },
             },
         ],
@@ -809,7 +830,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -956,14 +980,16 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
-function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type SetPolicyTagsRequiredProps = {
+    policyID: string;
+    requiresTag: boolean;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-    if (!policyTag) {
-        return;
-    }
-
-    if (!policyTag.name) {
+function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}: SetPolicyTagsRequiredProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1018,9 +1044,18 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
-    const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
-    const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
+type SetPolicyTagGLCodeProps = {
+    policyID: string;
+    tagName: string;
+    tagListIndex: number;
+    glCode: string;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
+    const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
+    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -1095,7 +1130,7 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);

@@ -93,22 +93,24 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
                 .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency}) => ({
                     reportID,
                     action,
                     total,
                     policyID,
                     allActions,
+                    currency,
                 }));
         } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency}) => ({
                     reportID,
                     action,
                     total,
                     policyID,
                     allActions,
+                    currency,
                 }));
         }
 
