@@ -13427,8 +13427,8 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-    const currency = draftTransaction?.currency ?? CONST.CURRENCY.USD;
-    const total = draftTransaction?.amount ?? 0;
+    const currency = getCurrency(draftTransaction);
+    const total = getAmount(draftTransaction);
 
     if (!originalTransactionID || splitExpenses.length === 0) {
         return;
