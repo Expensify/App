@@ -5,6 +5,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -327,9 +328,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
         }
 
         let description = '';
-        if (defaultEmail === login?.partnerUserID) {
-            description = translate('contacts.getInTouch');
-        } else if (login?.errorFields?.addedLogin) {
+        if (login?.errorFields?.addedLogin) {
             description = translate('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
             description = translate('contacts.pleaseVerify');
@@ -348,6 +347,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const partnerUserID = login?.partnerUserID || loginName;
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
+        const label: TranslationPaths = isDefaultContactMethod ? 'contacts.primary' : 'contacts.secondary';
 
         return {
             partnerUserID,
@@ -355,6 +355,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
             description,
             indicator,
             pendingAction,
+            label,
         };
     });
 }
