@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -172,7 +171,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -291,7 +290,6 @@ function BasePopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const {windowHeight} = useWindowDimensions();
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
@@ -491,12 +489,25 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+            return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
-        return styles.createMenuContainer;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
+
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+
+        if (shouldUseScrollView && shouldEnableMaxHeight) {
+            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+        }
+
+        return stylesArray;
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {
+        paddingVertical: menuContainerPaddingVertical,
+        paddingTop: menuContainerPaddingTop,
+        paddingBottom: menuContainerPaddingBottom,
+        ...restMenuContainerStyle
+    } = StyleSheet.flatten(menuContainerStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -526,14 +537,26 @@ function BasePopoverMenu({
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
-            <FocusTrapForModal active={isVisible}>
+            <FocusTrapForModal
+                active={isVisible}
+                shouldReturnFocus={!shouldEnableNewFocusManagement}
+            >
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
+                    style={[containerStyles, restMenuContainerStyle, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
                 >
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [
+                            {
+                                paddingTop: menuContainerPaddingTop ?? paddingTop,
+                                paddingBottom: menuContainerPaddingBottom ?? paddingBottom,
+                                paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0,
+                            },
+                            restScrollContainerStyle,
+                        ],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
