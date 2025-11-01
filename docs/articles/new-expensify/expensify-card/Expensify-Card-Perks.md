@@ -11,7 +11,7 @@ From cash-back rewards to discounts on popular services, the Expensify Card offe
 
 # Expensify Perks
 
-## Cashback
+## Cashback (US only)
 Get 1% cash back with every swipe — no minimums necessary — and 2% back if you spend $250k+/month across cards. This applies to US purchases only.
 
 ## Discounts on Monthly Expensify Bill
