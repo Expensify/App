@@ -195,7 +195,7 @@ function parsePart(definition: string): FormulaPart {
 /**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
-function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList) {
+function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
     const formulaValues = extract(fieldValue);
     if (formulaValues.length === 0) {
         return false;
@@ -210,6 +210,9 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
     }
 
     const visitedLists = new Set<string>();
+    const fieldsByName = new Map<string, {name: string; defaultValue: string}>(
+        Object.values(fieldList).map((field) => [field.name, field]),
+    );
 
     // Helper function to check if a field has circular references
     const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
@@ -233,7 +236,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
             }
 
             // Get the referenced field name (first element in fieldPath)
-            const referencedFieldName = part.fieldPath.at(0);
+            const referencedFieldName = part.fieldPath.at(0)?.trim();
             if (!referencedFieldName) {
                 continue;
             }
@@ -244,7 +247,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
                 return true;
             }
 
-            const referencedField = Object.values(fieldList).find((field) => field.name === referencedFieldName);
+            const referencedField = fieldsByName.get(referencedFieldName);
 
             if (referencedField?.defaultValue) {
                 // Recursively check the referenced field

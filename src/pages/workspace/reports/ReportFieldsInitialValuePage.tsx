@@ -43,7 +43,6 @@ function ReportFieldsInitialValuePage({
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
-
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
     const currentInitialValue = getReportFieldInitialValue(reportField);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
@@ -75,7 +74,10 @@ function ReportFieldsInitialValuePage({
                 });
             }
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)) {
+            if (
+                (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
+                hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)
+            ) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
