@@ -277,7 +277,9 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const policy = policyReal ?? policyDraft;
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
