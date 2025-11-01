@@ -2,8 +2,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
-import {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -26,7 +26,6 @@ import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionU
 import {
     canAddTransaction,
     canDeleteMoneyRequestReport,
-    canEditMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -61,7 +60,6 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
-    isManagedCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
@@ -550,7 +548,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 }
 
 function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: SearchPolicy[]) {
-    if (transactions.length !== 2 || reports.length !== 2 || policies.length !== 2) {
+    if (transactions.length > 2 || reports.length > 2 || policies.length > 2) {
         return false;
     }
 
@@ -558,13 +556,17 @@ function isMergeActionFromReportView(transactions: Transaction[], reports: Repor
     if (
         reports.find((report) => {
             const policy = policies.find((p) => p?.id === report?.policyID);
-            if (!policy) {
+            if (!policy || !report) {
                 return false;
             }
             return !isMoneyRequestReportEligibleForMerge(report, policy.role === CONST.POLICY.ROLE.ADMIN);
         })
     ) {
         return false;
+    }
+
+    if (transactions.length === 1) {
+        return true;
     }
 
     if (!areTransactionsEligibleForMerge(transactions[0], transactions[1])) {

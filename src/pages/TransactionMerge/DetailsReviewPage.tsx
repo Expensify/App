@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
@@ -19,8 +20,6 @@ import {
     getMergeFieldErrorText,
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
-    getSourceTransactionFromMergeTransaction,
-    getTargetTransactionFromMergeTransaction,
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
@@ -43,21 +42,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {transactionID, backTo, hash} = route.params;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    let [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
-        canBeMissing: true,
-    });
-
-    let [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
-        canBeMissing: true,
-    });
-
-    if (hash && currentSearchResults?.data) {
-        sourceTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
-        targetTransaction = currentSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
-    }
+    const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction, hash});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);

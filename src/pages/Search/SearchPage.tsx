@@ -458,15 +458,13 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        if (selectedTransactionsKeys.length === 2 && searchResults?.data) {
+        if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
             const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[0]}`];
             const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys[1]}`];
 
             if (
-                transaction1 &&
-                transaction2 &&
                 isMergeActionFromReportView(
-                    [transaction1, transaction2],
+                    selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2],
                     [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]],
                     [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]],
                 )
@@ -477,6 +475,13 @@ function SearchPage({route}: SearchPageProps) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
                     onSelected: () => {
                         let targetTransactionID = transaction1?.transactionID;
+
+                        if (selectedTransactionsKeys.length === 1) {
+                            setupMergeTransactionData(targetTransactionID, {targetTransactionID});
+                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransactionID, Navigation.getActiveRoute()));
+                            return;
+                        }
+
                         let sourceTransactionID = transaction2?.transactionID;
 
                         // If we reached here, only one of the transactions can be a card transaction
