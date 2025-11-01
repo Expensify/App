@@ -108,10 +108,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE}
-                            component={ModalStackNavigators.SetDefaultWorkspaceModalStackNavigator}
-                        />
-                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
                             component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                         />
