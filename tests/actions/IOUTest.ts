@@ -6490,7 +6490,7 @@ describe('actions/IOU', () => {
     });
 
     describe('canIOUBePaid - negative total with pay elsewhere', () => {
-        it('should return true if the report has negative total and onlyShowPayElsewhere is true', async () => {
+        it('should return true if the report has negative total and onlyShowPayElsewhere is true', () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number('AA')),
@@ -6511,9 +6511,6 @@ describe('actions/IOU', () => {
                 managerID: RORY_ACCOUNT_ID,
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}AA`, fakePolicy);
-            await waitForBatchedUpdates();
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false, undefined, undefined, false)).toBeFalsy();
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true, undefined, undefined, false)).toBeTruthy();
