@@ -117,6 +117,13 @@ function ParentNavigationSubtitle({
             }
         }
 
+        if (openParentReportInCurrentTab && currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
+            if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+            }
+        }
+
         if (isVisibleAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
         } else {
