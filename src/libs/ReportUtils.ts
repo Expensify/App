@@ -2761,11 +2761,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isForwarded = isProcessingReport(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
 
-        // Allow deletion if report is open/processing, or if it's an APPROVED/CLOSED report with OPTIONAL approval mode (cancelled payment)
-        const isOptionalApprovalCancelled =
-            report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-
-        return isReportSubmitter && (isReportOpenOrProcessing || isOptionalApprovalCancelled) && !isForwarded;
+        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
     }
 
     return false;
