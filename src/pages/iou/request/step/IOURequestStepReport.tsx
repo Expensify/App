@@ -187,6 +187,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
     });
 
     const createReport = () => {
