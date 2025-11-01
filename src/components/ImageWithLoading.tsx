@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
+import {ImageBehaviorContextProvider} from './Image/ImageBehaviorContextProvider';
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
 
 type ImageWithSizeLoadingProps = {
@@ -82,31 +83,33 @@ function ImageWithLoading({
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
-            <Image
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-                style={[styles.w100, styles.h100]}
-                onLoadStart={() => {
-                    if (isLoadedRef.current ?? isLoading) {
-                        return;
-                    }
-                    setIsLoading(true);
-                }}
-                onError={handleError}
-                onLoad={(e) => {
-                    imageLoadedSuccessfully(e);
-                }}
-                waitForSession={() => {
-                    // Called when the image should wait for a valid session to reload
-                    // At the moment this function is called, the image is not in cache anymore
-                    isLoadedRef.current = false;
-                    setIsImageCached(false);
-                    setIsLoading(true);
-                    waitForSession?.();
-                }}
-                loadingIconSize={loadingIconSize}
-                loadingIndicatorStyles={loadingIndicatorStyles}
-            />
+            <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={false}>
+                <Image
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
+                    style={[styles.w100, styles.h100, styles.flex1]}
+                    onLoadStart={() => {
+                        if (isLoadedRef.current ?? isLoading) {
+                            return;
+                        }
+                        setIsLoading(true);
+                    }}
+                    onError={handleError}
+                    onLoad={(e) => {
+                        imageLoadedSuccessfully(e);
+                    }}
+                    waitForSession={() => {
+                        // Called when the image should wait for a valid session to reload
+                        // At the moment this function is called, the image is not in cache anymore
+                        isLoadedRef.current = false;
+                        setIsImageCached(false);
+                        setIsLoading(true);
+                        waitForSession?.();
+                    }}
+                    loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
+                />
+            </ImageBehaviorContextProvider>
             {isLoading && !isImageCached && !isOffline && (
                 <FullscreenLoadingIndicator
                     iconSize={loadingIconSize}
