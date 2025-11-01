@@ -129,7 +129,7 @@ function ExpensifyCardPage({
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.country ?? cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
