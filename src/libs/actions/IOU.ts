@@ -468,6 +468,7 @@ type PerDiemExpenseInformation = {
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -477,6 +478,7 @@ type PerDiemExpenseInformationParams = {
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
     moneyRequestReportID?: string;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type RequestMoneyInformation = {
@@ -495,6 +497,7 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
+    isASAPSubmitBetaEnabled: Boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -516,6 +519,7 @@ type MoneyRequestInformationParams = {
     isSplitExpense?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -555,6 +559,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
     shouldGenerateTransactionThreadReport?: boolean;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -575,7 +580,7 @@ type CreateDistanceRequestInformation = {
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
     backToReport?: string;
-};
+    isASAPSubmitBetaEnabled: boolean;
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
@@ -590,6 +595,7 @@ type CreateSplitsAndOnyxDataParams = {
     existingSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type TrackExpenseTransactionParams = {
@@ -740,6 +746,7 @@ type UpdateSplitTransactionsParams = {
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
     isChatReportArchived?: boolean;
     isNewDotRevertSplitsEnabled: boolean;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type ReplaceReceipt = {
@@ -1559,6 +1566,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         retryParams,
         participant,
         shouldGenerateTransactionThreadReport = true,
+        isASAPSubmitBetaEnabled: isASAPSubmitBetaEnabledParam,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1573,7 +1581,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isASAPSubmitBetaEnabled = isASAPSubmitBetaEnabledParam ?? Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
@@ -3410,6 +3418,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isSplitExpense,
         action,
         currentReportActionID,
+        isASAPSubmitBetaEnabled,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3658,6 +3667,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             testDriveCommentReportActionID,
         },
         retryParams,
+        isASAPSubmitBetaEnabled,
     });
 
     return {
@@ -3721,7 +3731,7 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
  * it creates optimistic versions of them and uses those instead
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, recentlyUsedParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, recentlyUsedParams = {}, moneyRequestReportID = '', isASAPSubmitBetaEnabled} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const {destinations: recentlyUsedDestinations} = recentlyUsedParams;
@@ -3883,6 +3893,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             policyCategories,
             policyTagList,
         },
+        isASAPSubmitBetaEnabled,
         optimisticParams: {
             chat: {
                 report: chatReport,
@@ -5652,6 +5663,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
             moneyRequestReportID: targetReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
+            isASAPSubmitBetaEnabled,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -5873,6 +5885,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
+        isASAPSubmitBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5959,6 +5972,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
         action,
+        isASAPSubmitBetaEnabled,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6095,7 +6109,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
  * Submit per diem expense to another user
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
-    const {report, participantParams, policyParams = {}, recentlyUsedParams = {}, transactionParams} = submitPerDiemExpenseInformation;
+    const {report, participantParams, policyParams = {}, recentlyUsedParams = {}, transactionParams, isASAPSubmitBetaEnabled} = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
@@ -6135,6 +6149,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         recentlyUsedParams,
         transactionParams,
         moneyRequestReportID,
+        isASAPSubmitBetaEnabled,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
@@ -6646,6 +6661,7 @@ function createSplitsAndOnyxData({
         attendees,
     },
     policyRecentlyUsedCategories,
+    isASAPSubmitBetaEnabled,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7031,6 +7047,7 @@ function createSplitsAndOnyxData({
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
+            isASAPSubmitBetaEnabled,
             optimisticParams: {
                 chat: {
                     report: oneOnOneChatReport,
@@ -7128,6 +7145,7 @@ type SplitBillActionsParams = {
     taxAmount?: number;
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 /**
@@ -7153,6 +7171,7 @@ function splitBill({
     taxCode = '',
     taxAmount = 0,
     policyRecentlyUsedCategories,
+    isASAPSubmitBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7176,6 +7195,7 @@ function splitBill({
             taxAmount,
         },
         policyRecentlyUsedCategories,
+        isASAPSubmitBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -7232,6 +7252,7 @@ function splitBillAndOpenReport({
     taxAmount = 0,
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
+    isASAPSubmitBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7239,6 +7260,7 @@ function splitBillAndOpenReport({
         currentUserLogin,
         currentUserAccountID,
         existingSplitChatReportID,
+        isASAPSubmitBetaEnabled,
         transactionParams: {
             amount,
             comment: parsedComment,
@@ -7255,6 +7277,7 @@ function splitBillAndOpenReport({
             taxAmount,
         },
         policyRecentlyUsedCategories,
+        isASAPSubmitBetaEnabled,
     });
 
     const parameters: SplitBillParams = {
@@ -7656,6 +7679,7 @@ function completeSplitBill(
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
     sessionEmail?: string,
+    isASAPSubmitBetaEnabled: boolean,
 ) {
     if (!reportAction) {
         return;
@@ -7834,6 +7858,7 @@ function completeSplitBill(
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            isASAPSubmitBetaEnabled,
             optimisticParams: {
                 chat: {
                     report: oneOnOneChatReport,
@@ -7953,6 +7978,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionParams,
         policyParams = {},
         backToReport,
+        isASAPSubmitBetaEnabled,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8017,6 +8043,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 attendees,
             },
             policyRecentlyUsedCategories,
+            isASAPSubmitBetaEnabled,
         });
         onyxData = splitOnyxData;
 
@@ -8087,6 +8114,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 reimbursable,
                 attendees,
             },
+            isASAPSubmitBetaEnabled,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -13510,6 +13538,8 @@ function updateSplitTransactions({
     firstIOU,
     isChatReportArchived,
     isNewDotRevertSplitsEnabled,
+    isASAPSubmitBetaEnabled,
+
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -13618,6 +13648,7 @@ function updateSplitTransactions({
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
+            isASAPSubmitBetaEnabled,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -13650,6 +13681,7 @@ function updateSplitTransactions({
             newReportTotal: reportTotal - changesInReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
+            isASAPSubmitBetaEnabled,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};

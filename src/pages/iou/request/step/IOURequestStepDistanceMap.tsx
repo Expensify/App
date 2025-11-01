@@ -19,6 +19,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -82,6 +83,8 @@ function IOURequestStepDistanceMap({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -370,6 +373,7 @@ function IOURequestStepDistanceMap({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 });
                 return;
             }
@@ -418,7 +422,6 @@ function IOURequestStepDistanceMap({
         report,
         reportNameValuePairs,
         iouType,
-        personalPolicy?.autoReporting,
         defaultExpensePolicy,
         setDistanceRequestData,
         shouldSkipConfirmation,
@@ -430,12 +433,14 @@ function IOURequestStepDistanceMap({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
-        backToReport,
-        customUnitRateID,
-        navigateToConfirmationPage,
-        reportID,
         lastSelectedDistanceRates,
         localeCompare,
+        backToReport,
+        isBetaEnabled,
+        customUnitRateID,
+        navigateToConfirmationPage,
+        personalPolicy?.autoReporting,
+        reportID,
     ]);
 
     const getError = () => {

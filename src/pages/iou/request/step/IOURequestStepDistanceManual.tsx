@@ -12,6 +12,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -66,6 +67,8 @@ function IOURequestStepDistanceManual({
 }: IOURequestStepDistanceManualProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -226,6 +229,7 @@ function IOURequestStepDistanceManual({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
+                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     });
                     return;
                 }
@@ -271,29 +275,30 @@ function IOURequestStepDistanceManual({
         },
         [
             transactionID,
-            reportID,
-            transaction,
-            report,
-            backTo,
-            backToReport,
-            iouType,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            reportNameValuePairs,
             isTransactionDraft,
-            personalPolicy?.autoReporting,
+            action,
+            backTo,
+            report,
+            reportNameValuePairs,
+            iouType,
             defaultExpensePolicy,
+            distance,
+            transaction,
+            reportID,
+            policy,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
-            policy,
-            lastSelectedDistanceRates,
-            customUnitRateID,
             translate,
-            navigateToConfirmationPage,
-            action,
-            distance,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            lastSelectedDistanceRates,
             localeCompare,
+            backToReport,
+            isBetaEnabled,
+            customUnitRateID,
+            navigateToConfirmationPage,
+            personalPolicy?.autoReporting,
         ],
     );
 
