@@ -300,7 +300,7 @@ function IOURequestStepParticipants({
         transactions.forEach((transaction) => {
             setMoneyRequestTag(transaction.transactionID, '');
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
-            setMoneyRequestCategory(transaction.transactionID, category);
+            setMoneyRequestCategory(transaction, transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }

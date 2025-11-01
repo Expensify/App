@@ -42,6 +42,8 @@ function IOURequestStepDistanceRate({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
@@ -98,7 +100,8 @@ function IOURequestStepDistanceRate({
         }
 
         if (currentRateID !== customUnitRateID) {
-            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
+            const isDraft = shouldUseTransactionDraft(action);
+            setMoneyRequestDistanceRate(isDraft ? transactionDraft : transaction, transactionID, customUnitRateID, policy, isDraft);
 
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate(transaction.transactionID, reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);

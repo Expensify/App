@@ -38,6 +38,7 @@ function IOURequestStepPerDiemWorkspace({
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
@@ -89,7 +90,7 @@ function IOURequestStepPerDiemWorkspace({
             },
         ]);
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        setMoneyRequestCategory(transactionDraft, transactionID, perDiemUnit?.defaultCategory ?? '');
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
