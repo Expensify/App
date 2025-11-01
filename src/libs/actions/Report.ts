@@ -97,7 +97,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -119,7 +119,6 @@ import {
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findLastAccessedReport,
-    findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getChatByParticipants,
@@ -146,6 +145,7 @@ import {
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
+    getSelfDMReportID,
     getTitleReportField,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
@@ -1112,7 +1112,7 @@ function openReport(
         const transaction = allTransactions?.[transactionID];
 
         if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+            const selfDMReportID = getSelfDMReportID();
 
             if (selfDMReportID) {
                 const generatedReportActionID = rand64();
@@ -1393,7 +1393,7 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = findSelfDMReportID();
+        const selfDMReportID = getSelfDMReportID();
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -4411,7 +4411,7 @@ function completeOnboarding({
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = onboardingData;
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -4423,8 +4423,6 @@ function completeOnboarding({
         companySize,
         userReportedIntegration,
         policyID: onboardingPolicyID,
-        selfDMReportID: selfDMParameters.reportID,
-        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
@@ -4985,17 +4983,14 @@ function deleteAppReport(reportID: string | undefined) {
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    let selfDMReportID = findSelfDMReportID();
+    const selfDMReportID = getSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let createdAction: ReportAction;
-    let selfDMParameters: SelfDMParameters = {};
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMReportID = selfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -5044,9 +5039,8 @@ function deleteAppReport(reportID: string | undefined) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                 value: {
-                    [createdAction.reportActionID]: {
-                        pendingAction: null,
-                    },
+                    // created self DM action has different ID so we have to clean it
+                    [createdAction.reportActionID]: null,
                 },
             },
         );
@@ -5287,8 +5281,6 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
-        selfDMReportID: selfDMParameters.reportID,
-        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});

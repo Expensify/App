@@ -12,8 +12,6 @@ type CompleteGuidedSetupParams = {
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
     policyID?: string;
-    selfDMReportID?: string;
-    selfDMCreatedReportActionID?: string;
 };
 
 export default CompleteGuidedSetupParams;

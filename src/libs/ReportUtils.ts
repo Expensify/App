@@ -1185,6 +1185,17 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1819,13 +1830,8 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeReportID;
 }
 
-function findSelfDMReportID(): string | undefined {
-    if (!allReports) {
-        return;
-    }
-
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+function getSelfDMReportID(): string | undefined {
+    return selfDMReportID;
 }
 
 /**
@@ -2352,7 +2358,6 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
@@ -6335,7 +6340,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: selfDMReportID ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6688,7 +6693,6 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
     const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
@@ -11431,73 +11435,6 @@ function prepareOnboardingOnyxData(
 
     guidedSetupData.push({type: 'message', ...textMessage});
 
-    let selfDMParameters: SelfDMParameters = {};
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        const selfDMReportID = findSelfDMReportID();
-        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
-        let createdAction: ReportAction;
-        if (!selfDMReport) {
-            const currentTime = DateUtils.getDBTime();
-            selfDMReport = buildOptimisticSelfDMReport(currentTime);
-            createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-            selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
-            optimisticData.push(
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                    value: {
-                        ...selfDMReport,
-                        pendingFields: {
-                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                    value: {
-                        isOptimisticReport: true,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    value: {
-                        [createdAction.reportActionID]: createdAction,
-                    },
-                },
-            );
-
-            successData.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                    value: {
-                        pendingFields: {
-                            createChat: null,
-                        },
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                    value: {
-                        isOptimisticReport: false,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    value: {
-                        [createdAction.reportActionID]: {
-                            pendingAction: null,
-                        },
-                    },
-                },
-            );
-        }
-    }
-
     guidedSetupData.push(...tasksForParameters);
 
     if (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
@@ -11547,7 +11484,7 @@ function prepareOnboardingOnyxData(
         });
     }
 
-    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
 }
 
 /**
@@ -12443,7 +12380,7 @@ export {
     doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
-    findSelfDMReportID,
+    getSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,

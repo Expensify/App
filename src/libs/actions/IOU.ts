@@ -150,7 +150,6 @@ import {
     buildTransactionThread,
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getAllPolicyReports,
@@ -167,6 +166,7 @@ import {
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
+    getSelfDMReportID,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -3951,9 +3951,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // STEP 1: Get existing chat report
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
 
+    const selfDMReportID = getSelfDMReportID();
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
-        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`] ?? null;
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? null;
     }
 
     // If we are still missing the chat report then optimistically create the self-DM report and use it
@@ -4010,9 +4011,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
                 value: {
-                    [optimisticReportActionID]: {
-                        pendingAction: null,
-                    },
+                    // created self DM action has different ID so we have to clean it
+                    [optimisticReportActionID]: null,
                 },
             },
         );
@@ -5565,7 +5565,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
     }
 
     const payerEmail = personalDetailsList?.[payerAccountID]?.login ?? '';
-    const selfDMReportID = findSelfDMReportID();
+    const selfDMReportID = getSelfDMReportID();
 
     if (!selfDMReportID) {
         Log.warn('[convertBulkTrackedExpensesToIOU] Self DM not found');
