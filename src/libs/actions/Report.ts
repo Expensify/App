@@ -1105,6 +1105,7 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID,
+        useLastUnreadReportAction: true,
     };
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
@@ -6161,6 +6162,18 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+/**
+ * Resets the oldestUnreadReportActionID stored in Onyx once a report has been loaded, to prevent stale data.
+ * @param reportID - The ID of the report to reset the oldest unread report action ID for.
+ */
+function resetOldestUnreadReportActionID(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, null);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6276,4 +6289,5 @@ export {
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
+    resetOldestUnreadReportActionID,
 };
