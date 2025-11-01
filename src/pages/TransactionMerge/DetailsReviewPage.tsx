@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -110,7 +109,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
             }
         }
-    }, [mergeTransaction, conflictFields]);
+    }, [mergeTransaction, conflictFields, hash, transactionID]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(

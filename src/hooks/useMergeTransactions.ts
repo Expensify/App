@@ -42,4 +42,3 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
 }
 
 export default useMergeTransactions;
-

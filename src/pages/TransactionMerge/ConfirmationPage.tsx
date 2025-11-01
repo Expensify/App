@@ -41,7 +41,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction, hash});
 
     const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
-    let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`);
+    let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`, {canBeMissing: true});
     if (hash) {
         targetTransactionParentReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`];
     }

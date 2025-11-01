@@ -344,7 +344,11 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 /**
  * Determines whether two transactions can be merged together.
  */
-function areTransactionsEligibleForMerge(targetTransaction: Transaction, sourceTransaction: Transaction) {
+function areTransactionsEligibleForMerge(targetTransaction?: Transaction, sourceTransaction?: Transaction) {
+    if (!targetTransaction || !sourceTransaction) {
+        return false;
+    }
+
     if (isTransactionPendingDelete(sourceTransaction)) {
         return false;
     }

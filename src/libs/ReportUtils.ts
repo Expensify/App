@@ -2351,15 +2351,12 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  * parentReportAction has type of track.
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
-    const reportID = isThread(report) ? report.parentReportID : report?.reportID;
-
-    if (!report || !reportID) {
-        return false;
+    if (isThread(report)) {
+        const selfDMReportID = findSelfDMReportID();
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
+        return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
-
-    const selfDMReportID = findSelfDMReportID();
-    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[report?.parentReportActionID ?? '-1'];
-    return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
+    return false;
 }
 
 /**

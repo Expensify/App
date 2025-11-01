@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import {SearchPolicy} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -569,7 +569,7 @@ function isMergeActionFromReportView(transactions: Transaction[], reports: Repor
         return true;
     }
 
-    if (!areTransactionsEligibleForMerge(transactions[0], transactions[1])) {
+    if (!areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1))) {
         return false;
     }
 

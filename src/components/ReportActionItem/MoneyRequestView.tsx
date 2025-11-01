@@ -151,7 +151,10 @@ function MoneyRequestView({
         const originalMessage = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction) : undefined;
         return originalMessage?.IOUTransactionID;
     }, [parentReportAction]);
-    const [transaction] = linkedTransactionID ? useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true}) : [updatedTransaction];
+    let [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
+    if (!transaction && !!updatedTransaction) {
+        transaction = updatedTransaction;
+    }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
@@ -568,7 +571,7 @@ function MoneyRequestView({
 
     const getAttendeesTitle = useMemo(() => {
         return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [transactionAttendees]);
+    }, [actualAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
@@ -737,7 +740,7 @@ function MoneyRequestView({
                                     CONST.IOU.ACTION.EDIT,
                                     iouType,
                                     transaction.transactionID,
-                                    transactionThreadReport?.reportID ?? '',
+                                    transactionThreadReport?.reportID,
                                     getReportRHPActiveRoute(),
                                 ),
                             );
@@ -766,7 +769,7 @@ function MoneyRequestView({
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
                                         transaction.transactionID,
-                                        transactionThreadReport?.reportID ?? '',
+                                        transactionThreadReport?.reportID,
                                         getReportRHPActiveRoute(),
                                     ),
                                 );
@@ -793,7 +796,7 @@ function MoneyRequestView({
                                     CONST.IOU.ACTION.EDIT,
                                     iouType,
                                     transaction.transactionID,
-                                    transactionThreadReport?.reportID ?? '',
+                                    transactionThreadReport?.reportID,
                                     getReportRHPActiveRoute(),
                                 ),
                             );
@@ -814,13 +817,13 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (shouldNavigateToUpgradePath) {
+                                if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             action: CONST.IOU.ACTION.EDIT,
                                             iouType,
                                             transactionID: transaction.transactionID,
-                                            reportID: transactionThreadReport?.reportID ?? '',
+                                            reportID: transactionThreadReport?.reportID,
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
                                     );
@@ -831,7 +834,7 @@ function MoneyRequestView({
                                                 CONST.IOU.ACTION.EDIT,
                                                 iouType,
                                                 transaction.transactionID,
-                                                transactionThreadReport?.reportID ?? '',
+                                                transactionThreadReport?.reportID,
                                                 getReportRHPActiveRoute(),
                                             ),
                                         ),
@@ -842,7 +845,7 @@ function MoneyRequestView({
                                             CONST.IOU.ACTION.EDIT,
                                             iouType,
                                             transaction.transactionID,
-                                            transactionThreadReport?.reportID ?? '',
+                                            transactionThreadReport?.reportID,
                                             getReportRHPActiveRoute(),
                                         ),
                                     );
@@ -882,7 +885,7 @@ function MoneyRequestView({
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
                                         transaction.transactionID,
-                                        transactionThreadReport?.reportID ?? '',
+                                        transactionThreadReport?.reportID,
                                         getReportRHPActiveRoute(),
                                     ),
                                 );
@@ -908,7 +911,7 @@ function MoneyRequestView({
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
                                         transaction.transactionID,
-                                        transactionThreadReport?.reportID ?? '',
+                                        transactionThreadReport?.reportID,
                                         getReportRHPActiveRoute(),
                                     ),
                                 );
@@ -931,9 +934,7 @@ function MoneyRequestView({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID ?? ''),
-                                );
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
                             }}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
@@ -993,7 +994,7 @@ function MoneyRequestView({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!canEditReport) {
+                                if (!canEditReport || !transactionThreadReport) {
                                     return;
                                 }
                                 if (shouldNavigateToUpgradePath) {
@@ -1002,7 +1003,7 @@ function MoneyRequestView({
                                             iouType,
                                             action: CONST.IOU.ACTION.EDIT,
                                             transactionID: transaction?.transactionID,
-                                            reportID: transactionThreadReport?.reportID ?? '',
+                                            reportID: transactionThreadReport?.reportID,
                                             upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                                         }),
                                     );
@@ -1013,7 +1014,7 @@ function MoneyRequestView({
                                         CONST.IOU.ACTION.EDIT,
                                         iouType,
                                         transaction?.transactionID,
-                                        transactionThreadReport?.reportID ?? '',
+                                        transactionThreadReport?.reportID,
                                         getReportRHPActiveRoute() || lastVisitedPath,
                                     ),
                                 );
@@ -1033,9 +1034,9 @@ function MoneyRequestView({
                         onPress={() => {
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
                             if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transactionThreadReport?.reportID ?? '', transaction.transactionID, getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transactionThreadReport?.reportID, transaction.transactionID, getReportRHPActiveRoute()));
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionThreadReport?.reportID ?? '', transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionThreadReport?.reportID, transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
                         }}
                     />
                 )}
