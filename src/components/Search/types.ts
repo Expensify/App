@@ -239,6 +239,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {

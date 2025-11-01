@@ -210,6 +210,7 @@ function getOnyxLoadingData(
     queryJSON?: SearchQueryJSON,
     offset?: number,
     isOffline?: boolean,
+    isSearchAPI = false,
 ): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -217,7 +218,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    isLoading: true,
+                    ...(isSearchAPI && {isLoading: true}),
                     ...(offset ? {offset} : {}),
                 },
             },
@@ -237,7 +238,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    isLoading: false,
+                    ...(isSearchAPI && {isLoading: false}),
                 },
             },
         },
@@ -252,7 +253,7 @@ function getOnyxLoadingData(
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
-                    isLoading: false,
+                    ...(isSearchAPI && {isLoading: false}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -351,6 +352,7 @@ function search({
     shouldCalculateTotals = false,
     prevReportsLength,
     isOffline = false,
+    isLoading,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -358,8 +360,13 @@ function search({
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
     isOffline?: boolean;
+    isLoading: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline);
+    if (isLoading) {
+        return;
+    }
+
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
