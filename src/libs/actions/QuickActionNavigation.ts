@@ -13,7 +13,7 @@ type NavigateToQuickActionParams = {
     quickAction: QuickAction;
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void;
     lastDistanceExpenseType?: DistanceExpenseType;
-    targetAccountPersonalDetails?: PersonalDetails | null;
+    targetAccountPersonalDetails: PersonalDetails;
     currentUserAccountID: number;
 };
 
@@ -56,7 +56,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID, targetAccountPersonalDetails), false);
+            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:

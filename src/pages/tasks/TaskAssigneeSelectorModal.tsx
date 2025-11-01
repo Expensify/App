@@ -144,14 +144,18 @@ function TaskAssigneeSelectorModal() {
                 return;
             }
 
+            const assigneePersonalDetails = {
+                ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                login: option.login ?? '',
+            };
+
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
                     const assigneeChatReport = setAssigneeValue(
-                        option?.login ?? '',
-                        option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         currentUserPersonalDetails.accountID,
-                        allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                        assigneePersonalDetails,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
@@ -173,10 +177,8 @@ function TaskAssigneeSelectorModal() {
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 setAssigneeValue(
-                    option?.login ?? '',
-                    option.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserPersonalDetails.accountID,
-                    allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                    assigneePersonalDetails,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
