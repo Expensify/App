@@ -83,7 +83,7 @@ function ActionCell({
 
     const confirmPayment = useCallback(
         (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
-            if (!type || !reportID || !hash || !amount) {
+            if (!type || !reportID || !hash || amount === null || amount === undefined) {
                 return;
             }
             const invoiceParams: Partial<PaymentData> = {
