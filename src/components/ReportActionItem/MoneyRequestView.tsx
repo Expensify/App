@@ -94,7 +94,7 @@ type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<OnyxTypes.Report>;
 
-    parentReportProp: OnyxEntry<OnyxTypes.Report>;
+    parentReportProp?: OnyxEntry<OnyxTypes.Report>;
 
     /** Policy that the report belongs to */
     expensePolicy: OnyxEntry<OnyxTypes.Policy>;
@@ -652,7 +652,7 @@ function MoneyRequestView({
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
     // If the view is readonly, we don't need the transactionThread dependency, only the parent expense report
-    if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
+    if ((!readonly && !transactionThreadReport?.reportID) || (readonly && !parentReport?.reportID) || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
     }
 
