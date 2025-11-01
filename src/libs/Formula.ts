@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import {getAllReportActions} from './ReportActionsUtils';
@@ -26,6 +26,8 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    submitterPersonalDetails?: PersonalDetails;
+    managerPersonalDetails?: PersonalDetails;
 };
 
 const FORMULA_PART_TYPES = {
@@ -209,7 +211,6 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                value = value === '' ? part.definition : value;
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
@@ -249,22 +250,43 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
 
     switch (field.toLowerCase()) {
         case 'type':
-            return formatType(report.type);
+            return formatType(report.type) || part.definition;
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context), format) || part.definition;
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format);
+            return formatDate(getNewestTransactionDate(report.reportID, context), format) || part.definition;
         case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency) || part.definition;
         case 'currency':
-            return report.currency ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
+            return report.currency || part.definition;
         case 'policyname':
         case 'workspacename':
-            return policy?.name ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
+            return policy?.name || part.definition;
         case 'created':
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
-            return formatDate(getOldestReportActionDate(report.reportID), format);
+            return formatDate(getOldestReportActionDate(report.reportID), format) || part.definition;
+        case 'submit': {
+            // Submission info parts return empty strings when data is missing (matches backend behavior)
+            const submitValue = computeSubmitPart(additionalPath, context);
+            // If submission info returns empty AND the relevant personal details are missing from context,
+            // fall back to formula definition (this handles edge cases where context is incomplete)
+            const [direction] = additionalPath;
+            const isFromPart = direction?.toLowerCase() === 'from';
+            const isToPart = direction?.toLowerCase() === 'to';
+
+            if (submitValue === '') {
+                if (isFromPart && !context.submitterPersonalDetails) {
+                    return part.definition;
+                }
+                if (isToPart && !context.managerPersonalDetails) {
+                    return part.definition;
+                }
+            }
+            return submitValue;
+        }
         default:
             return part.definition;
     }
@@ -516,6 +538,89 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     });
 
     return newestDate;
+}
+
+/**
+ * Compute the value of a report:submit:* formula part
+ * Handles nested paths like submit:from:firstname, submit:to:email, submit:date
+ */
+function computeSubmitPart(path: string[], context: FormulaContext): string {
+    const [direction, ...subPath] = path;
+
+    if (!direction) {
+        return '';
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'from':
+            return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
+        case 'to':
+            return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
+        case 'date': {
+            // For submission date, we need to get the date from the submitted report action
+            const submittedDate = getSubmittedReportActionDate(context.report.reportID);
+            const format = subPath.length > 0 ? subPath.join(':') : undefined;
+            return formatDate(submittedDate, format);
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute personal details information for either submitter (from) or manager (to)
+ */
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: OnyxEntry<Policy>): string {
+    const [field] = path;
+
+    if (!personalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            return personalDetails.firstName ?? personalDetails.login ?? '';
+        case 'lastname':
+            return personalDetails.lastName ?? personalDetails.login ?? '';
+        case 'fullname':
+            return personalDetails.displayName ?? personalDetails.login ?? '';
+        case 'email':
+            return personalDetails.login ?? '';
+        case 'userid':
+            return personalDetails.accountID !== undefined && personalDetails.accountID !== null ? String(personalDetails.accountID) : '';
+        case 'customfield1':
+        case 'customfield2': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            const fieldKey = field.toLowerCase() === 'customfield1' ? 'employeeUserID' : 'employeePayrollID';
+            return policy.employeeList[email]?.[fieldKey] ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Get the date when the report was submitted by finding the SUBMITTED report action
+ */
+function getSubmittedReportActionDate(reportID: string): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const reportActions = getAllReportActions(reportID);
+    if (!reportActions || Object.keys(reportActions).length === 0) {
+        return undefined;
+    }
+
+    // Find the SUBMITTED or SUBMITTED_AND_CLOSED action
+    const submittedAction = Object.values(reportActions).find(
+        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+    );
+
+    return submittedAction?.created;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, parse};
