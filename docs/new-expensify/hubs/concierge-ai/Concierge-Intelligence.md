@@ -26,10 +26,10 @@ Concierge uses a few smart tricks to figure out how to help:
 
 Concierge adapts based on where and how you ask questions. That means:
 
-- If you chat in a report → it answers about that report.  
-- If you're in a DM → it considers all your expenses.  
-- If you ask from a Workspace chat → it focuses on that Workspace.  
-- If you're on a specific expense → it assumes you're talking about *that* expense.
+- If you chat in a report, it answers about that report.  
+- If you're in a DM, it considers all your expenses.  
+- If you ask from a Workspace chat, it focuses on that Workspace.  
+- If you're on a specific expense, it assumes you're talking about *that* expense.
 
 You don’t have to explain every detail—just speak naturally and Concierge will fill in the blanks.
 
