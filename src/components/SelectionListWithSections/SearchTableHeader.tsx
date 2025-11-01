@@ -165,11 +165,6 @@ const reportHeaders: SearchColumnConfig[] = [
         translationKey: 'common.action',
         isColumnSortable: false,
     },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.ARROW,
-        translationKey: undefined,
-        isColumnSortable: false,
-    },
 ];
 
 function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
