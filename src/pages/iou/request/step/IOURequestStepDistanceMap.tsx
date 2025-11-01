@@ -346,6 +346,7 @@ function IOURequestStepDistanceMap({
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
                         },
+                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     });
                     return;
                 }
