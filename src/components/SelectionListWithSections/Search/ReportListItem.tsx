@@ -1,11 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
+import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ReportItemRow from './ReportListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
@@ -20,13 +25,39 @@ function ReportListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     onCheckboxPress,
-    // onDEWModalOpen,
+    onDEWModalOpen,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+
+    const snapshotReport = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+    }, [snapshot, reportItem.reportID]);
+
+    const snapshotPolicy = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+    }, [snapshot, reportItem.policyID]);
+
+    const handleOnButtonPress = () => {
+        handleActionButtonPress(
+            currentSearchHash,
+            reportItem,
+            () => onSelectRow(reportItem as unknown as TItem),
+            shouldUseNarrowLayout && !!canSelectMultiple,
+            snapshotReport,
+            snapshotPolicy,
+            lastPaymentMethod,
+            currentSearchKey,
+            onDEWModalOpen,
+        );
+    };
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -73,11 +104,14 @@ function ReportListItem<TItem extends ListItem>({
             <ReportItemRow
                 item={reportItem}
                 isActionLoading={isLoading ?? reportItem.isActionLoading}
-                isSelected={!!reportItem.isSelected}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
-                // onButtonPress={}
+                onButtonPress={handleOnButtonPress}
+                avatarBorderColor={theme.highlightBG}
+                isSelectAllChecked={!!reportItem.isSelected}
+                isIndeterminate={false}
+                isDisabled={!!isDisabled}
             />
         </BaseListItem>
     );

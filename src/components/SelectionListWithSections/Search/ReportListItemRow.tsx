@@ -1,10 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ReportListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,28 +17,35 @@ import DateCell from './DateCell';
 import StatusCell from './StatusCell';
 import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
 
 type ReportListItemRowProps = {
     item: ReportListItemType;
     showTooltip: boolean;
     canSelectMultiple?: boolean;
-    isSelected?: boolean;
     isActionLoading?: boolean;
     onButtonPress?: () => void;
     onCheckboxPress?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
+    avatarBorderColor?: ColorValue;
+    isSelectAllChecked?: boolean;
+    isIndeterminate?: boolean;
+    isDisabled?: boolean;
 };
 
 function ReportListItemRow({
     item,
-    isSelected,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
     containerStyle,
     showTooltip,
     canSelectMultiple,
+    avatarBorderColor,
+    isSelectAllChecked,
+    isIndeterminate,
+    isDisabled,
 }: ReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -60,89 +68,56 @@ function ReportListItemRow({
         return {total: reportTotal, currency: reportCurrency};
     }, [item.type, item.total, item.currency]);
 
+    const thereIsFromAndTo = !!item?.from && !!item?.to;
+    const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
+
     if (!isLargeScreenWidth) {
-        // return <HeaderFirstRow
-        //                 report={reportItem}
-        //                 onCheckboxPress={onCheckboxPress}
-        //                 isDisabled={isDisabled}
-        //                 canSelectMultiple={canSelectMultiple}
-        //                 avatarBorderColor={avatarBorderColor}
-        //                 isSelectAllChecked={isSelectAllChecked}
-        //                 isIndeterminate={isIndeterminate}
-        //             />
-        //             <UserInfoAndActionButtonRow
-        //                 item={reportItem}
-        //                 handleActionButtonPress={handleOnButtonPress}
-        //                 shouldShowUserInfo={showUserInfo}
-        //                 containerStyles={[styles.pr0]}
-        //             />
-        // Mobile/small screen layout - simplified view
         return (
-            <View style={[containerStyle, styles.gap3]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    {/* {!!canSelectMultiple && (
-                        <Checkbox
-                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={isIndeterminate}
-                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                            disabled={!!isDisabled || item.isDisabledCheckbox}
-                            accessibilityLabel={item.text ?? ''}
-                            shouldStopMouseDownPropagation
-                            style={styles.mr1}
-                            // style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                        />
-                    )} */}
-                    <ReportActionAvatars
-                        reportID={item.reportID}
-                        size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                        shouldShowTooltip={showTooltip}
-                        singleAvatarContainerStyle={[styles.mr2]}
-                    />
-                    <View style={[styles.flex1, styles.gap1]}>
-                        <TitleCell
-                            text={item.reportName ?? ''}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                            <StatusCell
-                                stateNum={item.stateNum}
-                                statusNum={item.statusNum}
+            <View style={[styles.pv1Half]}>
+                <UserInfoAndActionButtonRow
+                    item={item}
+                    handleActionButtonPress={onButtonPress}
+                    shouldShowUserInfo={showUserInfo}
+                    containerStyles={[styles.mb2, styles.ph0]}
+                />
+                <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
+                        {!!canSelectMultiple && (
+                            <Checkbox
+                                onPress={onCheckboxPress}
+                                isChecked={isSelectAllChecked}
+                                isIndeterminate={isIndeterminate}
+                                containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                disabled={!!isDisabled || item.isDisabledCheckbox}
+                                accessibilityLabel={item.text ?? ''}
+                                shouldStopMouseDownPropagation
+                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                             />
-                            <DateCell
-                                created={item.created ?? ''}
-                                showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                        )}
+                        <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
+                            <ReportSearchHeader
+                                report={item}
+                                style={[{maxWidth: 700}]}
+                                transactions={item.transactions}
+                                avatarBorderColor={avatarBorderColor}
                             />
                         </View>
                     </View>
-                    <TotalCell
-                        total={total}
-                        currency={currency}
-                    />
-                </View>
-                {/* {!!(item.from || item.to) && (
-                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        {!!item.from && (
-                            <View style={[styles.flex1]}>
-                                <UserInfoCell
-                                    accountID={item.from.accountID}
-                                    avatar={item.from.avatar}
-                                    displayName={item.from.displayName ?? item.from.login ?? ''}
-                                />
-                            </View>
-                        )}
-                        {!!item.to && (
-                            <View style={[styles.flex1]}>
-                                <UserInfoCell
-                                    accountID={item.to.accountID}
-                                    avatar={item.to.avatar}
-                                    displayName={item.to.displayName ?? item.to.login ?? ''}
-                                />
-                            </View>
-                        )}
+                    <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsCenter, styles.gap1]}>
+                        <TotalCell
+                            total={total}
+                            currency={currency}
+                        />
+                        <View style={[styles.w100, styles.flexRow, styles.justifyContentEnd]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.flexShrink0, {opacity: 0.5}]}
+                                small
+                            />
+                        </View>
                     </View>
-                )} */}
+                </View>
             </View>
         );
     }
@@ -153,10 +128,13 @@ function ReportListItemRow({
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={onCheckboxPress}
-                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                        isChecked={isSelected}
-                        style={styles.mr1}
-                        wrapperStyle={styles.justifyContentCenter}
+                        isChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                        disabled={!!isDisabled || item.isDisabledCheckbox}
+                        accessibilityLabel={item.text ?? ''}
+                        shouldStopMouseDownPropagation
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
@@ -172,7 +150,6 @@ function ReportListItemRow({
                         isLargeScreenWidth
                     />
                 </View>
-
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                     <StatusCell
                         stateNum={item.stateNum}
@@ -221,14 +198,12 @@ function ReportListItemRow({
                         amount={item.total}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ARROW)]}>
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={{opacity: 0.5}}
-                        small
-                    />
-                </View>
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={theme.icon}
+                    additionalStyles={{opacity: 0.5}}
+                    small
+                />
             </View>
         </View>
     );
