@@ -210,9 +210,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
     }
 
     const visitedLists = new Set<string>();
-    const fieldsByName = new Map<string, {name: string; defaultValue: string}>(
-        Object.values(fieldList).map((field) => [field.name, field]),
-    );
+    const fieldsByName = new Map<string, {name: string; defaultValue: string}>(Object.values(fieldList).map((field) => [field.name, field]));
 
     // Helper function to check if a field has circular references
     const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
