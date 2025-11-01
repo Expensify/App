@@ -24,12 +24,11 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
                 isWorkspaceAvatar: false,
             };
         }
-        if (isUserCreatedPolicyRoom(report)) {
+        if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
-                source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getWorkspaceIcon(report, policy).source,
+                source: getFullSizeAvatar(report.avatarUrl, 0),
                 headerTitle: getReportName(report),
-                originalFileName: !report?.avatarUrl ? (report?.policyID ?? policy?.id) : undefined,
-                isWorkspaceAvatar: !report?.avatarUrl,
+                isWorkspaceAvatar: false,
             };
         }
 
