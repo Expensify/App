@@ -176,9 +176,14 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     const previousFieldList = policy?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
+
+    // User selected type Text but entered a formula Initial value, treat it as a Formula type for optimistic UI
+    const shouldTreatTextAsFormula = type === CONST.REPORT_FIELD_TYPES.TEXT && WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(initialValue);
+    const optimisticType = shouldTreatTextAsFormula ? CONST.REPORT_FIELD_TYPES.FORMULA : type;
+
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
-        type,
+        type: optimisticType,
         target: 'expense',
         defaultValue: initialValue,
         values: listValues,
@@ -339,8 +344,18 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
 
     const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const existingField = previousFieldList[fieldKey];
+
+    // Dynamically adjust type for text/formula fields based on the new initial value for optimistic UI
+    let nextType = existingField?.type;
+    const isTextOrFormula = existingField?.type === CONST.REPORT_FIELD_TYPES.TEXT || existingField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    if (isTextOrFormula || !existingField) {
+        nextType = WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(newInitialValue) ? CONST.REPORT_FIELD_TYPES.FORMULA : CONST.REPORT_FIELD_TYPES.TEXT;
+    }
+
     const updatedReportField: PolicyReportField = {
-        ...previousFieldList[fieldKey],
+        ...existingField,
+        type: nextType,
         defaultValue: newInitialValue,
     };
     const onyxData: OnyxData = {
