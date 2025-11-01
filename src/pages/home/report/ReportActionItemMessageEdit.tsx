@@ -44,7 +44,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -299,7 +299,7 @@ function ReportActionItemMessageEdit({
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (!debouncedValidateCommentMaxLength.flush()) {
             return;
         }
 
@@ -313,7 +313,7 @@ function ReportActionItemMessageEdit({
         }
         editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [reportID, ancestors, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, ancestors, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
 
     /**
      * @param emoji
@@ -553,6 +553,7 @@ function ReportActionItemMessageEdit({
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
+                            testID="composer"
                         />
                     </View>
 
@@ -615,3 +616,4 @@ function ReportActionItemMessageEdit({
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
+export type {ReportActionItemMessageEditProps};
