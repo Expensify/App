@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -641,6 +642,18 @@ const translations = {
         help: 'Aide',
         expenseReport: 'Rapport de dépenses',
         expenseReports: 'Rapports de dépenses',
+        leaveWorkspace: 'Quitter l’espace de travail',
+        leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus y soumettre de dépenses.',
+        leaveWorkspaceConfirmationAuditor: 'Si vous quittez cet espace de travail, vous ne pourrez plus consulter ses rapports et ses paramètres.',
+        leaveWorkspaceConfirmationAdmin: 'Si vous quittez cet espace de travail, vous ne pourrez plus gérer ses paramètres.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé dans le flux d’approbation par ${workspaceOwner}, le propriétaire de l’espace de travail.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé en tant qu’exportateur préféré par ${workspaceOwner}, le propriétaire de l’espace de travail.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé en tant que contact technique par ${workspaceOwner}, le propriétaire de l’espace de travail.`,
+        leaveWorkspaceReimburser:
+            'Vous ne pouvez pas quitter cet espace de travail en tant que rembourseur. Veuillez définir un nouveau rembourseur dans Espaces de travail > Effectuer ou suivre des paiements, puis réessayez.',
         rateOutOfPolicy: 'Taux hors politique',
         reimbursable: 'Remboursable',
         editYourProfile: 'Modifier votre profil',
@@ -675,6 +688,7 @@ const translations = {
         pinned: 'Épinglé',
         read: 'Lu',
         copyToClipboard: 'Copier dans le presse-papiers',
+        thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
     },
     supportalNoAccess: {
@@ -1060,8 +1074,6 @@ const translations = {
         dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
-        chooseReceipt: 'Choisissez un reçu à télécharger ou transférez un reçu à',
-        chooseReceipts: 'Choisissez des reçus à télécharger ou transférez des reçus à',
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Télécharger l’application</a> pour scanner depuis votre téléphone</label-text>`,
@@ -1071,8 +1083,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envoyez des reçus par SMS au ${phoneNumber} (numéros US uniquement)</label-text>`,
         takePhoto: 'Prendre une photo',
         cameraAccess: "L'accès à la caméra est requis pour prendre des photos des reçus.",
-        deniedCameraAccess: "L'accès à la caméra n'a toujours pas été accordé, veuillez suivre",
-        deniedCameraAccessInstructions: 'ces instructions',
+        deniedCameraAccess: `L'accès à la caméra n'a toujours pas été accordé, veuillez suivre <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">ces instructions</a>.`,
         cameraErrorTitle: 'Erreur de caméra',
         cameraErrorMessage: "Une erreur s'est produite lors de la prise de la photo. Veuillez réessayer.",
         locationAccessTitle: "Autoriser l'accès à la localisation",
@@ -1309,6 +1320,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `le ${valueName} à ${newValueToDisplay} (précédemment ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `a changé le ${translatedChangedField} en ${newMerchant} (précédemment ${oldMerchant}), ce qui a mis à jour le montant à ${newAmountToDisplay} (précédemment ${oldAmountToDisplay})`,
+        basedOnAI: "basé sur l'activité passée",
+        basedOnMCC: "basé sur la règle de l'espace de travail",
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `pour ${comment}` : 'dépense'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rapport de Facture n°${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} envoyé${comment ? `pour ${comment}` : ''}`,
@@ -1860,11 +1873,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: "Pour des raisons de sécurité, Xero nécessite une authentification à deux facteurs pour connecter l'intégration.",
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: "Veuillez activer l'authentification à deux facteurs.",
-        twoFactorAuthIsRequiredForAdminsDescription:
-            "Votre connexion comptable Xero nécessite l'utilisation de l'authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l'activer.",
+        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: "L'authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.",
         explainProcessToRemoveWithRecovery: "Pour désactiver l'authentification à deux facteurs (2FA), veuillez entrer un code de récupération valide.",
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
     },
     recoveryCodeForm: {
         error: {
@@ -2484,12 +2497,11 @@ ${amount} pour ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connectez${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '-vous à votre' : '-vous à'} ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n` +
                     '\n' +
-                    '1. Cliquez sur *Paramètres*.\n' +
-                    '2. Accédez à *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Comptabilité*.\n' +
-                    `5. Trouvez ${integrationName}.\n` +
-                    '6. Cliquez sur *Connecter*.\n\n' +
+                    '1. Cliquez sur *Espaces de travail*.\n' +
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Comptabilité*.\n' +
+                    `4. Trouvez ${integrationName}.\n` +
+                    '5. Cliquez sur *Connecter*.\n\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
                             ? `[Accéder à la comptabilité](${workspaceAccountingLink}).\n\n![Connecter ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
@@ -5128,6 +5140,18 @@ ${amount} pour ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Nombre total de membres de l’espace de travail : ${count}`,
             importMembers: 'Importer des membres',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Si vous retirez ${approver} de cet espace de travail, nous remplacerons cette personne dans le workflow d'approbation par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} a des rapports de dépenses en attente d’approbation. Veuillez lui demander de les approuver, ou prenez le contrôle de ses rapports avant de retirer cette personne de l’espace de travail.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Vous ne pouvez pas retirer ${memberName} de cet espace de travail. Veuillez définir un nouveau rembourseur dans Flux de travail > Effectuer ou suivre des paiements, puis réessayez.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Si vous supprimez ${memberName} de cet espace de travail, nous le remplacerons en tant qu'exportateur préféré par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Si vous retirez ${memberName} de cet espace de travail, nous le/la remplacerons en tant que contact technique par ${workspaceOwner}, propriétaire de l’espace de travail.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} a un rapport en cours de traitement nécessitant une intervention. Veuillez lui demander d’effectuer l’action requise avant de supprimer cette personne de l’espace de travail.`,
         },
         card: {
             getStartedIssuing: 'Commencez en émettant votre première carte virtuelle ou physique.',
@@ -6320,6 +6344,7 @@ ${amount} pour ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} est ${value}`,
         },
         has: 'A',
         groupBy: 'Groupe par',
@@ -6441,6 +6466,11 @@ ${amount} pour ${merchant} - ${date}`,
         newReport: {
             createReport: 'Créer un rapport',
             chooseWorkspace: 'Choisissez un espace de travail pour ce rapport.',
+            emptyReportConfirmationTitle: 'Vous avez déjà un rapport vide',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Êtes-vous sûr de vouloir créer un autre rapport dans ${workspaceName} ? Vous pouvez accéder à vos rapports vides dans`,
+            emptyReportConfirmationPromptLink: 'Rapports',
+            genericWorkspaceName: 'cet espace de travail',
         },
         genericCreateReportFailureMessage: 'Erreur inattendue lors de la création de ce chat. Veuillez réessayer plus tard.',
         genericAddCommentFailureMessage: 'Erreur inattendue lors de la publication du commentaire. Veuillez réessayer plus tard.',
@@ -7149,6 +7179,8 @@ ${amount} pour ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'définir la description de la salle sur :',
         clearRoomDescription: 'effacé la description de la salle',
+        changedRoomAvatar: 'A changé l’avatar de la salle',
+        removedRoomAvatar: 'A supprimé l’avatar de la salle',
     },
     delegate: {
         switchAccount: 'Changer de compte :',
