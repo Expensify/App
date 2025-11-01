@@ -6495,11 +6495,40 @@ const CONST = {
         DEV: ' Dev',
         ADHOC: ' AdHoc',
     },
-
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        FILTERS: {
+            SECTIONS: {
+                GENERAL: 'general',
+                EXPENSES: 'expenses',
+                REPORTS: 'reports',
+            },
+            KEYS: {
+                TYPE: 'type',
+                STATUS: 'status',
+                DATE: 'date',
+                KEYWORD: 'keyword',
+                AMOUNT: 'amount',
+                REIMBURSABLE: 'reimbursable',
+            },
+            VALUES: {
+                EXPENSE: 'expense',
+                CHAT: 'chat',
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                LAST_MONTH: 'last-month',
+                THIS_MONTH: 'this-month',
+                YES: 'yes',
+                NO: 'no',
+            },
+            MODIFIERS: {
+                ON: 'on',
+                AFTER: 'after',
+                BEFORE: 'before',
+            },
+        },
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
