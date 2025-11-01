@@ -26,7 +26,6 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -47,7 +46,7 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -122,7 +121,8 @@ function MoneyRequestParticipantsSelector({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const policy = usePolicy(activePolicyID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
@@ -137,6 +137,7 @@ function MoneyRequestParticipantsSelector({
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
+    const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const showImportContacts = isNative && !isCategorizeOrShareAction && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
@@ -384,7 +385,7 @@ function MoneyRequestParticipantsSelector({
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
+                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(policy, activeAdminWorkspaces)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,

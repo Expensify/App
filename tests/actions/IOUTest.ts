@@ -5128,7 +5128,7 @@ describe('actions/IOU', () => {
                             reportToArchive.push(chatReport);
                         }
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
+                        deleteWorkspace(policy.id, undefined, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
