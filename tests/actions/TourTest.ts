@@ -38,14 +38,14 @@ describe('actions/Tour', () => {
     describe('startTestDrive', () => {
         describe('migrated users', () => {
             it('should show the Test Drive demo if user has been nudged to migrate', async () => {
-                startTestDrive(undefined, false, true, false, undefined, undefined, false, 2);
+                startTestDrive(undefined, false, true, false, undefined, undefined, false, 2, false, undefined);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it("should show the Test Drive demo if user doesn't have the nudge flag but is member of a paid policy", async () => {
-                startTestDrive(undefined, false, false, true, undefined, undefined, false, 2);
+                startTestDrive(undefined, false, false, true, undefined, undefined, false, 2, false, undefined);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -59,8 +59,9 @@ describe('actions/Tour', () => {
             const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
             const testDriveTaskReport: Report = {...LHNTestUtils.getFakeReport(), ownerAccountID: accountID};
 
+            let testDriveTaskAction: ReportAction;
             const setTestDriveTaskData = async () => {
-                const testDriveTaskAction: ReportAction = {
+                testDriveTaskAction = {
                     ...LHNTestUtils.getFakeReportAction(),
                     childType: CONST.REPORT.TYPE.TASK,
                     childReportName: Parser.replace(
@@ -86,14 +87,14 @@ describe('actions/Tour', () => {
             it.each(onboardingChoices.filter((choice) => onboardingDemoChoices.includes(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
                 await setTestDriveTaskData();
 
-                startTestDrive({choice}, false, false, false, testDriveTaskReport, conciergeChatReport, false, accountID);
+                startTestDrive({choice}, false, false, false, testDriveTaskReport, conciergeChatReport, false, accountID, false, testDriveTaskAction);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
-                startTestDrive({choice}, false, false, false, undefined, undefined, false, accountID);
+                startTestDrive({choice}, false, false, false, undefined, undefined, false, accountID, false, undefined);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -111,6 +112,8 @@ describe('actions/Tour', () => {
                     conciergeChatReport,
                     false,
                     accountID,
+                    false,
+                    testDriveTaskAction,
                 );
                 await waitForBatchedUpdates();
 
@@ -118,7 +121,7 @@ describe('actions/Tour', () => {
             });
 
             it('should show the Test Drive demo if user is member of a paid policy', async () => {
-                startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true, testDriveTaskReport, conciergeChatReport, false, accountID);
+                startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true, testDriveTaskReport, conciergeChatReport, false, accountID, false, undefined);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
