@@ -690,6 +690,7 @@ const translations = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        reportName: 'Nom du rapport',
     },
     supportalNoAccess: {
         title: 'Pas si vite',

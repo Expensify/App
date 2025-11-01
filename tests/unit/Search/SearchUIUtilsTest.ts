@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import openSearchReport from '@components/Search/openSearchReport';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import ReportListItem from '@components/SelectionListWithSections/Search/ReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
@@ -1106,6 +1107,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
         to: {
@@ -1214,6 +1216,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '11111',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1322,6 +1325,7 @@ const transactionReportGroupListItems = [
         private_isArchived: '',
         reportID: '99999',
         reportName: 'Approver owes ₫44.00',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1368,6 +1372,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: reportID5,
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
         to: {
@@ -1805,8 +1810,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is EXPENSE-REPORT', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
+        it('should return ReportListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ReportListItem);
         });
 
         it('should return TransactionListItem when type is TRIP', () => {

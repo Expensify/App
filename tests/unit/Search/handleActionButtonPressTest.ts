@@ -63,6 +63,7 @@ const mockReportItemWithHold = {
         phoneNumber: '',
         validated: false,
     },
+    shouldShowYear: false,
     transactions: [
         {
             report: {

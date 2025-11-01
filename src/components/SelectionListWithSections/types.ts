@@ -353,6 +353,8 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type ReportListItemType = TransactionReportGroupListItemType;
+
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
@@ -370,6 +372,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
+
+        /**
+         * Whether we should show the report year.
+         * This is true if at least one report in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
@@ -528,6 +536,13 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -993,7 +1008,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ReportListItemType;
 
 export type {
     BaseListItemProps,
@@ -1020,6 +1035,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    ReportListItemType,
+    ReportListItemProps,
     TaskListItemType,
     TaskListItemProps,
     TransactionListItemProps,

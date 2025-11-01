@@ -21,6 +21,7 @@ import type {
     SortOrder,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import ReportListItem from '@components/SelectionListWithSections/Search/ReportListItem';
 import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -149,6 +150,17 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedCreatedBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
+};
+
+const reportColumnNamesToSortingProperty = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'statusNum' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
 const expenseStatusActionMapping = {
@@ -822,8 +834,10 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
 
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
+ * @param data - The search results data (array or object)
+ * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
  */
-function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'], checkOnlyReports = false) {
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
@@ -847,12 +861,12 @@ function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListIt
     }
 
     for (const key in data) {
-        if (isTransactionEntry(key)) {
+        if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
             if (shouldShowTransactionYear(item)) {
                 return true;
             }
-        } else if (isReportActionEntry(key)) {
+        } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
                 const date = action.created;
@@ -1421,6 +1435,7 @@ function getReportSections(
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+    const doesDataContainAPastYearReport = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1459,6 +1474,7 @@ function getReportSections(
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
+                    shouldShowYear: doesDataContainAPastYearReport,
                 };
 
                 if (isIOUReport) {
@@ -1628,7 +1644,10 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return TaskListItem;
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || groupBy) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return ReportListItem;
+    }
+    if (groupBy) {
         return TransactionGroupListItem;
     }
     return TransactionListItem;
@@ -1695,7 +1714,7 @@ function getSortedSections(
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
+        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -1784,17 +1803,32 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
 
-    return data.sort((a, b) => {
-        if (!a.created || !b.created) {
-            return 0;
-        }
+    if (!sortBy || !sortOrder) {
+        return data.sort((a, b) => {
+            if (!a.created || !b.created) {
+                return 0;
+            }
 
-        return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+            return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+        });
+    }
+
+    const sortingProperty = reportColumnNamesToSortingProperty[sortBy as keyof typeof reportColumnNamesToSortingProperty];
+
+    if (!sortingProperty) {
+        return data;
+    }
+
+    return data.sort((a, b) => {
+        const aValue = a[sortingProperty as keyof TransactionReportGroupListItemType];
+        const bValue = b[sortingProperty as keyof TransactionReportGroupListItemType];
+
+        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
 
@@ -2288,13 +2322,40 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
+ * @param isExpenseReportType: true when we are displaying expense report search results (type:expense-report).
  */
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
     isTaskView = false,
+    isExpenseReportType = false,
 ): Record<SearchColumnType, boolean> {
+    if (isExpenseReportType) {
+        return {
+            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.IN]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: false,
+        };
+    }
+
     if (isTaskView) {
         return {
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -2315,6 +2376,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
             [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: false,
         };
     }
 
@@ -2344,6 +2407,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
           };
 
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
