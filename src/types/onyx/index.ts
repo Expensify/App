@@ -106,6 +106,7 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
@@ -196,6 +197,7 @@ export type {
     PolicyTagLists,
     PrivatePersonalDetails,
     QuickAction,
+    ShareBankAccount,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
