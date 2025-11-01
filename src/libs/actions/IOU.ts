@@ -825,13 +825,6 @@ Onyx.connect({
     },
 });
 
-// let allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {};
-// Onyx.connect({
-//     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-//     waitForCollectionCallback: true,
-//     callback: (val) => (allPolicyCategories = val),
-// });
-
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -11449,7 +11442,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
-    const retryParams = {transactionID, file: undefined, source, transactionPolicyCategories};
+    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicyCategories};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
