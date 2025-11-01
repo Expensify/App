@@ -12319,8 +12319,10 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
     if (!reportID) {
         return `${environmentURL}/r/`;
     }
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const isPolicyExpenseChatReport = isPolicyExpenseChat(report);
     const isInSearchContext = isSearchTopmostFullScreenRoute();
-    if (!isInSearchContext) {
+    if (!isInSearchContext || isPolicyExpenseChatReport) {
         return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
     }
 
