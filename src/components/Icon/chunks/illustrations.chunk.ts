@@ -12,6 +12,7 @@ import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
@@ -68,6 +69,7 @@ const Illustrations = {
     CompanyCard,
     Workflows,
     CarIce,
+    BlueShield,
     Pencil,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
@@ -126,6 +128,8 @@ function getIllustration(illustrationName: string): unknown {
             return CompanyCard;
         case 'CarIce':
             return CarIce;
+        case 'BlueShield':
+            return BlueShield;
         case 'Pencil':
             return Pencil;
         default:

@@ -14,7 +14,7 @@ import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -42,8 +42,8 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
     const viewportOffsetTop = useViewportOffsetTop();
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
 
-    const roleItems: ListItemType[] = useMemo(
-        () => [
+    const roleItems: ListItemType[] = useMemo(() => {
+        const items: ListItemType[] = [
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
@@ -65,9 +65,13 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                 isSelected: role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
             },
-        ],
-        [role, translate],
-    );
+        ];
+
+        if (!isControlPolicy(policy)) {
+            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
+        }
+        return items;
+    }, [role, translate, policy]);
 
     return (
         <AccessOrNotFoundWrapper
