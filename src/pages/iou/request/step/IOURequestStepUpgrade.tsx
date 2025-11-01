@@ -83,14 +83,16 @@ function IOURequestStepUpgrade({
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID: expenseReportID});
-                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID)));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)));
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.setNavigationActionToMicrotaskQueue(() =>
+                    Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)),
+                );
                 break;
             default:
         }
