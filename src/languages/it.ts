@@ -6876,6 +6876,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
+        reportContainsExpensesWithViolations: 'Il report contiene spese con violazioni.',
     },
     violationDismissal: {
         rter: {
