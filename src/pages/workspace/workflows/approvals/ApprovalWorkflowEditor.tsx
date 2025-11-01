@@ -77,7 +77,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
+            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
             if (!error) {

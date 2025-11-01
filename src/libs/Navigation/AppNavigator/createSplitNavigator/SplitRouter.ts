@@ -72,6 +72,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - defaultCentralScreen to cover central pane.
     if (!isNarrowLayout) {
         if (routes.length === 1 && routes.at(0)?.name === sidebarScreen) {
+            // eslint-disable-next-line unicorn/prefer-array-find
             const previousSameNavigator = rootState?.routes.filter((route) => route.name === parentRoute.name).at(-2);
 
             // If we have optimization for not rendering all split navigators, then last selected option may not be in the state. In this case state has to be read from the preserved state.
