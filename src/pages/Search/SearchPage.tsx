@@ -35,7 +35,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {openWorkspace} from '@libs/actions/Policy/Policy';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -57,7 +58,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    canRejectReportAction,
+    checkBulkRejectHydration,
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isExpenseReport as isExpenseReportUtil,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -72,6 +81,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
+import { getTransactionViolationsOfTransaction } from '@libs/TransactionUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -150,6 +160,48 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    // Check hydration status and prefetch missing data for bulk reject
+    const bulkRejectHydrationStatus = useMemo(() => {
+        if (Object.keys(selectedTransactions).length === 0) {
+            return {areHydrated: true, missingReportIDs: [], missingPolicyIDs: []};
+        }
+        return checkBulkRejectHydration(selectedTransactions, policies);
+    }, [selectedTransactions, policies]);
+
+    // Prefetch missing report and policy data when items are selected
+    const lastPrefetchKeyRef = useRef('');
+    useEffect(() => {
+        const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
+
+        // If hydrated or nothing selected, clear and exit
+        if (areHydrated) {
+            lastPrefetchKeyRef.current = '';
+            return;
+        }
+        if (isOffline) {
+            return;
+        }
+
+        const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
+        if (key === lastPrefetchKeyRef.current) {
+            return;
+        }
+
+        // Prefetch once per unique set of missing IDs
+        missingReportIDs.forEach((id) => id && openReport(id));
+        missingPolicyIDs.forEach((id) => id && openWorkspace(id, []));
+
+        lastPrefetchKeyRef.current = key;
+    }, [bulkRejectHydrationStatus, isOffline]);
+
+    // Allow retry on reconnect
+    const prevIsOffline = usePrevious(isOffline);
+    useEffect(() => {
+        if (prevIsOffline && !isOffline) {
+            lastPrefetchKeyRef.current = '';
+        }
+    }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -255,6 +307,8 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -397,6 +451,60 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
+        // Check if any items are explicitly not rejectable (only when data is hydrated)
+        // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
+        const login = currentUserPersonalDetails?.login ?? '';
+        const areAnyExplicitlyNotRejectable =
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.some((id) => {
+                const report = getReportOrDraftReport(id);
+                if (!report) {
+                    return false;
+                }
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                if (!policyForReport) {
+                    return false;
+                }
+                return !canRejectReportAction(login, report, policyForReport);
+            });
+
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
+            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
+            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+
+        // Check if all selected items have hydrated Onyx data for rejection
+        const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
+
+        // Show the Reject option unless we know for sure it's not allowed
+        const shouldShowRejectOption = !isOffline && !areAnyExplicitlyNotRejectable && hasNoRejectedTransaction;
+        
+        // Disabled if not hydrated
+        const isRejectDisabled = !areItemsHydratedForReject;
+
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: Expensicons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                disabled: isRejectDisabled,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (!areItemsHydratedForReject) {
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                },
+            });
+        }
+
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
@@ -568,6 +676,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedReportIDs,
         selectedTransactionReportIDs,
         isBetaBulkPayEnabled,
+        bulkRejectHydrationStatus,
     ]);
 
     const handleDeleteExpenses = () => {
