@@ -137,7 +137,7 @@
     "expensify-common": "2.0.162",
     "expo": "54.0.10",
     "expo-asset": "12.0.8",
-    "expo-av": "^15.1.5",
+    "expo-av": "15.1.7",
     "expo-font": "14.0.8",
     "expo-image": "3.0.8",
     "expo-image-manipulator": "^13.1.5",
