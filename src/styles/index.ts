@@ -5548,6 +5548,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 ...modalNavigatorContainer(isSmallScreenWidth),
             }) satisfies ViewStyle,
 
+        superWideRHPNavigatorContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? '100%' : windowWidth - variables.sideBarWithLHBWidth - variables.navigationTabBarSize,
+            }) satisfies ViewStyle,
+
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
