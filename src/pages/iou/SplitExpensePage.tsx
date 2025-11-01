@@ -289,10 +289,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
-    const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
-
-    const listFooterContent = useMemo(
-        () => (
+    const listFooterContent = useMemo(() => {
+        const shouldShowMakeSplitsEven = childTransactions.length === 0;
+        return (
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem
                     onPress={onAddSplitExpense}
@@ -309,9 +308,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                 )}
             </View>
-        ),
-        [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3],
-    );
+        );
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);

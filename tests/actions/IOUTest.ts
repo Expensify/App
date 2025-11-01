@@ -7369,7 +7369,7 @@ describe('actions/IOU', () => {
             expect(amounts).toEqual([50, 50]);
         });
 
-        it('2-way split with remainder (odd cents) -> 51¢ / 50¢', async () => {
+        it('2-way split with remainder (odd cents) -> 50¢ / 51¢', async () => {
             const originalTransactionID = 'orig-2-rem';
             const draftTransaction: Transaction = {
                 transactionID: 'draft-6',
@@ -7395,10 +7395,10 @@ describe('actions/IOU', () => {
 
             const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
             const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-            expect(amounts).toEqual([51, 50]);
+            expect(amounts).toEqual([50, 51]);
         });
 
-        it('3-way split of $1001 with remainder -> [$333.67, $333.67, $333.66]', async () => {
+        it('3-way split of $1001 with remainder -> [$333.66, $333.66, $333.68]', async () => {
             const originalTransactionID = 'orig-1001-3-last';
             const draftTransaction: Transaction = {
                 transactionID: 'draft-7',
@@ -7425,7 +7425,7 @@ describe('actions/IOU', () => {
 
             const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
             const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-            expect(amounts).toEqual([33367, 33367, 33366]);
+            expect(amounts).toEqual([33366, 33366, 33368]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(100100);
         });
     });
