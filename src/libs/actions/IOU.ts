@@ -6552,6 +6552,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
+                isDistance: isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -7731,7 +7732,7 @@ function completeSplitBill(
     ];
 
     const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
-    const amount = updatedTransaction?.modifiedAmount;
+    const amount = Number(updatedTransaction?.modifiedAmount);
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account

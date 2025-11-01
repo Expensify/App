@@ -32,6 +32,7 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    isDistance?: boolean;
 };
 
 export default TrackExpenseParams;

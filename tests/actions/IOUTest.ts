@@ -6270,7 +6270,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
@@ -6282,7 +6282,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
@@ -6332,7 +6332,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
@@ -6807,7 +6807,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe(0);
+            expect(updatedTransaction?.modifiedAmount).toBe('');
         });
     });
 
