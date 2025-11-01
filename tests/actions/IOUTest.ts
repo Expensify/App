@@ -3458,7 +3458,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allPolicies) => {
                                     Onyx.disconnect(connection);
-                                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                                    policy = Object.values(allPolicies ?? {}).find((p) => p?.id === policyID);
                                     resolve();
                                 },
                             });
@@ -3616,7 +3616,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allPolicies) => {
                                     Onyx.disconnect(connection);
-                                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                                    policy = Object.values(allPolicies ?? {}).find((p) => p?.id === policyID);
                                     resolve();
                                 },
                             });
@@ -7018,7 +7018,7 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (allPolicies) => {
-                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                    policy = Object.values(allPolicies ?? {}).find((p) => p?.id === policyID);
                 },
             });
             await waitForBatchedUpdates();
@@ -7121,7 +7121,7 @@ describe('actions/IOU', () => {
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (allPolicies) => {
-                    policy = Object.values(allPolicies ?? {}).find((policy) => policy?.id === policyID);
+                    policy = Object.values(allPolicies ?? {}).find((p) => p?.id === policyID);
                 },
             });
 

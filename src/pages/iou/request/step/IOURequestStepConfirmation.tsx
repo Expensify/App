@@ -633,7 +633,6 @@ function IOURequestStepConfirmation({
             policyTags,
             policyCategories,
             recentlyUsedDestinations,
-            transactionViolations,
             isASAPSubmitBetaEnabled,
             hasViolations,
         ],
