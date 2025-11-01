@@ -486,6 +486,7 @@ function IOURequestStepConfirmation({
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
             const optimisticIOUReportID = generateReportID();
+            const optimisticIOUCreatedReportActionID = rand64();
             const optimisticReportPreviewActionID = rand64();
 
             transactions.forEach((item, index) => {
@@ -504,6 +505,7 @@ function IOURequestStepConfirmation({
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
                     optimisticIOUReportID,
+                    optimisticIOUCreatedReportActionID,
                     optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,

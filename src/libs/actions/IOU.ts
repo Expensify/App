@@ -493,6 +493,7 @@ type RequestMoneyInformation = {
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
 };
@@ -511,6 +512,7 @@ type MoneyRequestInformationParams = {
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
@@ -3405,6 +3407,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
+        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
@@ -3582,6 +3585,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             transactionID: optimisticTransaction.transactionID,
             paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            optimisticIOUCreatedReportActionID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
@@ -5871,6 +5875,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
+        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
     } = requestMoneyInformation;
@@ -5956,6 +5961,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
+        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
         action,
