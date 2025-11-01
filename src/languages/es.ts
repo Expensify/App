@@ -1347,7 +1347,10 @@ const translations = {
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         newReport: 'Nuevo informe',
-        explainHold: 'Explica la razón para retener esta solicitud.',
+        explainHold: () => ({
+            one: 'Explica la razón para retener esta solicitud.',
+            other: 'Explica la razón para retener estas solicitudes.',
+        }),
         retract: 'Retractar',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',

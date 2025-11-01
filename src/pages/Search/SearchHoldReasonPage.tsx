@@ -55,10 +55,13 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
 
+    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? context.selectedTransactionIDs.length : Object.keys(context.selectedTransactions).length;
+
     return (
         <HoldReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            expenseCount={expenseCount}
             backTo={backTo}
         />
     );
