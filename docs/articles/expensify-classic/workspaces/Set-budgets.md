@@ -29,6 +29,8 @@ Once you create your categories, you can enable a budget for each category using
    - **Total workspace budget**: Enter the overall budget cap.
    - **Per individual budget**: Set a budget per workspace member.
    - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+   - Also, after an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.**
+
 6. Click **Save**.
 
 ---
@@ -44,5 +46,6 @@ Once you create your tags, you can enable a budget for each tag using the follow
    - **Total workspace budget**: Enter the overall budget cap.
    - **Per individual budget**: Set a budget per workspace member.
    - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
-5. Click **Save**.
+   - Also, after an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.**
 
+5. Click **Save**.
