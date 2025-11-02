@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -54,6 +54,7 @@ import type {
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
+    UpdateRoomAvatarParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
@@ -72,7 +73,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErro
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
-import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -111,6 +111,7 @@ import {
     buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticRoomAvatarUpdatedReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticSelfDMReport,
     buildOptimisticUnHoldReportAction,
@@ -121,7 +122,6 @@ import {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
-    getAllPolicyReports,
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
@@ -182,7 +182,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
-    DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -210,6 +209,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -236,12 +236,10 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
-type Video = {
+type Video = Dimensions & {
     url: string;
     thumbnailUrl: string;
     duration: number;
-    width: number;
-    height: number;
 };
 
 type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
@@ -297,14 +295,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => (conciergeReportID = value),
-});
-
-let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (value) => {
-        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
-    },
 });
 
 // map of reportID to all reportActions for that report
@@ -417,43 +407,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
-});
-
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = getAllPolicyReports(policyID);
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -925,7 +878,15 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
     API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+/**
+ * Helper function to build optimistic, success, and failure Onyx updates
+ * when updating or removing a report's avatar.
+ *
+ * @param reportID - The report ID of the policy room.
+ * @param [file] - (Optional) The selected image file to update the avatar with.
+ * If not provided, the existing avatar will be removed.
+ */
+function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -968,8 +929,65 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             },
         },
     ];
+
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Updates the avatar for a group chat.
+ */
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Updates the avatar for a policy room.
+ */
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const avatarURL = file?.uri ?? '';
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+
+    const optimisticAction = buildOptimisticRoomAvatarUpdatedReportAction(avatarURL);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticAction.reportActionID]: optimisticAction},
+    });
+
+    // Update the report with last action details
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastActorAccountID: currentUserAccountID,
+            lastVisibleActionCreated: optimisticAction.created,
+            lastMessageText: (optimisticAction.message as Message[]).at(0)?.text,
+        },
+    });
+
+    // Add success data to clear pending action
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticAction.reportActionID]: {
+                pendingAction: null,
+            },
+        },
+    });
+
+    const parameters: UpdateRoomAvatarParams = {reportID, file, reportActionID: optimisticAction.reportActionID};
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
@@ -2862,6 +2880,13 @@ function buildNewReportOptimisticData(
             value: {lastVisibleActionCreated: optimisticReportPreview.created, iouReportID: reportID, ...outstandingChildRequest},
         },
         {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport?.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+            },
+        },
+        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
@@ -2931,6 +2956,7 @@ function buildNewReportOptimisticData(
         optimisticData,
         successData,
         failureData,
+        optimisticReportData,
     };
 }
 
@@ -2948,7 +2974,7 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -2967,7 +2993,7 @@ function createNewReport(
         notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
     }
 
-    return optimisticReportID;
+    return optimisticReportData;
 }
 
 /**
@@ -3353,7 +3379,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3366,7 +3392,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
+                                [skinTone]: createdAt,
                             },
                         },
                     },
@@ -3447,7 +3473,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number = preferredSkinTone,
+    paramSkinTone: number,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3468,7 +3494,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
+    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3555,8 +3581,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 
@@ -4547,6 +4572,7 @@ function resolveActionableMentionWhisper(
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean | undefined,
+    translate: LocalizedTranslate,
     policy?: OnyxEntry<Policy>,
 ) {
     if (!reportAction || !reportID) {
@@ -4561,8 +4587,7 @@ function resolveActionableMentionWhisper(
         if (actionOriginalMessage && policyID) {
             const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
             const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
+            const welcomeNote = translate('workspace.common.welcomeNote');
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
 
             const invitees: Record<string, number> = {};
@@ -4658,8 +4683,9 @@ function resolveActionableMentionConfirmWhisper(
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean,
+    translate: LocalizedTranslate,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, isReportArchived, undefined);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, isReportArchived, translate, undefined);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -5397,7 +5423,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
             role,
             email: submitterLogin,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            submitsTo: getDefaultApprover(policy),
         },
     };
 
@@ -5690,8 +5716,8 @@ function updatePolicyIdForReportAndThreads(
     });
 }
 
-function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<DismissedProductTraining>, reportID: string) {
-    if (dismissedProductTrainingNVP?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
+function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {
+    if (isChangePolicyTrainingModalDismissed) {
         return;
     }
 
@@ -5982,6 +6008,7 @@ function changeReportPolicy(
     accountID: number,
     email: string,
     hasViolationsParam: boolean,
+    isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportNextStep?: ReportNextStep,
     isReportLastVisibleArchived = false,
@@ -6011,7 +6038,7 @@ function changeReportPolicy(
 
     // If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
 }
 
 /**
@@ -6023,6 +6050,7 @@ function changeReportPolicyAndInviteSubmitter(
     accountID: number,
     email: string,
     hasViolationsParam: boolean,
+    isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -6086,7 +6114,7 @@ function changeReportPolicyAndInviteSubmitter(
 
     // If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
 }
 
 /**
@@ -6238,6 +6266,7 @@ export {
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,
+    updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
     updateLastVisitTime,
