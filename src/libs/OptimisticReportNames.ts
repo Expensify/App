@@ -250,13 +250,16 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
 
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
+    const updatedAllTransactions = (
+        updateType === 'transaction' ? {...context.allTransactions, [`${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction?.transactionID}`]: updatedTransaction} : context.allTransactions
+    ) as Record<string, Transaction>;
 
     // Compute the new name
     const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
-        allTransactions: context.allTransactions,
+        allTransactions: updatedAllTransactions,
     };
 
     const newName = compute(formula, formulaContext);

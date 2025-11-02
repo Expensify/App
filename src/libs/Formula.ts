@@ -7,7 +7,7 @@ import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
+import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -295,7 +295,7 @@ function getExpensesCount(reportID: string, allTransactions?: Record<string, Tra
         transactions = getReportTransactions(reportID);
     }
 
-    return transactions?.filter((transaction) => !isPartialTransaction(transaction))?.length ?? 0;
+    return transactions?.filter((transaction) => !isPartialTransaction(transaction) && !isTransactionPendingDelete(transaction))?.length ?? 0;
 }
 
 /**
