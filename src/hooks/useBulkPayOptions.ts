@@ -116,7 +116,7 @@ function useBulkPayOptions({
                         payAsBusiness,
                         methodID: formattedPaymentMethod.methodID,
                         paymentMethod: formattedPaymentMethod.accountType,
-                    },  
+                    },
                 }));
         },
         [formattedPaymentMethods],
@@ -205,7 +205,7 @@ function useBulkPayOptions({
                         key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         additionalData: {
                             payAsBusiness,
-                        }                  
+                        },
                     },
                 ];
             };
@@ -230,7 +230,26 @@ function useBulkPayOptions({
         }
 
         return buttonOptions;
-    }, [hasActivatedWallet, translate, selectedReportID, selectedPolicyID, shouldShowBusinessBankAccountOptions, canUseWallet, hasMultiplePolicies, hasSinglePolicy, isPersonalOnlyOption, shouldShowPayElsewhereOption, isInvoiceReport, personalBankAccountList.length, canUsePersonalBankAccount, activeAdminPolicies, currency, chatReport, getPaymentSubitems, formattedAmount]);
+    }, [
+        hasActivatedWallet,
+        translate,
+        selectedReportID,
+        selectedPolicyID,
+        shouldShowBusinessBankAccountOptions,
+        canUseWallet,
+        hasMultiplePolicies,
+        hasSinglePolicy,
+        isPersonalOnlyOption,
+        shouldShowPayElsewhereOption,
+        isInvoiceReport,
+        personalBankAccountList.length,
+        canUsePersonalBankAccount,
+        activeAdminPolicies,
+        currency,
+        chatReport,
+        getPaymentSubitems,
+        formattedAmount,
+    ]);
 
     return {
         bulkPayButtonOptions,

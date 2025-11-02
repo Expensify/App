@@ -65,6 +65,7 @@ type SelectedReports = {
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
     currency?: string;
+    chatReportID: string | undefined;
 };
 
 /** Model of payment data used by Search bulk actions */

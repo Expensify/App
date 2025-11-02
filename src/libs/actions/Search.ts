@@ -883,7 +883,7 @@ function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], sele
 /**
  * Return the payment params for paying invoice reports on Search.
  */
-function getPayMoneyOnSearchInvoiceParams(policyID: string, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod): Partial<PaymentData> {
+function getPayMoneyOnSearchInvoiceParams(policyID: string | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod): Partial<PaymentData> {
     const invoiceParams: Partial<PaymentData> = {
         policyID,
         payAsBusiness,
