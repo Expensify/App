@@ -4,10 +4,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
+import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getAllReportErrors, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -1653,6 +1654,200 @@ describe('SidebarUtils', () => {
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
+            });
+
+            it("should add current user prefix if the current user is the report's manager for report preview action in a DM chat", async () => {
+                const dmChat: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const managerID = 123;
+                const iouReportID = '2';
+                const lastReportPreviewAction = {
+                    action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childManagerAccountID: managerID,
+                    created: '2025-07-10 17:45:31.448',
+                    reportActionID: '7425617950691586420',
+                    shouldShow: true,
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'a owes ETB 5.00',
+                            text: 'a owes ETB 5.00',
+                        },
+                    ],
+                    originalMessage: {linkedReportID: iouReportID},
+                };
+
+                const dmChatActions: ReportActions = {[lastReportPreviewAction.reportActionID]: lastReportPreviewAction};
+                const iouReport = {
+                    reportID: iouReportID,
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: 'ETB',
+                    managerID,
+                    total: -500,
+                    parentReportID: dmChat.reportID,
+                    parentReportActionID: lastReportPreviewAction.reportActionID,
+                    chatReportID: dmChat.reportID,
+                } as Report;
+                const iouAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        amount: -200,
+                        currency: iouReport.currency,
+                        type: CONST.IOU.TYPE.CREATE,
+                        IOUReportID: iouReport.reportID,
+                    },
+                    reportActionID: '8964283462949622660',
+                    shouldShow: true,
+                    created: '2025-07-10 17:45:34.865',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'ETB 2.00 expense',
+                            text: 'ETB 2.00 expense',
+                        },
+                    ],
+                    parentReportID: iouReport.reportID,
+                };
+                const iouReportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
+                const transaction = {
+                    transactionID: '4766156517568983315',
+                    amount: -300,
+                    currency: 'ETB',
+                    reportID: iouReport.reportID,
+                };
+                const personalDetailList = {
+                    [managerID]: {
+                        accountID: managerID,
+                        displayName: 'a',
+                    },
+                };
+
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${dmChat.reportID}`, dmChatActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailList);
+                    await Onyx.set(ONYXKEYS.SESSION, {accountID: managerID});
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report: dmChat,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: personalDetailList,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    lastAction: lastReportPreviewAction,
+                    localeCompare,
+                    lastActionReport: undefined,
+                    isReportArchived: undefined,
+                });
+
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID})}: ${reportPreviewMessage}`);
+            });
+
+            it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
+                const dmChat: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const managerID = 123;
+                const iouReportID = '2';
+                const lastReportPreviewAction = {
+                    action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childManagerAccountID: managerID,
+                    created: '2025-07-10 17:45:31.448',
+                    reportActionID: '7425617950691586420',
+                    shouldShow: true,
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'a owes ETB 5.00',
+                            text: 'a owes ETB 5.00',
+                        },
+                    ],
+                    originalMessage: {linkedReportID: iouReportID},
+                };
+
+                const dmChatActions: ReportActions = {[lastReportPreviewAction.reportActionID]: lastReportPreviewAction};
+                const iouReport = {
+                    reportID: iouReportID,
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: 'ETB',
+                    managerID,
+                    total: -500,
+                    parentReportID: dmChat.reportID,
+                    parentReportActionID: lastReportPreviewAction.reportActionID,
+                    chatReportID: dmChat.reportID,
+                } as Report;
+                const iouAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        amount: -200,
+                        currency: iouReport.currency,
+                        type: CONST.IOU.TYPE.CREATE,
+                        IOUReportID: iouReport.reportID,
+                    },
+                    reportActionID: '8964283462949622660',
+                    shouldShow: true,
+                    created: '2025-07-10 17:45:34.865',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'ETB 2.00 expense',
+                            text: 'ETB 2.00 expense',
+                        },
+                    ],
+                    parentReportID: iouReport.reportID,
+                };
+                const iouReportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
+                const transaction = {
+                    transactionID: '4766156517568983315',
+                    amount: -300,
+                    currency: 'ETB',
+                    reportID: iouReport.reportID,
+                };
+                const personalDetailList = {
+                    [managerID]: {
+                        accountID: 234,
+                        displayName: 'a',
+                    },
+                };
+
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${dmChat.reportID}`, dmChatActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailList);
+                    await Onyx.set(ONYXKEYS.SESSION, {accountID: managerID});
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report: dmChat,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: personalDetailList,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    lastAction: lastReportPreviewAction,
+                    localeCompare,
+                    lastActionReport: undefined,
+                    isReportArchived: undefined,
+                });
+
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
     });
