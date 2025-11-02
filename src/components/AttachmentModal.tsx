@@ -143,6 +143,9 @@ type AttachmentModalProps = {
     attachmentLink?: string;
 
     shouldHandleNavigationBack?: boolean;
+
+    /** Transaction object. When provided, will be used instead of fetching from Onyx. */
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 function AttachmentModal({
@@ -178,6 +181,7 @@ function AttachmentModal({
     iouType: iouTypeProp,
     attachmentLink = '',
     shouldHandleNavigationBack,
+    transaction: transactionProp,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -199,7 +203,9 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [onyxTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    // Use passed transaction if provided (for merge flow), otherwise use Onyx-fetched transaction
+    const transaction = transactionProp ?? onyxTransaction;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
@@ -520,6 +526,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            transaction={transaction}
                                             isUploaded={!isEmptyObject(report)}
                                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                                         />

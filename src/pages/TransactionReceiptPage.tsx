@@ -129,6 +129,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             iouAction={action}
             iouType={iouType}
             draftTransactionID={isDraftTransaction ? transactionID : undefined}
+            transaction={transaction}
             onModalClose={Navigation.dismissModal}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
