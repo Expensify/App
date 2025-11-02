@@ -192,7 +192,6 @@ import type {
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyReportField,
-    QuickAction,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -377,12 +376,6 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
-let quickAction: OnyxEntry<QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (val) => (quickAction = val),
 });
 
 let onboarding: OnyxEntry<Onboarding>;
@@ -3705,7 +3698,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string) {
+function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3731,7 +3724,7 @@ function leaveGroupChat(reportID: string) {
         },
     ];
     // Clean up any quick actions for the report we're leaving from
-    if (quickAction?.chatReportID?.toString() === reportID) {
+    if (shouldClearQuickAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
