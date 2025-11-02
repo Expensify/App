@@ -28,7 +28,7 @@ function VacationDelegatePage() {
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
@@ -59,11 +59,10 @@ function VacationDelegatePage() {
             (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
             !!availableOptions.userToInvite,
             searchTerm,
-            false,
             countryCode,
             false,
         );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
