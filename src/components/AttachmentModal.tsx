@@ -203,9 +203,8 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [onyxTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-    // Use passed transaction if provided (for merge flow), otherwise use Onyx-fetched transaction
-    const transaction = transactionProp ?? onyxTransaction;
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 

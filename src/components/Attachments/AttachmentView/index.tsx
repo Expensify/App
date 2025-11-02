@@ -130,9 +130,8 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
-    const [onyxTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    // Use passed transaction if provided (for merge flow), otherwise use Onyx-fetched transaction
-    const transaction = transactionProp ?? onyxTransaction;
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
