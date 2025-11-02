@@ -778,7 +778,6 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
  */
 function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
-    // const hasInvoiceReport = selectedReports.some((report) => isInvoiceReport(report?.reportID));
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
@@ -805,7 +804,6 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
               );
 
     return {
-        // We will handle invoice in a separate flow, so we won't show bulk pay option if invoice is selected
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
