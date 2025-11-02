@@ -1,8 +1,7 @@
-import {useCallback, useContext} from 'react';
+import {useCallback} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
-import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
@@ -12,10 +11,8 @@ type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
 type UseAvatarMenuParams = {
     /** Whether the user is using a default avatar */
     isUsingDefaultAvatar: boolean;
-    /** Source of newly uploaded avatar */
-    source?: string;
-    /** File name of newly uploaded avatar */
-    originalFileName?: string;
+    /** Whether the user has chosen a new avatar in the form  but hasn't uploaded it yet */
+    isAvatarSelected: boolean;
     /** Account ID for navigation */
     accountID: number;
     /** Callback when avatar is removed */
@@ -29,9 +26,8 @@ type UseAvatarMenuParams = {
 /**
  * Custom hook to create avatar menu items
  */
-function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
+function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onImageRemoved, showAvatarCropModal, clearError}: UseAvatarMenuParams) {
     const {translate} = useLocalize();
-    const attachmentContext = useContext(AttachmentModalContext);
 
     /**
      * Create menu items list for avatar menu
@@ -51,11 +47,13 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                 },
             ];
             // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
-            if (isUsingDefaultAvatar) {
+            if (isUsingDefaultAvatar || isAvatarSelected) {
                 return menuItems;
             }
-            if (!source) {
-                menuItems.push({
+
+            return [
+                ...menuItems,
+                {
                     icon: Expensicons.Trashcan,
                     text: translate('avatarWithImagePicker.removePhoto'),
                     value: null,
@@ -63,23 +61,16 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                         clearError();
                         onImageRemoved();
                     },
-                });
-            }
-
-            return [
-                ...menuItems,
+                },
                 {
                     value: null,
                     icon: Expensicons.Eye,
                     text: translate('avatarWithImagePicker.viewPhoto'),
-                    onSelected: () => {
-                        attachmentContext.setCurrentAttachment({source, originalFileName});
-                        Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID));
-                    },
+                    onSelected: () => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID)),
                 },
             ];
         },
-        [translate, isUsingDefaultAvatar, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+        [accountID, isUsingDefaultAvatar, onImageRemoved, showAvatarCropModal, translate, clearError, isAvatarSelected],
     );
 
     return {createMenuItems};

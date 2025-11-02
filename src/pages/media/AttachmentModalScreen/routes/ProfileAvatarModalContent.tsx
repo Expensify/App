@@ -14,7 +14,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
-    const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
+    const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -34,8 +34,8 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const source = tempSource ?? getFullSizeAvatar(avatarURL, accountID);
-    const originalFileName = tempOriginalFileName ?? personalDetail?.originalFileName ?? '';
+    const source = getFullSizeAvatar(avatarURL, accountID);
+    const originalFileName = personalDetail?.originalFileName ?? '';
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !avatarURL;
