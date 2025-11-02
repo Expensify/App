@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -349,6 +349,25 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
+    const reportIdRef = useRef<{onyxReportId: string | undefined; routeReportId: string | undefined}>({onyxReportId: undefined, routeReportId: undefined});
+
+    const redirectBackOnDeletedReport = useCallback(() => {
+        if (!reportIdRef.current.onyxReportId) {
+            reportIdRef.current.onyxReportId = reportOnyx?.reportID;
+            reportIdRef.current.routeReportId = reportIDFromRoute;
+        } else {
+            if (reportOnyx?.reportID) {
+                return;
+            }
+
+            if (reportIdRef.current.routeReportId === reportIDFromRoute) {
+                Navigation.goBack(route.params.backTo ?? undefined);
+            }
+        }
+    }, [reportOnyx?.reportID, route.params.backTo, reportIDFromRoute]);
+
+    useFocusEffect(redirectBackOnDeletedReport);
+
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
@@ -491,7 +510,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (
+                !wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !reportID &&
+                !reportIdRef?.current &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus
+            ) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -499,7 +526,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            reportIdRef?.current,
+        ],
     );
 
     const createOneTransactionThreadReport = useCallback(() => {
