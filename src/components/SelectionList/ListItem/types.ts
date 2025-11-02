@@ -274,13 +274,6 @@ type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
-    index?: number;
-    sectionIndex?: number;
-};
-
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
         /** Value of the domain */
@@ -304,5 +297,4 @@ export type {
     TravelDomainListItemProps,
     SpendCategorySelectorListItemProps,
     UserListItemProps,
-    InviteMemberListItemProps,
 };
