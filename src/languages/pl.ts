@@ -1353,7 +1353,10 @@ const translations = {
         enableWallet: 'Włącz portfel',
         hold: 'Trzymaj',
         unhold: 'Usuń blokadę',
-        holdExpense: 'Wstrzymaj wydatek',
+        holdExpense: () => ({
+            one: 'Wstrzymaj wydatek',
+            other: 'Wstrzymaj wydatki',
+        }),
         unholdExpense: 'Odblokuj wydatek',
         heldExpense: 'zatrzymał ten wydatek',
         unheldExpense: 'odblokowano ten wydatek',

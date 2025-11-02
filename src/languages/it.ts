@@ -1353,7 +1353,10 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Attendere',
         unhold: 'Rimuovi blocco',
-        holdExpense: 'Trattieni spesa',
+        holdExpense: () => ({
+            one: 'Trattieni spesa',
+            other: 'Trattieni spese',
+        }),
         unholdExpense: 'Sblocca spesa',
         heldExpense: 'trattenuto questa spesa',
         unheldExpense: 'sblocca questa spesa',

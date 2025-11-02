@@ -1355,7 +1355,10 @@ const translations = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         unhold: 'Verwijder blokkering',
-        holdExpense: 'Uitgave vasthouden',
+        holdExpense: () => ({
+            one: 'Uitgave vasthouden',
+            other: 'Uitgaven vasthouden',
+        }),
         unholdExpense: 'Uitgave deblokkeren',
         heldExpense: 'deze uitgave vastgehouden',
         unheldExpense: 'deblokkeer deze uitgave',

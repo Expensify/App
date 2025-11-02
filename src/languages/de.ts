@@ -1362,7 +1362,10 @@ const translations = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Halten',
         unhold: 'Halten entfernen',
-        holdExpense: 'Ausgabe zurückhalten',
+        holdExpense: () => ({
+            one: 'Ausgabe zurückhalten',
+            other: 'Ausgaben zurückhalten',
+        }),
         unholdExpense: 'Ausgabe freigeben',
         heldExpense: 'diese Ausgabe zurückgehalten',
         unheldExpense: 'diese Ausgabe freigegeben',

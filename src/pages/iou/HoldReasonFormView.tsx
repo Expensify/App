@@ -41,12 +41,12 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: Hold
             testID={HoldReasonFormView.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iou.holdExpense')}
+                title={translate('iou.holdExpense', {count: expenseCount})}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdExpense')}
+                submitButtonText={translate('iou.holdExpense', {count: expenseCount})}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}

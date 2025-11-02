@@ -1355,7 +1355,10 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
-        holdExpense: '経費を保留',
+        holdExpense: () => ({
+            one: '経費を保留',
+            other: '経費を保留',
+        }),
         unholdExpense: '経費の保留を解除',
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費を未保留にする',

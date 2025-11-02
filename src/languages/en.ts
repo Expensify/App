@@ -1333,7 +1333,10 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         unhold: 'Remove hold',
-        holdExpense: 'Hold expense',
+        holdExpense: () => ({
+            one: 'Hold expense',
+            other: 'Hold expenses',
+        }),
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',

@@ -1350,7 +1350,10 @@ const translations = {
         enableWallet: 'Ativar carteira',
         hold: 'Manter',
         unhold: 'Remover retenção',
-        holdExpense: 'Reter despesa',
+        holdExpense: () => ({
+            one: 'Reter despesa',
+            other: 'Reter despesas',
+        }),
         unholdExpense: 'Desbloquear despesa',
         heldExpense: 'mantido esta despesa',
         unheldExpense: 'liberou esta despesa',

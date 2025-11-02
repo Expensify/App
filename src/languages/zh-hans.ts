@@ -1340,7 +1340,10 @@ const translations = {
         enableWallet: '启用钱包',
         hold: '保持',
         unhold: '移除保留',
-        holdExpense: '保留费用',
+        holdExpense: () => ({
+            one: '保留费用',
+            other: '保留费用',
+        }),
         unholdExpense: '取消保留费用',
         heldExpense: '保留此费用',
         unheldExpense: '取消搁置此费用',

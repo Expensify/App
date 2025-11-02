@@ -1360,7 +1360,10 @@ const translations = {
         enableWallet: 'Activer le portefeuille',
         hold: 'Attente',
         unhold: 'Supprimer la suspension',
-        holdExpense: 'Mettre la dépense en attente',
+        holdExpense: () => ({
+            one: 'Mettre la dépense en attente',
+            other: 'Mettre les dépenses en attente',
+        }),
         unholdExpense: 'Débloquer la dépense',
         heldExpense: 'retenu cette dépense',
         unheldExpense: 'débloqué cette dépense',
