@@ -61,6 +61,7 @@ function VacationDelegatePage() {
             searchTerm,
             false,
             countryCode,
+            false,
         );
     }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm]);
 
