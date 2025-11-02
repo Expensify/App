@@ -392,6 +392,7 @@ function MoneyRequestReportTransactionList({
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             forwardedFSClass={transactionItemFSClass}
+                            onArrowRightPress={() => navigateToTransaction(transaction.transactionID)}
                         />
                     );
                 })}
