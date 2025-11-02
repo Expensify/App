@@ -35,7 +35,7 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
  * Sets merge transaction data for a specific transaction
  */
 function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`mergeTransaction_${string}`>);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
 /**

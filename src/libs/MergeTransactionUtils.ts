@@ -53,7 +53,10 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
 
 // Get the filename from the receipt
 function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+    if (typeof receipt?.source === 'string') {
+        return receipt?.source?.split('/')?.pop();
+    }
+    return `${receipt?.filename ?? receipt?.source}`;
 }
 
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
@@ -334,6 +337,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
         routes: mergeTransaction.routes,
+        reportName: mergeTransaction.reportName,
     };
 }
 
@@ -384,7 +388,11 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -440,7 +448,7 @@ function buildMergeFieldsData(
 
 /**
  * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field and additional fields for distance requests
+ * Handles special cases like currency for amount field, reportID and additional fields for distance requests
  */
 function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
     const updatedValues: MergeTransactionUpdateValues = {
@@ -461,6 +469,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
         updatedValues.receipt = transaction?.receipt ?? null;
         updatedValues.waypoints = getWaypoints(transaction) ?? null;
         updatedValues.routes = transaction?.routes ?? null;
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
     }
 
     return updatedValues;
