@@ -201,8 +201,8 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
         return false;
     }
 
-    // If there's no field list, fall back to simple check (direct self-reference only)
-    if (!fieldList || isEmptyObject(fieldList)) {
+    // If fieldList has only 1 item, it means only the default (undeletable) field exists, so fall back to a simple check (direct self-reference only)
+    if (isEmptyObject(fieldList) || Object.keys(fieldList ?? {}).length === 1) {
         return formulaValues.some((formula) => {
             const fieldPath = parsePart(formula).fieldPath;
             return fieldPath.includes(fieldName);
