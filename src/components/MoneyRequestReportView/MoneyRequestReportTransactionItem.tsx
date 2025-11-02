@@ -61,7 +61,7 @@ type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
     scrollToNewTransaction?: (offset: number) => void;
 
     /** Callback function that navigates to the transaction thread */
-    onArrowRightPress?: () => void;
+    onArrowRightPress?: (transactionID: string) => void;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -158,7 +158,7 @@ function MoneyRequestReportTransactionItem({
                     onButtonPress={() => {
                         handleOnPress(transaction.transactionID);
                     }}
-                    onArrowRightPress={() => onArrowRightPress?.()}
+                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

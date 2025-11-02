@@ -312,6 +312,13 @@ function MoneyRequestReportTransactionList({
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
 
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
+    );
+
     const listHorizontalPadding = styles.ph5;
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
@@ -392,7 +399,7 @@ function MoneyRequestReportTransactionList({
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             forwardedFSClass={transactionItemFSClass}
-                            onArrowRightPress={() => navigateToTransaction(transaction.transactionID)}
+                            onArrowRightPress={handleArrowRightPress}
                         />
                     );
                 })}
