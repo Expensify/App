@@ -1,48 +1,59 @@
 ---
-title: Set Budgets
-description: Track employee spending across categories and tags
-keywords: [Expensify Classic, budgets, track budgets]
+title: How to set Budgets in Expensify Classic
+description: Control spending by setting category- and tag-based budgets for your team.
+keywords: [budgets, set budgets, category budgets, tag budgets, Control workspace, Workspace Admin, Expensify Classic]
+---
+<div id="expensify-classic" markdown="1">
+
+Workspace Admins on Control workspaces can set monthly or yearly budgets to control team spending across categories or tags. You’ll receive notifications when spending reaches specific limits.
+
+You can set budgets for:
+- **Categories**, like office supplies, travel, meals and entertainment, etc.
+- **Tags**, like departments, projects, cost centers, or clients.
+
+Budgets are not available for Collect workspaces.
+
 ---
 
-Expensify allows Workspace Admins to create budgets to:
-- Set monthly and yearly budget caps
-- Track spending across categories and tags
-- Get notified when a budget reaches a specific limit
+# How to set Category Budgets in Expensify Classic
 
-You can set budgets for specific categories or tags.
-- **Category budgets**: Add budgets for different expense types, such as fees, office supplies, travel, meals and entertainment, and more.
-- **Tag budgets**: Add budgets for different departments, projects, locations, cost centers, customers, etc.
+**Breadcrumb:** `Settings > Workspaces > [Workspace Name] > Categories`
 
-Workspace Admins can add Budgets to Control workspaces. This feature is not available for Collect workspaces.
+On web, go to the **navigation tabs on the left**, then follow these steps.  
+On mobile, tap the **hamburger menu in the top-left corner**, then tap **Settings** and follow the same path.
 
----
-
-# Set Category Budgets
-
-Once you create your categories, you can enable a budget for each category using the following steps:
 1. Navigate to **Settings > Workspaces > [Workspace Name] > Categories**.
-2. Click **Edit** next to the category to which you want to add a budget.
+2. Click **Edit** next to the category you want to add a budget to.
 3. Click the **Budget** tab at the top.
-4. Click the toggle to enable budgets (the dot will be green when enabled).
-5. Select your budget settings:
-   - **Budget frequency**: Set as monthly or yearly.
-   - **Total workspace budget**: Enter the overall budget cap.
-   - **Per individual budget**: Set a budget per workspace member.
-   - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+4. Click the toggle to enable budgets (the dot turns green when active).
+5. Choose your budget settings:
+   - **Budget frequency**: Monthly or yearly
+   - **Total workspace budget**: The overall cap for that category
+   - **Per individual budget**: A cap per workspace member
+   - **Notification threshold**: You'll be notified at 100% usage by default. Add a percentage if you want earlier alerts.
 6. Click **Save**.
 
+**Note:** After an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.
+
 ---
 
-# Set Tag Budgets
+# How to set Tag Budgets in Expensify Classic
 
-Once you create your tags, you can enable a budget for each tag using the following steps:
+**Breadcrumb:** `Settings > Workspaces > [Workspace Name] > Tags`
+
+On web, go to the **navigation tabs on the left**, then follow these steps.  
+On mobile, tap the **hamburger menu in the top-left corner**, then tap **Settings** and follow the same path.
+
 1. Navigate to **Settings > Workspaces > [Workspace Name] > Tags**.
-2. Click **Edit** next to the tag you want to add a budget.  
-3. Click the toggle to enable budgets (the dot will be green when enabled).
-4. Select your budget settings:
-   - **Budget frequency**: Set as monthly or yearly.
-   - **Total workspace budget**: Enter the overall budget cap.
-   - **Per individual budget**: Set a budget per workspace member.
-   - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+2. Click **Edit** next to the tag you want to add a budget to.
+3. Click the toggle to enable budgets (the dot turns green when active).
+4. Choose your budget settings:
+   - **Budget frequency**: Monthly or yearly
+   - **Total workspace budget**: The overall cap for that tag
+   - **Per individual budget**: A cap per workspace member
+   - **Notification threshold**: You'll be notified at 100% usage by default. Add a percentage if you want earlier alerts.
 5. Click **Save**.
 
+**Note:** After an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.
+
+</div>
