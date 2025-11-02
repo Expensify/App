@@ -1414,7 +1414,6 @@ const translations = {
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver seulement',
         holdEducationalTitle: 'Cette demande est activée',
-        holdEducationalText: 'tenir',
         whatIsHoldExplain: 'La mise en attente, c\'est comme appuyer sur "pause" pour une dépense afin de demander plus de détails avant l\'approbation ou le paiement.',
         holdIsLeftBehind: 'Les dépenses en attente sont déplacées vers un autre rapport après approbation ou paiement.',
         unholdWhenReady: "Les approbateurs peuvent débloquer les dépenses lorsqu'elles sont prêtes pour approbation ou paiement.",

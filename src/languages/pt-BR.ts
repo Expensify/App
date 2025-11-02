@@ -1404,7 +1404,6 @@ const translations = {
         payOnly: 'Pagar apenas',
         approveOnly: 'Aprovar apenas',
         holdEducationalTitle: 'Esta solicitação está em andamento',
-        holdEducationalText: 'aguarde',
         whatIsHoldExplain: 'Colocar em espera é como apertar "pausa" em uma despesa para solicitar mais detalhes antes da aprovação ou pagamento.',
         holdIsLeftBehind: 'Despesas retidas são movidas para outro relatório após aprovação ou pagamento.',
         unholdWhenReady: 'Os aprovadores podem liberar despesas quando estiverem prontas para aprovação ou pagamento.',

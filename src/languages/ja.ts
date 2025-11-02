@@ -1409,7 +1409,6 @@ const translations = {
         payOnly: '支払いのみ',
         approveOnly: '承認のみ',
         holdEducationalTitle: 'このリクエストはオン',
-        holdEducationalText: '保留',
         whatIsHoldExplain: '保留は、承認や支払いの前に詳細を確認するために、経費を「一時停止」するようなものです。',
         holdIsLeftBehind: '保留された経費は承認または支払い時に別のレポートに移動します。',
         unholdWhenReady: '承認者は、承認または支払いの準備が整ったときに経費を解除できます。',

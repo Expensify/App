@@ -1380,7 +1380,6 @@ const translations = {
         hold: 'Retener',
         unhold: 'Desbloquear',
         holdEducationalTitle: 'Esta solicitud está',
-        holdEducationalText: 'retenida',
         whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
         holdIsLeftBehind: 'Los gastos retenidos se trasladan a otro informe tras su aprobación o pago.',
         unholdWhenReady: 'Los aprobadores pueden desbloquear los gastos cuando estén listos para su aprobación o pago.',

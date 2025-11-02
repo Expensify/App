@@ -1407,7 +1407,6 @@ const translations = {
         payOnly: 'Paga solo',
         approveOnly: 'Approva solo',
         holdEducationalTitle: 'Questa richiesta è attiva',
-        holdEducationalText: 'tieni',
         whatIsHoldExplain: 'Mettere in sospeso è come premere "pausa" su una spesa per chiedere ulteriori dettagli prima dell\'approvazione o del pagamento.',
         holdIsLeftBehind: "Le spese trattenute vengono spostate in un altro report al momento dell'approvazione o del pagamento.",
         unholdWhenReady: "Gli approvatori possono sbloccare le spese quando sono pronte per l'approvazione o il pagamento.",

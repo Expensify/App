@@ -1416,7 +1416,6 @@ const translations = {
         payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Diese Anfrage ist an',
-        holdEducationalText: 'halten',
         whatIsHoldExplain: 'Halten ist wie das Drücken der „Pause“-Taste bei einer Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden nach Genehmigung oder Zahlung in einen anderen Bericht verschoben.',
         unholdWhenReady: 'Genehmiger können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',

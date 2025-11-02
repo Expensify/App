@@ -1386,7 +1386,6 @@ const translations = {
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'Should you hold this expense?',
-        holdEducationalText: 'hold',
         whatIsHoldExplain: 'Hold is like hitting “pause” on an expense until you\'re ready to submit it.',
         holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
         unholdWhenReady: 'Unhold expenses when you\'re ready to submit them.',

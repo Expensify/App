@@ -1389,7 +1389,6 @@ const translations = {
         payOnly: '仅支付',
         approveOnly: '仅批准',
         holdEducationalTitle: '此请求正在处理中',
-        holdEducationalText: '保持',
         whatIsHoldExplain: '将“暂停”用于费用上，以便在批准或付款前请求更多详细信息。',
         holdIsLeftBehind: '待处理费用在批准或支付后移至另一份报告。',
         unholdWhenReady: '审批者可以在准备好审批或付款时解除费用保留。',

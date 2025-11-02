@@ -1407,7 +1407,6 @@ const translations = {
         payOnly: 'Płać tylko',
         approveOnly: 'Zatwierdź tylko',
         holdEducationalTitle: 'To żądanie jest w toku',
-        holdEducationalText: 'trzymaj',
         whatIsHoldExplain: 'Wstrzymanie jest jak naciśnięcie „pauzy” na wydatku, aby poprosić o więcej szczegółów przed zatwierdzeniem lub płatnością.',
         holdIsLeftBehind: 'Wstrzymane wydatki są przenoszone do innego raportu po zatwierdzeniu lub opłaceniu.',
         unholdWhenReady: 'Osoby zatwierdzające mogą zdjąć blokadę z wydatków, gdy będą gotowe do zatwierdzenia lub płatności.',

@@ -1409,7 +1409,6 @@ const translations = {
         payOnly: 'Alleen betalen',
         approveOnly: 'Alleen goedkeuren',
         holdEducationalTitle: 'Dit verzoek is ingediend op',
-        holdEducationalText: 'vasthouden',
         whatIsHoldExplain: 'Vasthouden is als het indrukken van "pauze" op een uitgave om meer details te vragen voordat deze wordt goedgekeurd of betaald.',
         holdIsLeftBehind: 'Ingehouden uitgaven worden naar een ander rapport verplaatst na goedkeuring of betaling.',
         unholdWhenReady: 'Goedkeurders kunnen uitgaven vrijgeven wanneer ze klaar zijn voor goedkeuring of betaling.',
