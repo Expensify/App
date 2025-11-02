@@ -8435,16 +8435,14 @@ describe('ReportUtils', () => {
                 ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
             };
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
             const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
-            expect(expenseReport.reportName).toBe(`${policy.name} owes ${convertToDisplayString(-total, currency)}`);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
 
