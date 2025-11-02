@@ -1,6 +1,9 @@
+import {renderHook} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import useOnyx from '@hooks/useOnyx';
+import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -10,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -58,6 +61,14 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: selfDM,
 };
 
+const getReportFromUseOnyx = async (reportID: string) => {
+    const {result} = renderHook(() => {
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        return {report};
+    });
+    return result.current.report;
+};
+
 describe('Transaction', () => {
     beforeAll(() => {
         Onyx.init({
@@ -94,7 +105,9 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -129,7 +142,9 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -177,7 +192,9 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, mockReportNextStep);
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, mockReportNextStep);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -227,7 +244,9 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, mockReportNextStep);
+            const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, mockReportNextStep);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -265,8 +284,9 @@ describe('Transaction', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, undefined);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -304,8 +324,9 @@ describe('Transaction', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, true, CURRENT_USER_ID, 'test@example.com');
+            changeTransactionsReport([transaction.transactionID], true, CURRENT_USER_ID, 'test@example.com', report);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -345,8 +366,9 @@ describe('Transaction', () => {
 
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, customAccountID, customEmail);
+            changeTransactionsReport([transaction.transactionID], false, customAccountID, customEmail, report);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -384,7 +406,7 @@ describe('Transaction', () => {
                 },
             };
             const expenseReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: 0,
                 currency: CONST.CURRENCY.USD,
@@ -393,7 +415,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], expenseReport.reportID, false, CURRENT_USER_ID, 'test@example.com');
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', expenseReport);
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -431,7 +453,7 @@ describe('Transaction', () => {
                 },
             };
             const expenseReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: 0,
                 currency: CONST.CURRENCY.USD,
@@ -440,7 +462,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], expenseReport.reportID, false, CURRENT_USER_ID, 'test@example.com');
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', expenseReport);
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -458,7 +480,7 @@ describe('Transaction', () => {
 
         it('should update the old report total when the currency is the same', async () => {
             const oldExpenseReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: -200,
                 currency: CONST.CURRENCY.USD,
@@ -487,7 +509,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', fakeReport);
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -506,7 +529,7 @@ describe('Transaction', () => {
 
         it('should not update the old report total when the currency is different', async () => {
             const oldExpenseReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: -200,
                 currency: CONST.CURRENCY.USD,
@@ -535,7 +558,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', fakeReport);
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -574,6 +598,108 @@ describe('Transaction', () => {
             };
             const result = getAllNonDeletedTransactions({[transaction.transactionID]: transaction}, [IOUAction], true);
             expect(result.at(0)).toEqual(transaction);
+        });
+    });
+
+    describe('saveWaypoint', () => {
+        it('should save a waypoint with lat/lng and not YOUR_LOCATION_TEXT', async () => {
+            const transactionID = 'txn1';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: '123 Main St',
+                lat: 10,
+                lng: 20,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
+            expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
+            expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
+        });
+
+        it('should not save waypoint if missing lat/lng', async () => {
+            const transactionID = 'txn2';
+            const index = '1';
+            const waypoint: RecentWaypoint = {
+                address: 'No LatLng',
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
+        });
+
+        it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {
+            const transactionID = 'txn3';
+            const index = '2';
+            const waypoint: RecentWaypoint = {
+                address: CONST.YOUR_LOCATION_TEXT,
+                lat: 1,
+                lng: 2,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
+        });
+
+        it('should reset amount for draft transactions', async () => {
+            const transactionID = 'txn4';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Draft Waypoint',
+                lat: 5,
+                lng: 6,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(CONST.IOU.DEFAULT_AMOUNT);
+        });
+
+        it('should clear errorFields and routes', async () => {
+            const transactionID = 'txn5';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Error',
+                lat: 7,
+                lng: 8,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            // Ensure there is an existing transaction with errorFields and routes
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            // Add errorFields and routes so saveWaypoint can clear them
+            // Populate with realistic non-null values
+            existingTransaction.errorFields = {route: {some: 'value'}};
+            existingTransaction.routes = {
+                route0: {
+                    distance: 123,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.errorFields?.route ?? null).toBeNull();
+            expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
+            expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
         });
     });
 });
