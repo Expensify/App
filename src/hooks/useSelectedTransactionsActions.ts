@@ -3,9 +3,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
+import {shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
@@ -20,6 +21,7 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {isManagedCardTransaction} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -284,22 +286,13 @@ function useSelectedTransactionsActions({
         }
 
         // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
-        const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeAction(report, selectedTransactionsList, policy);
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),
                 icon: Expensicons.ArrowCollapse,
                 value: MERGE,
-                onSelected: () => {
-                    const targetTransaction = selectedTransactionsList.at(0);
-
-                    if (!report || !targetTransaction) {
-                        return;
-                    }
-
-                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
-                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
-                },
+                onSelected: () => setupMergeTransactionDataAndNavigate(selectedTransactionsList),
             });
         }
 

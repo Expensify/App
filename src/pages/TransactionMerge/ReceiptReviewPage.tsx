@@ -50,18 +50,10 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);
-            if (hash) {
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE_FROM_SEARCH.getRoute(transactionID, Navigation.getActiveRoute(), hash));
-            } else {
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-            }
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), hash));
             return;
         }
-        if (hash) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(transactionID, Navigation.getActiveRoute(), hash));
-        } else {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-        }
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), hash));
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {

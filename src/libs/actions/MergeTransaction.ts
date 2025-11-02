@@ -4,14 +4,23 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {areTransactionsEligibleForMerge, getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
+import {
+    areTransactionsEligibleForMerge,
+    getMergeFieldValue,
+    getTransactionThreadReportID,
+    MERGE_FIELDS,
+    selectTargetAndSourceTransactionsForMerge,
+    shouldNavigateToReceiptReview,
+} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getTransactionViolationsOfTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
@@ -28,6 +37,33 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
  */
 function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
+}
+
+function setupMergeTransactionDataAndNavigate(transactions: Transaction[], hash?: number) {
+    if (!transactions.length || transactions.length > 2) {
+        return;
+    }
+
+    if (transactions.length === 1) {
+        const transaction = transactions.at(0);
+        if (transaction) {
+            setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
+            return;
+        }
+    }
+
+    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
+    if (!targetTransaction || !sourceTransaction) {
+        return;
+    }
+
+    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
+    if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
+    } else {
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
+    }
 }
 
 /**
@@ -324,4 +360,4 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

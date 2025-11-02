@@ -35,7 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -463,42 +463,19 @@ function SearchPage({route}: SearchPageProps) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
             const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
             const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
+            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
+            const transactionPolicies = [
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
+            ];
+            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
 
-            if (
-                isMergeActionFromReportView(
-                    selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2],
-                    [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]],
-                    [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]],
-                )
-            ) {
+            if (isMergeActionFromReportView(transactions, reports, transactionPolicies)) {
                 options.push({
                     text: translate('common.merge'),
                     icon: Expensicons.ArrowCollapse,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => {
-                        let targetTransactionID = transaction1?.transactionID;
-
-                        if (selectedTransactionsKeys.length === 1) {
-                            setupMergeTransactionData(targetTransactionID, {targetTransactionID});
-                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransactionID, Navigation.getActiveRoute()));
-                            return;
-                        }
-
-                        let sourceTransactionID = transaction2?.transactionID;
-
-                        // If we reached here, only one of the transactions can be a card transaction
-                        if (isManagedCardTransaction(transaction2)) {
-                            targetTransactionID = transaction2?.transactionID;
-                            sourceTransactionID = transaction1?.transactionID;
-                        }
-
-                        setupMergeTransactionData(targetTransactionID, {targetTransactionID, sourceTransactionID});
-                        if (shouldNavigateToReceiptReview([transaction1, transaction2])) {
-                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
-                        } else {
-                            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE_FROM_SEARCH.getRoute(targetTransactionID, Navigation.getActiveRoute(), queryJSON?.hash));
-                        }
-                    },
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions),
                 });
             }
         }
