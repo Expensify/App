@@ -26,8 +26,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SCREENS from '@src/SCREENS';
+import { Route } from '@src/ROUTES';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; policyID?: string; onExit?: () => void}) {
+type PlaidLinkProps = {
+    onExit?: () => void;
+}
+
+type PlaidConnectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION> & PlaidLinkProps;
+
+function PlaidConnectionStep({route,onExit}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -41,6 +49,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const {isOffline} = useNetwork();
+    const {policyID, feed} = route.params;
     const domain = getDomainNameForPolicy(policyID);
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);

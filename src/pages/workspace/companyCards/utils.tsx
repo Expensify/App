@@ -377,7 +377,6 @@ function useAssignCardStepNavigation(policyID: string | undefined, feed: Company
     const previousStepRef = useRef(currentStep);
 
     useEffect(() => {
-        // Skip if currentStep hasn't changed
         if (currentStep === previousStepRef.current) {
             return;
         }
@@ -388,7 +387,6 @@ function useAssignCardStepNavigation(policyID: string | undefined, feed: Company
             return;
         }
 
-        // Map steps to routes
         const stepRoutes: Record<string, AssignCardRoute> = {
             [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
             [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION,

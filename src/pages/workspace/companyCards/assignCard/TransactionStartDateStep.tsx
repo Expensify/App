@@ -18,13 +18,16 @@ import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, { Route } from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
 
-type TransactionStartDateSelectionListFooterProps = TransactionStartDateStepProps & {
+type TransactionStartDateSelectionListFooterProps = {
+    policyID: string | undefined;
+    feed: CompanyCardFeed;
+    backTo?: Route;
     dateOptionSelected: string;
     startDate: string;
 };
@@ -53,7 +56,7 @@ function TransactionStartDateSelectionListFooter({dateOptionSelected, startDate,
     );
 }
 
-function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
+function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -61,7 +64,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-
+    const {policyID, feed, backTo} = route.params;
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 

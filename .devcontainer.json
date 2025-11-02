@@ -1,3 +1,0 @@
-{
-  "postCreateCommand": "echo '127.0.0.1 dev.new.expensify.com' | sudo tee -a /etc/hosts"
-}
