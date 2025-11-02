@@ -189,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [isAccountLocked, isUserValidated, policy, showLockedAccountModal]);
+    }, [isAccountLocked, isUserValidated, policy]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
