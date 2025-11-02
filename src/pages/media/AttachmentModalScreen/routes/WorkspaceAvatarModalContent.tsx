@@ -38,6 +38,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
             isWorkspaceAvatar: true,
             maybeIcon: true,
             onDownloadAttachment,
+            shouldCloseOnSwipeDown: true,
         }),
         [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );

@@ -115,6 +115,9 @@ type AttachmentModalBaseContentProps = {
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+
+    /** Allows users to swipe down to close the modal */
+    shouldCloseOnSwipeDown?: boolean;
 };
 
 export type {

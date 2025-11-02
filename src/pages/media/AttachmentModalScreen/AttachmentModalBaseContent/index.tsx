@@ -59,6 +59,7 @@ function AttachmentModalBaseContent({
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
+    shouldCloseOnSwipeDown = false,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -202,8 +203,9 @@ function AttachmentModalBaseContent({
             onTap: () => {},
             onScaleChanged: () => {},
             onAttachmentError: setAttachmentError,
+            ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
         }),
-        [falseSV, sourceForAttachmentView, setAttachmentError],
+        [falseSV, sourceForAttachmentView, setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
