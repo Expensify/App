@@ -18,8 +18,8 @@ import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
-import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
