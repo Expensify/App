@@ -85,6 +85,13 @@ module.exports = {
         },
     ],
     files: ['dist', '!dist/www/{.well-known,favicon*}'],
+    // Copy Swift dylib to Frameworks
+    extraFiles: [
+        {
+            from: 'desktop/secure-store/build_swift/libSecureStore.dylib',
+            to: 'Frameworks/libSecureStore.dylib',
+        },
+    ],
     directories: {
         app: 'desktop',
         output: 'desktop-build',

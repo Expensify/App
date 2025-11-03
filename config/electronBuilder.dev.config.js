@@ -39,15 +39,15 @@ module.exports = {
     // No publishing for dev builds - local only
     publish: null,
     files: ['dist', '!dist/www/{.well-known,favicon*}', 'secure-store/build/Release/**/*', '!secure-store/build/Release/.deps', '!secure-store/build/Release/obj.target', 'icon-dev.png'],
-    // Copy native addon and icon to Resources folder for packaged app
+    // Copy native addon to Resources, Swift dylib to Frameworks
     extraFiles: [
         {
             from: 'desktop/secure-store/build/Release/secure_store_addon.node',
             to: 'Resources/secure_store_addon.node',
         },
         {
-            from: 'desktop/secure-store/build/Release/libSecureStore.a',
-            to: 'Resources/libSecureStore.a',
+            from: 'desktop/secure-store/build_swift/libSecureStore.dylib',
+            to: 'Frameworks/libSecureStore.dylib',
         },
         {
             from: 'desktop/icon-dev.png',
