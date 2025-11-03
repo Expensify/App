@@ -26,14 +26,14 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
-                source: getFullSizeAvatar(report.avatarUrl, 0),
+                source: getFullSizeAvatar({avatarSource: report.avatarUrl}),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
-                source: getFullSizeAvatar(report.avatarUrl, 0),
+                source: getFullSizeAvatar({avatarSource: report.avatarUrl}),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
