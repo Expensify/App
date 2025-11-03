@@ -63,6 +63,4 @@ module.exports = {
         name: 'New Expensify Dev',
         schemes: ['new-expensify'],
     },
-    // Use afterPack hook to add rpaths for Swift runtime
-    afterPack: './config/afterPack.js',
 };

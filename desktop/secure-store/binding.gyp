@@ -33,6 +33,8 @@
           ],
           "OTHER_LDFLAGS": [
             "-Wl,-rpath,@loader_path",
+            "-Wl,-rpath,@loader_path/../Frameworks/Electron\\ Framework.framework/Versions/A/Libraries",
+            "-Wl,-rpath,/usr/lib/swift",
             "-Wl,-install_name,@rpath/libSecureStore.a",
             "-Wl,-headerpad_max_install_names",
             "-framework", "Foundation",
