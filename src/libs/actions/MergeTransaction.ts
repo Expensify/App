@@ -71,7 +71,6 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
         return false;
     }
 
-    // Do not allow merging of distance request with other non-distance request
     if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
         return false;
     }
