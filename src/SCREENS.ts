@@ -83,6 +83,7 @@ const SCREENS = {
         ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP: 'Search_Advanced_Filters_Purchase_Currency_RHP',
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
         ADVANCED_FILTERS_ATTENDEE_RHP: 'Search_Advanced_Filters_Attendee_RHP',
+        ADVANCED_FILTERS_REPORT_FIELD_RHP: 'Search_Advanced_Filters_Report_Field_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
@@ -355,6 +356,8 @@ const SCREENS = {
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
+        DOMAIN_CARD_UPDATE_ADDRESS: 'Domain_Card_Update_Address',
+        DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Domain_Card_Confirm_Magic_Code',
     },
 
     SETTINGS_TAGS: {
