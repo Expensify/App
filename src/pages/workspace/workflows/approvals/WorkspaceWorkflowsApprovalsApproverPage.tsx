@@ -148,7 +148,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     },
                     approverIndex,
                     currentApprovalWorkflow,
-                    policyID: route.params.policyID,
+                    policy,
                 });
             }
 
@@ -158,7 +158,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 goBack();
             }
         },
-        [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, currentApprovalWorkflow],
+        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack],
     );
 
     const subtitle = useMemo(

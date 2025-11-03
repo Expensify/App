@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
@@ -14,7 +15,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -50,6 +51,7 @@ import {
     getReportActionHtml,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
@@ -164,7 +166,6 @@ import type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     IsValidReportsConfig,
     MemberForList,
     Option,
@@ -437,11 +438,14 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Should show the last actor display name from last actor details.
  */
 function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+    const reportID = report?.reportID;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
+
     if (
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastReportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) ||
         (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
@@ -460,13 +464,19 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig, lastActorDetails: Partial<PersonalDetails> | null = {}) {
+function getAlternateText(
+    option: OptionData,
+    {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
+    isReportArchived: boolean | undefined,
+    lastActorDetails: Partial<PersonalDetails> | null = {},
+) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
-    const formattedLastMessageText = formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({report, lastActorDetails});
+    const formattedLastMessageText =
+        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({report, lastActorDetails, isReportArchived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -573,12 +583,6 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
                 displayName: lastReportAction.person?.at(0)?.text,
                 accountID: lastActorAccountID,
             };
-        }
-
-        // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
-        // to ensures that actorDetails.accountID is correctly set in case it's empty string
-        if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && actorDetails) {
-            actorDetails.accountID = lastReportAction.actorAccountID;
         }
 
         if (actorDetails) {
@@ -757,6 +761,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR)) {
+        lastMessageTextFromReport = getRoomAvatarUpdatedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
         lastMessageTextFromReport = getRetractedMessage();
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
@@ -783,7 +789,7 @@ function getLastMessageTextForReport({
         !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID, undefined, isReportArchived).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined).lastMessageText ?? '');
     }
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
@@ -886,14 +892,6 @@ function createOption(
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.keyForList = String(report.reportID);
 
-        // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
-        if (result.private_isArchived) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.lastMessageText = translateLocal('reportArchiveReasons.default');
-        } else {
-            result.lastMessageText = report.lastMessageText ?? '';
-        }
-
         // Type/category flags already set in initialization above, but update brickRoadIndicator
         const reportAttribute = reportAttributesDerived?.[report.reportID];
         result.allReportErrors = reportAttribute?.reportErrors ?? {};
@@ -904,9 +902,12 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)];
+        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
+        result.lastMessageText = getLastMessageTextForReport({report, lastActorDetails, isReportArchived: !!result.private_isArchived});
         result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, lastActorDetails);
+            showPersonalDetails && personalDetail?.login
+                ? personalDetail.login
+                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1115,9 +1116,9 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
     return false;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: OnyxEntry<number>) {
+function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode || CONST.DEFAULT_COUNTRY_CODE));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm), countryCode));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
@@ -1177,6 +1178,8 @@ function processReport(
 }
 
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+    const span = Sentry.startInactiveSpan({name: 'createOptionList'});
+
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
@@ -1207,6 +1210,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             reportAttributesDerived,
         ),
     }));
+
+    span.setAttributes({
+        personalDetails: allPersonalDetailsOptions.length,
+        reports: allReportOptions.length,
+    });
+    span.end();
 
     return {
         reports: allReportOptions,
@@ -1292,6 +1301,82 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
     });
     Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     return [...heap].reverse();
+}
+
+/**
+ * Sort options by the same manner as optionsOrderBy -> using heaps.
+ * However, this function allows grouping by multiple separators.
+ * Result of this function is an array of length of `separators.length + 1`
+ * Incoming array of options will be at first tested by separators each separator will test if the option fits - first win, so if an option would fit to more than one separator the order of them decides.
+ * All options that does not pass any of separator will be pushed into last returned array.
+ */
+function optionsOrderAndGroupBy<T = SearchOptionData>(
+    separators: Array<(option: T) => boolean | undefined>,
+    options: T[],
+    comparator: (option: T) => number | string,
+    limit?: number,
+    filter?: (option: T) => boolean | undefined,
+    reversed = false,
+): T[][] {
+    // Create a heap for each separator + one default heap (N+1 total)
+    const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
+    for (let i = 0; i < separators.length; i++) {
+        heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
+    }
+    const defaultHeap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+
+    // If limit is 0 or negative, return N+1 empty arrays
+    if (limit !== undefined && limit <= 0) {
+        return Array(separators.length + 1).map(() => []);
+    }
+
+    // Process each option
+    for (const option of options) {
+        // Apply filter first
+        if (filter && !filter(option)) {
+            continue;
+        }
+
+        // Find which group this option belongs to (first-match-wins)
+        let targetHeap: MinHeap<T> | MaxHeap<T> | null = null;
+
+        for (let i = 0; i < separators.length; i++) {
+            if (separators[i](option)) {
+                // eslint-disable-next-line rulesdir/prefer-at
+                targetHeap = heaps[i];
+                break; // Early exit on first match
+            }
+        }
+
+        // If no separator matched, use default heap
+        if (!targetHeap) {
+            targetHeap = defaultHeap;
+        }
+
+        // Add to heap with limit logic (each heap has its own limit)
+        if (limit !== undefined && targetHeap.size() >= limit) {
+            const peekedValue = targetHeap.peek();
+            if (!peekedValue) {
+                throw new Error('Heap is empty, cannot peek value');
+            }
+            if (comparator(option) > comparator(peekedValue)) {
+                targetHeap.pop();
+                targetHeap.push(option);
+            }
+        } else {
+            targetHeap.push(option);
+        }
+    }
+
+    // Extract results from each heap and reverse (to get correct order)
+    // Always return N+1 arrays (some may be empty)
+    const results: T[][] = [];
+    for (const heap of heaps) {
+        results.push([...heap].reverse());
+    }
+    results.push([...defaultHeap].reverse());
+
+    return results;
 }
 
 /**
@@ -1440,7 +1525,7 @@ function getUserToInviteOption({
         return null;
     }
 
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchValue), countryCode));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue), countryCode));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
@@ -1492,6 +1577,7 @@ function getUserToInviteContactOption({
     email = '',
     phone = '',
     avatar = '',
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
 }: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
     // If email is provided, use it as the primary identifier
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1500,7 +1586,7 @@ function getUserToInviteContactOption({
     // Handle phone number parsing for either provided phone or searchValue
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
 
     const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
@@ -1704,39 +1790,48 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     return true;
 }
 
-function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+/**
+ * Prepares report options for display by enriching them with UI-specific properties and filtering out invalid options.
+ *
+ * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
+ *
+ * @param options - Array of report options to prepare
+ * @param config - Configuration object specifying display preferences and filtering criteria
+ * @returns Array of enriched and filtered report options ready for UI display
+ */
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
         action,
         selectedOptions = [],
         shouldBoldTitleByDefault = true,
-        shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
         showRBR = true,
         shouldShowGBR = false,
     } = config;
 
-    const validReportOptions: SearchOptionData[] = [];
-    const workspaceChats: SearchOptionData[] = [];
-    let selfDMChat: SearchOptionData | undefined;
+    const validOptions: Array<SearchOption<Report>> = [];
+
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
-    for (let i = 0; i < reports.length; i++) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        const option = reports[i];
+    for (let i = 0; i < options.length; i++) {
+        const option = options.at(i);
+        if (!option) {
+            continue;
+        }
         const report = option.item;
 
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
-        let lastIOUCreationDate;
 
+        let lastIOUCreationDate;
         // Add a field to sort the recent reports by the time of last IOU request for create actions
         if (preferRecentExpenseReports) {
             const reportPreviewAction = allSortedReportActions[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
@@ -1768,6 +1863,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             newReportOption.text = getPolicyName({report});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
+
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -1783,19 +1879,12 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
                     continue;
                 }
             }
-            workspaceChats.push(newReportOption);
-        } else if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
-            selfDMChat = newReportOption;
-        } else {
-            validReportOptions.push(newReportOption);
         }
+
+        validOptions.push(newReportOption);
     }
 
-    return {
-        recentReports: validReportOptions,
-        workspaceOptions: workspaceChats,
-        selfDMOption: selfDMChat,
-    };
+    return validOptions;
 }
 
 /**
@@ -1873,20 +1962,20 @@ function getValidOptions(
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
-    let filteredReports = options.reports;
-
     // Get valid recent reports:
-    let recentReportOptions: SearchOptionData[] = [];
-    let workspaceChats: SearchOptionData[] = [];
+    let recentReportOptions: Array<SearchOption<Report>> = [];
+    let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         const searchTerms = processSearchString(searchString);
 
-        const filteringFunction = (report: SearchOption<Report>) => {
+        const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
+        const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
+
+        const isSearchTermsFound = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
             } else if (report.isChatRoom) {
@@ -1895,11 +1984,15 @@ function getValidOptions(
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
+            return searchTerms.every((term) => searchText.includes(term));
+        };
 
-            if (!searchTermsFound) {
+        const filteringFunction = (report: SearchOption<Report>) => {
+            if (!isSearchTermsFound(report)) {
                 return false;
             }
+
+            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
 
             return isValidReport(
                 report,
@@ -1913,9 +2006,24 @@ function getValidOptions(
             );
         };
 
-        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
+        let selfDMChats: Array<SearchOption<Report>>;
+        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
-        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
+        if (selfDMChats.length > 0) {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, {
+                ...getValidReportsConfig,
+                selectedOptions,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+                shouldShowGBR,
+            }).at(0);
+        }
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
+        }
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -1924,9 +2032,14 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        recentReportOptions = recentReports;
-        workspaceChats = workspaceOptions;
-        selfDMChat = selfDMOption;
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
+            ...getValidReportsConfig,
+            selectedOptions,
+            shouldBoldTitleByDefault,
+            shouldSeparateSelfDMChat,
+            shouldSeparateWorkspaceChat,
+            shouldShowGBR,
+        });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
@@ -1937,7 +2050,7 @@ function getValidOptions(
 
             return false;
         });
-        recentReportOptions = recentAttendees as SearchOptionData[];
+        recentReportOptions = recentAttendees as Array<SearchOption<Report>>;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -1976,7 +2089,7 @@ function getValidOptions(
         };
 
         // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
-        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length, 0) : undefined;
+        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), 0) : undefined;
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
@@ -2085,35 +2198,6 @@ function getSearchOptions({
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return optionList;
-}
-
-function getShareLogOptions(
-    options: OptionList,
-    draftComments: OnyxCollection<string>,
-    betas: Beta[] = [],
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions(
-        options,
-        draftComments,
-        {
-            betas,
-            includeMultipleParticipantReports: true,
-            includeP2P: true,
-            forcePolicyNamePreview: true,
-            includeOwnedWorkspaceChats: true,
-            includeSelfDM: true,
-            includeThreads: true,
-            includeReadOnly: false,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-        countryCode,
-    );
 }
 
 /**
@@ -2271,14 +2355,8 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(
-    hasSelectableOptions: boolean,
-    hasUserToInvite: boolean,
-    searchValue: string,
-    hasMatchedParticipant = false,
-    countryCode: OnyxEntry<number> = CONST.DEFAULT_COUNTRY_CODE,
-): string {
-    const isValidPhone = parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode)).possible;
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
@@ -2558,11 +2636,11 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config?: FilterUserToInviteConfig): Options {
+function filterOptions(options: Options, searchInputValue: string, countryCode: number, config?: FilterUserToInviteConfig): Options {
     const trimmedSearchInput = searchInputValue.trim();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2631,7 +2709,7 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: number, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, config);
@@ -2767,7 +2845,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
@@ -2800,7 +2877,6 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
     OptionList,
