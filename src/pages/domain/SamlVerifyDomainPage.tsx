@@ -4,9 +4,9 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import BaseVerifyDomainPage from './VerifyDomainPage';
 
-type VerifyDomainPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VERIFY>;
+type SamlVerifyDomainPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VERIFY>;
 
-function SamlVerifyDomainPage({route}: VerifyDomainPageProps) {
+function SamlVerifyDomainPage({route}: SamlVerifyDomainPageProps) {
     return (
         <BaseVerifyDomainPage
             accountID={route.params.accountID}

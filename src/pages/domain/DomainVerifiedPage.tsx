@@ -10,27 +10,21 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
-type DomainVerifiedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_VERIFIED>;
-
-function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
+function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirectTo: 'WORKSPACES_VERIFY_DOMAIN' | 'DOMAIN_VERIFY'}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountID = route.params.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
 
     useEffect(() => {
         if (domain?.validated) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID), {forceReplace: true}));
-    }, [accountID, domain?.validated]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES[redirectTo].getRoute(accountID), {forceReplace: true}));
+    }, [accountID, domain?.validated, redirectTo]);
 
     return (
         <ScreenWrapper
