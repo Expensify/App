@@ -366,23 +366,27 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     return true;
 }
 
+type DeleteWorkspaceActionParams = {
+    policyID: string;
+    activePolicyID: string | undefined;
+    policyName: string;
+    lastAccessedWorkspacePolicyID: string | undefined;
+    policyCardFeeds: CardFeeds | undefined;
+    reportsToArchive: Report[];
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined;
+    reimbursementAccountError: Errors | undefined;
+    lastUsedPaymentMethods?: LastPaymentMethod;
+};
+
 /**
  * Delete the workspace
  */
-function deleteWorkspace(
-    policyID: string,
-    activePolicyID: string | undefined,
-    policyName: string,
-    lastAccessedWorkspacePolicyID: string | undefined,
-    policyCardFeeds: CardFeeds | undefined,
-    reportsToArchive: Report[],
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    reimbursementAccountError: Errors | undefined,
-    lastUsedPaymentMethods?: LastPaymentMethod,
-) {
+function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     if (!allPolicies) {
         return;
     }
+
+    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods} = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -586,9 +590,9 @@ function deleteWorkspace(
         }
     });
 
-    const params: DeleteWorkspaceParams = {policyID};
+    const apiParams: DeleteWorkspaceParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {

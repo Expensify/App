@@ -225,17 +225,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(
-            policy.id,
+        deleteWorkspace({
+            policyID: policy.id,
             activePolicyID,
             policyName,
             lastAccessedWorkspacePolicyID,
-            defaultCardFeeds,
+            policyCardFeeds: defaultCardFeeds,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            lastPaymentMethod,
-        );
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
