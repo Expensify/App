@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -55,6 +56,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -91,6 +93,21 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
+    const createReportForPolicy = () => {
+        if (!policyForMovingExpensesID) {
+            return;
+        }
+
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        selectReport({value: optimisticReport.reportID});
+    };
+
+    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+        policyID: policyForMovingExpensesID,
+        policyName: policyForMovingExpenses?.name ?? '',
+        onCreateReport: createReportForPolicy,
+    });
+
     const createReport = () => {
         if (!policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
@@ -103,21 +120,23 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        selectReport({value: optimisticReport.reportID}, optimisticReport);
+        handleCreateReport();
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={backTo}
-            selectedReportID={reportID}
-            transactionIDs={selectedTransactionIDs}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={createReport}
-            isPerDiemRequest={hasPerDiemTransactions}
-        />
+        <>
+            {CreateReportConfirmationModal}
+            <IOURequestEditReportCommon
+                backTo={backTo}
+                selectedReportID={reportID}
+                transactionIDs={selectedTransactionIDs}
+                selectReport={selectReport}
+                removeFromReport={removeFromReport}
+                isEditing={action === CONST.IOU.ACTION.EDIT}
+                createReport={createReport}
+                isPerDiemRequest={hasPerDiemTransactions}
+            />
+        </>
     );
 }
 
