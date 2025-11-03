@@ -347,8 +347,8 @@ function IOURequestStepDistanceMap({
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
-                            isASAPSubmitBetaEnabled,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }

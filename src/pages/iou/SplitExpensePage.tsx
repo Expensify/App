@@ -180,6 +180,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             firstIOU: iouActions.at(0),
             isChatReportArchived: isChatIOUReportArchived,
             isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
         });
     }, [
         splitExpenses,

@@ -130,6 +130,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     firstIOU: originalTransactionIouActions.at(0),
                     isChatReportArchived: isChatIOUReportArchived,
                     isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 });
             });
 
