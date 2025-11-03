@@ -1,13 +1,13 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { buildQueryStringFromFilterFormValues } from '@libs/SearchQueryUtils';
 
 jest.mock('@libs/actions/Search', () => ({
     clearAllFilters: jest.fn(),

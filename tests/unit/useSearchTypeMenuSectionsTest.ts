@@ -1,14 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-
-const mockCreateTypeMenuSections = jest.fn(() => []);
-
-jest.mock('@libs/SearchUIUtils', () => ({
-    createTypeMenuSections: (...args: unknown[]) => mockCreateTypeMenuSections(...args),
-}));
 
 jest.mock('@libs/ReportUtils', () => ({
     getPersonalDetailsForAccountID: jest.fn(),
@@ -59,13 +55,10 @@ describe('useSearchTypeMenuSections', () => {
     beforeEach(() => {
         onyxData[ONYXKEYS.COLLECTION.POLICY] = {};
         onyxData[ONYXKEYS.SESSION] = {email: 'test@example.com', accountID: 1};
-        onyxData[ONYXKEYS.NVP_ACTIVE_POLICY_ID] = undefined;
         onyxData[ONYXKEYS.SAVED_SEARCHES] = {};
         onyxData[ONYXKEYS.COLLECTION.REPORT] = {};
-        onyxData[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS] = {};
 
         mockUseOnyx.mockClear();
-        mockCreateTypeMenuSections.mockClear();
     });
 
     it('does not show suggested search skeleton when no policies exist', () => {
