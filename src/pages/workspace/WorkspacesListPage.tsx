@@ -42,6 +42,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {openOldDotLink} from '@libs/actions/Link';
+import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -357,16 +358,18 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
-                        const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
+                        close(() => {
+                            const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
 
-                        setPolicyIDToLeave(item.policyID);
+                            setPolicyIDToLeave(item.policyID);
 
-                        if (isReimburser) {
-                            setIsCannotLeaveWorkspaceModalOpen(true);
-                            return;
-                        }
+                            if (isReimburser) {
+                                setIsCannotLeaveWorkspaceModalOpen(true);
+                                return;
+                            }
 
-                        setIsLeaveModalOpen(true);
+                            setIsLeaveModalOpen(true);
+                        });
                     }),
                 });
             }

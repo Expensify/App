@@ -62,7 +62,7 @@ function BaseSelectionList<TItem extends ListItem>({
     addBottomSafeAreaPadding,
     includeSafeAreaPaddingBottom = true,
     showListEmptyContent = true,
-    showLoadingPlaceholder = false,
+    showLoadingPlaceholder,
     showScrollIndicator = true,
     canSelectMultiple = false,
     disableKeyboardShortcuts = false,
