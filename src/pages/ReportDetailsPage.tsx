@@ -704,14 +704,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 </>
             )}
             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
-                <View style={[styles.w100, styles.mt1]}>
-                    <ParentNavigationSubtitle
-                        parentNavigationSubtitleData={parentNavigationSubtitleData}
-                        parentReportID={report?.parentReportID}
-                        parentReportActionID={report?.parentReportActionID}
-                        pressableStyles={[styles.mw100]}
-                    />
-                </View>
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                    parentReportID={report?.parentReportID}
+                    parentReportActionID={report?.parentReportActionID}
+                    pressableStyles={[styles.mt1, styles.mw100]}
+                />
             )}
         </View>
     );
@@ -753,14 +751,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
 
     const nameSectionFurtherDetailsContent = (
-        <View style={[styles.w100, styles.mt1]}>
-            <ParentNavigationSubtitle
-                parentNavigationSubtitleData={parentNavigationSubtitleData}
-                parentReportID={report?.parentReportID}
-                parentReportActionID={report?.parentReportActionID}
-                pressableStyles={[styles.mw100]}
-            />
-        </View>
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
     );
 
     const nameSectionTitleField = !!titleField && (
