@@ -2475,6 +2475,8 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
+        source?: AvatarSource;
+        originalFileName?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2562,11 +2564,6 @@ type SearchReportParamList = {
         /** Link to previous page */
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
-        /** Selected transactions' report ID  */
-        reportID: string;
-    };
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: Record<string, never>;
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
         /** Selected transactions' report ID  */
         reportID: string;
     };
