@@ -212,6 +212,7 @@ function useSearchSelectorBase({
                 return getValidOptions(
                     optionsWithContacts,
                     draftComments,
+                    nvpDismissedProductTraining,
                     {
                         betas,
                         includeMultipleParticipantReports: true,
