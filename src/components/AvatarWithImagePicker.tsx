@@ -69,6 +69,9 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
+
+    /** The name associated with avatar */
+    name?: string;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
@@ -96,6 +99,7 @@ function AvatarWithImagePicker({
     onViewPhotoPress,
     enablePreview = false,
     editIcon = Expensicons.Pencil,
+    name = '',
 }: AvatarWithImagePickerProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -264,6 +268,7 @@ function AvatarWithImagePicker({
                                         type={type}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
+                                        name={name}
                                     />
                                 </OfflineWithFeedback>
                                 <PopoverMenu
