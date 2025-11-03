@@ -1,5 +1,5 @@
 import type {Bytes} from '@noble/ed25519';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import type VALUES from './VALUES';
 
 type Hex = string;
 
