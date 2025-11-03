@@ -472,7 +472,6 @@ const ViolationsUtils = {
         const {
             brokenBankConnection = false,
             isAdmin = false,
-            email,
             isTransactionOlderThan7Days = false,
             member,
             category,
@@ -486,6 +485,7 @@ const ViolationsUtils = {
             rterType,
             message = '',
             errorIndexes = [],
+            companyCardPageURL = '',
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -547,10 +547,10 @@ const ViolationsUtils = {
                 return translate('violations.rter', {
                     brokenBankConnection,
                     isAdmin,
-                    email,
                     isTransactionOlderThan7Days,
                     member,
                     rterType,
+                    companyCardPageURL,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});

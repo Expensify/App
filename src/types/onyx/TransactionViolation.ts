@@ -103,6 +103,9 @@ type TransactionViolationData = {
 
     /** Comment that triggered the violation */
     comment?: string;
+
+    /** URL to the company cards page for reconnecting broken bank connections */
+    companyCardPageURL?: string;
 };
 
 /** Model of a transaction violation */
