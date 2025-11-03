@@ -240,4 +240,15 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
-export {openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken, getTravelDotLink};
+export {
+    openOldDotLink,
+    openExternalLink,
+    openLink,
+    getInternalNewExpensifyPath,
+    getInternalExpensifyPath,
+    openTravelDotLink,
+    buildTravelDotURL,
+    openExternalLinkWithToken,
+    getTravelDotLink,
+    buildOldDotURL,
+};

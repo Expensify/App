@@ -17,6 +17,7 @@ import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
@@ -54,10 +55,7 @@ import variables from './variables';
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
 
-type AnchorDimensions = {
-    width: number;
-    height: number;
-};
+type AnchorDimensions = Dimensions;
 
 type AnchorPosition = {
     horizontal: number;
@@ -347,6 +345,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         mentionSuggestionsDisplayName: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        reportStatusContainer: {
+            paddingHorizontal: 4,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.componentBorderRadiusSmall,
+            height: 16,
+        },
+
+        reportStatusText: {
+            fontSize: variables.fontSizeSmall,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textSupporting: {
@@ -655,6 +666,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        navigationTabBarFABItem: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+        },
+
         /**
          * Background style applied to navigation tab bar items when they are hovered.
          * Do not apply for the active/selected state, those already have their own styling.
@@ -676,6 +694,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         leftNavigationTabBarItem: {
             height: variables.navigationTabBarSize,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+        },
+
+        leftNavigationTabBarFAB: {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -728,6 +753,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
+        buttonExtraSmall: {
+            borderRadius: variables.buttonBorderRadius,
+            minHeight: variables.componentSizeXSmall,
+            minWidth: variables.componentSizeXSmall,
+            paddingHorizontal: 8,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
@@ -746,6 +779,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonSmallText: {
             fontSize: variables.fontSizeSmall,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            textAlign: 'center',
+        },
+
+        buttonExtraSmallText: {
+            fontSize: variables.fontSizeExtraSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             textAlign: 'center',
         },
@@ -1561,6 +1600,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
+        floatingCameraButton: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
         topBarLabel: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
@@ -2329,6 +2375,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        borderBottomHovered: {
+            borderBottomWidth: 1,
+            borderColor: theme.buttonHoveredBG,
+        },
+
         borderNone: {
             borderWidth: 0,
             borderBottomWidth: 0,
@@ -2363,11 +2414,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportSearchHeaderBar: {
-            overflow: 'hidden',
             justifyContent: 'center',
             display: 'flex',
             width: '100%',
-            height: 52,
+            height: 40,
         },
 
         searchResultsHeaderBar: {
@@ -3954,6 +4004,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.splashBG,
             alignItems: 'center',
             justifyContent: 'center',
+            zIndex: 20,
         },
 
         headerEnvBadge: {
@@ -4113,6 +4164,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiPickerButtonDropdownIcon: {
             fontSize: 30,
+            overflow: 'visible',
         },
 
         moneyRequestImage: {
@@ -5083,6 +5135,39 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        offlineFeedbackDeleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        offlineFeedbackPending: {
+            opacity: 0.5,
+        },
+        offlineFeedbackDefault: {
+            // fixes a crash on iOS when we attempt to remove already unmounted children
+            // see https://github.com/Expensify/App/issues/48197 for more details
+            // it's a temporary solution while we are working on a permanent fix
+            opacity: Platform.OS === 'ios' ? 0.99 : undefined,
+        },
+        offlineFeedbackError: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        offlineFeedbackContainer: {
+            ...spacing.pv2,
+        },
+        offlineFeedbackTextContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        offlineFeedbackText: {
+            color: theme.textSupporting,
+            verticalAlign: 'middle',
+            fontSize: variables.fontSizeLabel,
+        },
+        offlineFeedbackErrorDot: {
+            marginRight: 12,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,
@@ -5140,6 +5225,27 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 4,
         },
 
+        avatarSelectorWrapper: {
+            borderRadius: 50,
+            padding: 4,
+            borderWidth: 2,
+            borderColor: 'transparent',
+        },
+
+        avatarSelectorContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        avatarSelectorListContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 0,
+            justifyContent: 'space-between',
+        },
+
+        avatarSelected: {borderColor: theme.success, borderWidth: 2},
+
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -5151,6 +5257,13 @@ const staticStyles = (theme: ThemeColors) =>
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
+            left: 0,
+            right: 0,
+        },
+
+        stickToTop: {
+            position: 'absolute',
+            top: 0,
             left: 0,
             right: 0,
         },
@@ -5354,6 +5467,18 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         },
+        loadingMessage: {
+            alignItems: 'center',
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
+        domainIcon: {
+            backgroundColor: theme.border,
+            padding: 10,
+            borderRadius: 8,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -5441,6 +5566,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         createMenuPositionSidebar: (windowHeight: number) =>
+            ({
+                horizontal: 16,
+                // Menu should be displayed 8px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
+                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+            }) satisfies AnchorPosition,
+
+        createMenuPositionSearchBar: (windowHeight: number) =>
             ({
                 horizontal: 18,
                 // Menu should be displayed 12px above the floating action button.
@@ -5733,157 +5866,121 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
     }) satisfies DynamicStyles;
 
-const customPickerStyles = (theme: ThemeColors) => ({
-    picker: (disabled = false, backgroundColor: string = theme.appBG) =>
-        ({
-            iconContainer: {
-                top: Math.round(variables.inputHeight * 0.5) - 11,
-                right: 0,
-                ...pointerEventsNone,
-            },
-
-            inputWeb: {
-                appearance: 'none',
-                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-                ...picker(theme),
-                backgroundColor,
-            },
-
-            inputIOS: {
-                ...picker(theme),
-            },
-            done: {
-                color: theme.text,
-            },
-            doneDepressed: {
-                // Extracted from react-native-picker-select, src/styles.js
-                fontSize: 17,
-            },
-            modalViewMiddle: {
-                backgroundColor: theme.border,
-                borderTopWidth: 0,
-            },
-            modalViewBottom: {
-                backgroundColor: theme.highlightBG,
-            },
-
-            inputAndroid: {
-                ...picker(theme),
-            },
-        }) satisfies CustomPickerStyle,
-
-    pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
-        ({
-            inputIOS: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                height: 26,
-                opacity: 1,
-                backgroundColor: 'transparent',
-            },
-            done: {
-                color: theme.text,
-            },
-            doneDepressed: {
-                // Extracted from react-native-picker-select, src/styles.js
-                fontSize: 17,
-            },
-            modalViewMiddle: {
-                position: 'relative',
-                backgroundColor: theme.border,
-                borderTopWidth: 0,
-            },
-            modalViewBottom: {
-                backgroundColor: theme.highlightBG,
-            },
-            inputWeb: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                appearance: 'none',
-                height: 26,
-                opacity: 1,
-                backgroundColor,
-                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-            },
-            inputAndroid: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                height: 26,
-                opacity: 1,
-                backgroundColor: 'transparent',
-            },
-            iconContainer: {
-                top: 7,
-                ...pointerEventsNone,
-            },
-            icon: {
-                width: variables.iconSizeExtraSmall,
-                height: variables.iconSizeExtraSmall,
-            },
-            chevronContainer: {
-                pointerEvents: 'none',
-                opacity: 0,
-            },
-        }) satisfies CustomPickerStyle,
-});
-// Styles that don't satisfy the StyleSheet.create typing, because they are not defined on the top level of the object
-const nestedStyles = (theme: ThemeColors) =>
+// Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
+const plainStyles = (theme: ThemeColors) =>
     ({
         webViewStyles: webViewStyles(theme),
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
+            ({
+                iconContainer: {
+                    top: Math.round(variables.inputHeight * 0.5) - 11,
+                    right: 0,
+                    ...pointerEventsNone,
+                },
 
-        offlineFeedback: {
-            deleted: {
-                textDecorationLine: 'line-through',
-                textDecorationStyle: 'solid',
-            },
-            pending: {
-                opacity: 0.5,
-            },
-            default: {
-                // fixes a crash on iOS when we attempt to remove already unmounted children
-                // see https://github.com/Expensify/App/issues/48197 for more details
-                // it's a temporary solution while we are working on a permanent fix
-                opacity: Platform.OS === 'ios' ? 0.99 : undefined,
-            },
-            error: {
-                flexDirection: 'row',
-                alignItems: 'center',
-            },
-            container: {
-                ...spacing.pv2,
-            },
-            textContainer: {
-                flexDirection: 'column',
-                flex: 1,
-            },
-            text: {
-                color: theme.textSupporting,
-                verticalAlign: 'middle',
-                fontSize: variables.fontSizeLabel,
-            },
-            errorDot: {
-                marginRight: 12,
-            },
-        },
+                inputWeb: {
+                    appearance: 'none',
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+                    ...picker(theme),
+                    backgroundColor,
+                },
 
+                inputIOS: {
+                    ...picker(theme),
+                },
+                done: {
+                    color: theme.text,
+                },
+                doneDepressed: {
+                    // Extracted from react-native-picker-select, src/styles.js
+                    fontSize: 17,
+                },
+                modalViewMiddle: {
+                    backgroundColor: theme.border,
+                    borderTopWidth: 0,
+                },
+                modalViewBottom: {
+                    backgroundColor: theme.highlightBG,
+                },
+
+                inputAndroid: {
+                    ...picker(theme),
+                },
+            }) satisfies CustomPickerStyle,
+
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
+            ({
+                inputIOS: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor: 'transparent',
+                },
+                done: {
+                    color: theme.text,
+                },
+                doneDepressed: {
+                    // Extracted from react-native-picker-select, src/styles.js
+                    fontSize: 17,
+                },
+                modalViewMiddle: {
+                    position: 'relative',
+                    backgroundColor: theme.border,
+                    borderTopWidth: 0,
+                },
+                modalViewBottom: {
+                    backgroundColor: theme.highlightBG,
+                },
+                inputWeb: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    appearance: 'none',
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor,
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+                },
+                inputAndroid: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor: 'transparent',
+                },
+                iconContainer: {
+                    top: 7,
+                    ...pointerEventsNone,
+                },
+                icon: {
+                    width: variables.iconSizeExtraSmall,
+                    height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
+                },
+            }) satisfies CustomPickerStyle,
         mapDirection: {
             lineColor: theme.success,
             lineWidth: 7,
@@ -5893,16 +5990,13 @@ const nestedStyles = (theme: ThemeColors) =>
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
         },
-        textInputDesktop: addOutlineWidth(theme, {}, 0),
-        noOutline: addOutlineWidth(theme, {}, 0),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
     ({
         ...staticStyles(theme),
         ...dynamicStyles(theme),
-        ...customPickerStyles(theme),
-        ...nestedStyles(theme),
+        ...plainStyles(theme),
     }) satisfies Styles;
 
 type ThemeStyles = ReturnType<typeof styles>;

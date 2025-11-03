@@ -35,6 +35,10 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 
 {% include faq-begin.md %}
 
+**Why can't I add a debit or credit card to pay an invoice?**
+
+If the **Add a debit or credit card** option is missing, it means that the invoice sender has not added a verified bank account to receive payment.
+
 **Can someone else pay an invoice besides the person who received it?**
 
 No, only the person who received the invoice will see the option to pay it.
@@ -45,7 +49,7 @@ Anyone can pay an invoice they’ve received, but only Expensify customers can s
 
 Expensify invoicing is designed to cater to both business-to-customer (B2C) and business-to-business (B2B) needs, making it a versatile tool for businesses of all sizes.
 
-**Can I pay an invoice outside of Expensify**
+**Can I pay an invoice outside of Expensify?**
 
 You will need to work with the vendor to discuss alternative payment options. You can chat with your vendor directly at expensify.com in the designated invoice room.
 

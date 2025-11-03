@@ -29,7 +29,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -86,12 +86,15 @@ function IOURequestStepUpgrade({
                 Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
+            case CONST.UPGRADE_PATHS.REPORTS:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+                Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             default:
         }
-    }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
@@ -113,8 +116,14 @@ function IOURequestStepUpgrade({
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
-            areDistanceRatesEnabled: isDistanceRateUpgrade,
+            featuresMap: [
+                {
+                    id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                    enabled: isDistanceRateUpgrade,
+                },
+            ],
             adminParticipant,
+            hasOutstandingChildRequest: false,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -143,6 +152,7 @@ function IOURequestStepUpgrade({
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton
@@ -168,6 +178,7 @@ function IOURequestStepUpgrade({
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}
+                            isReporting={isReporting}
                             isDistanceRateUpgrade={isDistanceRateUpgrade}
                         />
                     )}

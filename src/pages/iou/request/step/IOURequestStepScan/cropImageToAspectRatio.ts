@@ -1,6 +1,6 @@
 import ImageSize from 'react-native-image-size';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
     /** File object of the image */
