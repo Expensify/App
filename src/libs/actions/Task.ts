@@ -44,7 +44,7 @@ type ShareDestination = {
 };
 
 type CreateTaskAndNavigateParams = {
-    parentReportID: string | undefined;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
     title: string;
     description: string;
     assigneeEmail: string;
@@ -113,7 +113,7 @@ function clearOutTaskInfo(skipConfirmation = false) {
  */
 function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     const {
-        parentReportID,
+        parentReport,
         title,
         description,
         assigneeEmail,
@@ -125,6 +125,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         isCreatedUsingMarkdown = false,
         quickAction = {},
     } = params;
+    const parentReportID = parentReport?.reportID;
     if (!parentReportID) {
         return;
     }
@@ -142,7 +143,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     const currentTime = NetworkConnection.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -471,15 +471,14 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 /**
  * Reopen a closed task
  */
-function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, currentUserAccountID: number, reportIDFromAction?: string) {
+function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, hasOutstandingChildTask: boolean, currentUserAccountID: number, reportIDFromAction?: string) {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
     if (!taskReportID) {
         return;
     }
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
-    const parentReport = getParentReport(taskReport);
-    const hasOutstandingChildTask = taskReport?.managerID === currentUserAccountID ? true : parentReport?.hasOutstandingChildTask;
+    const hasOutstandingChildTask = taskReport?.managerID === currentUserAccountID ? true : hasOutstandingChildTask;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1285,12 +1284,11 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
-function clearTaskErrors(reportID: string | undefined) {
+function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>) {
+    const reportID = report?.reportID;
     if (!reportID) {
         return;
     }
-
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
