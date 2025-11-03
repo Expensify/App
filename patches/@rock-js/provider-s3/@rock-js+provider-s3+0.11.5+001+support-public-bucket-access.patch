@@ -1,0 +1,21 @@
+diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+index 1d9331b..79f80d7 100644
+--- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
++++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+@@ -49,6 +49,16 @@ export class S3BuildCache {
+             // Use shared config file (e.g. ~/.aws/credentials) with a profile
+             s3Config.credentials = fromIni({ profile: config.profile });
+         }
++        else {
++            // Public access only
++            s3Config.signer = {
++                sign: async (request) => request  
++            };
++            s3Config.credentials = {
++                accessKeyId: '',
++                secretAccessKey: '',
++            }
++        }
+         this.s3 = new clientS3.S3Client(s3Config);
+         const awsBucket = config.bucket ?? '';
+         const bucketTokens = awsBucket.split('/');
