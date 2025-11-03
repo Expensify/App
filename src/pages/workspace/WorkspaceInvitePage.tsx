@@ -74,14 +74,15 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
     }, [policy?.employeeList]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
-        excludeLogins: excludedUsers,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-    });
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+            includeUserToInvite: true,
+            excludeLogins: excludedUsers,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+        });
 
     const sections: Sections[] = useMemo(() => {
         const sectionsArr: Sections[] = [];
@@ -172,14 +173,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(
-            availableOptions.personalDetails.length !== 0 || !!availableOptions.userToInvite || availableOptions.recentReports.length !== 0,
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite, availableOptions.recentReports.length, countryCode]);
+        return getHeaderMessage(searchOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, translate, policyName]);
 
     const footerContent = useMemo(
         () => (
