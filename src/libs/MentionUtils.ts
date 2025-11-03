@@ -26,6 +26,12 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
         Object.values(reports ?? {}).forEach((report) => {
             const resolvedReportName = report ? (getReportName(report) ?? report.reportName) : undefined;
             const normalizedReportName = removeLeadingLTRAndHash(resolvedReportName ?? '');
+            if (report?.policyID !== currentReport?.policyID || !isChatRoom(report)) {
+                return;
+            }
+            if (normalizedReportName !== mentionDisplayText) {
+                return;
+            }
             if (report?.policyID !== currentReport?.policyID || !isChatRoom(report) || normalizedReportName !== mentionDisplayText) {
                 return;
             }
