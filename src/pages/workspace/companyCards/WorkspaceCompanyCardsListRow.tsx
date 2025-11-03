@@ -33,7 +33,12 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex3]}>
                 <Avatar
-                    source={cardholder?.avatar ?? getDefaultAvatarURL(cardholder?.accountID)}
+                    source={
+                        cardholder?.avatar ??
+                        getDefaultAvatarURL({
+                            accountID: cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        })
+                    }
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}

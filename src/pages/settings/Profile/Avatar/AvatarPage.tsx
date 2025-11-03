@@ -124,7 +124,12 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
-        setSelected(getDefaultAvatarName(currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email));
+        setSelected(
+            getDefaultAvatarName({
+                accountID: currentUserPersonalDetails?.accountID,
+                accountEmail: currentUserPersonalDetails?.email,
+            }),
+        );
         setImageData({...EMPTY_FILE});
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
 

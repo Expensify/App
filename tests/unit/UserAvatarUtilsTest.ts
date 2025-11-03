@@ -59,32 +59,32 @@ describe('UserAvatarUtils', () => {
 
     describe('getCustomAvatarURL', () => {
         it('should return Concierge icon URL for Concierge account', () => {
-            const url = UserAvatarUtils.getDefaultAvatarURL(CONST.ACCOUNT_ID.CONCIERGE);
+            const url = UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE});
             expect(url).toBe(CONST.CONCIERGE_ICON_URL);
         });
 
         it('should return default avatar URL for regular account', () => {
-            const url = UserAvatarUtils.getDefaultAvatarURL(1);
+            const url = UserAvatarUtils.getDefaultAvatarURL({accountID: 1});
             expect(url).toContain('default-avatar_');
             expect(url).toContain('.png');
         });
 
         it('should extract avatar number from avatarURL when provided', () => {
-            const url = UserAvatarUtils.getDefaultAvatarURL(999, undefined, 'https://example.com/default-avatar_5.png');
+            const url = UserAvatarUtils.getDefaultAvatarURL({accountID: 999, avatarURL: 'https://example.com/default-avatar_5.png'});
             expect(url).toContain('default-avatar_5.png');
         });
 
         it('should prioritize avatarURL parameter over accountID', () => {
-            const urlWithAvatar = UserAvatarUtils.getDefaultAvatarURL(1, undefined, 'https://example.com/avatar_10.png');
-            const urlWithoutAvatar = UserAvatarUtils.getDefaultAvatarURL(1);
+            const urlWithAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: 1, avatarURL: 'https://example.com/avatar_10.png'});
+            const urlWithoutAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: 1});
 
             expect(urlWithAvatar).toContain('default-avatar_10.png');
             expect(urlWithoutAvatar).toContain('default-avatar_2.png');
         });
 
         it('should use accountID modulo when only accountID is provided', () => {
-            const url1 = UserAvatarUtils.getDefaultAvatarURL(1);
-            const url25 = UserAvatarUtils.getDefaultAvatarURL(25); // 25 % 24 + 1 = 2
+            const url1 = UserAvatarUtils.getDefaultAvatarURL({accountID: 1});
+            const url25 = UserAvatarUtils.getDefaultAvatarURL({accountID: 25}); // 25 % 24 + 1 = 2
 
             expect(url1).toContain('default-avatar_2.png'); // 1 % 24 + 1 = 2
             expect(url25).toContain('default-avatar_2.png'); // 25 % 24 + 1 = 2
@@ -92,8 +92,8 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should use accountEmail hash instead of accountID when email is provided', () => {
-            const urlByID = UserAvatarUtils.getDefaultAvatarURL(10);
-            const urlByEmail = UserAvatarUtils.getDefaultAvatarURL(10, 'john.doe@example.com');
+            const urlByID = UserAvatarUtils.getDefaultAvatarURL({accountID: 10});
+            const urlByEmail = UserAvatarUtils.getDefaultAvatarURL({accountID: 10, accountEmail: 'john.doe@example.com'});
 
             expect(urlByID).toContain('default-avatar_');
             expect(urlByEmail).toContain('default-avatar_');
@@ -101,8 +101,8 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should produce consistent avatar for same email', () => {
-            const url1 = UserAvatarUtils.getDefaultAvatarURL(1, 'consistent@example.com');
-            const url2 = UserAvatarUtils.getDefaultAvatarURL(999, 'consistent@example.com');
+            const url1 = UserAvatarUtils.getDefaultAvatarURL({accountID: 1, accountEmail: 'consistent@example.com'});
+            const url2 = UserAvatarUtils.getDefaultAvatarURL({accountID: 999, accountEmail: 'consistent@example.com'});
 
             expect(url1).toBe(url2);
         });
@@ -251,24 +251,24 @@ describe('UserAvatarUtils', () => {
 
     describe('getDefaultAvatarName', () => {
         it('should return avatar name for account ID', () => {
-            const name = UserAvatarUtils.getDefaultAvatarName(1);
+            const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1});
             expect(name).toBe('default-avatar_2'); // (1 % 24) + 1 = 2
         });
 
         it('should return avatar name using email hash when provided', () => {
-            const name1 = UserAvatarUtils.getDefaultAvatarName(1, 'test@example.com');
-            const name2 = UserAvatarUtils.getDefaultAvatarName(999, 'test@example.com');
+            const name1 = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com'});
+            const name2 = UserAvatarUtils.getDefaultAvatarName({accountID: 999, accountEmail: 'test@example.com'});
             expect(name1).toBe(name2); // Same email = same avatar
             expect(name1).toContain('default-avatar_');
         });
 
         it('should extract avatar number from existing avatarURL', () => {
-            const name = UserAvatarUtils.getDefaultAvatarName(999, undefined, 'https://example.com/avatar_12.png');
+            const name = UserAvatarUtils.getDefaultAvatarName({accountID: 999, avatarURL: 'https://example.com/avatar_12.png'});
             expect(name).toBe('default-avatar_12');
         });
 
         it('should prioritize avatarURL over accountID and email', () => {
-            const name = UserAvatarUtils.getDefaultAvatarName(1, 'test@example.com', 'https://example.com/default-avatar_20.png');
+            const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com', avatarURL: 'https://example.com/default-avatar_20.png'});
             expect(name).toBe('default-avatar_20');
         });
     });

@@ -61,7 +61,10 @@ function ScheduleCallConfirmationPage() {
                       accountID: scheduleCallDraft.guide.accountID,
                       login: scheduleCallDraft.guide.email,
                       displayName: scheduleCallDraft.guide.email,
-                      avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID, scheduleCallDraft.guide.email),
+                      avatar: getDefaultAvatarURL({
+                          accountID: scheduleCallDraft.guide.accountID,
+                          accountEmail: scheduleCallDraft.guide.email,
+                      }),
                   })
                 : null,
         [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],

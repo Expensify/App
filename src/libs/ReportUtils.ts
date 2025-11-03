@@ -7281,7 +7281,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
         actorAccountID,
-        avatar: getDefaultAvatarURL(actorAccountID, targetEmail),
+        avatar: getDefaultAvatarURL({accountID: actorAccountID, accountEmail: targetEmail}),
         created: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
         lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
         message: [
