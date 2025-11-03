@@ -17,7 +17,7 @@ Connect your Expensify workspace to Uber for Business to automatically import Ub
 2. Toggle on **Receipt partners**.
 3. Once enabled, a new **Receipt partners** section will appear in the left-hand menu.
 
-**Note:** To enable Uber for Business from Expensify Classic, go to **Settings > Workspaces > [Workspace Name] > Connections**. Under **Travel Integrations**, click **Uber for Business**, then click **Take me to New Expensify**.
+**Note:** To enable Uber for Business from Expensify Classic, go to **Settings > Workspaces > [Workspace Name] > Accounting**. Under **Travel Integrations**, click **Uber for Business**, then click **Take me to New Expensify**.
 
 ## Step 2: Connect Uber for Business
 1. Go to **Workspaces > [Workspace Name] > Receipt partners**
