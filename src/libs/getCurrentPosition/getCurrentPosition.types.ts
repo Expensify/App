@@ -25,10 +25,6 @@ const GeolocationErrorCode = {
     NOT_SUPPORTED: -1,
 };
 
-/**
- * Used for desktop implementation of getCurrentPosition() which uses the Geolocation API.
- * {@link https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition#options}
- */
 type GeolocationOptions = {
     /** Desktop only */
     timeout?: number;

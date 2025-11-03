@@ -7,10 +7,6 @@ import {LOCATION_PERMISSION_STATES} from './locationPermission';
 const makeError = (code: ValueOf<typeof GeolocationErrorCode>, message: string) => ({
     code,
     message,
-    PERMISSION_DENIED: GeolocationErrorCode.PERMISSION_DENIED,
-    POSITION_UNAVAILABLE: GeolocationErrorCode.POSITION_UNAVAILABLE,
-    TIMEOUT: GeolocationErrorCode.TIMEOUT,
-    NOT_SUPPORTED: GeolocationErrorCode.NOT_SUPPORTED,
 });
 
 const isLocationPermissionState = (status: unknown): status is LocationPermissionState =>
