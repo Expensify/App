@@ -2,16 +2,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeSyntheticEvent,
-    TextInput,
-    TextInputContentSizeChangeEventData,
-    TextInputFocusEventData,
-    TextInputKeyPressEventData,
-    TextInputScrollEventData,
-} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,7 +25,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -77,7 +68,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     onFocus: () => void;
 
     /** Callback to blur composer */
-    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur: (event: BlurEvent) => void;
 
     /** Callback when layout of composer changes */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -258,7 +249,7 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
@@ -474,7 +465,7 @@ function ComposerWithSuggestions({
     );
 
     const handleKeyPress = useCallback(
-        (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (event: TextInputKeyPressEvent) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
@@ -566,7 +557,7 @@ function ComposerWithSuggestions({
     );
 
     const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -805,7 +796,7 @@ function ComposerWithSuggestions({
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const updateIsFullComposerAvailable = useCallback(
-        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+        (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
@@ -814,6 +805,12 @@ function ComposerWithSuggestions({
         },
         [setIsFullComposerAvailable, containerComposeStyles],
     );
+
+    const handleFocus = useCallback(() => {
+        // The last composer that had focus should re-gain focus
+        setUpComposeFocusManager(true);
+        onFocus();
+    }, [onFocus, setUpComposeFocusManager]);
 
     return (
         <>
@@ -835,11 +832,7 @@ function ComposerWithSuggestions({
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={() => {
-                        // The last composer that had focus should re-gain focus
-                        setUpComposeFocusManager(true);
-                        onFocus();
-                    }}
+                    onFocus={handleFocus}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {

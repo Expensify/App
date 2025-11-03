@@ -81,6 +81,9 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Function that determines if an item is selected */
     isSelected?: (item: TItem) => boolean;
 
+    /** Whether the whole list is disabled */
+    isDisabled?: boolean;
+
     /** Whether the layout is narrow */
     isSmallScreenWidth?: boolean;
 
@@ -92,6 +95,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
 
     /** Whether to show the empty list content */
     showListEmptyContent?: boolean;
