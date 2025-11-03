@@ -75,10 +75,7 @@ function cropImageToAspectRatio(
                 return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
             });
         })
-        .catch((err) => {
-            console.error(err);
-            return image;
-        });
+        .catch(() => image);
 }
 
 export type {ImageObject};
