@@ -55,7 +55,7 @@ function TestDriveDemo() {
         InteractionManager.runAfterInteractions(() => {
             completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
         });
-    }, [viewTourTaskReport.stateNum, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, completeTestDriveTask]);
+    }, [viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, completeTestDriveTask]);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
