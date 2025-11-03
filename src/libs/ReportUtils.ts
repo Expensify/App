@@ -10431,27 +10431,26 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
     });
 }
 /**
- * Get optimistic ancestor report actions the
+ * Get optimistic data of the ancestor report actions
  * @param ancestors The thread report ancestors
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
 function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
     let previousActionDeleted = false;
-    return ancestors.reduce<OnyxUpdate[]>((optimisticData, {report: ancestorReport, reportAction: ancestorReportAction}, index) => {
+    return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
 
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
 
-        optimisticData.push({
+        return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
             value: {
                 [ancestorReportAction.reportActionID]: updatedReportAction,
             },
-        });
-        return optimisticData;
-    }, []);
+        };
+    });
 }
 
 function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
