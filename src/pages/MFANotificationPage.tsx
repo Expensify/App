@@ -90,7 +90,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
     }
 
     return (
-        // No FullPageOfflineBlockingView here as there is no more comunication through network at this point
+        // No FullPageOfflineBlockingView here as there is no more communication through network at this point
         <ScreenWrapper testID={MFANotificationPage.displayName}>
             <HeaderWithBackButton
                 title={headerTitle}

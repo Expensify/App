@@ -7352,7 +7352,7 @@ ${date} - ${merchant}に${amount}`,
             fallbackPageTitle: '本人確認をさせてください',
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
             fallbackPage2FAContent: '認証アプリのコードを入力してください。',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたコードを入力してください。`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたコードを入力してください。`,
         },
         revokePage: {
             headerTitle: '顔/指紋認証',

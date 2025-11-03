@@ -7848,7 +7848,7 @@ ${amount} para ${merchant} - ${date}`,
             fallbackPageTitle: 'Verifiquemos que eres tú',
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código mágico enviado a ${contactMethod}.`,
             fallbackPage2FAContent: 'Por favor, ingrese su código de autenticación.',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código enviado a ${contactMethod}.`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código enviado a ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Verificación facial/huella dactilar',

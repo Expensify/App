@@ -7400,7 +7400,7 @@ ${amount} voor ${merchant} - ${date}`,
             fallbackPageTitle: 'Laten we verifiëren dat u het bent',
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
             fallbackPage2FAContent: 'Voer alstublieft uw authenticatorcode in.',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de code in die is verzonden naar ${contactMethod}.`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de code in die is verzonden naar ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Gezicht/vingerafdruk verificatie',

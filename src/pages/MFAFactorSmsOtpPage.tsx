@@ -18,7 +18,7 @@ function MFAFactorSmsOtpPage() {
     return (
         <MFAValidateCodePage
             title="multiFactorAuthentication.biometrics.fallbackPageTitle"
-            description="multiFactorAuthentication.biometrics.fallbackPageSMSotpContent"
+            description="multiFactorAuthentication.biometrics.fallbackPageSmsOtpContent"
             contactMethod={phoneNumber}
             autoComplete="sms-otp"
             errorMessages={{

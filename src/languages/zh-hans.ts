@@ -7242,7 +7242,7 @@ ${merchant}的${amount} - ${date}`,
             fallbackPageTitle: '让我们验证是否是您本人',
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的魔法代码。`,
             fallbackPage2FAContent: '请输入您的身份验证器代码。',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的代码。`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的代码。`,
         },
         revokePage: {
             headerTitle: '面部/指纹验证',

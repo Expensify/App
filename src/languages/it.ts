@@ -7411,7 +7411,7 @@ ${amount} per ${merchant} - ${date}`,
             fallbackPageTitle: 'Verifichiamo che sei tu',
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Per favore inserisci il codice magico inviato a ${contactMethod}.`,
             fallbackPage2FAContent: 'Per favore inserisci il tuo codice autenticatore.',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Per favore inserisci il codice inviato a ${contactMethod}.`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Per favore inserisci il codice inviato a ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Verifica volto/impronta digitale',
