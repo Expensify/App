@@ -1,0 +1,100 @@
+import React, {useState} from 'react';
+import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {isIOUReport} from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
+import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
+import {changeTransactionsReport} from '@userActions/Transaction';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyCategories, Report, ReportNextStep} from '@src/types/onyx';
+import Button from './Button';
+import FormHelpMessage from './FormHelpMessage';
+import {useSession} from './OnyxListItemProvider';
+
+type AddUnreportedExpenseFooterProps = {
+    /** Selected transaction IDs */
+    selectedIds: Set<string>;
+    /** The report to add expenses to */
+    report: OnyxEntry<Report>;
+    /** The report to confirm */
+    reportToConfirm: OnyxEntry<Report>;
+    /** The report next step */
+    reportNextStep: OnyxEntry<ReportNextStep>;
+    /** The policy */
+    policy: OnyxEntry<Policy>;
+    /** The policy categories */
+    policyCategories: OnyxEntry<PolicyCategories>;
+    /** Callback to clear error message */
+    onClearError?: () => void;
+};
+
+function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, onClearError}: AddUnreportedExpenseFooterProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const session = useSession();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+
+    const handleConfirm = () => {
+        if (selectedIds.size === 0) {
+            setErrorMessage(translate('iou.selectUnreportedExpense'));
+            return;
+        }
+        Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            if (report && isIOUReport(report)) {
+                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+            } else {
+                changeTransactionsReport({
+                    transactionIDs: [...selectedIds],
+                    newReport: reportToConfirm,
+                    isASAPSubmitBetaEnabled,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    policy,
+                    reportNextStep,
+                    policyCategories,
+                    allReportsCollection: allReports,
+                    allTransactionsCollection: allTransactions,
+                    allTransactionViolationsCollection: allTransactionViolations,
+                });
+            }
+        });
+        setErrorMessage('');
+        onClearError?.();
+    };
+    return (
+        <>
+            {!!errorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message={errorMessage}
+                />
+            )}
+            <Button
+                success
+                large
+                style={[styles.w100, styles.justifyContentCenter]}
+                text={translate('iou.addUnreportedExpenseConfirm')}
+                onPress={handleConfirm}
+                pressOnEnter
+                enterKeyEventListenerPriority={1}
+            />
+        </>
+    );
+}
+
+AddUnreportedExpenseFooter.displayName = 'AddUnreportedExpenseFooter';
+
+export default AddUnreportedExpenseFooter;
