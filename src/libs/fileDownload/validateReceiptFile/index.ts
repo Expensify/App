@@ -1,3 +1,4 @@
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
 
 /**
@@ -6,7 +7,7 @@ import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
  */
 function validateReceiptFile(
     receiptFilename: string | undefined,
-    receiptPath: string | undefined,
+    receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
     onSuccess: (file: File) => void,
     onFailure: () => void,
