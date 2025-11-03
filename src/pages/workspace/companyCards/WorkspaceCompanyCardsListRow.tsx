@@ -36,7 +36,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
                     source={
                         cardholder?.avatar ??
                         getDefaultAvatarURL({
-                            accountID: cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                            accountID: cardholder?.accountID,
                         })
                     }
                     avatarID={cardholder?.accountID}

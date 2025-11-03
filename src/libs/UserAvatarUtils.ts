@@ -30,8 +30,9 @@ type CommonAvatarArgsType = {
     /** The user's email address (takes precedence over accountID for hash calculation) */
     accountEmail?: string;
 };
+
 type DefaultAvatarArgsType = CommonAvatarArgsType & {
-    /** Existing avatar URL to extract avatar number from (highest precedence) */
+    /** Existing avatar URL */
     avatarURL?: string;
 };
 
@@ -44,9 +45,10 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
  * Calculates which avatar bucket an account belongs to based on accountID, email, or existing avatar URL.
  * There are 24 possible default avatars, distributed using modulo operation.
  *
- * @param accountID - The user's account ID
- * @param accountEmail - The user's email address (used for hash calculation if provided)
- * @param avatarURL - Existing avatar URL (parsed to extract avatar number if available)
+ * @param args - Object containing parameters
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for hash calculation if provided)
+ * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
  * @returns A number from 1-24 indicating which avatar bucket the account belongs to
  */
 function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): AvatarRange {
@@ -75,9 +77,9 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
  * Other accounts get an avatar from the default avatar set based on their accountID hash bucket.
  *
  * @param args - Object containing avatar parameters
- * @param args.accountID - The user's account ID (defaults to CONST.DEFAULT_NUMBER_ID)
- * @param args.accountEmail - The user's email address (for consistency with backend logic)
- * @param args.avatarURL - Existing avatar URL to extract avatar number from
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
 function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): IconAsset | undefined {
@@ -96,9 +98,9 @@ function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, av
  * This name corresponds to assets in the CustomAvatarCatalog.
  *
  * @param args - Object containing avatar parameters
- * @param args.accountID - The user's account ID (defaults to CONST.DEFAULT_NUMBER_ID)
- * @param args.accountEmail - The user's email address
- * @param args.avatarURL - Existing avatar URL
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for hash calculation if provided)
+ * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
  * @returns The custom avatar name identifier (e.g., "default-avatar_5")
  */
 function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): DefaultAvatarIDs {
@@ -111,20 +113,11 @@ function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail
  * Concierge account gets a special hardcoded URL.
  *
  * @param args - Object containing avatar parameters
- * @param args.accountID - The user's account ID (defaults to CONST.DEFAULT_NUMBER_ID)
- * @param args.accountEmail - The user's email address (takes precedence over accountID)
- * @param args.avatarURL - Existing avatar URL to extract avatar number from
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
  * @returns The CloudFront CDN URL for the avatar image
  *
- * @example
- * // Get avatar URL by account ID
- * getDefaultAvatarURL({accountID: 12345})
- * // => 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png'
- *
- * @example
- * // Get avatar URL for Concierge
- * getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE})
- * // => CONST.CONCIERGE_ICON_URL
  */
 function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -136,9 +129,9 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
 
 /**
  * Extracts the custom avatar name from a CloudFront avatar URL.
- * This is useful for identifying which default avatar a URL points to.
+ * Useful for identifying which default avatar a URL points to.
  *
- * @param avatarURL - The avatar URL (typically from CloudFront)
+ * @param avatarURL - The avatar URL
  * @returns The avatar name (e.g., 'default-avatar_5') or undefined if not a valid custom avatar URL
  */
 function getCustomAvatarNameFromURL(avatarURL?: AvatarSource): CustomAvatarID | undefined {
@@ -213,26 +206,11 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * and provide instant rendering.
  *
  * @param args - Object containing avatar parameters
- * @param args.avatarSource - The avatar source from user's personalDetails (URL or SVG component)
- * @param args.accountID - The user's account ID (defaults to CONST.DEFAULT_NUMBER_ID)
- * @param args.accountEmail - The user's email address (for backend consistency)
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
- * @example
- * // Get avatar for a user with uploaded avatar
- * const avatar = getAvatar({
- *   avatarSource: 'https://example.com/user-avatar.jpg',
- *   accountID: 12345
- * });
- * // => 'https://example.com/user-avatar.jpg'
- *
- * @example
- * // Get avatar for a user with default avatar
- * const avatar = getAvatar({
- *   avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_5.png',
- *   accountID: 12345
- * });
- * // => Avatar5 (SVG component)
  */
 function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
@@ -253,9 +231,9 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  * Otherwise, returns the original avatar source URL.
  *
  * @param args - Object containing avatar parameters
- * @param args.avatarSource - The avatar source from user's personalDetails (URL or SVG component)
- * @param args.accountID - The accountID of the user
- * @param args.accountEmail - The email of the user
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The avatar URL string
  */
 function getAvatarUrl({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
@@ -268,9 +246,9 @@ function getAvatarUrl({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
  * This function removes that suffix to load the full-resolution image.
  *
  * @param args - Object containing avatar parameters
- * @param args.avatarSource - The avatar source (may include _128 suffix)
- * @param args.accountID - The accountID of the user
- * @param args.accountEmail - The email of the user
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The full-size avatar source
  */
 function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
@@ -287,9 +265,9 @@ function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
  * Only works for CloudFront URLs; other URLs are returned as-is.
  *
  * @param args - Object containing avatar parameters
- * @param args.avatarSource - The avatar source
- * @param args.accountID - The accountID of the user
- * @param args.accountEmail - The email of the user
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
+ * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The small-size avatar source with _128 suffix (if applicable)
  */
 function getSmallSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
