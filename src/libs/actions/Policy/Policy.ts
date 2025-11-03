@@ -445,7 +445,7 @@ function deleteWorkspace(
 
     if (policyID === activePolicyID) {
         const firstAlphabeticallyOrderedGroupPolicy = Object.values(allPolicies ?? {})
-            .filter((policy) => policy && policy.id !== activePolicyID && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyA?.name ?? '', policyB?.name ?? ''))
             .at(0);
         const newActivePolicyID = firstAlphabeticallyOrderedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
