@@ -192,7 +192,6 @@ import type {
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyReportField,
-    QuickAction,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -297,6 +296,14 @@ Onyx.connect({
     callback: (value) => (conciergeReportID = value),
 });
 
+let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    callback: (value) => {
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
+    },
+});
+
 // map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
 
@@ -377,12 +384,6 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
-let quickAction: OnyxEntry<QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (val) => (quickAction = val),
 });
 
 let onboarding: OnyxEntry<Onboarding>;
@@ -3379,7 +3380,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3392,7 +3393,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone]: createdAt,
+                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
                             },
                         },
                     },
@@ -3473,7 +3474,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number,
+    paramSkinTone: number = preferredSkinTone,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3494,7 +3495,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
+    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3650,6 +3651,7 @@ function openReportFromDeepLink(
                                     currentOnboardingPurposeSelected,
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
+                                    onboardingValues: val,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
@@ -3705,7 +3707,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string) {
+function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3731,7 +3733,7 @@ function leaveGroupChat(reportID: string) {
         },
     ];
     // Clean up any quick actions for the report we're leaving from
-    if (quickAction?.chatReportID?.toString() === reportID) {
+    if (shouldClearQuickAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,

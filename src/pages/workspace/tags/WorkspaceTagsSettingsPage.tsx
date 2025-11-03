@@ -71,9 +71,9 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         <View style={styles.flexGrow1}>
             {!isMultiLevelTags && (
                 <OfflineWithFeedback
-                    errors={policyData.tags?.[policyTagLists.at(0)?.name ?? '']?.errors}
-                    onClose={() => clearPolicyTagListErrors(policyID, policyTagLists.at(0)?.orderWeight ?? 0)}
-                    pendingAction={policyData.tags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
+                    errors={policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors}
+                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags})}
+                    pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
