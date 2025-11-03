@@ -1,9 +1,10 @@
 import {Str} from 'expensify-common';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import CONST from '@src/CONST';
 
 const sanitizePhoneOrEmail = (value: string) => value.replace(/\s/g, '').toLowerCase();
 
-const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string) => {
+const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string, countryCode?: number) => {
     const errors: {phoneOrEmail?: string} = {};
 
     if (inputValue && storedValue) {
@@ -12,8 +13,8 @@ const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate
         if (Str.isValidEmail(storedValue)) {
             isValid = sanitizePhoneOrEmail(storedValue) === sanitizePhoneOrEmail(inputValue);
         } else {
-            const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(storedValue)) ?? '';
-            const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(inputValue)) ?? '';
+            const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(storedValue), countryCode ?? CONST.DEFAULT_COUNTRY_CODE) ?? '';
+            const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(inputValue), countryCode ?? CONST.DEFAULT_COUNTRY_CODE) ?? '';
             isValid = normalizedStored === normalizedInput;
         }
 
@@ -32,9 +33,10 @@ describe('CloseAccountPage Validation', () => {
         it('Should validate matching phone numbers in different formats', () => {
             const storedPhone = '+1 (234) 567-8901';
             const testCases = ['+1 (234) 567-8901', '+12345678901', '+1 234 567 8901'];
+            const countryCode = 1;
 
             testCases.forEach((inputPhone) => {
-                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate);
+                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBeUndefined();
             });
         });
@@ -42,9 +44,10 @@ describe('CloseAccountPage Validation', () => {
         it('Should reject non-matching phone numbers', () => {
             const storedPhone = '+1 (234) 567-8901';
             const wrongNumbers = ['+1 (234) 567-8902', '+1 (555) 123-4567', '+44 20 8759 9036'];
+            const countryCode = 1;
 
             wrongNumbers.forEach((inputPhone) => {
-                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate);
+                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBe('Please enter your default contact method');
             });
         });
@@ -52,9 +55,10 @@ describe('CloseAccountPage Validation', () => {
         it('Should handle international phone numbers', () => {
             const storedPhone = '+44 20 8759 9036';
             const validInputs = ['+44 20 8759 9036', '+442087599036', '44 20 8759 9036'];
+            const countryCode = 44;
 
             validInputs.forEach((inputPhone) => {
-                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate);
+                const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBeUndefined();
             });
         });
