@@ -339,16 +339,7 @@ function EmptySearchViewContent({
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(
-                introSelected,
-                false,
-                tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                isUserPaidPolicyMember,
-                viewTourTaskReport,
-                viewTourTaskParentReport,
-                isViewTourTaskParentReportArchived,
-                currentUserPersonalDetails.accountID,
-            );
+            startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we didn't match a specific search hash, show a specific message based on the type of the data
