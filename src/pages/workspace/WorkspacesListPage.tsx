@@ -210,17 +210,22 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace({
-            policyID: policyIDToDelete,
-            activePolicyID,
-            policyName: policyNameToDelete,
-            lastAccessedWorkspacePolicyID,
-            policyCardFeeds: defaultCardFeeds,
-            reportsToArchive,
-            transactionViolations,
-            reimbursementAccountError,
-            lastUsedPaymentMethods: lastPaymentMethod,
-        });
+        setIsDeleteModalOpen(false);
+
+        setTimeout(() => {
+            deleteWorkspace({
+                policyID: policyIDToDelete,
+                activePolicyID,
+                policyName: policyNameToDelete,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: defaultCardFeeds,
+                reportsToArchive,
+                transactionViolations,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: lastPaymentMethod,
+            });
+        }, CONST.ANIMATED_TRANSITION);
+
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
