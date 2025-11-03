@@ -252,12 +252,13 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  * If the avatar is a custom avatar, returns the CloudFront CDN URL.
  * Otherwise, returns the original avatar source URL.
  *
- * @param avatarSource - The avatar source from user's personalDetails
- * @param accountID - The accountID of the user
- * @param accountEmail - The email of the user
+ * @param args - Object containing avatar parameters
+ * @param args.avatarSource - The avatar source from user's personalDetails (URL or SVG component)
+ * @param args.accountID - The accountID of the user
+ * @param args.accountEmail - The email of the user
  * @returns The avatar URL string
  */
-function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number, accountEmail?: string): AvatarSource | undefined {
+function getAvatarUrl({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
     return isCustomAvatar(avatarSource) ? getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource}) : avatarSource;
 }
 

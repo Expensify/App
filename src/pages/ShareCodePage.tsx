@@ -102,7 +102,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport
+        ? getLogoForWorkspace(report, policy)
+        : (getAvatarUrl({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
