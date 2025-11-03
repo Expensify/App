@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'Kod pocztowy',
         whatThis: 'Co to jest?',
         iAcceptThe: 'Akceptuję',
+        acceptTermsAndPrivacy: `Akceptuję <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi Expensify</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Polityka prywatności</a>`,
+        acceptTermsAndConditions: `Akceptuję <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">warunki i zasady</a>`,
+        acceptTermsOfService: `Akceptuję <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi Expensify</a>`,
         remove: 'Usuń',
         admin: 'Admin',
         owner: 'Właściciel',
@@ -2242,10 +2245,9 @@ ${amount} dla ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `w ${policyName}`,
-        generatingPDF: 'Generowanie PDF',
+        generatingPDF: 'Generowanie PDF...',
         waitForPDF: 'Proszę czekać, generujemy PDF',
         errorPDF: 'Wystąpił błąd podczas próby wygenerowania Twojego PDF-a.',
-        generatedPDF: 'Twój raport PDF został wygenerowany!',
     },
     reportDescriptionPage: {
         roomDescription: 'Opis pokoju',
@@ -2625,10 +2627,8 @@ ${amount} dla ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.\n👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, w pełni wykorzystaj 30-dniowy bezpłatny okres próbny, wykonując poniższe kroki!'
-                    : '# Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.\n👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Już utworzyłem przestrzeń roboczą, aby pomóc w zarządzaniu paragonami i wydatkami twojego zespołu. Aby w pełni wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj poniższe pozostałe kroki konfiguracji!',
+            onboardingManageTeamMessage:
+                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, wykorzystaj w pełni swoje 30 dni bezpłatnego okresu próbnego, postępując zgodnie z poniższymi krokami!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -4569,9 +4569,7 @@ ${amount} dla ${merchant} - ${date}`,
             cardholder: 'Posiadacz karty',
             card: 'Karta',
             cardName: 'Nazwa karty',
-            brokenConnectionErrorFirstPart: `Połączenie z kanałem karty jest przerwane. Proszę`,
-            brokenConnectionErrorLink: 'zaloguj się do swojego banku',
-            brokenConnectionErrorSecondPart: 'abyśmy mogli ponownie nawiązać połączenie.',
+            brokenConnectionError: '<rbr>Połączenie z kanałem karty jest przerwane. Proszę <a href="#">zaloguj się do swojego banku</a> abyśmy mogli ponownie nawiązać połączenie.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `przypisano ${assignee} ${link}! Zaimportowane transakcje pojawią się w tym czacie.`,
             companyCard: 'karta firmowa',
             chooseCardFeed: 'Wybierz kanał kart',

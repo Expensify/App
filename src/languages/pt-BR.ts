@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'CEP / Código Postal',
         whatThis: 'O que é isso?',
         iAcceptThe: 'Eu aceito o',
+        acceptTermsAndPrivacy: `Eu aceito o <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço da Expensify</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>`,
+        acceptTermsAndConditions: `Eu aceito o <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">termos e condições</a>`,
+        acceptTermsOfService: `Eu aceito o <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço da Expensify</a>`,
         remove: 'Remover',
         admin: 'Administração',
         owner: 'Proprietário',
@@ -2239,10 +2242,9 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `em ${policyName}`,
-        generatingPDF: 'Gerando PDF',
+        generatingPDF: 'Gerando PDF...',
         waitForPDF: 'Por favor, aguarde enquanto geramos o PDF.',
         errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF.',
-        generatedPDF: 'Seu PDF de relatório foi gerado!',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrição do quarto',
@@ -2622,10 +2624,8 @@ ${amount} para ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
             onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Seu teste gratuito começou! Vamos configurar tudo.\n👋 Olá, sou seu especialista de configuração da Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de teste gratuito seguindo as etapas abaixo!'
-                    : '# Seu teste gratuito começou! Vamos configurar tudo.\n👋 Olá, sou seu especialista de configuração da Expensify. Já criei um workspace para ajudar a gerenciar os recibos e despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de teste gratuito, basta seguir as etapas restantes de configuração abaixo!',
+            onboardingManageTeamMessage:
+                '# Seu teste gratuito começou! Vamos configurar tudo.\n👋 Olá, sou seu especialista de configuração da Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de teste gratuito seguindo as etapas abaixo!',
             onboardingTrackWorkspaceMessage:
                 '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
@@ -4569,9 +4569,8 @@ ${amount} para ${merchant} - ${date}`,
             cardholder: 'Titular do cartão',
             card: 'Cartão',
             cardName: 'Nome do cartão',
-            brokenConnectionErrorFirstPart: `A conexão do feed do cartão está quebrada. Por favor,`,
-            brokenConnectionErrorLink: 'faça login no seu banco',
-            brokenConnectionErrorSecondPart: 'para que possamos estabelecer a conexão novamente.',
+            brokenConnectionError:
+                '<rbr>A conexão do feed do cartão está quebrada. Por favor, <a href="#">faça login no seu banco</a> para que possamos estabelecer a conexão novamente.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `atribuiu ${assignee} um ${link}! As transações importadas aparecerão neste chat.`,
             companyCard: 'cartão corporativo',
             chooseCardFeed: 'Escolher feed de cartão',

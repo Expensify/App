@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'Postleitzahl',
         whatThis: 'Was ist das?',
         iAcceptThe: 'Ich akzeptiere die',
+        acceptTermsAndPrivacy: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-Nutzungsbedingungen</a> und <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzrichtlinie</a>`,
+        acceptTermsAndConditions: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">Allgemeine Geschäftsbedingungen</a>`,
+        acceptTermsOfService: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-Nutzungsbedingungen</a>`,
         remove: 'Entfernen',
         admin: 'Admin',
         owner: 'Eigentümer',
@@ -2259,10 +2262,9 @@ ${amount} für ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF wird generiert',
+        generatingPDF: 'PDF wird generiert...',
         waitForPDF: 'Bitte warten Sie, während wir das PDF erstellen.',
         errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten.',
-        generatedPDF: 'Ihr Bericht als PDF wurde erstellt!',
     },
     reportDescriptionPage: {
         roomDescription: 'Zimmerbeschreibung',
@@ -2619,10 +2621,8 @@ ${amount} für ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
             onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Deine kostenlose Testphase hat begonnen! Lass uns alles einrichten.\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Da du nun einen Workspace erstellt hast, nutze deine 30-tägige kostenlose Testphase optimal, indem du die folgenden Schritte befolgst!'
-                    : '# Deine kostenlose Testphase hat begonnen! Lass uns alles einrichten.\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um die Belege und Ausgaben deines Teams zu verwalten. Um deine 30-tägige kostenlose Testphase optimal zu nutzen, folge einfach den verbleibenden Einrichtungsschritten unten!',
+            onboardingManageTeamMessage:
+                '# Deine kostenlose Testversion hat begonnen! Lass uns mit der Einrichtung loslegen.\n👋 Hallo, ich bin dein Expensify-Einrichtungsassistent. Jetzt, da du einen Workspace erstellt hast, hole das Beste aus deiner 30-tägigen kostenlosen Testphase heraus, indem du die folgenden Schritte befolgst!',
             onboardingTrackWorkspaceMessage:
                 '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
@@ -4572,9 +4572,8 @@ ${amount} für ${merchant} - ${date}`,
             cardholder: 'Karteninhaber',
             card: 'Karte',
             cardName: 'Kartenname',
-            brokenConnectionErrorFirstPart: `Die Verbindung zum Karten-Feed ist unterbrochen. Bitte`,
-            brokenConnectionErrorLink: 'Melden Sie sich bei Ihrer Bank an',
-            brokenConnectionErrorSecondPart: 'damit wir die Verbindung erneut herstellen können.',
+            brokenConnectionError:
+                '<rbr>Die Verbindung zum Karten-Feed ist unterbrochen. Bitte <a href="#">Melden Sie sich bei Ihrer Bank an</a> damit wir die Verbindung erneut herstellen können.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `hat ${assignee} einen ${link} zugewiesen! Importierte Transaktionen werden in diesem Chat angezeigt.`,
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Karten-Feed auswählen',
