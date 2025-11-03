@@ -203,7 +203,7 @@ type SelectionListHandle = {
     /** Scrolls to the item at the specified index */
     scrollToIndex: (index: number) => void;
 
-    /** Updates focuse index and scroll to it */
+    /** Updates focused index and scroll to it if the prop is passed */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
 };
 
