@@ -40,6 +40,7 @@ function TestDriveDemo() {
     });
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
         });
@@ -50,10 +51,11 @@ function TestDriveDemo() {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
         });
-    }, [viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, completeTestDriveTask]);
+    }, [viewTourTaskReport.stateNum, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, completeTestDriveTask]);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
