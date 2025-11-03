@@ -8428,6 +8428,8 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticExpenseReport', () => {
+        beforeEach(async () => await Onyx.clear());
+
         it('should include the policy name in report name from report draft', async () => {
             const chatReportID = '1';
             const policyID = '2';
