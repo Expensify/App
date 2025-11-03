@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +29,7 @@ const RECENT_REPORTS_COUNT = 100;
 const reports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
     }),
@@ -48,7 +48,7 @@ const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => ({
-            ...createRandomReport(index),
+            ...createRandomReport(index, undefined),
             type: rand(Object.values(CONST.REPORT.TYPE)),
             lastVisibleActionCreated: getRandomDate(),
         }),
@@ -111,12 +111,6 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining}));
-    });
-
-    /* Testing getShareLogOptions */
-    test('[OptionsListUtils] getShareLogOptions', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() => getShareLogOptions(options, {}, nvpDismissedProductTraining, mockedBetas));
     });
 
     /* Testing getFilteredOptions */

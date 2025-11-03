@@ -7,6 +7,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import openSearchReport from '@components/Search/openSearchReport';
 import type {
     SearchAction,
     SearchColumnType,
@@ -523,40 +524,11 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
     };
 }
 
-/**
- * Check if a user has any expense reports assigned to them for approval
- */
-function hasPendingApprovalTasks(reports: OnyxCollection<OnyxTypes.Report>, currentUserAccountID?: number): boolean {
-    if (!reports || !currentUserAccountID) {
-        return false;
-    }
-
-    const hasPending = Object.values(reports).some((report) => {
-        if (!report) {
-            return false;
-        }
-
-        const isExpenseReport = report.type === CONST.REPORT.TYPE.EXPENSE;
-        const isSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
-        const isAssignedToUser = report.managerID === currentUserAccountID;
-
-        if (isExpenseReport && isSubmitted && isAssignedToUser) {
-            return true;
-        }
-
-        return false;
-    });
-
-    return hasPending;
-}
-
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-    reports?: OnyxCollection<OnyxTypes.Report>,
-    currentUserAccountID?: number,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -566,6 +538,8 @@ function getSuggestedSearchesVisibility(
     let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
+
+    const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
     Object.values(policies ?? {}).some((policy) => {
         if (!policy) {
@@ -585,7 +559,6 @@ function getSuggestedSearchesVisibility(
         const isPaymentEnabled = arePaymentsEnabled(policy);
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
-        const hasCardFeed = cardFeedsByPolicy[policy.id]?.length > 0;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
             return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
@@ -593,10 +566,7 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-
-        const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
-        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo || hasPendingApprovals);
-
+        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
@@ -1343,7 +1313,7 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, has
     }
 
     if (shouldNavigate) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+        openSearchReport(transactionThreadReport?.reportID, backTo);
     }
 }
 
@@ -1957,12 +1927,12 @@ function createTypeMenuSections(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     isASAPSubmitBetaEnabled: boolean,
     hasViolations: boolean,
-    reports?: OnyxCollection<OnyxTypes.Report>,
+    createReportWithConfirmation?: (params: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: OnyxTypes.PersonalDetails}) => void,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, reports, currentUserAccountID);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
 
     // Todo section
     {
@@ -2000,10 +1970,35 @@ function createTypeMenuSections(
                                               }
 
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
-                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                  });
+                                                  const policyForCreation =
+                                                      policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceIDForReportCreation}`] ??
+                                                      groupPoliciesWithChatEnabled.find((policy) => policy?.id === workspaceIDForReportCreation);
+                                                  const policyName = policyForCreation?.name ?? activePolicy?.name ?? groupPoliciesWithChatEnabled.at(0)?.name ?? '';
+
+                                                  if (createReportWithConfirmation) {
+                                                      createReportWithConfirmation({
+                                                          policyID: workspaceIDForReportCreation,
+                                                          policyName,
+                                                          personalDetails,
+                                                          onSuccess: (createdReportID) => {
+                                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                                  Navigation.navigate(
+                                                                      ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}),
+                                                                  );
+                                                              });
+                                                          },
+                                                      });
+                                                  } else {
+                                                      const {reportID: createdReportID} = createNewReport(
+                                                          personalDetails,
+                                                          isASAPSubmitBetaEnabled,
+                                                          hasViolations,
+                                                          workspaceIDForReportCreation,
+                                                      );
+                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                      });
+                                                  }
                                                   return;
                                               }
 
