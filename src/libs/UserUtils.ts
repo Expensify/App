@@ -1,14 +1,13 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import type {AvatarSource} from './UserAvatarUtils';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
@@ -126,7 +125,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 /**
  * Gets details about contact methods to be displayed as MenuItems
  */
-function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) {
+function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }
@@ -144,14 +143,11 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
 
         let description = '';
         if (defaultEmail === login?.partnerUserID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.getInTouch');
+            description = translate('contacts.getInTouch');
         } else if (login?.errorFields?.addedLogin) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.failedNewContact');
+            description = translate('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.pleaseVerify');
+            description = translate('contacts.pleaseVerify');
         }
         let indicator;
         if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
