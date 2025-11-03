@@ -524,7 +524,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -550,7 +549,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -575,7 +573,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -602,7 +599,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -628,7 +624,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -654,7 +649,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -680,7 +674,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -706,7 +699,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -732,7 +724,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -758,7 +749,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -784,7 +774,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -810,7 +799,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -836,7 +824,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -862,7 +849,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -2876,7 +2862,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-webview (13.13.1):
+  - react-native-webview (13.16.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3958,10 +3944,14 @@ PODS:
     - SocketRocket
     - Yoga
   - RNSentry (7.4.0):
+    - boost
     - DoubleConversion
+    - fast_float
+    - fmt
     - glog
     - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
+    - RCT-Folly
+    - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
     - React-Core
@@ -3981,6 +3971,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Sentry/HybridSDK (= 8.57.0)
+    - SocketRocket
     - Yoga
   - RNShare (11.0.2):
     - boost
@@ -4583,7 +4574,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 4c87a84223d347f27e16dbfa3c366fa25015747f
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXConstants: 59d46d25b89f88cc38291a56dbce4d550758f72d
@@ -4652,7 +4643,7 @@ SPEC CHECKSUMS:
   React: 2073376f47c71b7e9a0af7535986a77522ce1049
   React-callinvoker: 751b6f2c83347a0486391c3f266f291f0f53b27e
   React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
-  React-Core: e311ba7bfc9203d887052d5a1be3d8564ee7dc2a
+  React-Core: 7195661f0b48e7ea46c3360ccb575288a20c932c
   React-CoreModules: 14f0054ab46000dd3b816d6528af3bd600d82073
   React-cxxreact: 7f602425c63096c398dac13cd7a300efd7c281ae
   React-debug: d4955c86870792887ed695df6ebf0e94e39dc7e1
@@ -4701,10 +4692,10 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 0f0e3b00124df1e2e76f9883ca64a426fd08bc0f
   react-native-view-shot: 211aabbc0a76150531e66d32ffbee0ae0f149144
   react-native-wallet: 186bb547928fc3b6ea06f5eb30a7f98b951668d0
-  react-native-webview: ad7fa7e61a503d924714c5a5523869528179d349
+  react-native-webview: 5887b6094417c75a9bee446261f89c32adf6b602
   React-NativeModulesApple: dcfbe72c5a47baec0699a2935c080b7de0c8657b
   React-oscompat: 93b5535ea7f7dff46aaee4f78309a70979bdde9d
-  React-perflogger: 0537875400b4e5b4b7f39b3bbb93bb404464d8c7
+  React-perflogger: a03d913e3205b00aee4128082abe42fd45ce0c98
   React-performancetimeline: e07fcee93986259c74a5be1a98770ed82086fe5b
   React-RCTActionSheet: 42195ae666e6d79b4af2346770f765b7c29435b9
   React-RCTAnimation: 5c10527683128c56ff2c09297fb080f7c35bd293
@@ -4719,7 +4710,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: b7f4a03f44dba1d3a4dc6770843547b203ca9129
   React-RCTText: 91dc597a5f6b27fd1048bb287c41ea05eeca9333
   React-RCTVibration: 27b09ddf74bddfa30a58d20e48f885ea6ed6c9d9
-  React-rendererconsistency: bef28690433e2b4bb00c2f884b22b86e61a430f2
+  React-rendererconsistency: 612d0f6603d9837bb1236d7fd5194203b35c8799
   React-renderercss: 5cc9e5e6732dc124dee16b7ab8f48e0b60b3f31d
   React-rendererdebug: 224a1beff9e5d5bc537e72b454135006a5c02a52
   React-RuntimeApple: 9bd8789d7b1d0b5502911da80943b3b2fddfe753
@@ -4752,7 +4743,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 43c09eb41d8321be2e1375cb87ae734e58f677b0
   RNReanimated: 8d0f830cd94d0d9cc86eed5850e567a89807586e
   RNScreens: 0c5341cc352632758171de6453502a6a757d0369
-  RNSentry: ad7065ec925f1d28fe515a28b9b5a9355362a164
+  RNSentry: 34bead6afbfce1bb89837b84da1dec001f890329
   RNShare: 385bf6a127cb075d4fdbe7bb85587cad88fe9afe
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 9be2bc57df95a874e8c4b0f7dd71866139f321d2

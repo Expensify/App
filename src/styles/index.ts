@@ -753,6 +753,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
+        buttonExtraSmall: {
+            borderRadius: variables.buttonBorderRadius,
+            minHeight: variables.componentSizeXSmall,
+            minWidth: variables.componentSizeXSmall,
+            paddingHorizontal: 8,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
@@ -771,6 +779,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonSmallText: {
             fontSize: variables.fontSizeSmall,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            textAlign: 'center',
+        },
+
+        buttonExtraSmallText: {
+            fontSize: variables.fontSizeExtraSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             textAlign: 'center',
         },
@@ -2360,6 +2374,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        borderBottomHovered: {
+            borderBottomWidth: 1,
+            borderColor: theme.buttonHoveredBG,
+        },
+
         borderNone: {
             borderWidth: 0,
             borderBottomWidth: 0,
@@ -2394,11 +2413,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportSearchHeaderBar: {
-            overflow: 'hidden',
             justifyContent: 'center',
             display: 'flex',
             width: '100%',
-            height: 52,
+            height: 40,
         },
 
         searchResultsHeaderBar: {
