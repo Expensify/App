@@ -718,7 +718,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith(currentUserPersonalDetail.accountID, currentUserPersonalDetail.email);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith({accountID: currentUserPersonalDetail.accountID, accountEmail: currentUserPersonalDetail.email});
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
                 optimisticData: [
                     {
@@ -813,7 +813,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith(456, undefined);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith({accountID: 456});
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_USER_AVATAR,
                 null,
