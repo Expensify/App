@@ -135,7 +135,6 @@ describe('useIsBlockedToAddFeed', () => {
                             },
                             expensifyCardSettlementFrequency: 'daily',
                             expensifyCardUseContinuousReconciliation: true,
-                            expensifyCardisIsMonthlySettlementAllowed: false,
                             policyWithdrawalIDMap: [],
                             preferredPolicy: mockPolicyID,
                         },
