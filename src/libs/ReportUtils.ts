@@ -10397,7 +10397,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 }
 
 /**
- * Get optimistic data of parent report action
+ * Get optimistic data of the parent report action
  * @param report The report that is updated
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
@@ -10423,6 +10423,28 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
         if (!ancestorReportAction?.reportActionID || isEmptyObject(ancestorReportAction)) {
             return null;
         }
+        const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
+
+        previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
+
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: {
+                [ancestorReportAction.reportActionID]: updatedReportAction,
+            },
+        };
+    });
+}
+/**
+ * Get optimistic data of the ancestor report actions
+ * @param ancestors The thread report ancestors
+ * @param lastVisibleActionCreated Last visible action created of the child report
+ * @param type The type of action in the child report
+ */
+function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+    let previousActionDeleted = false;
+    return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
 
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
@@ -12481,6 +12503,7 @@ export {
     getMoneyRequestOptions,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
+    getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getOutstandingChildRequest,

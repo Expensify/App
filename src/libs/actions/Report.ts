@@ -97,7 +97,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -128,6 +128,7 @@ import {
     getFieldViolation,
     getLastVisibleMessage,
     getNextApproverAccountID,
+    getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getOutstandingChildRequest,
@@ -192,7 +193,6 @@ import type {
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyReportField,
-    QuickAction,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -297,6 +297,14 @@ Onyx.connect({
     callback: (value) => (conciergeReportID = value),
 });
 
+let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    callback: (value) => {
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
+    },
+});
+
 // map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
 
@@ -377,12 +385,6 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
-let quickAction: OnyxEntry<QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (val) => (quickAction = val),
 });
 
 let onboarding: OnyxEntry<Onboarding>;
@@ -1936,7 +1938,13 @@ function handlePreexistingReport(report: Report) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, isReportArchived: boolean | undefined, isOriginalReportArchived: boolean | undefined) {
+function deleteReportComment(
+    reportID: string | undefined,
+    reportAction: ReportAction,
+    ancestors: Ancestor[],
+    isReportArchived: boolean | undefined,
+    isOriginalReportArchived: boolean | undefined,
+) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
@@ -2031,18 +2039,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
-        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-        const optimisticParentReportData = getOptimisticDataForParentReportAction(
-            originalReport,
-            optimisticReport?.lastVisibleActionCreated ?? '',
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        optimisticParentReportData.forEach((parentReportData) => {
-            if (isEmptyObject(parentReportData)) {
-                return;
-            }
-            optimisticData.push(parentReportData);
-        });
+        optimisticData.push(...getOptimisticDataForAncestors(ancestors, optimisticReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
     }
 
     const parameters: DeleteCommentParams = {
@@ -2119,6 +2116,7 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 function editReportComment(
     originalReport: OnyxEntry<Report>,
     originalReportAction: OnyxEntry<ReportAction>,
+    ancestors: Ancestor[],
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
@@ -2155,7 +2153,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, isOriginalReportArchived, isOriginalParentReportArchived);
+        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived);
         return;
     }
 
@@ -3379,7 +3377,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3392,7 +3390,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone]: createdAt,
+                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
                             },
                         },
                     },
@@ -3473,7 +3471,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number,
+    paramSkinTone: number = preferredSkinTone,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3494,7 +3492,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
+    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3650,6 +3648,7 @@ function openReportFromDeepLink(
                                     currentOnboardingPurposeSelected,
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
+                                    onboardingValues: val,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
@@ -3705,7 +3704,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string) {
+function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3731,7 +3730,7 @@ function leaveGroupChat(reportID: string) {
         },
     ];
     // Clean up any quick actions for the report we're leaving from
-    if (quickAction?.chatReportID?.toString() === reportID) {
+    if (shouldClearQuickAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
