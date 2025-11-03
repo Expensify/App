@@ -28,9 +28,9 @@ function CopyableTextField({value, isLoading = false}: CopyableTextFieldProps) {
                 />
             ) : (
                 <>
-                    <Text style={styles.copyableTextField}>{value}</Text>
+                    <Text style={styles.copyableTextField}>{value ?? ''}</Text>
                     <View style={[styles.reportActionContextMenuMiniButton, styles.overflowHidden, styles.buttonHoveredBG]}>
-                        <CopyTextToClipboard urlToCopy={value} />
+                        <CopyTextToClipboard urlToCopy={value ?? ''} />
                     </View>
                 </>
             )}

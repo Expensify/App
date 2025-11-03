@@ -53,7 +53,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         if (!domain?.validated) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true});
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true}));
     }, [accountID, domain?.validated]);
 
     useEffect(() => {
