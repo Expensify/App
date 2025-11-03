@@ -2,6 +2,7 @@
 title: Concierge Basics
 description: Get to know Concierge—your built-in support agent, expense assistant, and workflow manager.
 keywords: Concierge AI, Concierge basics, support chat, contact Concierge, hybrid agent, how to talk to Concierge, Expensify AI
+order: 1
 ---
 
 Concierge is your built-in Expensify assistant—here to answer questions, create expenses, manage reports, and get things done faster. It's part AI, part human, and always available.
