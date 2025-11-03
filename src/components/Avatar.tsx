@@ -136,7 +136,7 @@ function Avatar({
                         height={iconSize}
                         width={iconSize}
                         fill={imageError ? (iconColors?.fill ?? theme.offline) : (iconColors?.fill ?? fill)}
-                        additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, {...(iconAdditionalStyles as object)}]}
                     />
                 </View>
             )}

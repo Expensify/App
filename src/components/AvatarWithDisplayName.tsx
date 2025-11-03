@@ -194,7 +194,15 @@ function AvatarWithDisplayName({
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
+    const validOwners = Object.values(ownerPersonalDetails).filter((detail) => {
+        const hasValidEmail = detail.login?.trim();
+        const hasAvatar = typeof detail.avatar === 'string' ? detail.avatar.trim() : detail.avatar;
+        if (!detail) {
+            return false;
+        }
+        return hasValidEmail && hasAvatar;
+    });
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(validOwners, false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};

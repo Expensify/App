@@ -247,6 +247,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
             }
 
+            const optionStyles = {...styles.flex1, opacity: shouldShowRBRorGBRTooltip ? 1 : 0.9};
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
