@@ -68,13 +68,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
-        animation: Animations.NONE,
-    },
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
-        animation: Animations.NONE,
-    },
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
         animation: Animations.NONE,
     },
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
@@ -307,6 +301,8 @@ const ExpensifyCardModalStackNavigator = createModalStackNavigator({
 const DomainCardModalStackNavigator = createModalStackNavigator({
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
@@ -846,9 +842,7 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRootVerifyAccountPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportVerifyAccountPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
 });
 

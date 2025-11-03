@@ -642,6 +642,18 @@ const translations = {
         help: '助けて',
         expenseReport: '経費報告書',
         expenseReports: '経費報告書',
+        leaveWorkspace: 'ワークスペースから退出',
+        leaveWorkspaceConfirmation: 'このワークスペースを退出すると、このワークスペースに経費を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を閲覧できなくなります。',
+        leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、承認ワークフローでは、ワークスペースのオーナーである${workspaceOwner}があなたの代わりになります。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、あなたは優先エクスポート担当者として、ワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
+        leaveWorkspaceReimburser:
+            'あなたは精算担当者であるため、このワークスペースを退出できません。Workspaces > 支払いを行うまたは追跡する で新しい精算担当者を設定してから、もう一度お試しください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
@@ -1305,6 +1317,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName}を${newValueToDisplay}（以前は${oldValueToDisplay}）に`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
+        basedOnAI: '過去のアクティビティに基づく',
+        basedOnMCC: 'ワークスペースルールに基づく',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -2222,10 +2236,9 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中',
+        generatingPDF: 'PDFを生成中...',
         waitForPDF: 'PDFを生成するまでお待ちください',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
-        generatedPDF: 'あなたのレポートPDFが生成されました！',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -4530,9 +4543,7 @@ ${date} - ${merchant}に${amount}`,
             cardholder: 'カードホルダー',
             card: 'カード',
             cardName: 'カード名',
-            brokenConnectionErrorFirstPart: `カードフィードの接続が切れています。どうか`,
-            brokenConnectionErrorLink: '銀行にログインする',
-            brokenConnectionErrorSecondPart: 'それで、再び接続を確立できます。',
+            brokenConnectionError: '<rbr>カードフィードの接続が切れています。どうか <a href="#">銀行にログイン</a> すると、再び接続を確立できます。</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `${assignee}に${link}を割り当てました！インポートされた取引はこのチャットに表示されます。`,
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
@@ -5086,6 +5097,18 @@ ${date} - ${merchant}に${amount}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリーログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー総数: ${count}`,
             importMembers: 'メンバーをインポート',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} には承認すべき未処理の経費レポートがあります。ワークスペースから削除する前に、承認するよう依頼するか、そのレポートの管理を引き継いでください。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡で新しい支払担当者を設定してから、もう一度お試しください。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、優先エクスポーターをワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、技術連絡先をワークスペースのオーナーである${workspaceOwner}に変更します。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} には対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',
@@ -6196,7 +6219,6 @@ ${date} - ${merchant}に${amount}`,
             delete: '削除',
             hold: '保留',
             unhold: '保留を解除',
-            reject: '却下',
             noOptionsAvailable: '選択した経費グループには利用可能なオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -6382,6 +6404,10 @@ ${date} - ${merchant}に${amount}`,
         newReport: {
             createReport: 'レポートを作成',
             chooseWorkspace: 'このレポートのワークスペースを選択してください。',
+            emptyReportConfirmationTitle: '空のレポートがすでにあります',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成しますか？ 空のレポートには次からアクセスできます`,
+            emptyReportConfirmationPromptLink: 'レポート',
+            genericWorkspaceName: 'このワークスペース',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -7082,6 +7108,8 @@ ${date} - ${merchant}に${amount}`,
     roomChangeLog: {
         updateRoomDescription: '部屋の説明を次のように設定します：',
         clearRoomDescription: '部屋の説明をクリアしました',
+        changedRoomAvatar: 'ルームのアバターを変更しました',
+        removedRoomAvatar: 'ルームのアバターを削除しました',
     },
     delegate: {
         switchAccount: 'アカウントを切り替える:',
