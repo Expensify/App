@@ -404,8 +404,8 @@ const mainWindow = (): Promise<void> => {
                     backgroundColor: '#FAFAFA',
                     width: 1200,
                     height: 900,
-                    minWidth: 600,
-                    minHeight: 450,
+                    minWidth: 450,
+                    minHeight: 600,
                     webPreferences: {
                         preload: `${__dirname}/contextBridge.js`,
                         contextIsolation: true,
