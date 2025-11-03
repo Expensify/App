@@ -34,8 +34,10 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const source = tempSource ?? getFullSizeAvatar(avatarURL, accountID);
-    const originalFileName = tempOriginalFileName ?? personalDetail?.originalFileName ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - tempSource can be ''
+    const source = tempSource || getFullSizeAvatar(avatarURL, accountID);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - tempOriginalFileName can be ''
+    const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !avatarURL;
