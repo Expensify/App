@@ -184,13 +184,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const statusBarProps = getStatusBarProps();
 
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
-            return;
-        }
-        Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
+    // useEffect(() => {
+    //     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    //     if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
+    //         return;
+    //     }
+    //     Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
+    // }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
         if (!report || !parentReport || !transaction) {
@@ -292,7 +292,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction);
+                if (dismissedHoldUseExplanation) {
+                    changeMoneyRequestHoldStatus(parentReportAction);
+                } else {
+                    Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()))
+                }
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
