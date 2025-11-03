@@ -1,6 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import openSearchReport from '@components/Search/openSearchReport';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -13,6 +12,7 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -25,6 +25,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -44,7 +45,6 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
-jest.mock('@components/Search/openSearchReport', () => jest.fn());
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -2876,12 +2876,12 @@ describe('SearchUIUtils', () => {
 
         test('Should not navigate if shouldNavigate = false', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
-            expect(openSearchReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(openSearchReport).toHaveBeenCalledWith(threadReportID, backTo);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
     });
 
