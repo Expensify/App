@@ -40,16 +40,20 @@ function TestDriveDemo() {
     });
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
             completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
         });
-
-        // This should fire only during mount.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, completeTestDriveTask]);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
