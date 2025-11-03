@@ -1,5 +1,5 @@
-import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**
  * Validates a receipt file and processes it for upload
