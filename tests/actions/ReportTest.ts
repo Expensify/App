@@ -697,7 +697,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -717,7 +717,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -732,7 +732,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skin tone
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -765,7 +765,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -824,7 +824,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1333,7 +1333,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
@@ -1353,6 +1353,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1432,7 +1433,7 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
@@ -1452,6 +1453,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1732,6 +1734,39 @@ describe('actions/Report', () => {
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
+                    resolve();
+                },
+            });
+        });
+    });
+
+    it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        const mockFetchData = fetch as MockFetch;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        mockFetchData.pause();
+        Report.createNewReport({accountID}, true, false, policyID);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport?.reportID}`,
+                callback: (metadata) => {
+                    if (!metadata?.hasOnceLoadedReportActions) {
+                        return;
+                    }
+                    Onyx.disconnect(connection);
+                    expect(metadata.hasOnceLoadedReportActions).toBe(true);
                     resolve();
                 },
             });
