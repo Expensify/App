@@ -4,7 +4,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import {appendCountryCodeWithCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
@@ -15,13 +15,13 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
-            const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(phoneNumber, countryCode);
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCode);
 
             if (!isRequiredFulfilled(phoneNumber)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
@@ -52,7 +52,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
             formTitle={translate('privatePersonalDetails.enterPhoneNumber')}
             validate={validate}
             onSubmit={(values) => {
-                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values[INPUT_IDS.PHONE_NUMBER]) ?? ''});
+                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values[INPUT_IDS.PHONE_NUMBER], countryCode) ?? ''});
             }}
             inputId={INPUT_IDS.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
