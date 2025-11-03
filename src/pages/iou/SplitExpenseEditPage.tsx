@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
-import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -126,7 +126,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={splitExpenseDraftTransactionDetails?.category}
+                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {

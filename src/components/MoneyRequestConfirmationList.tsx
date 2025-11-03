@@ -135,7 +135,7 @@ type MoneyRequestConfirmationListProps = {
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: string | number;
 
     /** File name of the receipt */
     receiptFilename?: string;

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
@@ -109,6 +110,10 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getDecodedCategoryName(categoryName: string) {
+    return Str.htmlDecode(categoryName);
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -119,4 +124,5 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getDecodedCategoryName,
 };
