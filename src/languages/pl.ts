@@ -5143,6 +5143,7 @@ ${amount} dla ${merchant} - ${date}`,
             issueCard: 'Wydaj kartę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
+                inviteNewMember: 'Zaproś nowego członka',
                 findMember: 'Znajdź członka',
                 chooseCardType: 'Wybierz typ karty',
                 physicalCard: 'Fizyczna karta',

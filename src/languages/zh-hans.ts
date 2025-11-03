@@ -5048,6 +5048,7 @@ ${merchant}的${amount} - ${date}`,
             issueCard: '发卡',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
+                inviteNewMember: '邀请新成员',
                 findMember: '查找成员',
                 chooseCardType: '选择卡类型',
                 physicalCard: '实体卡',

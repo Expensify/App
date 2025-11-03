@@ -5153,6 +5153,7 @@ ${amount} voor ${merchant} - ${date}`,
             issueCard: 'Kaart uitgeven',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft een kaart nodig?',
+                inviteNewMember: 'Nieuw lid uitnodigen',
                 findMember: 'Lid zoeken',
                 chooseCardType: 'Kies een kaarttype',
                 physicalCard: 'Fysieke kaart',
