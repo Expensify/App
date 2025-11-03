@@ -28,7 +28,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount),
+        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount, translate),
         // The default option will be language dependent, so we need to recompute the options when the language changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [config?.approvalAccount, policy, translate],
