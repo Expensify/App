@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -29,7 +29,7 @@ type TextInputProps = {
     onSubmit?: () => void;
 
     /** Function called when a key is pressed in the text input */
-    onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
+    onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
     onFocusChange?: (focused: boolean) => void;
