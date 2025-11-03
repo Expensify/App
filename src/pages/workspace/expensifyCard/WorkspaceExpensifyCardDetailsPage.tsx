@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
@@ -89,7 +89,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
         shouldGoBack.current = true;
-        requestAnimationFrame(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
         });
     };
