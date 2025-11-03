@@ -13018,6 +13018,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             );
         } else {
             // Create optimistic report for the rejected transaction
+            rejectedToReportID = generateReportID();
             const newExpenseReport = buildOptimisticExpenseReport(
                 report.chatReportID,
                 report?.policyID,
@@ -13172,7 +13173,6 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                     },
                 },
             );
-            rejectedToReportID = generateReportID();
         }
         optimisticData.push(
             {
