@@ -516,11 +516,24 @@ function BasePopoverMenu({
         ...restContainerStyles
     } = StyleSheet.flatten(containerStyles) ?? {};
 
-    const scrollViewPaddingStyles = {
-        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
-        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
-        paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
-    };
+    const scrollViewPaddingStyles = useMemo(
+        () => ({
+            paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
+            paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
+            paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+        }),
+        [
+            paddingTop,
+            containerPaddingTop,
+            menuContainerPaddingTop,
+            paddingBottom,
+            containerPaddingBottom,
+            menuContainerPaddingBottom,
+            paddingVertical,
+            containerPaddingVertical,
+            menuContainerPaddingVertical,
+        ],
+    );
 
     return (
         <PopoverWithMeasuredContent
@@ -556,7 +569,7 @@ function BasePopoverMenu({
             >
                 <View
                     onLayout={onLayout}
-                    style={[restMenuContainerStyle, restContainerStyles, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
+                    style={[restMenuContainerStyle, restContainerStyles, isWebOrDesktop ? styles.flex1 : styles.flexGrow1]}
                 >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
