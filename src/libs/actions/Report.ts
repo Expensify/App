@@ -147,7 +147,6 @@ import {
     getReportViolations,
     getRouteFromLink,
     getTitleReportField,
-    getTransactionReportName,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
