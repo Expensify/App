@@ -1,11 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -18,7 +18,7 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isPerDiemRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -34,8 +34,8 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
 /**
  * Sets merge transaction data for a specific transaction
  */
-function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
+function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
 /**
@@ -57,6 +57,11 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
 
     // Do not allow merging two $0 transactions
     if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
         return false;
     }
 

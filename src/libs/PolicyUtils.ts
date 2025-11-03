@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,11 +32,10 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
-import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -627,6 +626,13 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
 }
 
 /**
+ * Checks if policy has Dynamic External Workflow enabled
+ */
+function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
  * Whether the policy has active accounting integration connections.
  * `getCurrentConnectionName` only returns connections supported in NewDot.
  * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
@@ -1086,11 +1092,11 @@ function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | 
     return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE);
 }
 
-function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined, translate: LocalizedTranslate): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-        name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+        name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
@@ -1304,7 +1310,7 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
 
 function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration),
     );
 }
 
@@ -1390,14 +1396,14 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>, translate: LocalizedTranslate) {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
-            return translateLocal('workspace.type.control');
+            return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
-            return translateLocal('workspace.type.collect');
+            return translate('workspace.type.collect');
         default:
-            return translateLocal('workspace.type.free');
+            return translate('workspace.type.free');
     }
 }
 
@@ -1407,19 +1413,38 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
-    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
+    const groupPolicies = Object.values(policies ?? {}).filter(isPaidGroupPolicy);
     if (groupPolicies.length === 0) {
         return false;
     }
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
-function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+}
+
+/**
+ * This method checks if the active policy has expense chat enabled and is a paid group policy.
+ * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
+ *
+ * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
+ * and the user would be taken to the workspace selection page.
+ */
+function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
+    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+        return activePolicy;
+    }
+
+    if (groupPoliciesWithChatEnabled.length === 1) {
+        return groupPoliciesWithChatEnabled.at(0);
+    }
+
+    return undefined;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {
@@ -1671,6 +1696,7 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getGroupPaidPoliciesWithExpenseChatEnabled,
+    getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
@@ -1703,6 +1729,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
+    hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,

@@ -10,14 +10,15 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {
     getReportFieldKey,
     hasViolations as hasViolationsReportUtils,
+    isAdminOwnerApproverOrReportOwner,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
     isReportFieldDisabled,
@@ -41,9 +42,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabled(report, reportField, policy);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
@@ -75,8 +76,23 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         Navigation.goBack(backTo);
     };
 
+    const handleReportFieldDelete = () => {
+        setIsDeleteModalVisible(false);
+        goBack();
+        setTimeout(() => {
+            deleteReportField(report.reportID, reportField);
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
+    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
+
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
+        if ((fieldValue ?? '').trim() === value?.trim()) {
+            goBack();
+            return;
+        }
+
         if (isReportFieldTitle) {
             updateReportName(report.reportID, value, report.reportName ?? '');
             goBack();
@@ -97,14 +113,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         }
     };
-
-    const handleReportFieldDelete = () => {
-        deleteReportField(report.reportID, reportField);
-        setIsDeleteModalVisible(false);
-        goBack();
-    };
-
-    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
 
     const menuItems: PopoverMenuItem[] = [];
 

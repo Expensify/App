@@ -17,7 +17,6 @@ import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
-import {translateLocal} from '@src/libs/Localize';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -210,7 +209,7 @@ describe('actions/Report', () => {
     });
 
     it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
-        const REPORT: OnyxTypes.Report = {...createRandomReport(1), errorFields: {createChat: {error: 'error'}}};
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
         const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
 
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
@@ -1647,7 +1646,7 @@ describe('actions/Report', () => {
             [mentionActionID2]: mentionAction2,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            ...createRandomReport(Number(reportID)),
+            ...createRandomReport(Number(reportID), undefined),
             lastMentionedTime: mentionAction2.created,
         });
 
@@ -1682,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1733,6 +1732,39 @@ describe('actions/Report', () => {
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
+                    resolve();
+                },
+            });
+        });
+    });
+
+    it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        const mockFetchData = fetch as MockFetch;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        mockFetchData.pause();
+        Report.createNewReport({accountID}, true, false, policyID);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport?.reportID}`,
+                callback: (metadata) => {
+                    if (!metadata?.hasOnceLoadedReportActions) {
+                        return;
+                    }
+                    Onyx.disconnect(connection);
+                    expect(metadata.hasOnceLoadedReportActions).toBe(true);
                     resolve();
                 },
             });
@@ -1827,13 +1859,13 @@ describe('actions/Report', () => {
                 (index) => {
                     if (index % 2 === 0) {
                         return {
-                            ...createRandomReport(index),
+                            ...createRandomReport(index, undefined),
                             lastMessageText: 'test',
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
                             lastVisibleActionCreated: currentTime,
                         };
                     }
-                    return createRandomReport(index);
+                    return createRandomReport(index, undefined);
                 },
                 10,
             );
@@ -1874,7 +1906,7 @@ describe('actions/Report', () => {
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
             const report: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 description: '<h1>test</h1>',
             };
             const mockFetch = fetch as MockFetch;
@@ -1971,10 +2003,10 @@ describe('actions/Report', () => {
                     enabled: false,
                 },
             };
-            const chatReport: OnyxTypes.Report = {...createRandomReport(11), policyID: fakePolicy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, hasOutstandingChildRequest: true};
+            const chatReport: OnyxTypes.Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), policyID: fakePolicy.id, hasOutstandingChildRequest: true};
 
             const expenseReport1: OnyxTypes.Report = {
-                ...createRandomReport(5),
+                ...createRandomReport(5, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: currentUserAccountID,
                 ownerAccountID: currentUserAccountID,
@@ -1992,7 +2024,7 @@ describe('actions/Report', () => {
                 },
             };
             const expenseReport2: OnyxTypes.Report = {
-                ...createRandomReport(6),
+                ...createRandomReport(6, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: currentUserAccountID,
                 ownerAccountID: currentUserAccountID,
@@ -2058,7 +2090,7 @@ describe('actions/Report', () => {
         it('should unarchive the expense report', async () => {
             // Given an archived expense report
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
             };
@@ -2070,7 +2102,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -2102,7 +2134,7 @@ describe('actions/Report', () => {
         it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
             // Given an expense report
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 chatReportID: '2',
@@ -2113,7 +2145,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
@@ -2138,7 +2170,7 @@ describe('actions/Report', () => {
             const ownerEmail = 'owner@gmail.com';
             const adminEmail = 'admin@gmail.com';
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: '1',
                 ownerAccountID,
@@ -2160,10 +2192,12 @@ describe('actions/Report', () => {
                 '',
                 true,
                 false,
+                false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
                 TestHelper.formatPhoneNumber,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -2187,7 +2221,7 @@ describe('actions/Report', () => {
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
 
             const expenseReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 reportID: 'expenseReport123',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'oldPolicy123',
@@ -2238,7 +2272,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call changeReportPolicyAndInviteSubmitter
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, false, employeeList, TestHelper.formatPhoneNumber, false);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -2252,7 +2286,7 @@ describe('actions/Report', () => {
             const submitterEmployee = policyData?.employeeList?.[ownerEmail];
             expect(submitterEmployee).toBeTruthy();
             expect(submitterEmployee?.errors).toBeTruthy();
-            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
             mockFetch.succeed?.();
@@ -2265,7 +2299,7 @@ describe('actions/Report', () => {
             const ownerEmail = 'owner@gmail.com';
             const adminEmail = 'admin@gmail.com';
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
             };
@@ -2306,7 +2340,7 @@ describe('actions/Report', () => {
             const ownerAccountID = 1;
             const ownerEmail = 'owner@gmail.com';
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
             };
@@ -2343,7 +2377,7 @@ describe('actions/Report', () => {
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
 
             const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 reportID: 'iouReport123',
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID,
@@ -2354,7 +2388,7 @@ describe('actions/Report', () => {
             };
 
             const policy: OnyxTypes.Policy = {
-                ...createRandomPolicy(1),
+                ...createRandomPolicy(1, undefined),
                 id: 'policy456',
                 name: 'Test Policy for IOU Move',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2410,7 +2444,7 @@ describe('actions/Report', () => {
             const submitterEmployee = policyData?.employeeList?.[ownerEmail];
             expect(submitterEmployee).toBeTruthy();
             expect(submitterEmployee?.errors).toBeTruthy();
-            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
             mockFetch.succeed?.();
@@ -2420,7 +2454,7 @@ describe('actions/Report', () => {
     describe('buildOptimisticChangePolicyData', () => {
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };

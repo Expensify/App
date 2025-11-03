@@ -6,13 +6,14 @@ import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProv
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import WideRHPContextProvider from '@components/WideRHPContextProvider';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -153,11 +154,14 @@ function AuthScreens() {
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const {shouldRenderSecondaryOverlay, dismissToWideReport} = useContext(WideRHPContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -170,7 +174,6 @@ function AuthScreens() {
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
-    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -249,7 +252,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session);
+        App.setUpPoliciesAndNavigate(session, introSelected);
 
         App.redirectThirdPartyDesktopSignIn();
 
@@ -339,6 +342,11 @@ function AuthScreens() {
                     return;
                 }
 
+                if (shouldRenderSecondaryOverlay) {
+                    dismissToWideReport();
+                    return;
+                }
+
                 Navigation.dismissModal();
             },
             shortcutConfig.descriptionKey,
@@ -347,7 +355,7 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-    }, [modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible]);
+    }, [dismissToWideReport, modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -461,7 +469,6 @@ function AuthScreens() {
                 LockedAccountModalProvider,
                 DelegateNoAccessModalProvider,
                 SupportalPermissionDeniedModalProvider,
-                WideRHPContextProvider,
             ]}
         >
             <RootStack.Navigator
@@ -609,7 +616,7 @@ function AuthScreens() {
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {isOnboardingCompleted === false && (
+                {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
@@ -686,6 +693,7 @@ function AuthScreens() {
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
+            <OpenAppFailureModal />
             <PriorityModeController />
         </ComposeProviders>
     );

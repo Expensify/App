@@ -85,6 +85,12 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type LearnMoreRouteParams = {
+    learnMoreMethodsRoute: string;
+    formattedPrice: string;
+    hasTeam2025Pricing: boolean;
+};
+
 type BeginningOfArchivedRoomParams = {
     reportName: string;
     reportDetailsLink: string;
@@ -182,6 +188,8 @@ type WorkspaceRouteParams = {
 };
 
 type RequestAmountParams = {amount: string};
+
+type ReportFieldParams = {name: string; value: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
@@ -601,11 +609,6 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
-
 type SpreadSheetColumnParams = {
     name: string;
 };
@@ -943,8 +946,17 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
@@ -1043,6 +1055,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
+    LearnMoreRouteParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1158,7 +1171,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
@@ -1253,4 +1265,6 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    ReportFieldParams,
+    FocusModeUpdateParams,
 };
