@@ -1,12 +1,10 @@
 import type {getSize} from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
 
-// Import each platform implementation directly
 import getDeviceOrientationAwareImageSizeWeb from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index';
 import getDeviceOrientationAwareImageSizeIOS from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.ios';
 import getDeviceOrientationAwareImageSizeAndroid from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android';
 
-// Define the parameter type locally since it's not exported
 type GetDeviceOrientationAwareImageSizeParams = {
     imageSize: Awaited<ReturnType<typeof getSize>>;
     aspectRatioWidth?: number;
@@ -14,7 +12,6 @@ type GetDeviceOrientationAwareImageSizeParams = {
     orientation?: Orientation;
 };
 
-// Mock image size data for testing
 const mockImageSize = {
     width: 1920,
     height: 1080,
