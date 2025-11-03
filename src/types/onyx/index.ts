@@ -15,6 +15,7 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
@@ -165,6 +166,7 @@ export type {
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CardContinuousReconciliation,
     LastExportMethod,
     Locale,
     LockAccountDetails,
