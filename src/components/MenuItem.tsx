@@ -898,7 +898,7 @@ function MenuItem({
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                        {!!furtherDetailsComponent && <View style={[styles.flexRow, styles.alignItemsCenter]}>{furtherDetailsComponent}</View>}
+                                                        {furtherDetailsComponent}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
