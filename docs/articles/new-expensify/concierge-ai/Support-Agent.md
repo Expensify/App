@@ -5,8 +5,6 @@ keywords: Concierge Support, Support Agent, Expensify help, AI support, troubles
 order: 3
 ---
 
-<div id="concierge-ai" markdown="1">
-
 Concierge is your AI-powered support agent inside Expensify—available 24/7 to answer questions, troubleshoot problems, and connect you with a human if needed.
 
 # Concierge Support Agent
@@ -68,5 +66,3 @@ Providing more detail upfront leads to quicker answers. Include:
 ## Can Concierge update my Workspace settings?
 
 Not yet! Concierge can walk you through how to make changes, but it won’t make updates on your behalf—for now.
-
-</div>
