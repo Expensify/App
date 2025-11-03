@@ -58,7 +58,7 @@ function VacationDelegatePage() {
         return getHeaderMessage(
             (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
             !!availableOptions.userToInvite,
-            searchTerm,
+            searchTerm.trim(),
             countryCode,
             false,
         );
