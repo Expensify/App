@@ -1,5 +1,7 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useMemo, useRef, useState} from 'react';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -19,6 +21,7 @@ import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
@@ -35,8 +38,8 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -46,6 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
@@ -58,11 +62,11 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     isUserPaidPolicyMember: boolean;
-    activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
+    searchMenuCreateReportConfirmationModal: ReactNode;
 };
 
 type EmptySearchViewItem = {
@@ -89,9 +93,11 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
+type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
+
 function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
@@ -118,11 +124,11 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 isUserPaidPolicyMember={isUserPaidPolicyMember}
-                activePolicyID={activePolicyID}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
+                searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
             />
         </SearchScopeProvider>
     );
@@ -143,17 +149,20 @@ function EmptySearchViewContent({
     typeMenuSections,
     allPolicies,
     isUserPaidPolicyMember,
-    activePolicyID,
     activePolicy,
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
+    searchMenuCreateReportConfirmationModal,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const contextMenuAnchor = useRef<RNText>(null);
+    const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
+    const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
+        setContextMenuAnchor(node);
+    }, []);
     const [modalVisible, setModalVisible] = useState(false);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -180,17 +189,60 @@ function EmptySearchViewContent({
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
 
+    const defaultChatEnabledPolicy = useMemo(
+        () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy),
+        [activePolicy, groupPoliciesWithChatEnabled],
+    );
+
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
+
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
+    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID), [accountID, defaultChatEnabledPolicyID, reportSummaries]);
+
+    const handleCreateWorkspaceReport = useCallback(() => {
+        if (!defaultChatEnabledPolicyID) {
+            return;
+        }
+
+        const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+        });
+    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled]);
+
+    const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
+
+    const handleCreateReportClick = useCallback(() => {
+        if (hasEmptyReport) {
+            openCreateReportFromSearch();
+        } else {
+            handleCreateWorkspaceReport();
+        }
+    }, [hasEmptyReport, handleCreateWorkspaceReport, openCreateReportFromSearch]);
+
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
     }, [typeMenuSections]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
+            if (!contextMenuAnchor) {
+                return;
+            }
+
             showContextMenu({
                 type: CONST.CONTEXT_MENU_TYPES.LINK,
                 event,
                 selection: CONST.BOOK_TRAVEL_DEMO_URL,
-                contextMenuAnchor: contextMenuAnchor.current,
+                contextMenuAnchor,
             });
         };
 
@@ -209,7 +261,7 @@ function EmptySearchViewContent({
                             onPress={() => {
                                 Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                             }}
-                            ref={contextMenuAnchor}
+                            ref={handleContextMenuAnchorRef}
                         >
                             {translate('travel.bookADemo')}
                         </TextLink>
@@ -236,10 +288,12 @@ function EmptySearchViewContent({
                         </View>
                     ))}
                 </View>
-                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                <SearchScopeProvider isOnSearch={false}>
+                    <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                </SearchScopeProvider>
             </>
         );
-    }, [styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -323,15 +377,7 @@ function EmptySearchViewContent({
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: () => {
                                               interceptAnonymousUser(() => {
-                                                  let workspaceIDForReportCreation: string | undefined;
-
-                                                  if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                      // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                                      workspaceIDForReportCreation = activePolicyID;
-                                                  } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                      // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                                      workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                                  }
+                                                  const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                                                   if (
                                                       !workspaceIDForReportCreation ||
@@ -343,15 +389,7 @@ function EmptySearchViewContent({
                                                   }
 
                                                   if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                                      const {reportID: createdReportID} = createNewReport(
-                                                          currentUserPersonalDetails,
-                                                          isASAPSubmitBetaEnabled,
-                                                          hasViolations,
-                                                          workspaceIDForReportCreation,
-                                                      );
-                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                      });
+                                                      handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                                                   }
@@ -465,19 +503,17 @@ function EmptySearchViewContent({
         defaultViewItemHeader,
         hasSeenTour,
         groupPoliciesWithChatEnabled,
-        activePolicy,
-        activePolicyID,
-        currentUserPersonalDetails,
-        isASAPSubmitBetaEnabled,
-        hasViolations,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
         hasExpenseReports,
+        defaultChatEnabledPolicyID,
+        handleCreateReportClick,
     ]);
 
     return (
         <>
+            {searchMenuCreateReportConfirmationModal}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
@@ -497,6 +533,7 @@ function EmptySearchViewContent({
                     {content.children}
                 </EmptyStateComponent>
             </ScrollView>
+            {CreateReportConfirmationModal}
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

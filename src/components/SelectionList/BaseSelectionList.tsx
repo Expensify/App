@@ -55,6 +55,7 @@ function BaseSelectionList<TItem extends ListItem>({
     selectedItems = CONST.EMPTY_ARRAY,
     style,
     isSelected,
+    isDisabled = false,
     isSmallScreenWidth,
     isLoadingNewOptions,
     isRowMultilineSupported = false,
@@ -74,7 +75,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldShowTextInput = !!textInputOptions,
+    shouldShowTextInput = !!textInputOptions?.label,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -105,13 +106,14 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
-            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem) => {
-                const idx = item.index;
-                const isDisabled = !!item?.isDisabled && !isItemSelected(item);
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem, index: number) => {
+                const idx = item.index ?? index;
+                const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
 
                 if (isItemSelected(item)) {
                     acc.selectedOptions.push(item);
-                } else if (isDisabled && idx != null) {
+                }
+                if (isItemDisabled) {
                     acc.disabledIndexes.push(idx);
 
                     if (!item?.isDisabledCheckbox) {
@@ -129,7 +131,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
-    }, [data, isItemSelected]);
+    }, [data, isDisabled, isItemSelected]);
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -295,7 +297,7 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
-        const isDisabled = item.isDisabled;
+        const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
 
@@ -310,7 +312,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 index={index}
                 normalizedIndex={index}
                 isFocused={isItemFocused}
-                isDisabled={isDisabled}
+                isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -322,6 +324,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={style?.listItemWrapperStyle}
                 titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
     };
