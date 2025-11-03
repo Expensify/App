@@ -1215,6 +1215,89 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
+/**
+ * Creates an optimized option list by filtering and limiting reports BEFORE processing them.
+ * This is significantly faster than createOptionList for large datasets because it:
+ * 1. Pre-filters reports without processing them
+ * 2. Sorts and limits to top N recent reports
+ * 3. Only processes the limited set (e.g., 100 instead of 5000)
+ *
+ * Use this for screens that only need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
+ */
+function createFilteredOptionList(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reports: OnyxCollection<Report>,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    options: {
+        maxRecentReports?: number;
+        includeP2P?: boolean;
+    } = {},
+) {
+    const {maxRecentReports = 100, includeP2P = true} = options;
+    const reportMapForAccountIDs: Record<number, Report> = {};
+
+    // Step 1: Pre-filter reports without processing them (cheap operations only)
+    const reportsArray = Object.values(reports ?? {}).filter((report): report is Report => {
+        if (!report) {
+            return false;
+        }
+
+        // Use the existing shouldReportBeInOptionList for basic filtering
+        // This is cheaper than processReport because it doesn't create icons, format text, etc.
+        const shouldInclude = shouldReportBeInOptionList({
+            report,
+            currentReportId: '',
+            betas: [],
+            policies: {},
+            doesReportHaveViolations: false,
+            isInFocusMode: false,
+            excludeEmptyChats: false,
+        });
+
+        return shouldInclude;
+    });
+
+    // Step 2: Sort by lastVisibleActionCreated (most recent first)
+    const sortedReports = reportsArray.sort((a, b) => {
+        const aTime = a.lastVisibleActionCreated ?? '';
+        const bTime = b.lastVisibleActionCreated ?? '';
+        return bTime.localeCompare(aTime);
+    });
+
+    // Step 3: Limit to top N reports
+    const limitedReports = sortedReports.slice(0, maxRecentReports);
+
+    // Step 4: Process ONLY the limited reports (this is where the performance gain comes from)
+    const reportOptions: Array<SearchOption<Report>> = [];
+    limitedReports.forEach((report) => {
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+
+        if (reportMapEntry) {
+            const [accountID, reportValue] = reportMapEntry;
+            reportMapForAccountIDs[accountID] = reportValue;
+        }
+
+        if (reportOption) {
+            reportOptions.push(reportOption);
+        }
+    });
+
+    // Step 5: Process personal details (all of them - needed for search functionality)
+    const personalDetailsOptions = includeP2P
+        ? Object.values(personalDetails ?? {}).map((personalDetail) => ({
+              item: personalDetail,
+              ...createOption([personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], {
+                  showPersonalDetails: true,
+              }, reportAttributesDerived),
+          }))
+        : [];
+
+    return {
+        reports: reportOptions,
+        personalDetails: personalDetailsOptions as Array<SearchOption<PersonalDetails>>,
+    };
+}
+
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -2729,6 +2812,7 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createOptionList,
+    createFilteredOptionList,
     createOption,
     filterAndOrderOptions,
     filterOptions,

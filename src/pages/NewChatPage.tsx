@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import type {Ref} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,6 +20,7 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOptionsListCache from '@hooks/useOptionsListCache';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,12 +67,25 @@ function useOptions() {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-    const {options: listOptions, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
+    // POC Phase 3: Dynamic loading with pagination
+    const {options: listOptions, isLoading, loadMore, hasMore, isLoadingMore} = useOptionsListCache({
+        maxRecentReports: 100,
+        enabled: didScreenTransitionEnd,
+        includeP2P: true,
+        batchSize: 100,
+        enablePagination: true,
+    });
+    const areOptionsInitialized = !isLoading;
+
     const defaultOptions = useMemo(() => {
+        if (!listOptions) {
+            return {recentReports: [], personalDetails: [], userToInvite: null};
+        }
+
+        const filterStartTime = performance.now();
+
         const filteredOptions = memoizedGetValidOptions(
             {
                 reports: listOptions.reports ?? [],
@@ -85,8 +98,12 @@ function useOptions() {
             },
             countryCode,
         );
+
+        const filterEndTime = performance.now();
+        console.log(`[POC] getValidOptions filtering took ${(filterEndTime - filterStartTime).toFixed(2)}ms`);
+
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
+    }, [listOptions, contacts, draftComments, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
@@ -128,7 +145,7 @@ function useOptions() {
     }, [debouncedSearchTerm]);
 
     useEffect(() => {
-        if (!newGroupDraft?.participants) {
+        if (!newGroupDraft?.participants || !listOptions) {
             return;
         }
         const newSelectedOptions: OptionData[] = [];
@@ -151,17 +168,25 @@ function useOptions() {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions, personalData.accountID]);
+
+    const handleEndReached = useCallback(() => {
+        if (hasMore && !isLoadingMore && areOptionsInitialized) {
+            loadMore();
+        }
+    }, [hasMore, isLoadingMore, areOptionsInitialized, loadMore]);
 
     return {
         ...options,
         searchTerm,
         debouncedSearchTerm,
         setSearchTerm,
-        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        areOptionsInitialized,
         selectedOptions,
         setSelectedOptions,
         headerMessage,
+        handleEndReached,
+        isLoadingMore,
     };
 }
 
@@ -191,7 +216,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized, handleEndReached, isLoadingMore} =
         useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
@@ -415,7 +440,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
