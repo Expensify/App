@@ -41,12 +41,16 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
-    const options: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
-        value: postingPreference,
-        text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
-        keyForList: postingPreference,
-        isSelected: selectedValue === postingPreference,
-    }));
+    const options: MenuListItem[] = useMemo(
+        () =>
+            Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
+                value: postingPreference,
+                text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
+                keyForList: postingPreference,
+                isSelected: selectedValue === postingPreference,
+            })),
+        [selectedValue, translate],
+    );
 
     const goBack = useCallback(() => {
         Navigation.goBack(route.params.backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
