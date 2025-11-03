@@ -642,6 +642,18 @@ const translations = {
         help: 'Aiuto',
         expenseReport: 'Report di spesa',
         expenseReports: 'Report di spesa',
+        leaveWorkspace: 'Abbandona lo spazio di lavoro',
+        leaveWorkspaceConfirmation: 'Se lasci questo spazio di lavoro, non potrai più inviare spese a questo spazio di lavoro.',
+        leaveWorkspaceConfirmationAuditor: 'Se lasci questo spazio di lavoro, non potrai visualizzarne i report e le impostazioni.',
+        leaveWorkspaceConfirmationAdmin: 'Se lasci questo spazio di lavoro, non potrai gestirne le impostazioni.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito nel flusso di approvazione da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito come esportatore preferito da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito come contatto tecnico da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceReimburser:
+            'Non puoi lasciare questo spazio di lavoro poiché sei il rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o traccia i pagamenti, quindi riprova.',
         rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
@@ -2233,10 +2245,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generazione PDF',
+        generatingPDF: 'Generazione PDF...',
         waitForPDF: 'Attendere mentre generiamo il PDF',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
-        generatedPDF: 'Il tuo PDF del rapporto è stato generato!',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione della stanza',
@@ -4570,9 +4581,8 @@ ${amount} per ${merchant} - ${date}`,
             cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome della carta',
-            brokenConnectionErrorFirstPart: `La connessione del feed della carta è interrotta. Per favore`,
-            brokenConnectionErrorLink: 'accedi al tuo conto bancario',
-            brokenConnectionErrorSecondPart: 'così possiamo ristabilire la connessione.',
+            brokenConnectionError:
+                '<rbr>La connessione del feed della carta è interrotta. Per favore <a href="#">accedi al tuo conto bancario</a> così possiamo ristabilire la connessione.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `assegnato ${assignee} un ${link}! Le transazioni importate appariranno in questa chat.`,
             companyCard: 'carta aziendale',
             chooseCardFeed: 'Scegli il feed della carta',
@@ -5130,6 +5140,18 @@ ${amount} per ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Se rimuovi ${approver} da questo spazio di lavoro, verrà sostituito/a nel flusso di approvazione con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} ha rapporti spese in sospeso da approvare. Chiedi loro di approvarli oppure assumi il controllo dei loro rapporti prima di rimuoverli dallo spazio di lavoro.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro. Imposta un nuovo responsabile dei rimborsi in Flussi di lavoro > Effettua o traccia i pagamenti, quindi riprova.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, lo/la sostituiremo come esportatore preferito con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, sostituiremo il referente tecnico con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} ha un report in elaborazione che richiede un intervento. Ti preghiamo di chiedere loro di completare l'azione richiesta prima di rimuoverli dallo spazio di lavoro.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6448,6 +6470,11 @@ ${amount} per ${merchant} - ${date}`,
         newReport: {
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
+            emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Sei sicuro di voler creare un altro rapporto in ${workspaceName}? Puoi accedere ai tuoi rapporti vuoti in`,
+            emptyReportConfirmationPromptLink: 'Rapporti',
+            genericWorkspaceName: 'questo spazio di lavoro',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Si prega di riprovare più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Per favore riprova più tardi.',
@@ -7155,6 +7182,8 @@ ${amount} per ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'imposta la descrizione della stanza su:',
         clearRoomDescription: 'cancellato la descrizione della stanza',
+        changedRoomAvatar: "Ha cambiato l'avatar della stanza",
+        removedRoomAvatar: "Ha rimosso l'avatar della stanza",
     },
     delegate: {
         switchAccount: 'Cambia account:',
