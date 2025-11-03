@@ -89,7 +89,7 @@ function BaseVideoPlayer({
         }),
     );
     /* eslint-enable no-param-reassign */
-    
+
     const isPlaying = videoPlayerRef.current.playing;
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
