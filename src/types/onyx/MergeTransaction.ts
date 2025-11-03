@@ -52,6 +52,9 @@ type MergeTransaction = {
     /** The report ID of the transaction */
     reportID: string;
 
+    /** The report name of the transaction */
+    reportName: string;
+
     /** The attendees of the transaction */
     attendees?: Attendee[];
 };
