@@ -68,7 +68,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                                 />
                             )}
                         </View>
-                        {!!menuItems && (
+                        {!!menuItems?.length && (
                             <ThreeDotsMenu
                                 shouldSelfPosition
                                 menuItems={menuItems}

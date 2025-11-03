@@ -771,7 +771,8 @@
         "mple",
         "Selec",
         "setuptools",
-        "DYNAMICEXTERNAL"
+        "DYNAMICEXTERNAL",
+        "Wooo"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

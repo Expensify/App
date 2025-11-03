@@ -493,7 +493,7 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isAdmin: boolean; isValidated: boolean}) => {
+    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isValidated: boolean}) => {
         if (isValidated) {
             return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
         }
@@ -585,7 +585,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isAdmin, isValidated: domain.validated}),
+                action: () => navigateToDomain({accountID: domain.accountID, isValidated: domain.validated}),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,

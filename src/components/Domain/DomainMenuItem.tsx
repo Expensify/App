@@ -36,8 +36,10 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const {isAdmin, isValidated} = item;
+
     const threeDotsMenuItems: PopoverMenuItem[] | undefined =
-        !item.isValidated && item.isAdmin
+        !isValidated && isAdmin
             ? [
                   {
                       icon: Expensicons.Globe,
@@ -58,12 +60,12 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 accessibilityLabel="row"
                 style={styles.mh5}
                 onPress={item.action}
-                disabled={!item.isAdmin}
+                disabled={!isAdmin}
             >
                 {({hovered}) => (
                     <DomainsListRow
                         title={item.title}
-                        badgeText={item.isAdmin && !item.isValidated ? translate('domain.notVerified') : undefined}
+                        badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
                     />
