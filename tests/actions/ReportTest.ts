@@ -1653,6 +1653,8 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
 
+        await waitForBatchedUpdates();
+
         const {result: ancestors} = renderHook(() => useAncestors(report));
 
         Report.deleteReportComment(reportID, mentionAction, ancestors.current, undefined, undefined);
