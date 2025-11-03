@@ -113,7 +113,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
 
-    /** Whether to show Tooltip for product training */
+    /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
