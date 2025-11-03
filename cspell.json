@@ -770,7 +770,9 @@
         "Areport",
         "mple",
         "Selec",
-        "setuptools"
+        "setuptools",
+        "DYNAMICEXTERNAL",
+        "Wooo"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

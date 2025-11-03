@@ -1,48 +1,38 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function CopyableTextField({value, isExpandable = false, isLoading = false}: {value?: string; isExpandable?: boolean; isLoading?: boolean}) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [expanded, setExpanded] = useState(false);
-    const theme = useTheme();
+type CopyableTextFieldProps = {
+    /** Text to display and to copy */
+    value?: string;
 
+    /** Should an activity indicator be shown instead of the text and button */
+    isLoading?: boolean;
+};
+
+const ACTIVITY_INDICATOR_SIZE = 24;
+
+function CopyableTextField({value, isLoading = false}: CopyableTextFieldProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
     return (
-        <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4]}>
-            <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter]}>
-                {isLoading ? (
-                    <ActivityIndicator color={theme.text} />
-                ) : (
-                    <>
-                        <Text
-                            style={styles.copyableTextField}
-                            numberOfLines={expanded ? undefined : 4}
-                        >
-                            {value}
-                        </Text>
-                        <View style={[styles.reportActionContextMenuMiniButton, styles.overflowHidden, styles.buttonHoveredBG]}>
-                            <CopyTextToClipboard urlToCopy={value} />
-                        </View>
-                    </>
-                )}
-            </View>
-            {isExpandable && (
-                <Button
-                    text={translate(expanded ? 'common.showLess' : 'common.showMore')}
-                    small
-                    shouldShowRightIcon
-                    iconRight={expanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                    style={styles.alignSelfCenter}
-                    onPress={() => setExpanded((prev) => !prev)}
+        <View style={[styles.qbdSetupLinkBox, styles.border, styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            {isLoading ? (
+                <ActivityIndicator
+                    color={theme.text}
+                    size={ACTIVITY_INDICATOR_SIZE}
                 />
+            ) : (
+                <>
+                    <Text style={styles.copyableTextField}>{value ?? ''}</Text>
+                    <View style={[styles.reportActionContextMenuMiniButton, styles.overflowHidden, styles.buttonHoveredBG]}>
+                        <CopyTextToClipboard urlToCopy={value ?? ''} />
+                    </View>
+                </>
             )}
         </View>
     );

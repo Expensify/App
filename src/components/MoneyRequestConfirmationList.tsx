@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +36,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -133,7 +134,7 @@ type MoneyRequestConfirmationListProps = {
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: string | number;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -323,8 +324,13 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
+
     // A flag for showing the categories field
-    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = isTrackExpense
+        ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
+        : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
@@ -332,19 +338,14 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
 
+    // Update the tax code when the default changes (for example, because the transaction currency changed)
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        // Set the default tax code when conditions change
-        if (!shouldShowTax || !transaction || !transactionID) {
+        if (!transactionID) {
             return;
         }
-        const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        const currentTaxCode = transaction.taxCode ?? '';
-
-        // Update tax code if it's different from what should be the default
-        if (defaultTaxCode !== currentTaxCode) {
-            setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
-        }
-    }, [customUnitRateID, policy, shouldShowTax, transaction, transactionID]);
+        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+    }, [defaultTaxCode, transactionID]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
@@ -480,35 +481,16 @@ function MoneyRequestConfirmationList({
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
+    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!shouldShowTax || !transaction) {
+        if (!transactionID) {
             return;
         }
-
-        let taxableAmount: number | undefined;
-        let taxCode: string | undefined;
-        if (isDistanceRequest) {
-            if (customUnitRateID) {
-                const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-                taxCode = customUnitRate?.attributes?.taxRateExternalID;
-                taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
-            }
-        } else {
-            taxableAmount = transaction.amount ?? 0;
-            taxCode = transaction.taxCode ?? getDefaultTaxCode(policy, transaction) ?? '';
-        }
-
-        if (taxCode && taxableAmount) {
-            const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
-            const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
-            const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-
-            // Only update if the calculated tax amount is different from the current one
-            if (transaction.taxAmount !== taxAmountInSmallestCurrencyUnits) {
-                setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
-            }
-        }
-    }, [policy, shouldShowTax, transaction, isDistanceRequest, customUnitRateID, distance]);
+        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -969,6 +951,7 @@ function MoneyRequestConfirmationList({
             routeError,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
+            setDidConfirmSplit,
         ],
     );
 

@@ -218,7 +218,7 @@ function WorkspacesListRow({
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, animatedHighlightStyle]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
                 <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
@@ -277,7 +277,7 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
-                                    {getUserFriendlyWorkspaceType(workspaceType)}
+                                    {getUserFriendlyWorkspaceType(workspaceType, translate)}
                                 </Text>
                             )}
                             <Text
@@ -290,18 +290,20 @@ function WorkspacesListRow({
                     </View>
                 </View>
 
-                {!isNarrow && ThreeDotMenuOrPendingIcon}
-                {!isNarrow && (
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                            isButtonIcon
-                            medium
-                        />
-                    </View>
-                )}
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    {!isNarrow && ThreeDotMenuOrPendingIcon}
+                    {!isNarrow && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
+                </View>
             </Animated.View>
         </View>
     );

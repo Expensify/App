@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type DomainVerifiedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_VERIFIED>;
@@ -21,8 +22,15 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountID = route.params?.accountID;
+    const accountID = route.params.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
+
+    useEffect(() => {
+        if (domain?.validated) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID), {forceReplace: true}));
+    }, [accountID, domain?.validated]);
 
     return (
         <ScreenWrapper
@@ -43,6 +51,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
                 onButtonPress={() => Navigation.dismissModal()}
+                footerStyle={styles.mb5}
             />
         </ScreenWrapper>
     );
