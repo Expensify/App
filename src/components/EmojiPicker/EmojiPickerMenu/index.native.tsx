@@ -47,7 +47,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         setFilteredEmojis(emojiData);
         setHeaderIndices(headerData);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -107,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}

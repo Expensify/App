@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
+const transactionReportIDMapping: Record<string, string> = {};
 
 const transactionToReportIDMap: Record<string, string> = {};
 
@@ -34,11 +35,18 @@ export default createOnyxDerivedValueConfig({
             const reportID = transaction?.reportID;
 
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
-            const previousReportID = transactionToReportIDMap[transactionKey];
+            const previousReportID = transactionReportIDMapping[transactionKey];
+
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
                 const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
-                delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                if (transactionID) {
+                    delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                }
+            }
+
+            if (!transaction && transactionReportIDMapping[transactionKey]) {
+                delete transactionReportIDMapping[transactionKey];
             }
 
             if (!reportID) {
@@ -69,7 +77,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
-            transactionToReportIDMap[transactionKey] = reportID;
+            transactionReportIDMapping[transactionKey] = reportID;
         }
 
         previousViolations = violations;

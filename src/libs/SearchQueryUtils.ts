@@ -6,6 +6,9 @@ import type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
+    ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchDateFilterKeys,
     SearchDatePreset,
@@ -51,7 +54,6 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
@@ -89,6 +91,12 @@ const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    const isReportField = keyName.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+
+    if (isReportField) {
+        return keyName.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD) as UserFriendlyKey;
+    }
+
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
 }
 
@@ -118,6 +126,7 @@ function sanitizeSearchValue(str: string) {
  * Returns date filter value for QueryString.
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
+    const negatedDate = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
     const dateOn = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
     const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
@@ -133,6 +142,9 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
     if (dateBefore) {
         dateFilters.push(`${filterKey}<${dateBefore}`);
     }
+    if (negatedDate) {
+        dateFilters.push(`-${filterKey}:${negatedDate}`);
+    }
 
     return dateFilters.join(' ');
 }
@@ -142,6 +154,7 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const negatedAmount = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
@@ -160,6 +173,10 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
         amountStrings.push(`${filterKey}<${lessThan}`);
     }
 
+    if (negatedAmount) {
+        amountStrings.push(`-${filterKey}:${negatedAmount}`);
+    }
+
     return amountStrings.join(' ');
 }
 
@@ -169,16 +186,20 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
+    const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
+
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
+        const previousValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
+        const nextValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
+
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (
-            index !== 0 &&
-            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
-        ) {
+        if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+            filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
@@ -208,8 +229,14 @@ function getFilters(queryJSON: SearchQueryJSON) {
             traverse(node.right);
         }
 
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!filterKeys.includes(nodeKey)) {
+        // Only process if its a leaf
+        if (typeof node.left !== 'string') {
+            return;
+        }
+
+        const nodeKey = node.left;
+
+        if (!filterKeys.includes(nodeKey) && !nodeKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
             return;
         }
 
@@ -359,23 +386,10 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
-    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => supportedFilter === filter);
-}
-
-/**
- * Normalizes the value into a single string.
- * - If it's an array, returns the first element.
- * - Otherwise, returns the value as is.
-
- * @param value - The raw field value from SearchQueryJSON
- * @returns The normalized field value
- */
-function normalizeValue<T>(value: T | T[]): T {
-    if (Array.isArray(value)) {
-        return value.at(0) as T;
-    }
-
-    return value;
+    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => {
+        const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+        return supportedFilter === filter || isReportFieldSupported;
+    });
 }
 
 /**
@@ -400,14 +414,6 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
-        }
-
-        if (result.groupBy) {
-            result.groupBy = normalizeValue(result.groupBy);
-        }
-
-        if (result.type) {
-            result.type = normalizeValue(result.type);
         }
 
         return result;
@@ -506,6 +512,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
+            const isNegated = filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+
+            if (isNegated) {
+                // eslint-disable-next-line no-param-reassign
+                filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+            }
+
+            const prefix = isNegated ? '-' : '';
+
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
                     filterKey === FILTER_KEYS.DESCRIPTION ||
@@ -520,7 +535,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
@@ -531,13 +546,43 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm && reportIDs.length > 0) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
                 }
             }
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
                 const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
                 return `${value}`;
+            }
+
+            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
+                const value = sanitizeSearchValue(filterValue as string);
+                const isFieldNegated = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX);
+                const isTextBasedReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) || isNegated;
+                const fieldPrefix = isFieldNegated ? '-' : '';
+
+                if (isTextBasedReportField) {
+                    return `${fieldPrefix}${filterKey}:${value}`;
+                }
+
+                const isOnDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX);
+                const isAfterDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX);
+                const isBeforeDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX);
+
+                if (isOnDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}:${value}`;
+                }
+
+                if (isAfterDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}>${value}`;
+                }
+
+                if (isBeforeDateField) {
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+                    return `${key}<${value}`;
+                }
             }
 
             if (
@@ -565,7 +610,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
 
@@ -621,11 +666,15 @@ function buildFilterFormValuesFromQuery(
     const policyID = queryJSON.policyID;
 
     for (const queryFilter of filters) {
-        const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
+        const filterKey = queryFilter.key as SearchAdvancedFiltersKey;
         const filterValues = filterList.map((item) => item.value.toString());
+
+        const isNegated = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
-            filtersForm[filterKey] = filterValues.join(',');
+            filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
@@ -633,38 +682,38 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
         ) {
-            filtersForm[filterKey] = filterValues.at(0);
+            filtersForm[key as typeof filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
-            filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
-            filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
-            filtersForm[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            filtersForm[filterKey] = filterValues
+            filtersForm[key as typeof filterKey] = filterValues
                 .filter((withdrawalType): withdrawalType is SearchWithdrawalType => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
                 .at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            filtersForm[filterKey] = filterValues.filter((feed) => feed);
+            filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             const allTaxRates = new Set(Object.values(taxRates).flat());
-            filtersForm[filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
+            filtersForm[key as typeof filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
+            filtersForm[key as typeof filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -673,15 +722,15 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-            filtersForm[filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.find((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
-            filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
+            filtersForm[key as typeof filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
@@ -698,7 +747,7 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueTags = new Set(tags);
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
+            filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const categories = policyID
@@ -713,10 +762,10 @@ function buildFilterFormValuesFromQuery(
             const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
             // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
-            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
+            filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filtersForm[filterKey] = filterValues
+            filtersForm[key as typeof filterKey] = filterValues
                 ?.map((filter) => {
                     if (filter.includes(' ')) {
                         return `"${filter}"`;
@@ -727,39 +776,92 @@ function buildFilterFormValuesFromQuery(
         }
 
         if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
+            const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
             const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
 
-            const beforeFilter = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()));
-            const afterFilter = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()));
-            // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())));
+            const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
+            const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
+
+            // The `On` and `Not on` filter could be either a date or a date preset (e.g. Last month)
+            const negatedFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
+            });
+            const onFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
+            });
 
             filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
+            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+            const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
             // backend amount is an integer and is 2 digits longer than frontend amount
             filtersForm[equalToKey] =
-                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[equalToKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[equalToKey];
             filtersForm[lessThanKey] =
-                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[lessThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[lessThanKey];
             filtersForm[greaterThanKey] =
-                filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[greaterThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[greaterThanKey];
+            filtersForm[negatedKey] =
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[negatedKey];
         }
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+            filtersForm[key as typeof filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+        }
+
+        if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+            const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, '');
+
+            const textKey = filterKey as ReportFieldTextKey;
+            const negatedKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.NOT_MODIFIER}${suffix}` as ReportFieldNegatedKey;
+            const dateOnKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.ON}${suffix}` as ReportFieldDateKey;
+            const dateBeforeKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}${suffix}` as ReportFieldDateKey;
+            const dateAfterKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}${suffix}` as ReportFieldDateKey;
+
+            let dateBeforeFilter;
+            let dateAfterFilter;
+            let dateOnFilter;
+            let negatedFilter;
+            let textFilter;
+
+            for (const filter of filterList) {
+                if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString())) {
+                    dateBeforeFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString())) {
+                    dateAfterFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()))) {
+                    dateOnFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                    negatedFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && !isValidDate(filter.value.toString()) && !isSearchDatePreset(filter.value.toString())) {
+                    textFilter = filter;
+                }
+            }
+
+            filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
+            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
+            filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
+            filtersForm[dateBeforeKey] = dateBeforeFilter?.value.toString() ?? filtersForm[dateBeforeKey];
+            filtersForm[dateAfterKey] = dateAfterFilter?.value.toString() ?? filtersForm[dateAfterKey];
         }
     }
 
