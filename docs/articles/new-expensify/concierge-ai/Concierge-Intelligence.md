@@ -6,15 +6,15 @@ order: 2
 ---
 <div id="new-expensify" markdown="1">
 
-Concierge isn’t just smart—it’s **context-aware**, multi-skilled, and built to help you get more done with less effort. This guide explains how Concierge works, what makes it intelligent, and how to get the most out of it.
+Concierge isn’t just smart—it’s context-aware, multi-skilled, and built to help you get more done with less effort. This guide explains how Concierge works, what makes it intelligent, and how to get the most out of it.
 
-# How Concierge works
+# How Concierge Intelligence works
 
-Concierge is a **hybrid AI agent** built with GenAI, automation tools, and a powerful rules engine. It figures out what you're trying to do, pulls in the right tools, and responds with answers—or takes action automatically.
+Concierge is a **hybrid AI agent** built with generative AI, automation tools, and a powerful rules engine. It figures out what you're trying to do, pulls in the right tools, and responds with answers—or takes action automatically.
 
 If Concierge doesn’t know something, it escalates to a real person.
 
-# Key traits of Concierge intelligence
+# What makes Concierge intelligent
 
 Concierge uses a few smart capabilities to figure out how to help:
 
@@ -58,7 +58,7 @@ If Concierge can’t answer a question, it will escalate to a real person—ofte
 
 You can also type **“Talk to a human”** at any time to request an escalation.
 
-# What powers Concierge behind the scenes?
+# How Concierge is built
 
 Concierge is powered by a mix of technology and human backup:
 
@@ -98,7 +98,7 @@ Context is inferred using a combination of:
 - Previous conversation turns
 - Structured data (like expense amounts, merchant names, and report statuses)
 
-This context is then passed into the AI model along with your input to produce a tailored response.
+Concierge uses this context to understand your request and provide a relevant response.
 
 ## What’s the difference between the AI and the rules engine?
 
