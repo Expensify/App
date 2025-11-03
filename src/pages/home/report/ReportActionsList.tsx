@@ -496,7 +496,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
 
     // Clear the highlighted report action after scrolling and highlighting
