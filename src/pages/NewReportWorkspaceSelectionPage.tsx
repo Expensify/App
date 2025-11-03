@@ -72,14 +72,16 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
 
-    const policiesWithEmptyReportsSelector = useMemo(() => {
-        if (!accountID) {
-            const emptyLookup: Record<string, boolean> = {};
-            return () => emptyLookup;
-        }
+    const policiesWithEmptyReportsSelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => {
+            if (!accountID) {
+                return {};
+            }
 
-        return (reports: OnyxCollection<OnyxTypes.Report>) => getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
-    }, [accountID]);
+            return getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
+        },
+        [accountID],
+    );
 
     const [policiesWithEmptyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
