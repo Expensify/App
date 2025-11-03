@@ -40,18 +40,7 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCategory,
-    getCreated,
-    getMerchant,
-    getTag,
-    getTransactionPendingAction,
-    isTransactionPendingDelete,
-    isViolationDismissed,
-    mergeProhibitedViolations,
-    shouldShowViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -186,21 +175,12 @@ function MoneyRequestReportTransactionList({
         const filtered: Record<string, OnyxTypes.TransactionViolation[]> = {};
 
         for (const transaction of transactions) {
-            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-            const transactionViolations = violations[violationKey];
+            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            if (transactionViolations) {
+                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''));
 
-            if (transactionViolations && transactionViolations.length > 0) {
-                // Filter out dismissed violations and those that shouldn't be shown
-                const filteredTransactionViolations = transactionViolations.filter(
-                    (violation) =>
-                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '') && shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''),
-                );
-
-                // Merge prohibited violations
-                const mergedViolations = mergeProhibitedViolations(filteredTransactionViolations);
-
-                if (mergedViolations.length > 0) {
-                    filtered[violationKey] = mergedViolations;
+                if (filteredTransactionViolations.length > 0) {
+                    filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
                 }
             }
         }
