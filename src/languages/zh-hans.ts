@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -641,6 +642,14 @@ const translations = {
         expenseReport: '费用报告',
         expenseReports: '费用报告',
         rateOutOfPolicy: '超出政策的费率',
+        leaveWorkspace: '离开工作区',
+        leaveWorkspaceConfirmation: '如果你离开该工作区，你将无法向其提交费用。',
+        leaveWorkspaceConfirmationAuditor: '如果你离开此工作区，将无法查看其报告和设置。',
+        leaveWorkspaceConfirmationAdmin: '如果您离开此工作区，您将无法管理其设置。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) => `如果您离开此工作区，在审批流程中将由工作区所有者 ${workspaceOwner} 替代您。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，你的首选导出者身份将由工作区所有者 ${workspaceOwner} 接替。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，工作区所有者 ${workspaceOwner} 将接替你的技术联系人角色。`,
+        leaveWorkspaceReimburser: '您作为报销付款人，无法离开此工作区。请在“工作区 > 进行或跟踪付款”中设置新的报销付款人，然后重试。',
         reimbursable: '可报销的',
         editYourProfile: '编辑您的个人资料',
         comments: '评论',
@@ -676,6 +685,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
     },
     supportalNoAccess: {
@@ -1050,8 +1060,6 @@ const translations = {
         dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
-        chooseReceipt: '选择要上传的收据或转发收据到',
-        chooseReceipts: '选择要上传的收据或转发收据到',
         alternativeMethodsTitle: '添加收据的其他方式：',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1060,8 +1068,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
-        deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
-        deniedCameraAccessInstructions: '这些说明',
+        deniedCameraAccess: `相机访问权限仍未授予，请按照以下步骤操作 <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">这些说明</a>.`,
         cameraErrorTitle: '相机错误',
         cameraErrorMessage: '拍照时发生错误。请再试一次。',
         locationAccessTitle: '允许位置访问',
@@ -1291,6 +1298,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} 改为 ${newValueToDisplay}（之前为 ${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `将${translatedChangedField}更改为${newMerchant}（之前为${oldMerchant}），这更新了金额为${newAmountToDisplay}（之前为${oldAmountToDisplay}）`,
+        basedOnAI: '基于过去的活动',
+        basedOnMCC: '基于工作空间规则',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `为${comment}` : '费用'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
@@ -1829,10 +1838,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: '出于安全考虑，Xero 需要双重身份验证才能连接集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。若要继续使用 Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
         explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
+        twoFactorAuthIsRequiredCompany: '贵公司要求使用双因素认证。要继续使用 Expensify，请启用该功能。',
     },
     recoveryCodeForm: {
         error: {
@@ -2448,12 +2458,11 @@ ${merchant}的${amount} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '到'} ${integrationName}，实现自动费用编码和同步，让月末结账变得轻而易举。\n` +
                     '\n' +
-                    '1. 点击 *设置*。\n' +
-                    '2. 前往 *工作区*。\n' +
-                    '3. 选择您的工作区。\n' +
-                    '4. 点击 *会计*。\n' +
-                    `5. 找到 ${integrationName}。\n` +
-                    '6. 点击 *连接*。\n' +
+                    '1. 点击 *工作区*。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 点击 *会计*。\n' +
+                    `4. 找到 ${integrationName}。\n` +
+                    '5. 点击 *连接*。\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -5026,6 +5035,15 @@ ${merchant}的${amount} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `由次要登录 ${secondaryLogin} 添加。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `工作区成员总数：${count}`,
             importMembers: '导入成员',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `如果您从此工作区移除${approver}，我们会在审批流程中将其替换为工作区所有者${workspaceOwner}。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) => `${memberName} 有待审批的报销单。请让他们先批准，或在将其从工作区移除之前接管他们的报销单。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) => `您无法从此工作区中移除${memberName}。请在 工作流程 > 进行或跟踪付款 中设置新的报销付款人，然后重试。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `如果你将${memberName}从此工作区移除，我们会由工作区所有者${workspaceOwner}接任首选导出人。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `如果你将${memberName}从此工作区移除，我们会用工作区所有者${workspaceOwner}替代其作为技术联系人。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 有一份待处理的报告需要其处理。请在将其从工作区移除之前，要求其完成所需操作。`,
         },
         card: {
             getStartedIssuing: '通过申请您的第一张虚拟或实体卡来开始。',
@@ -6181,6 +6199,7 @@ ${merchant}的${amount} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} 是 ${value}`,
         },
         has: '有',
         groupBy: '组别',
@@ -6300,6 +6319,10 @@ ${merchant}的${amount} - ${date}`,
         newReport: {
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
+            emptyReportConfirmationTitle: '你已经有一个空报告',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `确定要在 ${workspaceName} 中再创建一个报告吗？你可以在以下位置访问你的空报告`,
+            emptyReportConfirmationPromptLink: '报告',
+            genericWorkspaceName: '此工作区',
         },
         genericCreateReportFailureMessage: '创建此聊天时出现意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时出现意外错误。请稍后再试。',
@@ -6984,6 +7007,8 @@ ${merchant}的${amount} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: '将房间描述设置为：',
         clearRoomDescription: '清除了房间描述',
+        changedRoomAvatar: '更改了房间头像',
+        removedRoomAvatar: '移除了房间头像',
     },
     delegate: {
         switchAccount: '切换账户：',
