@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -14,7 +15,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
@@ -99,7 +99,11 @@ function handleActionButtonPress(
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey, onDEWModalOpen);
+            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+                onDEWModalOpen?.();
+                return;
+            }
+            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], transactionID, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -371,9 +375,9 @@ function search({
         allowPostSearchRecount: false,
     });
 
-    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
             const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
@@ -400,6 +404,8 @@ function search({
                     allowPostSearchRecount: true,
                 });
             }
+
+            return result?.jsonCode;
         });
     });
 }
@@ -441,20 +447,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: SearchReport[],
-    policy: SearchPolicy[],
-    transactionIDList?: string[],
-    currentSearchKey?: SearchKey,
-    onDEWModalOpen?: () => void,
-) {
-    const policyData = policy.at(0);
-    if (policyData && hasDynamicExternalWorkflow(policyData)) {
-        onDEWModalOpen?.();
-        return;
-    }
-
+function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -683,6 +676,7 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
+    translate: LocalizedTranslate,
     policy?: Policy,
     includeReportLevelExport = true,
 ): ExportTemplate[] {
@@ -697,23 +691,13 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(
-            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
-            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-        ),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(
-            normalizeTemplate(
-                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
-                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-            ),
+            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
         );
     }
 
