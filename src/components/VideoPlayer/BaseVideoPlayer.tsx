@@ -469,7 +469,12 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {shouldShowLoadingIndicator && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {shouldShowLoadingIndicator && (
+                                <FullScreenLoadingIndicator
+                                    style={[styles.opacity1, styles.bgTransparent]}
+                                    shouldUseGoBackButton={false}
+                                />
+                            )}
                             {!isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowLoadingIndicator &&

@@ -24,9 +24,18 @@ type FullScreenLoadingIndicatorProps = {
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
+
+    /** Whether the "Go Back" button appears after a timeout. */
+    shouldUseGoBackButton?: boolean;
 };
 
-function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE, testID = '', extraLoadingContext}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({
+    style,
+    iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
+    testID = '',
+    extraLoadingContext,
+    shouldUseGoBackButton = true,
+}: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
@@ -46,7 +55,7 @@ function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
                 />
-                {showGoBackButton && (
+                {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
