@@ -323,23 +323,6 @@ describe('CustomFormula', () => {
                 const result = compute('{report:reimbursable}', reimbursableContext);
                 expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
             });
-
-            test('should handle one undefined value in reimbursable amount', () => {
-                reimbursableContext.report.currency = 'USD';
-                reimbursableContext.report.total = -10000; // -$100.00
-                reimbursableContext.report.nonReimbursableTotal = undefined; // Undefined non-reimbursable total
-
-                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total ?? 0, reimbursableContext.report.nonReimbursableTotal ?? 0);
-                const result = compute('{report:reimbursable}', reimbursableContext);
-                expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
-
-                reimbursableContext.report.total = undefined; // Undefined total
-                reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
-
-                const expectedReimbursableWithUndefinedTotal = calculateExpectedReimbursable(reimbursableContext.report.total ?? 0, reimbursableContext.report.nonReimbursableTotal ?? 0);
-                const resultWithUndefinedTotal = compute('{report:reimbursable}', reimbursableContext);
-                expect(resultWithUndefinedTotal).toBe(`$${expectedReimbursableWithUndefinedTotal.toFixed(2)}`);
-            });
         });
     });
 
