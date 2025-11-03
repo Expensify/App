@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
@@ -42,18 +42,23 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
+    const onEmojiSelectedWithReactions = useCallback(
+        (emoji: Emoji, skinTone: number) => {
+            onEmojiSelected(emoji, emojiReactions, skinTone);
+        },
+        [onEmojiSelected, emojiReactions],
+    );
+
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        showEmojiPicker(
-            onEmojiPickerClosed,
-            (emojiCode, emojiObject) => {
-                onEmojiSelected(emojiObject, emojiReactions);
+        showEmojiPicker({
+            onModalHide: onEmojiPickerClosed,
+            onEmojiSelected: (_emojiCode, emojiObject, skinTone) => {
+                onEmojiSelectedWithReactions(emojiObject, skinTone);
             },
-            ref,
-            undefined,
-            () => {},
-            reportAction.reportActionID,
-        );
+            emojiPopoverAnchor: ref,
+            id: reportAction.reportActionID,
+        });
     };
 
     return (
@@ -63,7 +68,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
