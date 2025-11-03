@@ -191,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -642,6 +643,18 @@ const translations = {
         expenseReport: 'Relatório de Despesas',
         expenseReports: 'Relatórios de Despesas',
         rateOutOfPolicy: 'Taxa fora da política',
+        leaveWorkspace: 'Sair do espaço de trabalho',
+        leaveWorkspaceConfirmation: 'Se você sair deste espaço de trabalho, não poderá enviar despesas para ele.',
+        leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
+        leaveWorkspaceConfirmationAdmin: 'Se você sair deste espaço de trabalho, não poderá gerenciar as configurações dele.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, você será substituído(a) no fluxo de aprovação pelo ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, será substituído como exportador preferencial por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, será substituído como contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceReimburser:
+            'Você não pode sair deste espaço de trabalho como responsável pelo reembolso. Defina um novo responsável pelo reembolso em Espaços de trabalho > Fazer ou acompanhar pagamentos e tente novamente.',
         reimbursable: 'Reembolsável',
         editYourProfile: 'Edite seu perfil',
         comments: 'Comentários',
@@ -677,6 +690,7 @@ const translations = {
         pinned: 'Fixado',
         read: 'Lido',
         copyToClipboard: 'Copiar para a área de transferência',
+        thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
     },
     supportalNoAccess: {
@@ -1055,8 +1069,6 @@ const translations = {
         uploadMultiple: 'Fazer upload de recibos',
         desktopSubtitleSingle: `ou arraste e solte aqui`,
         desktopSubtitleMultiple: `ou arraste e solte aqui`,
-        chooseReceipt: 'Escolha um recibo para enviar ou encaminhe um recibo para',
-        chooseReceipts: 'Escolha recibos para enviar ou encaminhe recibos para',
         alternativeMethodsTitle: 'Outras formas de adicionar recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Baixe o app</a> para escanear pelo celular</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Encaminhe recibos para <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1065,8 +1077,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envie recibos por SMS para ${phoneNumber} (apenas números dos EUA)</label-text>`,
         takePhoto: 'Tire uma foto',
         cameraAccess: 'O acesso à câmera é necessário para tirar fotos dos recibos.',
-        deniedCameraAccess: 'O acesso à câmera ainda não foi concedido, por favor siga',
-        deniedCameraAccessInstructions: 'essas instruções',
+        deniedCameraAccess: `O acesso à câmera ainda não foi concedido, por favor siga <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">essas instruções</a>.`,
         cameraErrorTitle: 'Erro de câmera',
         cameraErrorMessage: 'Ocorreu um erro ao tirar a foto. Por favor, tente novamente.',
         locationAccessTitle: 'Permitir acesso à localização',
@@ -1301,6 +1312,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `o ${valueName} para ${newValueToDisplay} (anteriormente ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `alterou o ${translatedChangedField} para ${newMerchant} (anteriormente ${oldMerchant}), o que atualizou o valor para ${newAmountToDisplay} (anteriormente ${oldAmountToDisplay})`,
+        basedOnAI: 'com base em atividades passadas',
+        basedOnMCC: 'com base na regra do espaço de trabalho',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `para ${comment}` : 'despesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Relatório de Fatura nº ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
@@ -1848,11 +1861,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Para fins de segurança, a Xero exige autenticação de dois fatores para conectar a integração.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticação de dois fatores necessária',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilite a autenticação de dois fatores.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Sua conexão de contabilidade com a Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, por favor, ative-a.',
+        twoFactorAuthIsRequiredXero: 'Sua conexão de contabilidade com o Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, ative-a.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação de dois fatores (2FA) é necessária para sua conexão com o Xero e não pode ser desativada.',
         explainProcessToRemoveWithRecovery: 'Para desativar a autenticação de dois fatores (2FA), insira um código de recuperação válido.',
+        twoFactorAuthIsRequiredCompany: 'Sua empresa exige o uso de autenticação de dois fatores. Para continuar usando o Expensify, ative-a.',
     },
     recoveryCodeForm: {
         error: {
@@ -2225,10 +2238,9 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `em ${policyName}`,
-        generatingPDF: 'Gerando PDF',
+        generatingPDF: 'Gerando PDF...',
         waitForPDF: 'Por favor, aguarde enquanto geramos o PDF.',
         errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF.',
-        generatedPDF: 'Seu PDF de relatório foi gerado!',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrição do quarto',
@@ -2475,12 +2487,11 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' ao seu' : ' ao'} ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
                     '\n' +
-                    '1. Clique em *Configurações*.\n' +
-                    '2. Vá para *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Contabilidade*.\n' +
-                    `5. Encontre ${integrationName}.\n` +
-                    '6. Clique em *Conectar*.\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Contabilidade*.\n' +
+                    `4. Encontre ${integrationName}.\n` +
+                    '5. Clique em *Conectar*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -4556,9 +4567,8 @@ ${amount} para ${merchant} - ${date}`,
             cardholder: 'Titular do cartão',
             card: 'Cartão',
             cardName: 'Nome do cartão',
-            brokenConnectionErrorFirstPart: `A conexão do feed do cartão está quebrada. Por favor,`,
-            brokenConnectionErrorLink: 'faça login no seu banco',
-            brokenConnectionErrorSecondPart: 'para que possamos estabelecer a conexão novamente.',
+            brokenConnectionError:
+                '<rbr>A conexão do feed do cartão está quebrada. Por favor, <a href="#">faça login no seu banco</a> para que possamos estabelecer a conexão novamente.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `atribuiu ${assignee} um ${link}! As transações importadas aparecerão neste chat.`,
             companyCard: 'cartão corporativo',
             chooseCardFeed: 'Escolher feed de cartão',
@@ -5114,6 +5124,18 @@ ${amount} para ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Adicionado pelo login secundário ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total de membros do espaço de trabalho: ${count}`,
             importMembers: 'Importar membros',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Se você remover ${approver} deste espaço de trabalho, vamos substituí-lo(a) no fluxo de aprovação por ${workspaceOwner}, o(a) proprietário(a) do espaço de trabalho.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} tem relatórios de despesas pendentes para aprovar. Solicite que os aprove ou assuma o controle dos relatórios antes de removê-lo(a) do espaço de trabalho.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Você não pode remover ${memberName} deste espaço de trabalho. Defina um novo reembolsador em Fluxos de trabalho > Fazer ou acompanhar pagamentos e tente novamente.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se você remover ${memberName} deste espaço de trabalho, vamos substituí-lo(a) como exportador preferido por ${workspaceOwner}, o(a) proprietário(a) do espaço de trabalho.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se você remover ${memberName} deste espaço de trabalho, vamos substituí-lo(a) como contato técnico por ${workspaceOwner}, o(a) proprietário(a) do espaço de trabalho.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} tem um relatório em processamento que requer ação. Peça que a ação necessária seja concluída antes de remover essa pessoa do espaço de trabalho.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6305,6 +6327,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} é ${value}`,
         },
         has: 'Tem',
         groupBy: 'Agrupar por',
@@ -6426,6 +6449,11 @@ ${amount} para ${merchant} - ${date}`,
         newReport: {
             createReport: 'Criar relatório',
             chooseWorkspace: 'Escolha um espaço de trabalho para este relatório.',
+            emptyReportConfirmationTitle: 'Você já tem um relatório vazio',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios vazios em`,
+            emptyReportConfirmationPromptLink: 'Relatórios',
+            genericWorkspaceName: 'este espaço de trabalho',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Por favor, tente novamente mais tarde.',
         genericAddCommentFailureMessage: 'Erro inesperado ao postar o comentário. Por favor, tente novamente mais tarde.',
@@ -7130,6 +7158,8 @@ ${amount} para ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'defina a descrição da sala para:',
         clearRoomDescription: 'limpou a descrição da sala',
+        changedRoomAvatar: 'Alterou o avatar da sala',
+        removedRoomAvatar: 'Removeu o avatar da sala',
     },
     delegate: {
         switchAccount: 'Alternar contas:',
