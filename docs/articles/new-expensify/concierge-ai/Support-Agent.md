@@ -4,7 +4,6 @@ description: Learn how the Concierge Support Agent can answer questions, trouble
 keywords: Concierge Support, Support Agent, Expensify help, AI support, troubleshoot Expensify, how to contact Concierge, onboarding call, Expensify chat support
 order: 3
 ---
-Account > Help and Feedback > Concierge
 
 <div id="concierge-ai" markdown="1">
 
@@ -29,7 +28,7 @@ You can ask Concierge for help from anywhere in Expensify:
 
 Wherever you reach out, Concierge uses context from your account to tailor a relevant response.
 
-## What kind of help does Concierge Support Agent provide?
+## What Concierge Support can help with
 
 Concierge can help with most common support requests:
 
@@ -57,7 +56,7 @@ If Concierge doesn’t have an immediate answer, it will escalate your request t
 
 # FAQ
 
-## What information helps Concierge Support Agent respond faster?
+## How can I get faster responses from Concierge?
 
 Providing more detail upfront leads to quicker answers. Include:
 
@@ -66,7 +65,7 @@ Providing more detail upfront leads to quicker answers. Include:
 - Exact error message (if any)
 - What you were doing when the issue occurred
 
-## Can Concierge reconfigure my Workspace?
+## Can Concierge update my Workspace settings?
 
 Not yet! Concierge can walk you through how to make changes, but it won’t make updates on your behalf—for now.
 
