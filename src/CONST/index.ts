@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import {LOCALES} from './LOCALES';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -7112,7 +7113,7 @@ const CONST = {
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
-        HAS_BANK_ACCOUNT_IN_SETUP_STATE_INFO: 'hasBankAccountInSetupStateInfo',
+        HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
 
     DEBUG: {

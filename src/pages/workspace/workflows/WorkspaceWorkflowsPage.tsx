@@ -37,6 +37,7 @@ import {
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {hasPartiallySetupBankAccount, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,7 +95,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isBetaEnabled} = usePermissions();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0 || hasPartiallySetupBankAccount(bankAccountList);
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -202,10 +203,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
         const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-        const isAccountInSetupState =
-            state === CONST.BANK_ACCOUNT.STATE.SETUP ||
-            state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
-            (state === CONST.BANK_ACCOUNT.STATE.PENDING && policy?.achAccount?.reimburser === currentUserLogin);
+        const isAccountInSetupState = isBankAccountPartiallySetup(state) && policy?.achAccount?.reimburser === currentUserLogin;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
