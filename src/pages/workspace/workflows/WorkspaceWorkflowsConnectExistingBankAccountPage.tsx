@@ -68,6 +68,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     itemIconRight={Expensicons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                    filterCurrency={policy?.outputCurrency ?? ''}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

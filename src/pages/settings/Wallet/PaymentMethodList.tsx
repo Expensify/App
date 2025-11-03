@@ -88,6 +88,9 @@ type PaymentMethodListProps = {
     /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
 
+    /* Currency of payment method to filter by */
+    filterCurrency?: string;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
@@ -136,6 +139,7 @@ function PaymentMethodList({
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
+    filterCurrency,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
@@ -274,8 +278,14 @@ function PaymentMethodList({
             );
         }
 
-        if (filterType) {
-            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod as BankAccount).accountData?.type === filterType);
+        if (filterType ?? filterCurrency) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+                const typeMatches = !filterType || account.accountData?.type === filterType;
+                const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
+
+                return typeMatches && currencyMatches;
+            });
         }
 
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
@@ -324,6 +334,7 @@ function PaymentMethodList({
         styles,
         isOffline,
         filterType,
+        filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
