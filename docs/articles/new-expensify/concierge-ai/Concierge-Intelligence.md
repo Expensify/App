@@ -4,72 +4,130 @@ description: Learn how Concierge uses context, AI, and automation to understand 
 keywords: Concierge Intelligence, how Concierge works, AI context, multi-modal agent, contextual chatbot, Expensify support AI, Concierge automation
 order: 2
 ---
+<div id="new-expensify" markdown="1">
 
-Concierge isn’t just smart—it’s **context-aware**, multi-skilled, and built to handle whatever you throw at it. Here’s how it understands your questions and gets things done faster than ever.
+Concierge isn’t just smart—it’s **context-aware**, multi-skilled, and built to help you get more done with less effort. This guide explains how Concierge works, what makes it intelligent, and how to get the most out of it.
 
-# How does Concierge work?
+# How Concierge works
 
-Concierge is a **hybrid AI agent** built on top of GenAI, automation tools, and a powerful rules engine. It figures out what you're trying to do, pulls in the right tools, and responds with answers—or actions.
+Concierge is a **hybrid AI agent** built with GenAI, automation tools, and a powerful rules engine. It figures out what you're trying to do, pulls in the right tools, and responds with answers—or takes action automatically.
 
-If it doesn’t know something? It escalates to a real person.
+If Concierge doesn’t know something, it escalates to a real person.
 
-# What makes Concierge intelligent?
+# Key traits of Concierge intelligence
 
-Concierge uses a few smart tricks to figure out how to help:
+Concierge uses a few smart capabilities to figure out how to help:
 
-- **Context-aware** – It knows *where* you’re asking, so it can tailor the response (more below).
-- **Multi-modal** – It acts like different assistants (support agent, expense assistant, etc.) all in one conversation.
-- **Hybrid support** – It combines AI + humans, switching seamlessly when needed.
-- **Natural language understanding** – Just talk to it like you would to a coworker.
+- **Context-aware** – Understands *where* you’re asking from to tailor the response.
+- **Multi-modal** – Acts like multiple assistants (support agent, expense assistant, etc.) in one.
+- **Hybrid support** – Combines AI and humans, switching seamlessly when needed.
+- **Natural language understanding** – Responds to conversational input like a coworker would.
 
-# What is contextual behavior?
+# Understanding Concierge's contextual behavior
 
-Concierge adapts based on where and how you ask questions. That means:
+Concierge adapts based on where and how you ask questions:
 
-- If you chat in a report → it answers about that report.  
-- If you're in a DM → it considers all your expenses.  
-- If you ask from a Workspace chat → it focuses on that Workspace.  
-- If you're on a specific expense → it assumes you're talking about *that* expense.
+- If you chat inside a **report** → It answers about that report.  
+- If you're in a **DM** → It considers your full expense history.  
+- If you're in a **Workspace chat** → It focuses on that Workspace.  
+- If you're on a specific **expense** → It assumes you're referring to that expense.
 
-You don’t have to explain every detail—just speak naturally and Concierge will fill in the blanks.
+You don’t need to explain every detail—just speak naturally and Concierge will fill in the blanks.
 
 # What is a multi-modal agent?
 
-Instead of having multiple bots for different things (like one for expenses and another for support), Concierge is **all-in-one**.
+Instead of having different bots for different tasks, Concierge is all-in-one. That means:
 
-That means:
-- You can ask anything—no need to figure out *who* to ask.  
+- You can ask anything—no need to figure out who to ask.  
 - You can combine requests in one message.  
   - Example: “Is this reimbursable? Can you add a $12 taxi expense too?”
 
 # Can I ask multiple things at once?
 
-Definitely. Concierge can understand and respond to complex or multi-step questions—as long as it’s clear what you want.
+Yes! Concierge can understand complex or multi-part requests, as long as it’s clear what you want.
 
 Here’s what works well:
 - “Create a $5 lunch expense and add it to my April report.”  
 - “What does ‘non-reimbursable’ mean, and can you mark this expense as such?”
 
-The key is being specific. The clearer you are, the better Concierge can help.
+The more specific you are, the better Concierge can help.
 
-# What happens when Concierge doesn’t know something?
+# What if Concierge doesn’t know something?
 
-If the AI hits a wall, it won’t leave you hanging. It’ll bring in a real person—often without you needing to ask.
+If Concierge can’t answer a question, it will escalate to a real person—often without you needing to ask.
 
-You can also say “Talk to a human” at any time, and Concierge will escalate the conversation.
+You can also type **“Talk to a human”** at any time to request an escalation.
 
 # What powers Concierge behind the scenes?
 
-Here’s what fuels its intelligence:
+Concierge is powered by a mix of technology and human backup:
+
 - A custom-trained GenAI model  
 - A rules engine that handles logic and automation  
 - Real-time access to your Expensify data (just enough to help)  
-- Escalation paths for live support when needed
+- Escalation paths to live support when needed
 
-# TL;DR — What makes Concierge different?
+# How does Concierge AI protect my data?
 
-- Knows where you’re chatting and tailors responses  
-- Understands natural, multi-part questions  
-- Does support, expenses, and reporting in one place  
-- Switches to a human when it gets stuck  
-- Just works—no setup, no training required
+Concierge is built with privacy at its core:
+- Your data stays inside Expensify and is only accessed as needed.  
+- AI systems never see more than what's required to respond to your message.  
+- We have **zero-retention** agreements with AI providers, meaning your data is never stored or reused.
+
+There’s no risk of another customer seeing your data—because they can’t.
+
+# Why Concierge is different
+
+- Understands where you’re chatting from and adjusts accordingly  
+- Handles natural, multi-part questions with ease  
+- Manages support, expenses, and reporting in one place  
+- Escalates to a human when needed  
+- No setup or training required—it just works  
+
+# FAQ
+
+## How does Concierge determine what I’m referring to?
+
+Concierge uses the context of your message—like the chat location (report, Workspace, expense), prior messages, and the specific wording of your request. It pairs this with internal identifiers (like report IDs or expense metadata) to match your request to the right object, without you needing to specify it directly.
+
+## How is context "understood" technically?
+
+Context is inferred using a combination of:
+- Chat metadata (where you're messaging from)
+- Your role and permissions
+- Previous conversation turns
+- Structured data (like expense amounts, merchant names, and report statuses)
+
+This context is then passed into the AI model along with your input to produce a tailored response.
+
+## What’s the difference between the AI and the rules engine?
+
+- The **AI (LLM)** interprets what you’re asking and generates a human-like response.
+- The **rules engine** executes structured logic behind the scenes—for example, determining which reports are ready to submit, or applying Workspace rules to an expense.
+- The two work together: AI figures out intent; the rules engine ensures valid outcomes.
+
+## What does "multi-modal" mean in this context?
+
+In Expensify, "multi-modal" means Concierge can handle multiple functions—support, expense management, and approvals—in a single thread. You don’t need to choose a specific agent or mode. Concierge identifies your intent based on the language used and responds accordingly, even if you blend requests.
+
+## How does Concierge know when to escalate to a human?
+
+If the model is unsure, detects missing context, or encounters something outside its capabilities (e.g., Workspace reconfiguration), it uses fallback logic to escalate. You can also manually escalate by saying “Talk to a human.”
+
+## Is Concierge really reading my data?
+
+Not exactly. The AI model doesn’t browse your data freely. It only receives the specific structured data relevant to your request—for example, the report name, amount, or receipt image you reference. This is passed securely via the system prompt, and the model can’t access or recall any other customer’s data.
+
+## Is my data ever stored or used to train Concierge?
+
+No. Concierge runs on AI models with **zero-retention agreements**. That means your data is not logged, stored, or used to train future versions of the model—by Expensify or by any third party.
+
+## Can Concierge give different answers in different places?
+
+Yes—and that’s by design. Because it’s context-aware, asking “Is this reimbursable?” in a report chat will return a different result than asking it in a DM. This makes responses faster and more relevant.
+
+## Can I test how Concierge behaves in different modes?
+
+Absolutely. Try sending the same question in different contexts (a report, a Workspace chat, a DM) and you’ll see how Concierge tailors its response to match.
+
+</div>
