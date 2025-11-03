@@ -106,7 +106,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -5128,7 +5128,7 @@ describe('actions/IOU', () => {
                             reportToArchive.push(chatReport);
                         }
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined, undefined, localeCompare);
                     }
                     return waitForBatchedUpdates();
                 })

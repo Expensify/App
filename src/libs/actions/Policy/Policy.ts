@@ -5,6 +5,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -378,7 +379,8 @@ function deleteWorkspace(
     reportsToArchive: Report[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     reimbursementAccountError: Errors | undefined,
-    lastUsedPaymentMethods?: LastPaymentMethod,
+    lastUsedPaymentMethods: LastPaymentMethod | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
 ) {
     if (!allPolicies) {
         return;
@@ -442,11 +444,15 @@ function deleteWorkspace(
     ];
 
     if (policyID === activePolicyID) {
-        const personalPolicyID = PolicyUtils.getPersonalPolicy()?.id;
+        const firstGroupPolicy = Object.values(allPolicies ?? {})
+            .filter((policy) => policy && policy.id !== activePolicyID && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .sort((policyA, policyB) => localeCompare(policyA?.name ?? '', policyB?.name ?? ''))
+            .at(0);
+        const newActivePolicyID = firstGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: personalPolicyID,
+            value: newActivePolicyID,
         });
 
         failureData.push({

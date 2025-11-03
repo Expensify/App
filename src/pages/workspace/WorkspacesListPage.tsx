@@ -223,6 +223,7 @@ function WorkspacesListPage() {
                 transactionViolations,
                 reimbursementAccountError,
                 lastPaymentMethod,
+                localeCompare,
             );
         }, CONST.ANIMATED_TRANSITION);
 
