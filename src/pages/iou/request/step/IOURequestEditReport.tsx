@@ -99,13 +99,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        selectReport({value: optimisticReport.reportID});
+        selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
     const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
     });
 
     const createReport = () => {
