@@ -1,4 +1,6 @@
-import React, {lazy, memo, Suspense} from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React, {lazy, memo, Suspense, useEffect} from 'react';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import lazyRetry from '@src/utils/lazyRetry';
 
 const AuthScreens = lazy(() => lazyRetry(() => import('./AuthScreens')));
@@ -10,6 +12,16 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
+    const currentReportIDValue = useCurrentReportID();
+    const navState = useNavigationState((state) => state);
+
+    useEffect(() => {
+        currentReportIDValue?.updateCurrentReportID(navState);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run the effect on state change.
+    }, [navState]);
+
     if (authenticated) {
         // These are the protected screens and only accessible when an authToken is present
         return (
