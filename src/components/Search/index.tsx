@@ -919,7 +919,7 @@ function Search({
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <View style={[styles.pr8, styles.flex1]}>
+                            <View style={[!isTask && styles.pr8, styles.flex1]}>
                                 <SearchTableHeader
                                     canSelectMultiple={canSelectMultiple}
                                     columns={columnsToShow}
