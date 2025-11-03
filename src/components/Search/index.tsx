@@ -424,6 +424,10 @@ function Search({
             return;
         }
 
+        if (prevIsOffline && !isOffline) {
+            openSearch();
+        }
+
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
 
         // We don't need to run the effect on change of isFocused.

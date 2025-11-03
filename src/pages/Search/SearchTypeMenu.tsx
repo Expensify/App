@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -35,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
@@ -47,7 +49,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections, CreateReportConfirmationModal} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -81,6 +83,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return section.menuItems.map((item) => item.key);
         });
     }, [typeMenuSections]);
+
+    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
+
+    useSuggestedSearchDefaultNavigation({
+        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
+        flattenedMenuItems,
+        similarSearchHash,
+        clearSelectedTransactions,
+    });
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
@@ -205,9 +216,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
 
     return (
         <>
@@ -217,60 +227,66 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                    {typeMenuSections.map((section, sectionIndex) => (
-                        <View key={section.translationPath}>
-                            <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
+                {shouldShowSuggestedSearchSkeleton ? (
+                    <View style={[styles.pb4, styles.mh3]}>
+                        <SuggestedSearchSkeleton />
+                    </View>
+                ) : (
+                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                        {typeMenuSections.map((section, sectionIndex) => (
+                            <View key={section.translationPath}>
+                                <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
-                            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                <>
-                                    {renderSavedSearchesSection(savedSearchesMenuItems)}
-                                    {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                                    Returning the element directly keeps the component identity across re-renders so React
-                                    can play its exit animation instead of removing it instantly. */}
-                                    {DeleteConfirmModal}
-                                </>
-                            ) : (
-                                <>
-                                    {section.menuItems.map((item, itemIndex) => {
-                                        const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                                        const flattenedIndex = previousItemCount + itemIndex;
-                                        const focused = activeItemIndex === flattenedIndex;
+                                {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                                    <>
+                                        {renderSavedSearchesSection(savedSearchesMenuItems)}
+                                        {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                                        Returning the element directly keeps the component identity across re-renders so React
+                                        can play its exit animation instead of removing it instantly. */}
+                                        {DeleteConfirmModal}
+                                    </>
+                                ) : (
+                                    <>
+                                        {section.menuItems.map((item, itemIndex) => {
+                                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                                            const flattenedIndex = previousItemCount + itemIndex;
+                                            const focused = activeItemIndex === flattenedIndex;
 
-                                        const onPress = singleExecution(() => {
-                                            clearAllFilters();
-                                            clearSelectedTransactions();
-                                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
-                                        });
+                                            const onPress = singleExecution(() => {
+                                                clearAllFilters();
+                                                clearSelectedTransactions();
+                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                            });
 
-                                        const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
+                                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
 
-                                        return (
-                                            <Animated.View
-                                                key={item.translationPath}
-                                                entering={!isInitialItem ? FadeIn : undefined}
-                                            >
-                                                <MenuItem
-                                                    key={item.key}
-                                                    disabled={false}
-                                                    interactive
-                                                    title={translate(item.translationPath)}
-                                                    icon={item.icon}
-                                                    iconWidth={variables.iconSizeNormal}
-                                                    iconHeight={variables.iconSizeNormal}
-                                                    wrapperStyle={styles.sectionMenuItem}
-                                                    focused={focused}
-                                                    onPress={onPress}
-                                                    shouldIconUseAutoWidthStyle
-                                                />
-                                            </Animated.View>
-                                        );
-                                    })}
-                                </>
-                            )}
-                        </View>
-                    ))}
-                </View>
+                                            return (
+                                                <Animated.View
+                                                    key={item.translationPath}
+                                                    entering={!isInitialItem ? FadeIn : undefined}
+                                                >
+                                                    <MenuItem
+                                                        key={item.key}
+                                                        disabled={false}
+                                                        interactive
+                                                        title={translate(item.translationPath)}
+                                                        icon={item.icon}
+                                                        iconWidth={variables.iconSizeNormal}
+                                                        iconHeight={variables.iconSizeNormal}
+                                                        wrapperStyle={styles.sectionMenuItem}
+                                                        focused={focused}
+                                                        onPress={onPress}
+                                                        shouldIconUseAutoWidthStyle
+                                                    />
+                                                </Animated.View>
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </View>
+                        ))}
+                    </View>
+                )}
             </ScrollView>
         </>
     );
