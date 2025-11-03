@@ -48,6 +48,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
             lastPaymentMethod: lastPaymentMethod?.[policyID],
+            shouldUpdateLastPaymentMethod: true,
         });
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.closeRHPFlow());
     };
