@@ -80,7 +80,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
             includeUserToInvite: true,
             excludeLogins: excludedUsers,
-            includeRecentReports: true,
+            includeRecentReports: false,
             shouldInitialize: didScreenTransitionEnd,
         });
 
@@ -96,14 +96,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
-            });
-        }
-
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: translate('common.recents'),
-                data: availableOptions.recentReports,
             });
         }
 
