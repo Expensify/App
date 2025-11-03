@@ -9,9 +9,9 @@ order: 4
 
 Need to create or update an expense? Just ask Concierge. Whether you're uploading a receipt, tracking mileage, or fixing a merchant name, the Expense Assistant can handle it — no forms required.
 
-# What is the Expense Assistant feature?
+# What is Concierge Expense Assistant?
 
-The Expense Assistant is a built-in chatbot that helps you manage expenses by chatting with Concierge. You can create, edit, and ask questions about receipts, purchases, and mileage — all in plain language.
+Concierge's Expense Assistant is a built-in feature that helps you manage expenses by chatting with Concierge. You can create, edit, and ask questions about receipts, purchases, and mileage — all in plain language.
 
 Instead of filling out fields manually, just say what you need, and Concierge will do the rest.
 
@@ -24,7 +24,7 @@ Concierge handles many expense tasks for you behind the scenes:
 - Adds expenses to the correct report
 - Moves held expenses to a new report when other expenses are submitted
 
-# How to use the Expense Assistant with Concierge
+# How to use Concierge Expense Assistant
 
 You can ask Concierge to take action on expenses directly in chat. Here’s what you can do:
 
@@ -52,7 +52,7 @@ Ask Concierge to:
 - Edit the description
 
 **Example requests:**
-- “Change the merchant to Extracto”
+- “Change the merchant to Taco Tim's”
 - “Change the amount to $6”
 - “Categorize this as Client Meals”
 - “Tag this to Bob’s Bananas”
@@ -94,12 +94,12 @@ Concierge will update the expense and confirm the change.
 
 Some expense actions are not currently supported in chat, but may be added in the future:
 
-- Deleting an expense  
+- Deleting an expense
 - Categorizing all expenses from a specific merchant (e.g., “Categorize all Starbucks expenses as Coffee Meetings”)  
 - Attaching a receipt to an existing transaction via chat
 - Tagging expenses based on past behavior 
 
-If you try one of these, Concierge will let you know it's not supported. 
+If you request these actions, Concierge will notify you that the feature is not yet available."
 
 ---
 
