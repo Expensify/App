@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,8 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSubscriptionPlanInfo} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
-import useOnyx from '@src/hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
 type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
@@ -38,13 +37,13 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const currentSubscriptionPlan = useSubscriptionPlan();
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
-    const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE, {canBeMissing: true});
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
         subscriptionPlan,
         privateSubscription?.type,
         preferredCurrency,
         isFromComparisonModal,
-        firstPolicyDate,
+        hasTeam2025Pricing,
     );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
