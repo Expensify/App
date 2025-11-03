@@ -128,7 +128,7 @@ const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    // If it's a distance request, the receipt will be automatically merged on merchant selection
+    // Distance request's amount/currency/receipt depend on merchant selection
     return transactions.every((transaction) => !isDistanceRequest(transaction) && transaction?.receipt?.receiptID);
 }
 
@@ -178,7 +178,7 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
 function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
     const excludeFields: MergeFieldKey[] = [];
 
-    // If the target transaction is a distance request, we gonna use merchant to decide amount/currency/receipt
+    // Distance request's amount/currency/receipt depend on merchant selection
     if (isDistanceRequest(targetTransaction)) {
         excludeFields.push('amount');
     }
