@@ -10,7 +10,7 @@ If you encounter unrecognized, unauthorized, or fraudulent charges on your Expen
 
 # Types of Disputable Transactions
 
-## Fraudulent or Unauthorized charges
+## Fraudulent or Unauthorized Charges
 - Charges made after your card was lost or stolen.
 - Unauthorized charges while your card is in your possession.
 - Continued charges for a canceled subscription.
@@ -57,17 +57,18 @@ If you haven't already, strengthen your account's security by [enabling 2FA](htt
 
 ## Contact the merchant
 
-Most service-related issues haven't been resolved directly with the account. This is the quickest way to address disputes.
+Most service-related issues can be resolved directly with the account. This is the quickest way to address disputes.
 
 ## Contact Expensify
 
-**If the issue isn't resolved with the merchant, contact Expensify Concierge to start the dispute process:**
+**If the issue isn't resolved with the Merchant, contact Expensify Concierge to start the dispute process:**
 
 - **Expensify Chat:** Open your Expensify Chat inbox and message Concierge
 - **Email:** Send your dispute details to concierge@expensify.com
 
-Provide the following Details of the disputed charge (e.g., reason, steps taken)
-- Supporting documentation (e.g., receipts, cancellation confirmations)
+   Provide the following:
+     - Details of the disputed charge (e.g., reason, steps taken)
+     - Supporting documentation (e.g., receipts, cancellation confirmations)
 
 ---
 
@@ -87,7 +88,7 @@ Yes, you can cancel a filed dispute by messaging Concierge or your Account Manag
 
 ## What is a Visa Force-Posted Transaction?
 
-A **Visa Force Posted** transaction happens when a merchant manually finalizes a charge after an initial authorization fails, expires, or is declined. This means the merchant pushed the transaction through outside the standard authorization flow.
+A **Visa Force-Posted** transaction happens when a merchant manually finalizes a charge after an initial authorization fails, expires, or is declined. This means the merchant pushed the transaction through outside the standard authorization flow.
 
 **Common reasons a Visa Force Posted transaction occurs:**
 - A restaurant or hotel added a tip or final amount after the card was declined
