@@ -195,10 +195,20 @@ function getOnyxTargetTransactionData(
         });
     }
 
+    const onyxData = data.onyxData;
+
+    onyxData.optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            receipt: mergeTransaction.receipt ?? null,
+        },
+    });
+
     // getUpdateMoneyRequestParams currently derives optimistic distance data from transaction.routes.
     // In the merge flow, the selected merchant determines waypoints/customUnit => we can optimistic distance data from the selected merchant's waypoints/customUnit instead of transaction.routes
     if (isDistanceRequest(targetTransaction)) {
-        data.onyxData.optimisticData?.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
             value: {
@@ -212,7 +222,7 @@ function getOnyxTargetTransactionData(
         });
     }
 
-    return data.onyxData;
+    return onyxData;
 }
 
 type MergeTransactionRequestParams = {
