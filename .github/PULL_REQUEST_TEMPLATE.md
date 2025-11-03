@@ -112,6 +112,11 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If new assets were added or existing ones were modified, I verified that:
     - [ ] The assets are optimized and compressed (for SVG files, run `npm run compress-svg`)
     - [ ] The assets load correctly across all supported platforms.
+- [ ] If icons or illustrations were added or used in this PR, I verified that:
+    - [ ] I'm using lazy loading hooks (`useMemoizedLazyIllustrations` or `useMemoizedLazyExpensifyIcons`) instead of direct imports
+    - [ ] I'm not importing directly from `@components/Icon/Illustrations` or `@components/Icon/Expensicons` (unless exception is documented)
+    - [ ] New assets are added to the appropriate chunk file (`src/components/Icon/chunks/illustrations.chunk.ts` or `src/components/Icon/chunks/expensify-icons.chunk.ts`)
+    - [ ] All assets used in the component are loaded via the lazy loading hook
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
