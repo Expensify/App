@@ -523,6 +523,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: '1',
                 reportName: 'Test Report',
                 taxValue: '9%',
+                taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
                 taxCode: 'id_TAX_RATE_1',
             };
 
