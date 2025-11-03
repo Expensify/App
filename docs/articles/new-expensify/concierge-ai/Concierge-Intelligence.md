@@ -67,7 +67,7 @@ Concierge is powered by a mix of technology and human backup:
 - Real-time access to your Expensify data (just enough to help)  
 - Escalation paths to live support when needed
 
-# How does Concierge AI protect my data?
+# How does Concierge protect my data?
 
 Concierge is built with privacy at its core:
 - Your data stays inside Expensify and is only accessed as needed.  
