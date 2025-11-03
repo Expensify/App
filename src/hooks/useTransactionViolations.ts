@@ -11,6 +11,10 @@ import useOnyx from './useOnyx';
 function mergeProhibitedViolations(transactionViolations: TransactionViolations): TransactionViolations {
     const prohibitedViolations = transactionViolations.filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
 
+    if (prohibitedViolations.length === 0) {
+        return transactionViolations;
+    }
+
     const prohibitedExpenses = prohibitedViolations.flatMap((violation: TransactionViolation) => violation.data?.prohibitedExpenseRule ?? []);
     const mergedProhibitedViolations: TransactionViolation = {
         name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
