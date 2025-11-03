@@ -297,6 +297,14 @@ Onyx.connect({
     callback: (value) => (conciergeReportID = value),
 });
 
+let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    callback: (value) => {
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
+    },
+});
+
 // map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
 
@@ -3379,7 +3387,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3392,7 +3400,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone]: createdAt,
+                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
                             },
                         },
                     },
@@ -3473,7 +3481,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number,
+    paramSkinTone: number = preferredSkinTone,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3494,7 +3502,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
+    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
