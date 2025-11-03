@@ -21,6 +21,8 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {NavigationContainer} from '@react-navigation/native';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -404,7 +406,16 @@ describe('NetworkTests', () => {
         const setShouldFailAllRequestsSpy = jest.spyOn(NetworkActions, 'setShouldFailAllRequests');
 
         // Given an opened test tool menu
-        render(<TestToolMenu />);
+        render(
+            <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                    // Navigation is ready, but we still need to handle the timing issue
+                }}
+            >
+                <TestToolMenu />
+            </NavigationContainer>
+        );
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
 
