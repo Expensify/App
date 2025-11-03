@@ -890,10 +890,10 @@ function changeTransactionsReport(
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const transactionAmount = getTransactionDetails(transaction, undefined, undefined, allowNegative)?.amount ?? 0;
-        const isTransactionAmountNegative = transactionAmount < 0 ? (oldReport?.total ?? 0 - transactionAmount) : (oldReport?.total ?? 0 + transactionAmount);
+        const updatedReportTotal = transactionAmount < 0 ? (oldReport?.total ?? 0 - transactionAmount) : (oldReport?.total ?? 0 + transactionAmount);
 
         if (oldReport) {
-            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : isTransactionAmountNegative;
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
