@@ -1341,6 +1341,28 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
 }
 
 /**
+ * Merges multiple prohibited expense violations into a single violation
+ */
+function mergeProhibitedViolations(transactionViolations: TransactionViolations): TransactionViolations {
+    const prohibitedViolations = transactionViolations.filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+
+    if (prohibitedViolations.length === 0) {
+        return transactionViolations;
+    }
+
+    const prohibitedExpenses = prohibitedViolations.flatMap((violation: TransactionViolation) => violation.data?.prohibitedExpenseRule ?? []);
+    const mergedProhibitedViolations: TransactionViolation = {
+        name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+        data: {
+            prohibitedExpenseRule: prohibitedExpenses,
+        },
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+    };
+
+    return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+}
+
+/**
  * Checks if violations are supported for the given transaction
  */
 function doesTransactionSupportViolations(transaction: Transaction | undefined): transaction is Transaction {
@@ -2126,6 +2148,7 @@ export {
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
     isViolationDismissed,
+    mergeProhibitedViolations,
     isBrokenConnectionViolation,
     shouldShowRTERViolationMessage,
     isPartialTransaction,
