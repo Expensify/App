@@ -1254,6 +1254,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
                             path: ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.route,
                         },
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: {
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.route,
+                        },
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
@@ -1589,6 +1595,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ATTENDEE),
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD),
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {

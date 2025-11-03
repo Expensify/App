@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import SafeString from '@src/utils/SafeString';
 import {WRITE_COMMANDS} from './API/types';
 import Log from './Log';
 import type {RequestError} from './Network/SequentialQueue';
@@ -21,7 +22,7 @@ class RequestThrottle {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
         if (this.timeoutID) {
-            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${String(this.timeoutID)}`);
+            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${SafeString(this.timeoutID)}`);
             clearTimeout(this.timeoutID);
             this.timeoutID = undefined;
         }
