@@ -104,6 +104,16 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }));
     }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+        }),
+        [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
+    );
+
     return (
         <ScrollView style={styles.mv3}>
             <Button
@@ -116,12 +126,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             <SelectionList
                 data={searchedReportActions}
                 style={{listItemTitleStyles: styles.fontWeightNormal}}
-                textInputOptions={{
-                    value: searchValue,
-                    label: translate('common.search'),
-                    onChangeText: setSearchValue,
-                    headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
-                }}
+                textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={RadioListItem}
             />
