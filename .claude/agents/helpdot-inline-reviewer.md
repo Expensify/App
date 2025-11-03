@@ -1,7 +1,7 @@
 ---
 name: helpdot-inline-reviewer
 description: Reviews HelpDot documentation files and creates inline comments for specific rule violations and issues.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 
@@ -82,9 +82,20 @@ keywords: [feature name, related terms, navigation path, etc.]
 For each violation, call the tool like this:
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "docs/articles/new-expensify/chat/Create-a-New-Chat.md"
+  path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
   line: 9
-  body: "**Terminology violation**: Use 'workspace' instead of 'policy' to match Expensify standards."
+  body: '**Terminology violation**: Use "workspace" instead of "policy" to match Expensify standards.'
+```
+
+**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+
+Example:
+```bash
+# Good
+gh pr comment --body 'Use "workspace" instead of "policy"'
+
+# Bad
+gh pr comment --body "Use "workspace" instead of "policy""
 ```
 
 ## Comment Format
