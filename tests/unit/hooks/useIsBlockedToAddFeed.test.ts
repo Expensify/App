@@ -54,7 +54,7 @@ describe('useIsBlockedToAddFeed', () => {
         expect(result?.current.isBlockedToAddNewFeeds).toBe(true);
     });
 
-    it('should return isBlockedToAddNewFeeds as false if control policy and feed already exists', async () => {
+    it('should return isBlockedToAddNewFeeds as false if control policy', async () => {
         (useCardFeeds as jest.Mock).mockReturnValue([
             {
                 settings: {
@@ -96,7 +96,8 @@ describe('useIsBlockedToAddFeed', () => {
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
-        await delay(2000); // Set initial empty state and wait for new connection to be established
+        // Set initial empty state and wait for new connection to be established
+        await delay(2000);
         (useCardFeeds as jest.Mock).mockReturnValue([
             {
                 settings: {
@@ -106,9 +107,46 @@ describe('useIsBlockedToAddFeed', () => {
             },
             {status: 'loaded'},
         ]);
-        await delay(2000); // Wait to set state happened
+        // Wait to set state happened
+        await delay(2000);
 
         const {result: secondCall} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
         expect(secondCall.current.isBlockedToAddNewFeeds).toBe(false);
+    });
+
+    it('should return isBlockedToAddNewFeeds as false if collect policy and no feed added', async () => {
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
+    });
+
+    it('should return isBlockedToAddNewFeeds as false if collect policy and Expensify feed exists', async () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                settings: {
+                    companyCards: {
+                        [CONST.EXPENSIFY_CARD.BANK]: {
+                            centralTravelBilling: false,
+                            expensifyCardMonthlySettlementDate: 0,
+                            expensifyCardSettlementBankAccount: {
+                                bankAccountID: 3288123,
+                                maskedNumber: '111122XXXXXX1111',
+                                ownerEmail: '1234@gmail.com',
+                                state: 'OPEN',
+                            },
+                            expensifyCardSettlementFrequency: 'daily',
+                            expensifyCardUseContinuousReconciliation: true,
+                            expensifyCardisIsMonthlySettlementAllowed: false,
+                            policyWithdrawalIDMap: [],
+                            preferredPolicy: mockPolicyID,
+                        },
+                    },
+                    companyCardNicknames: {},
+                    oAuthAccountDetails: {},
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
 });
