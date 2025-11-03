@@ -62,42 +62,44 @@ function TextInput({
     const headerMessage = options?.headerMessage;
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && !isLoadingNewOptions && resultsFound && !noData;
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
 
     if (!shouldShowTextInput) {
         return null;
     }
     return (
-        <View style={[styles.ph5, styles.pb3]}>
-            <BaseTextInput
-                ref={ref}
-                onKeyPress={onKeyPress}
-                onFocus={() => onFocusChange?.(true)}
-                onBlur={() => onFocusChange?.(false)}
-                label={options?.label}
-                accessibilityLabel={accessibilityLabel}
-                hint={options?.hint}
-                role={CONST.ROLE.PRESENTATION}
-                value={options?.value}
-                placeholder={options?.placeholder}
-                maxLength={options?.maxLength}
-                onChangeText={options?.onChangeText}
-                inputMode={options?.inputMode}
-                selectTextOnFocus
-                spellCheck={false}
-                onSubmitEditing={onSubmit}
-                submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
-                isLoading={isLoading}
-                testID="selection-list-text-input"
-                errorText={options?.errorText}
-                shouldInterceptSwipe={false}
-            />
+        <>
+            <View style={[styles.ph5, styles.pb3]}>
+                <BaseTextInput
+                    ref={ref}
+                    onKeyPress={onKeyPress}
+                    onFocus={() => onFocusChange?.(true)}
+                    onBlur={() => onFocusChange?.(false)}
+                    label={options?.label}
+                    accessibilityLabel={accessibilityLabel}
+                    hint={options?.hint}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={options?.value}
+                    placeholder={options?.placeholder}
+                    maxLength={options?.maxLength}
+                    onChangeText={options?.onChangeText}
+                    inputMode={options?.inputMode}
+                    selectTextOnFocus
+                    spellCheck={false}
+                    onSubmitEditing={onSubmit}
+                    submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
+                    isLoading={isLoading}
+                    testID="selection-list-text-input"
+                    errorText={options?.errorText}
+                    shouldInterceptSwipe={false}
+                />
+            </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
-        </View>
+        </>
     );
 }
 
