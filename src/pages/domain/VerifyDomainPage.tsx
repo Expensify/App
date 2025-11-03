@@ -108,7 +108,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                             {!!domain?.validateCodeError && (
                                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                     <FormHelpMessage
-                                        message={translate('domain.verifyDomain.codeFetchError')}
+                                        message={getLatestErrorMessage({errors: domain.validateCodeError})}
                                         style={[styles.mt0, styles.mb0]}
                                     />
                                     <Button
