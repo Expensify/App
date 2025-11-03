@@ -16,17 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
-let onboardingValues: Onboarding;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        onboardingValues = value;
-    },
-});
-
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
@@ -37,6 +26,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
+    onboardingValues: OnyxEntry<Onboarding>;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -103,6 +93,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
+        onboardingValues,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -145,11 +136,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !currentOnboardingCompanySize)) {
+    if (
+        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
+    ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
