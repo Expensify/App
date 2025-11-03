@@ -1,17 +1,21 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
@@ -26,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
-import WorkspaceSettlementAccountSelectionListHeader from './WorkspaceSettlementAccountSelectionListHeader';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
@@ -49,7 +53,9 @@ function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
 }
 
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -63,6 +69,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
     const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountsList);
 
@@ -115,6 +122,27 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         Navigation.goBack();
     };
 
+    const customListHeaderContent = useMemo(() => {
+        const connectionName = reconciliationConnection ?? '';
+        const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
+
+        return (
+            <>
+                <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                {!!isUsingContinuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
+                    <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
+                        <RenderHTML
+                            html={translate('workspace.expensifyCard.settlementAccountInfo', {
+                                reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
+                                accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
+                            })}
+                        />
+                    </View>
+                )}
+            </>
+        );
+    }, [isUsingContinuousReconciliation, reconciliationConnection, environmentURL, paymentBankAccountNumber, translate, hasActiveAccountingConnection, policyID, styles]);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -143,7 +171,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                    customListHeaderContent={<WorkspaceSettlementAccountSelectionListHeader policyID={policyID} />}
+                    customListHeaderContent={customListHeaderContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
