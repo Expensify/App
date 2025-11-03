@@ -4,7 +4,6 @@ description: Learn how to edit, split, merge, or delete expenses in Expensify, i
 keywords: edit expenses, split expenses, merge expenses, delete expenses, Expensify Classic, expense permissions, company card, SmartScan, Workspace Admin
 ---
 
-<div id="expensify-classic" markdown="1">
 
 You can edit expenses in Expensify to update details like category, description, or attendees. You can also split or merge expenses to break up a larger expense or resolve duplicates. However, some fields have restrictions based on the expense type and report status.
 
@@ -139,6 +138,48 @@ The submitter can only delete expenses, and the report must be in the Open state
 
 ---
 
+# Preventing and Resolving Duplicate Expenses
+
+If you see two versions of the same expense—one SmartScanned and one from your card feed—it’s likely due to a failed merge. Normally, Expensify merges these automatically to prevent duplicates, but if the merge fails, both versions will appear separately.
+
+## Why duplicates happen
+
+SmartScanned receipts are designed to merge with matching card feed transactions. A failed merge creates two expenses for one purchase:
+- A SmartScan-only expense (marked as "SmartScanned")
+- A card feed-only expense (marked as "Imported")
+
+This can result in duplicate reporting and reimbursement issues if not resolved.
+
+## Auto-merge rules
+
+Expenses will only merge automatically if all of the following are true:
+- The card feed posts within 7 days of the SmartScan.
+- The amounts match exactly.
+- The SmartScanned receipt is not yet submitted.
+- Only one matching pair exists.
+
+If these conditions aren’t met, the merge won’t happen automatically.
+
+## How to fix unmerged duplicates
+
+1. Wait a few days if your card expense hasn’t posted yet. The merge may still happen automatically.
+2. Manually merge the SmartScan and card feed expense:
+   - Go to your **Expenses** tab.
+   - Select both expenses.
+   - Click **Merge**.
+3. Delete one of the duplicates if a merge isn’t possible. We recommend keeping the imported expense for accounting accuracy.
+
+## Why this matters
+
+Unmerged duplicates can cause:
+- Inaccurate totals in reports
+- Over-reimbursement
+- Duplicate entries in accounting exports
+
+Resolving duplicates helps keep your reports clean and accurate.
+
+---
+
 # FAQ
 
 ## Can I add multiple attachments to a single expense?
@@ -200,4 +241,3 @@ No need to wait. Matching expenses can still merge post-submission.
 
 You can still merge expenses manually if both are **Unreported** or **Open** and exist in the same account.
 
-</div>

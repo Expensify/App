@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksDesktopReimbursableExpensesAccount} from '@libs/actions/connections/QuickbooksDesktop';
@@ -31,6 +31,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT>>();
     const backTo = route.params?.backTo;
@@ -89,7 +90,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbd.noAccountsFound')}
@@ -97,7 +98,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (

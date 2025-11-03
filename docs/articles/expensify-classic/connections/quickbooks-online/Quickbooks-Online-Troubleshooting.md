@@ -4,7 +4,6 @@ description: Learn how to troubleshoot common QuickBooks Online (QBO) export err
 keywords: [QuickBooks Online, Expensify Classic, troubleshooting, export errors, QuickBooks integration]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 If you're encountering errors when exporting expenses from Expensify to QuickBooks Online, this guide will help you understand the cause and provide step-by-step solutions.
 
@@ -175,4 +174,3 @@ Yes, you can export negative expenses regardless of the export method.
 
 **Exception:** If **Check** is selected as the export method, the total report amount cannot be negative.
 
-</div>

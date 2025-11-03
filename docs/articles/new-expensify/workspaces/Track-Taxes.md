@@ -4,7 +4,6 @@ description: Set up and manage tax rates in your Expensify workspace for non-USD
 keywords: [New Expensify, tax rates, VAT, GST, expense tax codes, foreign currency taxes, workspace settings]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Workspaces on the **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense.
 
@@ -16,7 +15,7 @@ Workspaces on the **Collect** and **Control** plans can add tax rates to track V
 
 To enable tax tracking in a workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Spend** section, toggle on **Taxes**.
@@ -74,4 +73,3 @@ To update these defaults:
 3. Choose **Workspace Currency Default** or **Foreign Currency Default**.
 4. Select the desired tax rate.
 
-</div>

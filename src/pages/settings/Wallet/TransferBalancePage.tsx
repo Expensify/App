@@ -38,7 +38,7 @@ const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET
 
 function TransferBalancePage() {
     const styles = useThemeStyles();
-    const {numberFormat, translate} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
 
@@ -49,16 +49,17 @@ function TransferBalancePage() {
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
-        {
-            key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
-            title: translate('transferAmountPage.instant'),
-            description: translate('transferAmountPage.instantSummary', {
-                rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-            }),
-            icon: Expensicons.Bolt,
-            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
-        },
+        // Temporarily disable P2P debit card, see https://github.com/Expensify/App/pull/46323
+        // {
+        //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
+        //     title: translate('transferAmountPage.instant'),
+        //     description: translate('transferAmountPage.instantSummary', {
+        //         rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
+        //     }),
+        //     icon: Expensicons.Bolt,
+        //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
+        // },
         {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
             title: translate('transferAmountPage.ach'),
@@ -146,7 +147,10 @@ function TransferBalancePage() {
     const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
     return (
-        <ScreenWrapper testID={TransferBalancePage.displayName}>
+        <ScreenWrapper
+            testID={TransferBalancePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <FullPageNotFoundView
                 shouldShow={!shouldShowTransferView}
                 titleKey="notFound.pageNotFound"

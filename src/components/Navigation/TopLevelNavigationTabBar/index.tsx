@@ -1,6 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,6 +30,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
     const StyleUtils = useStyleUtils();
@@ -49,6 +51,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             setIsAfterClosingTransition(false);
         } else {
             // If the bottom tab should be visible, we want to wait for transition to finish.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             cancelAfterInteractions.current = InteractionManager.runAfterInteractions(() => {
                 setIsAfterClosingTransition(true);
             });
@@ -60,6 +63,8 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
         <View
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
+                // There is a missing border right on the wide layout
+                !shouldUseNarrowLayout ? styles.borderRight : {},
                 shouldDisplayLHB ? StyleUtils.positioning.l0 : StyleUtils.positioning.b0,
             ]}
         >
@@ -68,9 +73,9 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 2. We need to hide tooltips as well if they were displayed. */}
             <NavigationTabBar
                 selectedTab={selectedTab}
-                isTooltipAllowed={isReadyToDisplayBottomBar}
                 isTopLevelBar
             />
+            <FloatingCameraButton />
         </View>
     );
 }

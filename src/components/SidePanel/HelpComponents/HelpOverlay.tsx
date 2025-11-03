@@ -24,7 +24,7 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
 
     return (
         <Animated.View
-            style={styles.sidePanelOverlay(isRHPVisible)}
+            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(isRHPVisible)]}
             entering={isRHPVisible ? undefined : CustomFadeIn}
             exiting={isRHPVisible ? undefined : CustomFadeOut}
         >

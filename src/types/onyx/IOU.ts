@@ -147,6 +147,18 @@ type SplitExpense = {
 
     /** Timestamp when this split was created */
     created: string;
+
+    /** Merchant where the amount was spent */
+    merchant?: string;
+
+    /** The status of the transaction report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** Current reportID  */
+    reportID?: string;
+
+    /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
+    reimbursable?: boolean;
 };
 
 /** Model of IOU request */
@@ -236,5 +248,8 @@ type Accountant = {
     login?: string;
 };
 
+/** Type of distance expense */
+type DistanceExpenseType = typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL;
+
 export default IOU;
-export type {Participant, Split, Attendee, Accountant, SplitExpense};
+export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

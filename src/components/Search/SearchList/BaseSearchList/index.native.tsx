@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
 import Animated from 'react-native-reanimated';
-import type {SearchListItem} from '@components/SelectionList/types';
+import type {SearchListItem} from '@components/SelectionListWithSections/types';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -17,15 +17,11 @@ function BaseSearchList({
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
-    estimatedItemSize,
-    overrideItemLayout,
-    estimatedListSize,
     contentContainerStyle,
-    calculatedListHeight,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
-        ({item}: {item: SearchListItem; index: number}) => {
-            return renderItem(item, false, undefined);
+        ({item, index}: {item: SearchListItem; index: number}) => {
+            return renderItem(item, index, false, undefined);
         },
         [renderItem],
     );
@@ -45,11 +41,8 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={1000}
-            estimatedItemSize={estimatedItemSize}
-            overrideItemLayout={overrideItemLayout}
-            estimatedListSize={estimatedListSize}
             contentContainerStyle={contentContainerStyle}
-            overrideProps={{estimatedHeightSize: calculatedListHeight}}
+            maintainVisibleContentPosition={{disabled: true}}
         />
     );
 }

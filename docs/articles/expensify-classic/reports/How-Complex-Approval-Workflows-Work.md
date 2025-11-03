@@ -3,7 +3,6 @@ title: How Complex Approval Workflows Work
 description: Examples of how Advanced Approval Workflows apply in real life.
 keywords: [Expensify Classic, Advanced Approval Workflow, multiple approvers]
 ---
-<div id="expensify-classic" markdown="1">
 
 Approval workflows can become complex. Let's examine the lifecycle of an expense report from submission to final approval.
 
@@ -76,4 +75,3 @@ Amal is on another trip and incurs a $1,200 flight and $950 in accommodations. J
 
 **Outcome:** Large expenses escalate until the report reaches an approver with the required approval limit.
 
-</div>

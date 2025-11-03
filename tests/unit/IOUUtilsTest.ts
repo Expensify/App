@@ -155,19 +155,27 @@ describe('IOUUtils', () => {
 
     describe('insertTagIntoTransactionTagsString', () => {
         test('Inserting a tag into tag string should update the tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2)).toBe(':NY:California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2, true)).toBe(':NY:California');
         });
 
         test('Inserting a tag into an index with no tags should update the tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1)).toBe(':NY:California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1, true)).toBe(':NY:California');
         });
 
         test('Inserting a tag with colon in name into tag string should keep the colon in tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1)).toBe('East:City \\: \\::California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1, true)).toBe('East:City \\: \\::California');
         });
 
         test('Remove a tag from tagString', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1)).toBe('East::California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1, true)).toBe('East::California');
+        });
+
+        test('Return single tag directly when hasMultipleTagLists is false', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, false)).toBe('NewTag');
+        });
+
+        test('Return multiple tags when hasMultipleTagLists is true', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
         });
     });
 });
@@ -267,7 +275,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -325,7 +333,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -385,7 +393,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -403,7 +411,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const report: Report = {
-            ...createRandomReport(7),
+            ...createRandomReport(7, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,

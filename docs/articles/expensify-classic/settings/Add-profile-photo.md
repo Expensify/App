@@ -3,7 +3,6 @@ title: Add-Profile-Photo.md
 description: Learn how to add, change, or remove your profile photo in Expensify.
 keywords: [Expensify Classic, profile photo, account settings, update photo, remove photo]
 ---
-<div id="expensify-classic" markdown="1">
 
 You can update your Expensify profile photo on both desktop and mobile.
 
@@ -37,4 +36,3 @@ You can update your Expensify profile photo on both desktop and mobile.
 ## Why do I already have a profile picture I didn’t add?
 Expensify may automatically add an image if one is associated with your email address. If no image is found, a randomly selected cartoon-style avatar is assigned to new accounts.
 
-</div>

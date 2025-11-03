@@ -1,12 +1,15 @@
-import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import type {OnyxEntry} from 'react-native-onyx';
+import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
+let previousDisplayNames: Record<string, string | undefined> = {};
+let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -19,6 +22,35 @@ const prepareReportKeys = (keys: string[]) => {
             ),
         ),
     ];
+};
+
+const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+    if (!personalDetails) {
+        return false;
+    }
+
+    // Fast path: if reference hasn't changed, display names are definitely the same
+    if (previousPersonalDetails === personalDetails) {
+        return false;
+    }
+
+    const currentDisplayNames = Object.fromEntries(Object.entries(personalDetails).map(([key, value]) => [key, value?.displayName]));
+
+    if (Object.keys(previousDisplayNames).length === 0) {
+        previousDisplayNames = currentDisplayNames;
+        previousPersonalDetails = personalDetails;
+        return false;
+    }
+
+    const currentKeys = Object.keys(currentDisplayNames);
+    const previousKeys = Object.keys(previousDisplayNames);
+
+    const displayNamesChanged = currentKeys.length !== previousKeys.length || currentKeys.some((key) => currentDisplayNames[key] !== previousDisplayNames[key]);
+
+    previousDisplayNames = currentDisplayNames;
+    previousPersonalDetails = personalDetails;
+
+    return displayNamesChanged;
 };
 
 /**
@@ -38,17 +70,33 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
                 locale: null,
             };
         }
+
+        // Check if display names changed when personal details are updated
+        let displayNamesChanged = false;
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+            displayNamesChanged = checkDisplayNamesChanged(personalDetails);
+
+            if (!displayNamesChanged) {
+                return currentValue ?? {reports: {}, locale: null};
+            }
+        }
+
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
             isFullyComputed = false;
+        }
+
+        // if we already computed the report attributes and there is no new reports data, return the current value
+        if ((isFullyComputed && !sourceValues) || !reports) {
+            return currentValue ?? {reports: {}, locale: null};
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT] ?? {};
@@ -57,31 +105,30 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-        // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && !sourceValues) || !reports) {
-            return currentValue ?? {reports: {}, locale: null};
-        }
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
-        const reportUpdatesRelatedToReportActions: string[] = [];
+        const reportUpdatesRelatedToReportActions = new Set<string>();
 
-        Object.keys(reportActionsUpdates).forEach((reportKey) => {
-            Object.keys(reportActionsUpdates[reportKey] ?? {}).forEach((reportActionKey) => {
-                const reportAction = reportActions?.[reportKey]?.[reportActionKey];
+        for (const actions of Object.values(reportActionsUpdates)) {
+            if (!actions) {
+                continue;
+            }
+
+            for (const reportAction of Object.values(actions)) {
                 if (reportAction?.childReportID) {
-                    reportUpdatesRelatedToReportActions.push(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+                    reportUpdatesRelatedToReportActions.add(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
                 }
-            });
-        });
+            }
+        }
 
         const updates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
-            ...reportUpdatesRelatedToReportActions,
+            ...Array.from(reportUpdatesRelatedToReportActions),
         ];
 
         if (isFullyComputed) {
@@ -123,12 +170,17 @@ export default createOnyxDerivedValueConfig({
             const report = reports[key];
 
             if (!report || !isValidReport(report)) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (acc[reportID]) {
+                    delete acc[reportID];
+                }
                 return acc;
             }
 
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const isReportArchived = isArchivedReport(reportNameValuePairs);
+            const isReportArchived = isArchivedReport(reportNameValuePair);
             const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
                 report,
                 chatReport,
@@ -148,8 +200,8 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: generateReportName(report),
-                isEmpty: generateIsEmptyReport(report),
+                reportName: report ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : '',
+                isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
                 reportErrors,

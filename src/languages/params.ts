@@ -85,6 +85,12 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type LearnMoreRouteParams = {
+    learnMoreMethodsRoute: string;
+    formattedPrice: string;
+    hasTeam2025Pricing: boolean;
+};
+
 type BeginningOfArchivedRoomParams = {
     reportName: string;
     reportDetailsLink: string;
@@ -164,6 +170,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
@@ -178,6 +188,8 @@ type WorkspaceRouteParams = {
 };
 
 type RequestAmountParams = {amount: string};
+
+type ReportFieldParams = {name: string; value: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
@@ -210,8 +222,6 @@ type CreateExpensesParams = {expensesNumber: number};
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
-type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -288,8 +298,6 @@ type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerc
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
-
-type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
@@ -591,8 +599,6 @@ type LastSyncAccountingParams = {relativeDate: string};
 
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
-type ReconciliationWorksParams = {lastFourPAN: string};
-
 type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
@@ -602,11 +608,6 @@ type VacationDelegateParams = {nameOrEmail: string};
 type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
 
 type RoleNamesParams = {role: string};
-
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
 
 type SpreadSheetColumnParams = {
     name: string;
@@ -650,6 +651,7 @@ type DemotedFromWorkspaceParams = {
 type IntegrationExportParams = {
     integration: string;
     type?: string;
+    exportPageLink?: string;
 };
 
 type ConnectionParams = {
@@ -737,6 +739,11 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type SignerInfoMessageParams = {
+    bankAccountLastFour: string | undefined;
+    currency: string | undefined;
+};
+
 type CustomUnitRateParams = {
     rate: number;
 };
@@ -763,6 +770,10 @@ type SettlementDateParams = {
 
 type PolicyExpenseChatNameParams = {
     displayName: string;
+};
+
+type ReceiptPartnersUberSubtitleParams = {
+    organizationName: string;
 };
 
 type ReviewParams = {
@@ -828,6 +839,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type BusinessRegistrationNumberParams = {
+    country: string;
+};
+
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
@@ -859,6 +874,19 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type EnableContinuousReconciliationParams = {
+    connectionName: string;
+    accountingAdvancedSettingsLink: string;
+};
+
+type WorkspaceUpgradeNoteParams = {
+    subscriptionLink: string;
+};
+
+type ChangedApproverMessageParams = {managerID: number};
+
+type WorkflowSettingsParam = {workflowSettingLink: string};
+
 type IndividualExpenseRulesSubtitleParams = {
     categoriesPageLink: string;
     tagsPageLink: string;
@@ -889,7 +917,46 @@ type SubmittedWithMemoParams = {
     memo?: string;
 };
 
+type DependentMultiLevelTagsSubtitleParams = {
+    importSpreadsheetLink: string;
+};
+
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
+};
+
+type WalletAgreementParams = {
+    walletAgreementUrl: string;
+};
+
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
+type SettlementAccountReconciliationParams = {
+    settlementAccountUrl: string;
+    lastFourPAN: string;
+};
+
+type DisconnectYourBankAccountParams = {
+    bankName: string;
+};
+
+type MergeAccountIntoParams = {
+    login: string;
+};
+
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
+    SettlementAccountReconciliationParams,
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
@@ -918,7 +985,6 @@ export type {
     DelegateRoleParams,
     DelegatorParams,
     VacationDelegateParams,
-    ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
     RequiredFieldParams,
@@ -964,7 +1030,6 @@ export type {
     LowerUpperParams,
     LogSizeAndDateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomParams,
@@ -990,6 +1055,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
+    LearnMoreRouteParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1052,7 +1118,6 @@ export type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
@@ -1106,7 +1171,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
@@ -1144,6 +1208,7 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1169,6 +1234,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1179,6 +1245,10 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    EnableContinuousReconciliationParams,
+    WorkspaceUpgradeNoteParams,
+    ChangedApproverMessageParams,
+    WorkflowSettingsParam,
     MovedActionParams,
     IndividualExpenseRulesSubtitleParams,
     BillableDefaultDescriptionParams,
@@ -1187,4 +1257,14 @@ export type {
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
+    SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
+    DependentMultiLevelTagsSubtitleParams,
+    PayAndDowngradeDescriptionParams,
+    WalletAgreementParams,
+    ErrorODIntegrationParams,
+    DisconnectYourBankAccountParams,
+    MergeAccountIntoParams,
+    ReportFieldParams,
+    FocusModeUpdateParams,
 };

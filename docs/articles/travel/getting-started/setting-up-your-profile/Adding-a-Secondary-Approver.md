@@ -4,7 +4,6 @@ description: Learn how to assign a secondary approver to your travel profile so 
 keywords: [secondary approver, travel approval, backup approver, travel configuration, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Add a secondary approver to your travel profile so that bookings can move forward smoothly, even if you’re out of office.
 
@@ -54,4 +53,3 @@ They’ll be notified only when a booking needs your approval. If you're inactiv
 ## Can I remove or change a secondary approver later?
 Absolutely. Just return to the **Configuration** tab in your profile and make any necessary changes.
 
-</div>

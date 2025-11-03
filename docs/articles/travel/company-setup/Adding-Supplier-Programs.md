@@ -4,7 +4,6 @@ description: Learn how travel admins can add airline and car rental supplier pro
 keywords: [supplier program, airline discount, car rental discount, uatp, united passplus, travel admin, expensify travel]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Travel admins can add supplier programs to ensure corporate discounts and direct billing are automatically applied during booking.
 
@@ -90,4 +89,3 @@ Yes, as long as the traveler books an eligible airline or rental car vendor, the
 ## Can I add multiple supplier programs?
 Yes. You can add multiple codes across both air and car vendors to match your company’s contracts.
 
-</div>

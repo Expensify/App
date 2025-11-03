@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -9,7 +9,9 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -107,6 +109,7 @@ function BaseValidateCodeForm({
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -125,7 +128,17 @@ function BaseValidateCodeForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
+    const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+    const clearDefaultValidationCodeError = useCallback(() => {
+        // Clear "Failed to send magic code" error
+
+        if (isEmptyObject(defaultValidateCodeError)) {
+            return;
+        }
+        clearValidateCodeActionError('actionVerified');
+    }, [defaultValidateCodeError]);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -175,8 +188,16 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        inputValidateCodeRef.current?.clear();
-    }, [validateCodeSent]);
+        // Delay prevents the input from gaining focus before the RHP slide out animation finishes,
+        // which would cause the wide RHP to flicker in the background.
+        if (wideRHPRouteKeys.length > 0 && !isMobileSafari()) {
+            focusTimeoutRef.current = setTimeout(() => {
+                inputValidateCodeRef.current?.clear();
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
+            inputValidateCodeRef.current?.clear();
+        }
+    }, [validateCodeSent, wideRHPRouteKeys.length]);
 
     useEffect(() => {
         if (timeRemaining > 0) {
@@ -226,6 +247,8 @@ function BaseValidateCodeForm({
 
         // Clear "incorrect magic" code error
         clearValidateCodeActionError(validateCodeActionErrorField);
+
+        clearDefaultValidationCodeError();
         setCanShowError(true);
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
@@ -239,7 +262,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError, clearDefaultValidationCodeError]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
@@ -270,10 +293,13 @@ function BaseValidateCodeForm({
                 autoFocus={false}
             />
             {shouldShowTimer && (
-                <Text style={[styles.mt5]}>
-                    {translate('validateCodeForm.requestNewCode')}
-                    <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
-                </Text>
+                <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
+                    <RenderHTML
+                        html={translate('validateCodeForm.requestNewCode', {
+                            timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                        })}
+                    />
+                </View>
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
@@ -309,13 +335,14 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError ? finalValidateError : undefined}
+                errors={canShowError ? (finalValidateError ?? defaultValidateCodeError) : defaultValidateCodeError}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();
                     if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
                         clearValidateCodeActionError(validateCodeActionErrorField);
                     }
+                    clearDefaultValidationCodeError();
                 }}
                 style={buttonStyles}
             >

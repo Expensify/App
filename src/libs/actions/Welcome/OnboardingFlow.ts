@@ -111,6 +111,10 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
 
+    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
+    }
+
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
@@ -141,18 +145,21 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !currentOnboardingCompanySize)) {
+    if (
+        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
+    ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     return onboardingInitialPath;
 }
 
-const getOnboardingMessages = (locale?: Locale) => {
+const getOnboardingMessages = (hasIntroSelected = false, locale?: Locale) => {
     const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
     const testDrive = {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
@@ -164,6 +171,13 @@ const getOnboardingMessages = (locale?: Locale) => {
             DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
+        autoCompleted: false,
+        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+        mediaAttributes: {},
     };
     const createReportTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
@@ -337,8 +351,18 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 
     const onboardingManageTeamMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {hasIntroSelected}),
+        tasks: [
+            createWorkspaceTask,
+            testDriveAdminTask,
+            addAccountingIntegrationTask,
+            connectCorporateCardTask,
+            inviteTeamTask,
+            setupCategoriesAndTags,
+            setupCategoriesTask,
+            setupTagsTask,
+            addExpenseApprovalsTask,
+        ],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
@@ -393,5 +417,5 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 };
 
-export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize};
+export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

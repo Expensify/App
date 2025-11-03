@@ -2,7 +2,7 @@ pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 apply from: "${rootDir}/../gradleUtils/PatchedArtifactsSettings.gradle"
 
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rnef', 'config', '-p', 'android']) }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rock', 'config', '-p', 'android']) }
 rootProject.name = 'NewExpensify'
 include ':react-native-webview'
 project(':react-native-webview').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-webview/android')

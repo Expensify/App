@@ -1,4 +1,5 @@
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -6,6 +7,7 @@ import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -26,8 +28,8 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
+import type Domain from './Domain';
 import type Download from './Download';
-import type DraftReportComments from './DraftReportComments';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
@@ -107,6 +109,7 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -128,6 +131,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 
 export type {
+    FileObject,
     TryNewDot,
     Account,
     AccountData,
@@ -135,6 +139,7 @@ export type {
     BankAccount,
     BankAccountList,
     Beta,
+    BetaConfiguration,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -146,8 +151,9 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
-    DuplicateWorkspace,
+    Domain,
     Download,
+    DuplicateWorkspace,
     WorkspaceCardsList,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
@@ -231,6 +237,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    SupportalPermissionDenied,
     PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
@@ -268,8 +275,8 @@ export type {
     TravelProvisioning,
     SidePanel,
     LastPaymentMethodType,
-    LastSearchParams,
     ReportAttributesDerivedValue,
+    LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,
@@ -278,5 +285,4 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
-    DraftReportComments,
 };

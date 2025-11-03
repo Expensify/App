@@ -32,7 +32,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -103,13 +103,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
+    const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: getDefaultApprover(policy),
+                policy,
                 personalDetails: personalDetails ?? {},
                 localeCompare,
             }),
@@ -128,15 +129,53 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, accountID);
+        const isApprover = isApproverUserAction(policy, memberLogin);
+        const isTechnicalContact = policy?.technicalContact === details?.login;
+        const exporters = [
+            policy?.connections?.intacct?.config?.export?.exporter,
+            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policy?.connections?.xero?.config?.export?.exporter,
+            policy?.connections?.netsuite?.options.config.exporter,
+        ];
+        const isUserExporter = exporters.includes(details.login);
+
+        if (isTechnicalContact) {
+            return translate('workspace.people.removeMemberPromptTechContact', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isReimburser) {
+            return translate('workspace.people.removeMemberPromptReimburser', {
+                memberName: displayName,
+            });
+        }
+
+        if (isUserExporter) {
+            return translate('workspace.people.removeMemberPromptExporter', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
+
+        if (isApprover) {
+            return translate('workspace.people.removeMemberPromptApprover', {
+                approver: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [policy, memberLogin, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -173,27 +212,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
+        if (isReimburser) {
+            setIsCannotRemoveUser(true);
+            return;
+        }
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers([accountID], policyID);
+        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(route.params.policyID, false);
+            setPolicyPreventSelfApproval(policyID, false);
         }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
+    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
 
     const removeUser = useCallback(() => {
         const ownerEmail = ownerDetails?.login;
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -209,15 +252,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
-                removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                removeApprovalWorkflowAction(updatedWorkflow, policy);
             } else {
-                updateApprovalWorkflow(policyID, workflow, [], []);
+                updateApprovalWorkflow(workflow, [], [], policy);
             }
         });
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -265,9 +308,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [accountID], value);
+            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
         },
-        [accountID, policyID],
+        [accountID, memberLogin, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
@@ -348,6 +391,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.people.removeMemberTitle')}
+                                isVisible={isCannotRemoveUser}
+                                onConfirm={() => {
+                                    setIsCannotRemoveUser(false);
+                                }}
+                                prompt={confirmModalPrompt}
+                                confirmText={translate('common.buttonConfirm')}
+                                success
+                                shouldShowCancelButton={false}
                             />
                         </View>
                         <View style={styles.w100}>
@@ -436,7 +490,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     shouldRemoveHoverBackground={isCardDeleted}
                                                     disabled={isCardDeleted}
                                                     shouldShowRightIcon={!isCardDeleted}
-                                                    style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                    style={[isCardDeleted ? styles.offlineFeedbackDeleted : {}]}
                                                 />
                                             </OfflineWithFeedback>
                                         );

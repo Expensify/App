@@ -13,7 +13,8 @@ type ModalCardStyleInterpolatorProps = {
     shouldFadeScreen?: boolean;
     shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
+    outputRangeMultiplier?: Animated.AnimatedNode;
+    animationEnabled?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
@@ -34,6 +35,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         shouldFadeScreen = false,
         shouldAnimateSidePanel = false,
         outputRangeMultiplier = 1,
+        animationEnabled = true,
     }) => {
         if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
             return {
@@ -42,17 +44,20 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
-                extrapolate: 'clamp',
-            }),
+            Animated.multiply(
+                progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
+                    extrapolate: 'clamp',
+                }),
+                outputRangeMultiplier,
+            ),
             inverted,
         );
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        if (!isFullScreenModal || shouldUseNarrowLayout) {
+        if (animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout)) {
             cardStyle.transform = [{translateX}];
         }
 

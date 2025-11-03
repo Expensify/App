@@ -1,4 +1,6 @@
 import React from 'react';
+import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,7 +9,7 @@ import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import Country from './Country';
-import Docusign from './Docusign/Docusign';
+import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
 import requiresDocusignStep from './utils/requiresDocusignStep';
@@ -18,7 +20,8 @@ type NonUSDVerifiedBankAccountFlowProps = {
     setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
     policyID: string | undefined;
     shouldShowContinueSetupButtonValue: boolean;
-    policyCurrency: string | undefined;
+    policyCurrency: string;
+    isComingFromExpensifyCard?: boolean;
 };
 
 function NonUSDVerifiedBankAccountFlow({
@@ -28,7 +31,9 @@ function NonUSDVerifiedBankAccountFlow({
     policyID,
     shouldShowContinueSetupButtonValue,
     policyCurrency,
+    isComingFromExpensifyCard,
 }: NonUSDVerifiedBankAccountFlowProps) {
+    const styles = useThemeStyles();
     const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
     const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.DOCUSIGN_REQUIRED_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
@@ -94,18 +99,21 @@ function NonUSDVerifiedBankAccountFlow({
         }
     };
 
+    let CurrentStep: React.JSX.Element | null;
     switch (nonUSDBankAccountStep) {
         case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-            return (
+            CurrentStep = (
                 <Country
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     policyID={policyID}
+                    isComingFromExpensifyCard={isComingFromExpensifyCard}
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
-            return (
+            CurrentStep = (
                 <BankInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
@@ -113,53 +121,74 @@ function NonUSDVerifiedBankAccountFlow({
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
-            return (
+            CurrentStep = (
                 <BusinessInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-            return (
+            CurrentStep = (
                 <BeneficialOwnerInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
-            return (
+            CurrentStep = (
                 <SignerInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-            return (
+            CurrentStep = (
                 <Agreements
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
-                    stepNames={stepNames}
                     policyCurrency={policyCurrency}
+                    stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
-            return (
+            CurrentStep = (
                 <Docusign
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
-                    policyID={policyID}
+                    policyCurrency={policyCurrency}
                     stepNames={stepNames}
                 />
             );
+            break;
         case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
-            return <Finish />;
+            CurrentStep = <Finish />;
+            break;
         default:
-            return null;
+            CurrentStep = null;
+            break;
     }
+
+    if (CurrentStep) {
+        return (
+            <View
+                style={styles.flex1}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
+                {CurrentStep}
+            </View>
+        );
+    }
+
+    return null;
 }
 
 NonUSDVerifiedBankAccountFlow.displayName = 'NonUSDVerifiedBankAccountFlow';

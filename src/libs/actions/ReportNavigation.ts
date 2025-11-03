@@ -6,4 +6,8 @@ function saveLastSearchParams(value: LastSearchParams) {
     Onyx.set(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, value);
 }
 
-export default saveLastSearchParams;
+function clearLastSearchParams() {
+    Onyx.set(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {});
+}
+
+export {clearLastSearchParams, saveLastSearchParams};

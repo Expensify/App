@@ -90,6 +90,9 @@ type Comment = {
     /** Collection of split expenses */
     splitExpenses?: SplitExpense[];
 
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
@@ -161,7 +164,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -475,6 +478,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
+
         /** Existing routes */
         routes?: Routes;
 
@@ -524,9 +530,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
-
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
 
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
@@ -583,6 +586,9 @@ type AdditionalTransactionChanges = {
 
     /** Previous currency before changes */
     oldCurrency?: string;
+
+    /** Previous distance before changes */
+    distance?: number;
 };
 
 /** Model of transaction changes  */
@@ -590,6 +596,12 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
+/** Transaction that is not associated with any report */
+type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
+    /** The ID of the report that this transaction is associated with. */
+    reportID: '0';
+};
 
 export default Transaction;
 export type {
@@ -609,4 +621,5 @@ export type {
     TransactionCollectionDataSet,
     SplitShares,
     TransactionCustomUnit,
+    UnreportedTransaction,
 };

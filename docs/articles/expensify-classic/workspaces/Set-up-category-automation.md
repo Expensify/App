@@ -3,7 +3,6 @@ title: Set Up Category Automation
 description: Automatically add categories to expenses
 keywords: [Expensify Classic, category code, category automation]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify learns how you categorize certain merchants over time and automatically applies that category to future expenses with the same merchant.
 
@@ -25,4 +24,3 @@ Expensify automatically detects the merchant type for most imported credit card 
 3. Click the **Edit** icon next to the default category you want to update.
 4. Select the appropriate category and save your changes.
 
-</div>
