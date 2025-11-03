@@ -48,7 +48,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString, getCurrencyUnit} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -13656,22 +13656,14 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
         return;
     }
 
-    // Floor-allocation with remainder added to the last split so the last is always the largest
+    // Floor-allocation with full remainder added to the last split so the last is always the largest
     const splitCount = splitExpenses.length;
-    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
-    const totalInCurrencySubunit = (total / 100) * currencyUnit;
-    const baseShareSubunit = Math.floor(totalInCurrencySubunit / splitCount);
-    const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * splitCount;
     const lastIndex = splitCount - 1;
 
-    const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
-        const subunitAmount = baseShareSubunit + (index === lastIndex ? remainderSubunit : 0);
-        const amountInCents = Math.round((subunitAmount * 100) / currencyUnit);
-        return {
-            ...splitExpense,
-            amount: amountInCents,
-        };
-    });
+    const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
+        ...splitExpense,
+        amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, 'floorToLast'),
+    }));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
