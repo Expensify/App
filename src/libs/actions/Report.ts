@@ -1085,13 +1085,12 @@ function openReport(
             });
         }
 
+        // Attach the optimistic IOU report action created for the transaction to the transaction thread
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                parentReportID: transactionParentReportID,
                 parentReportActionID: iouReportActionID,
-                reportName: getTransactionReportName({reportAction: optimisticIOUAction}),
             },
         });
 
