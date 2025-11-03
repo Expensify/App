@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
@@ -6,6 +7,7 @@ import MockedOnyx from 'react-native-onyx';
 import TestToolMenu from '@components/TestToolMenu';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import * as NetworkActions from '@src/libs/actions/Network';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -21,8 +23,6 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
-import navigationRef from '@libs/Navigation/navigationRef';
-import {NavigationContainer} from '@react-navigation/native';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -414,7 +414,7 @@ describe('NetworkTests', () => {
                 }}
             >
                 <TestToolMenu />
-            </NavigationContainer>
+            </NavigationContainer>,
         );
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
