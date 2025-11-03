@@ -66,6 +66,7 @@ function CardSection() {
         [purchaseList],
     );
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
@@ -84,6 +85,7 @@ function CardSection() {
             accountData: defaultCard?.accountData ?? {},
             purchase: purchaseList?.[0],
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+            billingDisputePending,
         }),
     );
 
@@ -103,6 +105,7 @@ function CardSection() {
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+                billingDisputePending,
             }),
         );
     }, [
@@ -113,6 +116,7 @@ function CardSection() {
         defaultCard?.accountData,
         privateStripeCustomerID,
         purchaseList,
+        billingDisputePending,
     ]);
 
     const handleRetryPayment = () => {
