@@ -68,11 +68,11 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [policyID]);
 
     useEffect(() => {
-        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
+        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation?.value !== undefined || reconciliationConnection !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
+    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation?.value, reconciliationConnection, fetchPolicyAccountingData]);
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {

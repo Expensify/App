@@ -117,11 +117,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     }, [policyID]);
 
     useEffect(() => {
-        if (continuousReconciliation !== undefined) {
+        if (continuousReconciliation?.value !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [continuousReconciliation, fetchPolicyAccountingData]);
+    }, [continuousReconciliation?.value, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
