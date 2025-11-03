@@ -119,7 +119,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
     const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
-    const [showSceletons, setShowSceletons] = useState<boolean>(true);
+    // const [showSceletons, setShowSceletons] = useState<boolean>(true);
     const selectedPolicyIDs = useMemo(
         () => [
             ...new Set(
@@ -137,6 +137,8 @@ function SearchPage({route}: SearchPageProps) {
         activeAdminPolicies,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
     });
+
+    const showReports = !!currentSearchResults || isFocused;
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -716,18 +718,11 @@ function SearchPage({route}: SearchPageProps) {
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
-        console.log('duppppppa dupa _________________');
-        console.log('Search naprawdę się wywołał');
-        console.log('duppppppa dupa _________________');
-        debugger;
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
             search(value).then((jsonCode) => {
                 setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-                if (isFocused) {
-                    setShowSceletons(false);
-                }
             });
         }
     }, []);
@@ -754,13 +749,7 @@ function SearchPage({route}: SearchPageProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    useEffect(() => {
-        console.log('zmiana statusu search duuuuupa dupa');
-        console.log(currentSearchResults);
-        console.log('____________________________________');
-    }, [currentSearchResults]);
-
-    if (true) {
+    if (showReports) {
         if (shouldUseNarrowLayout) {
             return (
                 <>
@@ -867,6 +856,7 @@ function SearchPage({route}: SearchPageProps) {
             </ScreenWrapper>
         );
     }
+
     return (
         <View style={styles.searchSplitContainer}>
             <ScreenWrapper

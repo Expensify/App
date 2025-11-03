@@ -697,9 +697,6 @@ function SearchAutocompleteList({
         useCallback(() => {
             const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const startTime = Date.now();
-            console.log('duppppppa dupa _________________');
-            console.log('odpaliło searcha z poziomu SearchAutoCompleteList');
-            console.log('duppppppa dupa _________________');
             Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
             Log.info('[CMD_K_DEBUG] Debounced search started', false, {
                 actionId,
