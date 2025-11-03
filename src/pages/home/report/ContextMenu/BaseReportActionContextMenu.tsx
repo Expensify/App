@@ -368,6 +368,7 @@ function BaseReportActionContextMenu({
                             movedToReport,
                             getLocalDateFromDatetime,
                             policyTags,
+                            translate,
                         };
 
                         if ('renderContent' in contextAction) {
