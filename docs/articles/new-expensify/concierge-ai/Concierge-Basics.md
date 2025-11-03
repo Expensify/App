@@ -1,14 +1,14 @@
 ---
 title: Concierge Basics
 description: Get to know Concierge - your built-in support agent, expense assistant, and workflow manager.
-keywords: Concierge AI, support chat, contact Concierge, submit expenses, approve reports, AI help, human support, disable escalation
+keywords: Concierge AI, support chat, contact Concierge, submit expenses, approve reports, AI help, human support, escalate
 order: 1
 ---
 <div id="new-expensify" markdown="1">
 
 Concierge is your built-in Expensify assistant—here to answer questions, create expenses, manage reports, and speed up your workflows. It’s part AI, part human, and always available.
 
-# What is Concierge AI in New Expensify?
+# What is Concierge?
 
 Concierge is an intelligent support agent that lives inside Expensify. It’s powered by AI and backed by real humans when needed. Whether you’re asking about a feature, creating an expense, or troubleshooting an issue, Concierge is designed to help.
 
@@ -19,12 +19,12 @@ Think of Concierge as your:
 
 All rolled into one!
 
-# Where to find Concierge AI in New Expensify
+# Where to find Concierge
 
 You can chat with Concierge from anywhere in the app:
 
-- **On web:** Press the + button at the bottom left corner of the screen, select Start Chat, and type Concierge into the composer box.
-- **On mobile:** Tap Create at the bottom of your screen, select Start Chat, and type Concierge into the composer box.
+- **On web:** Press the **+** button at the bottom left corner of the screen, select **Start Chat**, and type **Concierge** into the composer box.
+- **On mobile:** Tap **Create** at the bottom of your screen, select **Start Chat**, and type **Concierge **into the composer box.
 
 You can also contact Concierge by:
 - Email: **concierge@expensify.com**  
@@ -40,9 +40,9 @@ Here are a few examples you can type:
 - “Submit my April travel report.”  
 - “Approve Alice’s report with the Uber expense.”
 
-> **Tip:** The more specific you are, the better the response.
+**Tip:** The more specific you are, the better the response.
 
-# What can Concierge AI do?
+# What can Concierge do?
 
 Concierge can help you:
 - Answer questions about Expensify’s features and settings  
@@ -53,13 +53,13 @@ Concierge can help you:
 
 New features are added regularly.
 
-# Can I ask Concierge AI multiple questions at once?
+# Can I ask Concierge multiple questions at once?
 
-Yes! Just be clear in your message. Concierge can understand multi-step instructions like:
+Yes! Just be clear in your message. Concierge can understand multi-step instructions like: 
 
-> “Is this report reimbursable? And can you create a $25 taxi expense for it?”
+“Is this report reimbursable? And can you create a $25 taxi expense for it?”
 
-# Can I talk to a real person instead of Concierge AI?
+# Can I talk to a real person instead of Concierge?
 
 Absolutely. Just say you’d like to chat with a human, and we’ll connect you—24/7.
 
