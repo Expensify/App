@@ -5233,15 +5233,25 @@ function deleteAppReport(reportID: string | undefined) {
         value: reportActionsForReport,
     });
 
-    // 7. Delete the report
+    // 7. Mark the iouReport as being deleted and then delete it
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            pendingFields: {
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            },
+        },
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: null,
     });
 
     failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: report,
     });
@@ -5251,7 +5261,7 @@ function deleteAppReport(reportID: string | undefined) {
     const parentReportID = report?.parentReportID;
     const parentReportAction = parentReportID && reportActionID ? allReportActions?.[parentReportID]?.[reportActionID] : undefined;
 
-    if (reportActionID && parentReportAction) {
+    if (reportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
@@ -5268,6 +5278,7 @@ function deleteAppReport(reportID: string | undefined) {
             value: {
                 [reportActionID]: {
                     pendingAction: null,
+                    errors: null,
                 },
             },
         });
@@ -5277,7 +5288,7 @@ function deleteAppReport(reportID: string | undefined) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
                 [reportActionID]: {
-                    pendingAction: null,
+                    ...parentReportAction,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
                 },
             },
