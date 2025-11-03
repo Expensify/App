@@ -713,12 +713,12 @@ describe('actions/PersonalDetails', () => {
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserAvatarUtils.getCustomAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserAvatarUtils.getCustomAvatarURL).toHaveBeenCalledWith(currentUserPersonalDetail.accountID, currentUserPersonalDetail.email);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith(currentUserPersonalDetail.accountID, currentUserPersonalDetail.email);
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
                 optimisticData: [
                     {
@@ -757,7 +757,7 @@ describe('actions/PersonalDetails', () => {
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserAvatarUtils.getCustomAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
@@ -794,7 +794,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserAvatarUtils.getCustomAvatarURL).not.toHaveBeenCalled();
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).not.toHaveBeenCalled();
             expect(mockAPI.write).not.toHaveBeenCalled();
         });
 
@@ -808,12 +808,12 @@ describe('actions/PersonalDetails', () => {
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserAvatarUtils.getCustomAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserAvatarUtils.getCustomAvatarURL).toHaveBeenCalledWith(456, undefined);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith(456, undefined);
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_USER_AVATAR,
                 null,

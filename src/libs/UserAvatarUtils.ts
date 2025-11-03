@@ -128,7 +128,7 @@ function getDefaultAvatarName(accountID: number = CONST.DEFAULT_NUMBER_ID, accou
  * getCustomAvatarURL(CONST.ACCOUNT_ID.CONCIERGE)
  * // => CONST.CONCIERGE_ICON_URL
  */
-function getCustomAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
+function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
@@ -260,7 +260,7 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  * @returns The avatar URL string
  */
 function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number, accountEmail?: string): AvatarSource | undefined {
-    return isCustomAvatar(avatarSource) ? getCustomAvatarURL(accountID, accountEmail, avatarSource) : avatarSource;
+    return isCustomAvatar(avatarSource) ? getDefaultAvatarURL(accountID, accountEmail, avatarSource) : avatarSource;
 }
 
 /**
@@ -315,7 +315,7 @@ export {
     getAvatar,
     getAvatarUrl,
     getDefaultAvatarName,
-    getCustomAvatarURL,
+    getDefaultAvatarURL,
     getCustomAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,

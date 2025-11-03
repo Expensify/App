@@ -442,7 +442,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserAvatarUtils.getCustomAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
+    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
 
     const optimisticData: OnyxUpdate[] = [
         {
