@@ -775,7 +775,8 @@
         "MULTIFACTORAUTHENTICATION",
         "Humpty",
         "Dumpty",
-        "multifactor"
+        "multifactor",
+        "renable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
