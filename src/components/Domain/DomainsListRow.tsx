@@ -33,7 +33,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
+        <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.pr3, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
             <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Icon
                     src={Expensicons.Globe}
