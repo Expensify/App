@@ -121,16 +121,21 @@ function WorkspaceCreateReportFieldsPage({
     const handleOnValueCommitted = useCallback(
         (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
             // Mirror optimisticType logic from createReportField: if user enters a formula
-            // while type is Text, automatically switch the type to Formula in the form.
+            // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
             const isFormula = hasFormulaPartsInInitialValue(initialValue);
-            if (!isFormula) {
-                return;
+            if (isFormula) {
+                formRef.current?.resetForm({
+                    ...inputValues,
+                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
+                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
+                });
+            } else {
+                formRef.current?.resetForm({
+                    ...inputValues,
+                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
+                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
+                });
             }
-            formRef.current?.resetForm({
-                ...inputValues,
-                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
-                [INPUT_IDS.INITIAL_VALUE]: initialValue,
-            });
         },
         [],
     );
@@ -218,7 +223,7 @@ function WorkspaceCreateReportFieldsPage({
                                 />
                             )}
 
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
+                            {(inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT || inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.FORMULA) && (
                                 <InputWrapper
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
