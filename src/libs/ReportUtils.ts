@@ -4396,9 +4396,9 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
 
     // If the current user took control, then they are the final approver and we don't have a next approver
     // If someone else took control or rerouted, they are the next approver
-    const bypassApprover = getBypassApproverIfTakenControl(report);
-    if (bypassApprover) {
-        return bypassApprover === currentUserAccountID && !isUnapproved ? undefined : bypassApprover;
+    const bypassApproverAccountID = getBypassApproverAccountIDIfTakenControl(report);
+    if (bypassApproverAccountID) {
+        return bypassApproverAccountID === currentUserAccountID && !isUnapproved ? undefined : bypassApproverAccountID;
     }
 
     const approvalChain = getApprovalChain(policy, report);
@@ -11670,7 +11670,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
  * Checks if someone took control of the report and if that take control is still valid
  * A take control is invalidated if there's a SUBMITTED action after it
  */
-function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): number | null {
+function getBypassApproverAccountIDIfTakenControl(expenseReport: OnyxEntry<Report>): number | null {
     if (!expenseReport?.reportID) {
         return null;
     }
