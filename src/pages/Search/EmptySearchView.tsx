@@ -301,7 +301,9 @@ function EmptySearchViewContent({
                         </View>
                     ))}
                 </View>
-                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                <SearchScopeProvider isOnSearch={false}>
+                    <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                </SearchScopeProvider>
             </>
         );
     }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
@@ -520,6 +522,7 @@ function EmptySearchViewContent({
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
+        currentUserPersonalDetails.accountID,
     ]);
 
     return (
