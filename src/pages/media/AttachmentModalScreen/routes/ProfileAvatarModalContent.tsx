@@ -34,9 +34,10 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - tempSource can be ''
+    // Temp variables are coming as '' therefore || is needed
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const source = tempSource || getFullSizeAvatar(avatarURL, accountID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - tempOriginalFileName can be ''
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables
