@@ -57,7 +57,10 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
 
 // Get the filename from the receipt
 function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+    if (typeof receipt?.source === 'string') {
+        return receipt?.source?.split('/')?.pop();
+    }
+    return `${receipt?.filename ?? receipt?.source}`;
 }
 
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
@@ -334,6 +337,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        reportName: mergeTransaction.reportName,
         taxValue: mergeTransaction.taxValue,
         taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
@@ -387,7 +391,11 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -446,17 +454,16 @@ function buildMergeFieldsData(
         };
     });
 }
-
 type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
     transaction: OnyxEntry<Transaction>;
     field: K;
     fieldValue: MergeTransaction[K];
-    mergeTransaction: OnyxEntry<MergeTransaction>;
+    mergeTransaction?: OnyxEntry<MergeTransaction>;
 };
 
 /**
  * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field, reportID
+ * Handles special cases like currency for amount field, reportID, taxValue
  */
 function getMergeFieldUpdatedValues<K extends MergeFieldKey>(params: GetMergeFieldUpdatedValuesParams<K>): MergeTransactionUpdateValues {
     const {transaction, field, fieldValue, mergeTransaction} = params;
@@ -469,6 +476,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(params: GetMergeFie
         if (mergeTransaction?.taxValue && transaction?.amount) {
             updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrency(transaction)));
         }
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
     }
 
     if (field === 'taxValue') {
