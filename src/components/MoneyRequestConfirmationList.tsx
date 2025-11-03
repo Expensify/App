@@ -352,7 +352,8 @@ function MoneyRequestConfirmationList({
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
 
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
+    const shouldCalculateDistanceAmount =
+        isDistanceRequest && !!rate && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
     const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
 
@@ -454,7 +455,7 @@ function MoneyRequestConfirmationList({
         if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
-        if (!isDistanceRequest || !transactionID) {
+        if (!isDistanceRequest || !transactionID || !rate) {
             return;
         }
         if (isReadOnly) {
