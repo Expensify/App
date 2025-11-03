@@ -638,6 +638,17 @@ const translations = {
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
+        leaveWorkspace: 'Leave workspace',
+        leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
+        leaveWorkspaceConfirmationAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
+        leaveWorkspaceConfirmationAdmin: "If you leave this workspace, you won't be able to manage its settings.",
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
@@ -2207,10 +2218,9 @@ const translations = {
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generating PDF',
+        generatingPDF: 'Generating PDF...',
         waitForPDF: 'Please wait while we generate the PDF',
         errorPDF: 'There was an error when trying to generate your PDF',
-        generatedPDF: 'Your report PDF has been generated!',
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
@@ -4534,9 +4544,7 @@ const translations = {
             cardholder: 'Cardholder',
             card: 'Card',
             cardName: 'Card name',
-            brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
-            brokenConnectionErrorLink: 'log into your bank ',
-            brokenConnectionErrorSecondPart: 'so we can establish the connection again.',
+            brokenConnectionError: '<rbr>Card feed connection is broken. Please <a href="#">log into your bank</a> so we can establish the connection again.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `assigned ${assignee} a ${link}! Imported transactions will appear in this chat.`,
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
@@ -5088,6 +5096,18 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total workspace members: ${count}`,
             importMembers: 'Import members',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
         },
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
@@ -6395,6 +6415,11 @@ const translations = {
         newReport: {
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
+            emptyReportConfirmationTitle: 'You already have an empty report',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
+            emptyReportConfirmationPromptLink: 'Reports',
+            genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',
@@ -7093,6 +7118,8 @@ const translations = {
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
         clearRoomDescription: 'cleared the room description',
+        changedRoomAvatar: 'changed the room avatar',
+        removedRoomAvatar: 'removed the room avatar',
     },
     delegate: {
         switchAccount: 'Switch accounts:',
