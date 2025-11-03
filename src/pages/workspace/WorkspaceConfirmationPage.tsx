@@ -17,21 +17,23 @@ function WorkspaceConfirmationPage() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-        createWorkspaceWithPolicyDraftAndNavigateToIt(
-            '',
-            params.name,
-            false,
-            false,
-            '',
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
+            introSelected,
+            policyOwnerEmail: '',
+            policyName: params.name,
+            transitionFromOldDot: false,
+            makeMeAdmin: false,
+            backTo: '',
             policyID,
-            params.currency,
-            params.avatarFile as File,
-            routeToNavigate,
-            lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-        );
+            currency: params.currency,
+            file: params.avatarFile as File,
+            routeToNavigateAfterCreate: routeToNavigate,
+            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
+        });
     };
     const currentUrl = getCurrentUrl();
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
