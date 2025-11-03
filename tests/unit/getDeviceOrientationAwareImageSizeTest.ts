@@ -1,9 +1,8 @@
 import type {getSize} from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
-
 import getDeviceOrientationAwareImageSizeWeb from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index';
-import getDeviceOrientationAwareImageSizeIOS from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.ios';
 import getDeviceOrientationAwareImageSizeAndroid from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android';
+import getDeviceOrientationAwareImageSizeIOS from '../../src/libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.ios';
 
 type GetDeviceOrientationAwareImageSizeParams = {
     imageSize: Awaited<ReturnType<typeof getSize>>;
@@ -120,7 +119,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
         describe('Non-rotated images (0° and 180°)', () => {
             it('should handle 0 degree rotation', () => {
                 const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: { ...mockImageSizeWithRotation, rotation: 0 },
+                    imageSize: {...mockImageSizeWithRotation, rotation: 0},
                     aspectRatioWidth: 16,
                     aspectRatioHeight: 9,
                 };
@@ -136,7 +135,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
 
             it('should handle 180 degree rotation', () => {
                 const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: { ...mockImageSizeWithRotation, rotation: 180 },
+                    imageSize: {...mockImageSizeWithRotation, rotation: 180},
                     aspectRatioWidth: 4,
                     aspectRatioHeight: 3,
                 };
@@ -154,7 +153,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
         describe('Rotated images (90° and 270°)', () => {
             it('should handle 90 degree rotation with dimension and aspect ratio swapping', () => {
                 const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: { ...mockImageSizeWithRotation, rotation: 90 },
+                    imageSize: {...mockImageSizeWithRotation, rotation: 90},
                     aspectRatioWidth: 16,
                     aspectRatioHeight: 9,
                 };
@@ -170,7 +169,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
 
             it('should handle 270 degree rotation with dimension and aspect ratio swapping', () => {
                 const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: { ...mockImageSizeWithRotation, rotation: 270 },
+                    imageSize: {...mockImageSizeWithRotation, rotation: 270},
                     aspectRatioWidth: 21,
                     aspectRatioHeight: 9,
                 };
