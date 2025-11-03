@@ -1655,7 +1655,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
 
-        const {result: ancestors} = renderHook(() => useAncestors({reportID}));
+        const {result: ancestors} = renderHook(() => useAncestors(report));
 
         Report.deleteReportComment(reportID, mentionAction, ancestors.current, undefined, undefined);
         Report.deleteReportComment(reportID, mentionAction2, ancestors.current, undefined, undefined);
