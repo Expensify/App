@@ -7356,7 +7356,7 @@ const translations = {
             fallbackPageTitle: "Let's verify it's you",
             fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
             fallbackPage2FAContent: 'Please enter your authenticator code.',
-            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Face/fingerprint verification',
