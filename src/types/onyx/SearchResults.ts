@@ -119,9 +119,6 @@ type SearchReport = {
     /** The main action that can be performed for the report */
     action?: SearchTransactionAction;
 
-    /** The available actions that can be performed for the report */
-    allActions?: SearchTransactionAction[];
-
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
