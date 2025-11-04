@@ -249,7 +249,7 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
             />
             <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
                 {
-                    // @ts-expect-error translation can have or not have parameters
+                    // @ts-expect-error translation can have parameters
                     translate(description, {contactMethod})
                 }
             </Text>

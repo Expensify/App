@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
+import FixedFooter from '@components/FixedFooter';
 import {contextMenuRef} from './home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from './home/report/ContextMenu/ReportActionContextMenu';
 
@@ -89,9 +90,9 @@ function MFAScenarioApproveTransactionPage() {
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.mh5, styles.mb5]}>
-                <View>
-                    <View style={[styles.gap2, styles.mb4]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
+                <View style={styles.mh5}>
+                    <View style={[styles.gap2, styles.mb6]}>
                         <Text style={styles.textHeadlineLineHeightXXL}>{translate('multiFactorAuthentication.approveTransaction.pageTitle')}</Text>
                         <Text style={styles.textSupporting}>{translate('multiFactorAuthentication.approveTransaction.pageContent')}</Text>
                     </View>
@@ -117,11 +118,12 @@ function MFAScenarioApproveTransactionPage() {
                         shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
                     />
                 </View>
-                <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween]}>
+                {/* <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween]}> */}
+                <FixedFooter style={[styles.flexRow, styles.gap2]}>
                     <Button
                         danger
                         large
-                        style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
+                        style={styles.flex1}
                         onPress={onGoBackPress}
                         text={translate('common.deny')}
                         // isLoading={isValidateCodeFormSubmitting}
@@ -130,13 +132,14 @@ function MFAScenarioApproveTransactionPage() {
                     <Button
                         success
                         large
-                        style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
+                        style={styles.flex1}
                         onPress={approveTransaction}
                         text={translate('common.approve')}
                         // isLoading={isValidateCodeFormSubmitting}
                         // isDisabled={isOffline}
                     />
-                </View>
+                </FixedFooter>
+                {/* </View> */}
             </View>
         </ScreenWrapper>
     );
