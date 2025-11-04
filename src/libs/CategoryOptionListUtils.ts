@@ -194,7 +194,6 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translate('common.recent'),
             shouldShow: true,
             data,
@@ -205,7 +204,6 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translate('common.all'),
         shouldShow: true,
         data,
