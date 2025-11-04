@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'CAP / Codice postale',
         whatThis: "Cos'è questo?",
         iAcceptThe: 'Accetto il',
+        acceptTermsAndPrivacy: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio di Expensify</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>`,
+        acceptTermsAndConditions: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">termini e condizioni</a>`,
+        acceptTermsOfService: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio di Expensify</a>`,
         remove: 'Rimuovi',
         admin: 'Admin',
         owner: 'Proprietario',
@@ -2244,10 +2247,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generazione PDF',
+        generatingPDF: 'Generazione PDF...',
         waitForPDF: 'Attendere mentre generiamo il PDF',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
-        generatedPDF: 'Il tuo PDF del rapporto è stato generato!',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione della stanza',
@@ -2627,10 +2629,8 @@ ${amount} per ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!'
-                    : '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui semplicemente i restanti passaggi di configurazione qui sotto!',
+            onboardingManageTeamMessage:
+                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -4581,9 +4581,8 @@ ${amount} per ${merchant} - ${date}`,
             cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome della carta',
-            brokenConnectionErrorFirstPart: `La connessione del feed della carta è interrotta. Per favore`,
-            brokenConnectionErrorLink: 'accedi al tuo conto bancario',
-            brokenConnectionErrorSecondPart: 'così possiamo ristabilire la connessione.',
+            brokenConnectionError:
+                '<rbr>La connessione del feed della carta è interrotta. Per favore <a href="#">accedi al tuo conto bancario</a> così possiamo ristabilire la connessione.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `assegnato ${assignee} un ${link}! Le transazioni importate appariranno in questa chat.`,
             companyCard: 'carta aziendale',
             chooseCardFeed: 'Scegli il feed della carta',
@@ -5159,6 +5158,7 @@ ${amount} per ${merchant} - ${date}`,
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
+                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
