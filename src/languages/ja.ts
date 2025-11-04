@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: '郵便番号',
         whatThis: 'これは何ですか？',
         iAcceptThe: '承諾します',
+        acceptTermsAndPrivacy: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 利用規約</a> および <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>`,
+        acceptTermsAndConditions: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">利用規約</a>`,
+        acceptTermsOfService: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 利用規約</a>`,
         remove: '削除',
         admin: '管理者',
         owner: 'オーナー',
@@ -2617,10 +2620,8 @@ ${date} - ${merchant}に${amount}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。'
-                    : '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。チームの領収書や経費を管理するために、すでにワークスペースを作成しました。30日間の無料トライアルを最大限利用するために、下記の残りの手順に従ってください。',
+            onboardingManageTeamMessage:
+                '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。',
             onboardingTrackWorkspaceMessage:
                 '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
@@ -5115,6 +5116,7 @@ ${date} - ${merchant}に${amount}`,
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
