@@ -13,7 +13,6 @@ export PROJECT_ROOT="$PROJECT_DIR/.."
 if [[ "$CONFIGURATION" = *Debug* ]]; then
   export SKIP_BUNDLING=1
 fi
-
 if [[ -z "$ENTRY_FILE" ]]; then
   # Set the entry JS file using the bundler's entry resolution.
   ENTRY_FILE="$("$NODE_BINARY" -e "require('expo/scripts/resolveAppEntry')" "$PROJECT_ROOT" ios relative | tail -n 1)"
@@ -30,4 +29,4 @@ if [[ -z "$BUNDLE_COMMAND" ]]; then
   export BUNDLE_COMMAND="bundle"
 fi
 
-"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"
+"$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'"
