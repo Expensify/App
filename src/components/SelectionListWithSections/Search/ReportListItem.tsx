@@ -11,7 +11,7 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
-import ReportItemRow from './ReportListItemRow';
+import ReportListItemRow from './ReportListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -101,7 +101,7 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <ReportItemRow
+            <ReportListItemRow
                 item={reportItem}
                 isActionLoading={isLoading ?? reportItem.isActionLoading}
                 showTooltip={showTooltip}
