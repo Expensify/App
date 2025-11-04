@@ -12,7 +12,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtilsPhoneUtils} from '@libs/LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
@@ -84,7 +83,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {formatPhoneNumber, formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtilsPhoneUtils} from '@libs/LocalePhoneNumber';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -368,7 +367,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = participant?.displayName || formatPhoneNumberPhoneUtilsPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -379,7 +378,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         firstName: (detail?.firstName || participant.firstName) ?? '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastName: (detail?.lastName || participant.lastName) ?? '',
-        alternateText: formatPhoneNumberPhoneUtils(login) || displayName,
+        alternateText: formatPhoneNumberPhoneUtilsPhoneUtils(login) || displayName,
         icons: [
             {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -430,7 +429,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
+          lastActorDetails.firstName || formatPhoneNumberPhoneUtilsPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
         : // eslint-disable-next-line @typescript-eslint/no-deprecated
           translateLocal('common.you');
 }
@@ -511,7 +510,7 @@ function getAlternateText(
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+        : formatPhoneNumberPhoneUtilsPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -630,7 +629,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails)),
+                    displayName: formatPhoneNumberPhoneUtilsPhoneUtils(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
                 });
                 break;
@@ -910,14 +909,14 @@ function createOption(
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumber(personalDetail?.login ?? '')
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumberPhoneUtils: formatPhoneNumberPhoneUtilsPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumberPhoneUtils: formatPhoneNumberPhoneUtilsPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
-        result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
+        result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
 
     // Set core display properties that are used in SearchOption context
@@ -2209,8 +2208,8 @@ function getSearchOptions({
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(personalDetail, login)),
-        alternateText: formatPhoneNumberPhoneUtils(login || getDisplayNameOrDefault(personalDetail, '', false)),
+        text: formatPhoneNumberPhoneUtilsPhoneUtils(getDisplayNameOrDefault(personalDetail, login)),
+        alternateText: formatPhoneNumberPhoneUtilsPhoneUtils(login || getDisplayNameOrDefault(personalDetail, '', false)),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
