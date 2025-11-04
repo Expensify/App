@@ -465,6 +465,30 @@ describe('ReportUtils', () => {
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
         });
+
+        it('includes avatar in optimistic Setup Specialist personal detail', () => {
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                '1',
+            );
+
+            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
+            const setupSpecialistDetail = Object.values(personalDetailsData ?? {})[0];
+
+            expect(setupSpecialistDetail).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+
+            mergeSpy.mockRestore();
+        });
     });
 
     describe('getIconsForParticipants', () => {
