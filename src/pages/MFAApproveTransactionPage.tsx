@@ -1,6 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
-import FixedFooter from '@components/FixedFooter';
 import {contextMenuRef} from './home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from './home/report/ContextMenu/ReportActionContextMenu';
 
@@ -90,57 +91,53 @@ function MFAScenarioApproveTransactionPage() {
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                <View style={styles.mh5}>
-                    <View style={[styles.gap2, styles.mb6]}>
-                        <Text style={styles.textHeadlineLineHeightXXL}>{translate('multiFactorAuthentication.approveTransaction.pageTitle')}</Text>
-                        <Text style={styles.textSupporting}>{translate('multiFactorAuthentication.approveTransaction.pageContent')}</Text>
+            <FullPageOfflineBlockingView>
+                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
+                    <View style={styles.mh5}>
+                        <View style={[styles.gap2, styles.mb6]}>
+                            <Text style={styles.textHeadlineLineHeightXXL}>{translate('multiFactorAuthentication.approveTransaction.pageTitle')}</Text>
+                            <Text style={styles.textSupporting}>{translate('multiFactorAuthentication.approveTransaction.pageContent')}</Text>
+                        </View>
+                        <View style={styles.mb2}>
+                            <Text style={styles.textMicroSupporting}>{translate('multiFactorAuthentication.approveTransaction.transactionDetails')}</Text>
+                        </View>
+                        <TransactionPreview
+                            allReports={allReports}
+                            chatReportID={chatReportID}
+                            action={getIOUActionForReportID(chatReportID, transactionID)}
+                            contextAction={action}
+                            reportID={reportID}
+                            isBillSplit={isSplitBillAction}
+                            isTrackExpense={isTrackExpenseAction}
+                            contextMenuAnchor={contextMenuAnchor}
+                            iouReportID={iouReportID}
+                            containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle]}
+                            shouldDisplayContextMenu={shouldDisplayContextMenu}
+                            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
+                            transactionID={transactionID}
+                            reportPreviewAction={action}
+                            onPreviewPressed={openReportFromPreview}
+                            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+                        />
                     </View>
-                    <View style={styles.mb2}>
-                        <Text style={styles.textMicroSupporting}>{translate('multiFactorAuthentication.approveTransaction.transactionDetails')}</Text>
-                    </View>
-                    <TransactionPreview
-                        allReports={allReports}
-                        chatReportID={chatReportID}
-                        action={getIOUActionForReportID(chatReportID, transactionID)}
-                        contextAction={action}
-                        reportID={reportID}
-                        isBillSplit={isSplitBillAction}
-                        isTrackExpense={isTrackExpenseAction}
-                        contextMenuAnchor={contextMenuAnchor}
-                        iouReportID={iouReportID}
-                        containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle]}
-                        shouldDisplayContextMenu={shouldDisplayContextMenu}
-                        transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
-                        transactionID={transactionID}
-                        reportPreviewAction={action}
-                        onPreviewPressed={openReportFromPreview}
-                        shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-                    />
+                    <FixedFooter style={[styles.flexRow, styles.gap2]}>
+                        <Button
+                            danger
+                            large
+                            style={styles.flex1}
+                            onPress={onGoBackPress}
+                            text={translate('common.deny')}
+                        />
+                        <Button
+                            success
+                            large
+                            style={styles.flex1}
+                            onPress={approveTransaction}
+                            text={translate('common.approve')}
+                        />
+                    </FixedFooter>
                 </View>
-                {/* <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween]}> */}
-                <FixedFooter style={[styles.flexRow, styles.gap2]}>
-                    <Button
-                        danger
-                        large
-                        style={styles.flex1}
-                        onPress={onGoBackPress}
-                        text={translate('common.deny')}
-                        // isLoading={isValidateCodeFormSubmitting}
-                        // isDisabled={isOffline}
-                    />
-                    <Button
-                        success
-                        large
-                        style={styles.flex1}
-                        onPress={approveTransaction}
-                        text={translate('common.approve')}
-                        // isLoading={isValidateCodeFormSubmitting}
-                        // isDisabled={isOffline}
-                    />
-                </FixedFooter>
-                {/* </View> */}
-            </View>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
