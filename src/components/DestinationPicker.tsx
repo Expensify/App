@@ -64,7 +64,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         const showInput = !isDestinationsCountBelowThreshold;
 
         return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
+    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
     const selectedOptionKey = useMemo(
         () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
