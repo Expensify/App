@@ -1348,10 +1348,7 @@ const translations = {
         enableWallet: '启用钱包',
         hold: '保持',
         unhold: '移除保留',
-        holdExpense: () => ({
-            one: '搁置费用',
-            other: '冻结费用',
-        }),
+        holdExpense: '保留费用',
         unholdExpense: '取消保留费用',
         heldExpense: '保留此费用',
         unheldExpense: '取消搁置此费用',
@@ -1362,10 +1359,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
         newReport: '新报告',
-        explainHold: () => ({
-            one: '请说明你为何暂扣此笔费用。',
-            other: '解释你为何暂扣这些费用。',
-        }),
+        explainHold: '请解释您为何保留此费用。',
         retracted: '撤回',
         retract: '撤回',
         reopened: '重新打开',

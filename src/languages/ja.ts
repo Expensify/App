@@ -1367,10 +1367,7 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
-        holdExpense: () => ({
-            one: '経費を保留',
-            other: '経費を保留',
-        }),
+        holdExpense: '経費を保留',
         unholdExpense: '経費の保留を解除',
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費を未保留にする',
@@ -1381,10 +1378,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
-        explainHold: () => ({
-            one: 'この経費を保留にしている理由を説明してください。',
-            other: 'これらの経費を保留にしている理由を説明してください。',
-        }),
+        explainHold: 'この経費を保留している理由を説明してください。',
         retracted: '撤回されました',
         retract: '取り消す',
         reopened: '再開されました',

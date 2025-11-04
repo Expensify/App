@@ -1367,10 +1367,7 @@ const translations = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         unhold: 'Verwijder blokkering',
-        holdExpense: () => ({
-            one: 'Uitgave in de wacht zetten',
-            other: 'Uitgaven in de wacht zetten',
-        }),
+        holdExpense: 'Uitgave vasthouden',
         unholdExpense: 'Uitgave deblokkeren',
         heldExpense: 'deze uitgave vastgehouden',
         unheldExpense: 'deblokkeer deze uitgave',
@@ -1381,10 +1378,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         newReport: 'Nieuw rapport',
-        explainHold: () => ({
-            one: 'Leg uit waarom je deze uitgave aanhoudt.',
-            other: 'Leg uit waarom je deze uitgaven aanhoudt.',
-        }),
+        explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
         retracted: 'ingetrokken',
         retract: 'Intrekken',
         reopened: 'heropend',

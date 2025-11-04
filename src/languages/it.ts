@@ -1365,10 +1365,7 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Attendere',
         unhold: 'Rimuovi blocco',
-        holdExpense: () => ({
-            one: 'Sospendi spesa',
-            other: 'Metti in sospeso le spese',
-        }),
+        holdExpense: 'Trattieni spesa',
         unholdExpense: 'Sblocca spesa',
         heldExpense: 'trattenuto questa spesa',
         unheldExpense: 'sblocca questa spesa',
@@ -1379,10 +1376,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         newReport: 'Nuovo rapporto',
-        explainHold: () => ({
-            one: 'Spiega perché stai mettendo in sospeso questa spesa.',
-            other: 'Spiega perché stai mettendo in sospeso queste spese.',
-        }),
+        explainHold: 'Spiega perché stai trattenendo questa spesa.',
         retracted: 'retratato',
         retract: 'Ritirare',
         reopened: 'riaperto',

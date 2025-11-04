@@ -1362,10 +1362,7 @@ const translations = {
         enableWallet: 'Ativar carteira',
         hold: 'Manter',
         unhold: 'Remover retenção',
-        holdExpense: () => ({
-            one: 'Reter despesa',
-            other: 'Reter despesas',
-        }),
+        holdExpense: 'Reter despesa',
         unholdExpense: 'Desbloquear despesa',
         heldExpense: 'mantido esta despesa',
         unheldExpense: 'liberou esta despesa',
@@ -1376,10 +1373,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
         newReport: 'Novo relatório',
-        explainHold: () => ({
-            one: 'Explique por que você está retendo esta despesa.',
-            other: 'Explique por que você está retendo essas despesas.',
-        }),
+        explainHold: 'Explique por que você está retendo esta despesa.',
         retracted: 'retraído',
         retract: 'Retrair',
         reopened: 'reaberto',
