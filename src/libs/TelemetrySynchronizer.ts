@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
+import type Middleware from './Middleware/types';
 import {getActivePolicies} from './PolicyUtils';
 
 /**
@@ -60,3 +61,13 @@ function sendPoliciesContext() {
     Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
 }
+
+/**
+ * This middleware will intercept all requests and send requestID to the current Span in Sentry
+ */
+const sendRequestIdToTelemetry: Middleware = (requestResponse) =>
+    requestResponse.then((response) => {
+        Sentry.getActiveSpan()?.setAttribute(CONST.TELEMETRY.SPAN_ATTRIBUTE_REQUEST_ID, response?.requestID ?? 'unknown');
+        return response;
+    });
+export default sendRequestIdToTelemetry;
