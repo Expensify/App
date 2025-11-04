@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -14,7 +15,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
@@ -25,7 +25,6 @@ import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
-    generateReportID,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -48,7 +47,6 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {rejectMoneyRequest} from './IOU';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
@@ -582,29 +580,6 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
-    const transactionIDs = Object.keys(selectedTransactions);
-
-    const transactionsByReport: Record<string, string[]> = {};
-    transactionIDs.forEach((transactionID) => {
-        const reportID = selectedTransactions[transactionID].reportID;
-        if (!transactionsByReport[reportID]) {
-            transactionsByReport[reportID] = [];
-        }
-        transactionsByReport[reportID].push(transactionID);
-    });
-
-    Object.entries(transactionsByReport).forEach(([reportID, reportTransactionIDs]) => {
-        // Share a single destination ID across all rejections from the same source report
-        const sharedRejectedToReportID = generateReportID();
-        reportTransactionIDs.forEach((transactionID) => {
-            rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
-        });
-    });
-
-    playSound(SOUNDS.SUCCESS);
-}
-
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     const optimisticData: OnyxUpdate[] = [
@@ -701,6 +676,7 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
+    translate: LocalizedTranslate,
     policy?: Policy,
     includeReportLevelExport = true,
 ): ExportTemplate[] {
@@ -715,23 +691,13 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(
-            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
-            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-        ),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(
-            normalizeTemplate(
-                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
-                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-            ),
+            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
         );
     }
 
@@ -981,7 +947,6 @@ export {
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
-    rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,

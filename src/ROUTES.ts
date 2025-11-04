@@ -102,7 +102,6 @@ const ROUTES = {
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
-    SEARCH_REJECT_REASON_RHP: 'search/reject',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -268,6 +267,14 @@ const ROUTES = {
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
+    },
+    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
+        route: 'settings/card/:cardID/update-address',
+        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
+    },
+    SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/card/:cardID/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-magic-code` as const,
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
@@ -1261,8 +1268,14 @@ const ROUTES = {
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         route: 'workspaces/:policyID/invite-message/role',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role`, backTo)}` as const,
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INVITE_MESSAGE_ROLE route');
+            }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role` as const, backTo);
+        },
     },
     WORKSPACE_OVERVIEW: {
         route: 'workspaces/:policyID/overview',
