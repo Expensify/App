@@ -37,7 +37,6 @@ import type {
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
-    SetDefaultWorkspaceNavigatorParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
     SignInNavigatorParamList,
@@ -67,13 +66,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
-        animation: Animations.NONE,
-    },
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
-        animation: Animations.NONE,
-    },
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
         animation: Animations.NONE,
     },
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
@@ -191,6 +184,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceMap').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceManual').default,
+    [SCREENS.SET_DEFAULT_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
@@ -217,10 +211,6 @@ const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorPar
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewReportWorkspaceSelectionPage').default,
-});
-
-const SetDefaultWorkspaceModalStackNavigator = createModalStackNavigator<SetDefaultWorkspaceNavigatorParamList>({
-    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
@@ -300,6 +290,8 @@ const ExpensifyCardModalStackNavigator = createModalStackNavigator({
 const DomainCardModalStackNavigator = createModalStackNavigator({
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
@@ -837,9 +829,7 @@ const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactio
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
 });
 
@@ -939,7 +929,6 @@ export {
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
-    SetDefaultWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
