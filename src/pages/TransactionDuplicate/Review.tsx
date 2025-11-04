@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
@@ -19,13 +20,12 @@ import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -33,8 +33,8 @@ function TransactionDuplicateReview() {
     const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: false});
@@ -47,11 +47,63 @@ function TransactionDuplicateReview() {
         [transactionViolations],
     );
     const transactionIDs = useMemo(() => (transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs), [transactionID, duplicateTransactionIDs]);
+
+    const allTransactionsSelector = useCallback(
+        (allTransactions: OnyxCollection<Transaction>): OnyxCollection<Transaction> => {
+            if (!allTransactions) {
+                return {};
+            }
+
+            const filteredTransactions: OnyxCollection<Transaction> = {};
+            transactionIDs.forEach((id) => {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+                if (allTransactions[key]) {
+                    filteredTransactions[key] = allTransactions[key];
+                }
+            });
+            return filteredTransactions;
+        },
+        [transactionIDs],
+    );
+
+    const [allTransactions] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: allTransactionsSelector,
+            canBeMissing: false,
+        },
+        [allTransactionsSelector],
+    );
+
+    const allTransactionViolationsSelector = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> => {
+            if (!allViolations) {
+                return {};
+            }
+            const filteredViolations: OnyxCollection<TransactionViolations> = {};
+            transactionIDs.forEach((id) => {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`;
+                if (allViolations[key]) {
+                    filteredViolations[key] = allViolations[key];
+                }
+            });
+            return filteredViolations;
+        },
+        [transactionIDs],
+    );
+
+    const [allTransactionViolation] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: allTransactionViolationsSelector,
+            canBeMissing: false,
+        },
+        [allTransactionViolationsSelector],
+    );
+
     const transactionsSelector = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) =>
-            transactionIDs
-                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
-                .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+        (transactions: OnyxCollection<Transaction>) =>
+            transactionIDs.map((id) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
         [transactionIDs],
     );
 
@@ -65,7 +117,15 @@ function TransactionDuplicateReview() {
     );
 
     const keepAll = () => {
-        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails, expenseReport, policy, isASAPSubmitBetaEnabled);
+        dismissDuplicateTransactionViolation({
+            transactionIDs,
+            dismissedPersonalDetails: currentPersonalDetails,
+            expenseReport,
+            policy,
+            isASAPSubmitBetaEnabled,
+            allTransactionsCollection: allTransactions,
+            allTransactionViolationsCollection: allTransactionViolation,
+        });
         Navigation.goBack();
     };
 

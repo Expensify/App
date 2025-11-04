@@ -6,6 +6,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 
 let shouldStoreLogs = false;
 
@@ -51,7 +52,7 @@ function logMessage(args: unknown[]) {
                 }
             }
 
-            return String(arg);
+            return SafeString(arg);
         })
         .join(' ');
     const newLog = {time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message, extraData: ''};
@@ -107,7 +108,7 @@ function createLog(text: string) {
         if (result !== undefined) {
             return [
                 {time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`, extraData: ''},
-                {time, level: CONST.DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: ''},
+                {time, level: CONST.DEBUG_CONSOLE.LEVELS.RESULT, message: SafeString(result), extraData: ''},
             ];
         }
         return [{time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`, extraData: ''}];
