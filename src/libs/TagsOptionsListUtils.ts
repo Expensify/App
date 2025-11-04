@@ -144,7 +144,6 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translate('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
@@ -153,7 +152,6 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translate('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
