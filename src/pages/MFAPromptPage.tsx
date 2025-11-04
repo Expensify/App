@@ -59,14 +59,14 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     // Memoize to avoid recalculating on every render
     const contentData = useMemo(() => getPromptContentData(route.params.promptType), [route.params.promptType]);
 
-    if (!contentData) {
-        return <NotFoundPage />;
-    }
-
     // TODO: replace with MFA logic - now only for testing
     const onConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
     }, []);
+    
+    if (!contentData) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper testID={MultiFactorAuthenticationPromptPage.displayName}>
