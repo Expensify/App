@@ -127,19 +127,6 @@ const restrictedImportPaths = [
     },
 ];
 
-const restrictedIconImportPaths = [
-    {
-        name: '@components/Icon/Illustrations',
-        message:
-            'Direct imports from @components/Icon/Illustrations are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyIllustrations` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-    {
-        name: '@components/Icon/Expensicons',
-        message:
-            'Direct imports from @components/Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-];
-
 const restrictedImportPatterns = [
     {
         group: ['**/assets/animations/**/*.json'],
@@ -532,19 +519,6 @@ const config = defineConfig([
                             message: 'Do not import files from src/ directory as they can break the GH Actions build script.',
                         },
                     ],
-                },
-            ],
-        },
-    },
-
-    {
-        files: ['**/*.ts', '**/*.tsx'],
-        rules: {
-            'no-restricted-imports': [
-                'warn',
-                {
-                    paths: [...restrictedImportPaths, ...restrictedIconImportPaths],
-                    patterns: restrictedImportPatterns,
                 },
             ],
         },
