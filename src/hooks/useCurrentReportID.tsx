@@ -3,7 +3,8 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import Navigation from '@libs/Navigation/Navigation';
 
 type CurrentReportIDContextValue = {
-    updateCurrentReportID: (state: NavigationState) => void;
+    getCurrentReportID: (state: NavigationState) => string | undefined;
+    updateCurrentReportID: (reportID: string | undefined) => void;
     currentReportID: string | undefined;
 };
 
@@ -23,10 +24,10 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
 
     /**
-     * This function is used to update the currentReportID
+     * This function is used to get the currentReportID
      * @param state root navigation state
      */
-    const updateCurrentReportID = useCallback(
+    const getCurrentReportID = useCallback(
         (state: NavigationState) => {
             const reportID = Navigation.getTopmostReportId(state);
 
@@ -36,8 +37,20 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
              */
             const params = state?.routes?.[state.index]?.params;
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
-                return;
+                return currentReportID;
             }
+
+            return reportID;
+        },
+        [currentReportID],
+    );
+
+    /**
+     * This function is used to update the currentReportID
+     * @param reportID
+     */
+    const updateCurrentReportID = useCallback(
+        (reportID: string | undefined) => {
             // Prevent unnecessary updates when the report ID hasn't changed
             if (currentReportID === reportID) {
                 return;
@@ -63,9 +76,10 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const contextValue = useMemo(
         (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
+            getCurrentReportID,
             currentReportID,
         }),
-        [updateCurrentReportID, currentReportID],
+        [updateCurrentReportID, currentReportID, getCurrentReportID],
     );
 
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
