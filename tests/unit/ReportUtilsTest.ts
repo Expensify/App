@@ -586,74 +586,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getDisplayNameForParticipant', () => {
-        it('should return the display name for a participant', async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-
-            waitForBatchedUpdates();
-
-            const policyExpenseChat: Report = {
-                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                policyID: policy.id,
-                policyName: policy.name,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            const lastReportPreviewAction = {
-                action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report 2025-07-10',
-                childReportID: '5186125925096828',
-                created: '2025-07-10 17:45:31.448',
-                reportActionID: '7425617950691586420',
-                shouldShow: true,
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: 'a owes ETB 5.00',
-                        text: 'a owes ETB 5.00',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                        deleted: '',
-                        reactions: [],
-                    },
-                ],
-                originalMessage: {
-                    linkedReportID: '5186125925096828',
-                    actionableForAccountIDs: [20232605],
-                    isNewDot: true,
-                    lastModified: '2025-07-10 17:45:53.635',
-                },
-                person: [
-                    {
-                        type: 'TEXT',
-                        style: 'strong',
-                        text: 'f100',
-                    },
-                ],
-                parentReportID: policyExpenseChat.reportID,
-            };
-
-            const iouReport = {
-                reportName: 'Expense Report 2025-07-10',
-                reportID: '5186125925096828',
-                policyID: policy.id,
-                type: 'expense',
-                currency: 'ETB',
-                ownerAccountID: 1,
-                total: -500,
-                nonReimbursableTotal: 0,
-                parentReportID: policyExpenseChat.reportID,
-                parentReportActionID: lastReportPreviewAction.reportActionID,
-                chatReportID: policyExpenseChat.reportID,
-            } as Report;
-
-            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
-            expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
-        });
-    });
-
     describe('hasReceiptError', () => {
         it('should return false for transaction has no receipt error', () => {
             const parentReport = LHNTestUtils.getFakeReport();
@@ -8814,6 +8746,75 @@ describe('ReportUtils', () => {
             };
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
+        });
+    });
+
+    describe('getDisplayNameForParticipant', () => {
+        it('should return the display name for a participant', async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            waitForBatchedUpdates();
+
+            const policyExpenseChat: Report = {
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const lastReportPreviewAction = {
+                action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-07-10',
+                childReportID: '5186125925096828',
+                created: '2025-07-10 17:45:31.448',
+                reportActionID: '7425617950691586420',
+                shouldShow: true,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'a owes ETB 5.00',
+                        text: 'a owes ETB 5.00',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                        reactions: [],
+                    },
+                ],
+                originalMessage: {
+                    linkedReportID: '5186125925096828',
+                    actionableForAccountIDs: [20232605],
+                    isNewDot: true,
+                    lastModified: '2025-07-10 17:45:53.635',
+                },
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f100',
+                    },
+                ],
+                parentReportID: policyExpenseChat.reportID,
+            };
+
+            const iouReport = {
+                reportName: 'Expense Report 2025-07-10',
+                reportID: '5186125925096828',
+                policyID: policy.id,
+                type: 'expense',
+                currency: 'ETB',
+                ownerAccountID: 1,
+                total: -500,
+                nonReimbursableTotal: 0,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: lastReportPreviewAction.reportActionID,
+                chatReportID: policyExpenseChat.reportID,
+            } as Report;
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
+            expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
     });
 });
