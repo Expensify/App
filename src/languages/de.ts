@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'Postleitzahl',
         whatThis: 'Was ist das?',
         iAcceptThe: 'Ich akzeptiere die',
+        acceptTermsAndPrivacy: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-Nutzungsbedingungen</a> und <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzrichtlinie</a>`,
+        acceptTermsAndConditions: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">Allgemeine Geschäftsbedingungen</a>`,
+        acceptTermsOfService: `Ich akzeptiere die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-Nutzungsbedingungen</a>`,
         remove: 'Entfernen',
         admin: 'Admin',
         owner: 'Eigentümer',
@@ -642,6 +645,18 @@ const translations = {
         help: 'Hilfe',
         expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
+        leaveWorkspace: 'Arbeitsbereich verlassen',
+        leaveWorkspaceConfirmation: 'Wenn du diesen Arbeitsbereich verlässt, kannst du keine Ausgaben mehr dafür einreichen.',
+        leaveWorkspaceConfirmationAuditor: 'Wenn du diesen Arbeitsbereich verlässt, kannst du die Berichte und Einstellungen dieses Arbeitsbereichs nicht mehr einsehen.',
+        leaveWorkspaceConfirmationAdmin: 'Wenn du diesen Arbeitsbereich verlässt, kannst du dessen Einstellungen nicht mehr verwalten.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn du diesen Arbeitsbereich verlässt, wirst du im Genehmigungs-Workflow durch ${workspaceOwner}, den/die Inhaber:in des Arbeitsbereichs, ersetzt.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn du diesen Arbeitsbereich verlässt, wirst du als bevorzugter Exporteur durch ${workspaceOwner}, den Inhaber des Arbeitsbereichs, ersetzt.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn du diesen Arbeitsbereich verlässt, wirst du als technischer Ansprechpartner durch ${workspaceOwner}, den Arbeitsbereichsinhaber, ersetzt.`,
+        leaveWorkspaceReimburser:
+            'Du kannst diesen Arbeitsbereich als erstattende Person nicht verlassen. Bitte lege unter Arbeitsbereiche > Zahlungen tätigen oder nachverfolgen eine neue erstattende Person fest und versuche es dann erneut.',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinien',
         reimbursable: 'Erstattungsfähig',
         editYourProfile: 'Bearbeiten Sie Ihr Profil',
@@ -1309,6 +1324,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `der ${valueName} zu ${newValueToDisplay} (zuvor ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `änderte das ${translatedChangedField} zu ${newMerchant} (zuvor ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (zuvor ${oldAmountToDisplay})`,
+        basedOnAI: 'basierend auf früheren Aktivitäten',
+        basedOnMCC: 'basierend auf Arbeitsbereichsregel',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnungsbericht Nr. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
@@ -1861,11 +1878,12 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Aus Sicherheitsgründen erfordert Xero eine Zwei-Faktor-Authentifizierung, um die Integration zu verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
+        twoFactorAuthIsRequiredXero:
+            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
         explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin nutzen zu können, aktivieren Sie sie bitte.',
     },
     recoveryCodeForm: {
         error: {
@@ -2243,10 +2261,9 @@ ${amount} für ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF wird generiert',
+        generatingPDF: 'PDF wird generiert...',
         waitForPDF: 'Bitte warten Sie, während wir das PDF erstellen.',
         errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten.',
-        generatedPDF: 'Ihr Bericht als PDF wurde erstellt!',
     },
     reportDescriptionPage: {
         roomDescription: 'Zimmerbeschreibung',
@@ -2603,10 +2620,8 @@ ${amount} für ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
             onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Deine kostenlose Testphase hat begonnen! Lass uns alles einrichten.\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Da du nun einen Workspace erstellt hast, nutze deine 30-tägige kostenlose Testphase optimal, indem du die folgenden Schritte befolgst!'
-                    : '# Deine kostenlose Testphase hat begonnen! Lass uns alles einrichten.\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um die Belege und Ausgaben deines Teams zu verwalten. Um deine 30-tägige kostenlose Testphase optimal zu nutzen, folge einfach den verbleibenden Einrichtungsschritten unten!',
+            onboardingManageTeamMessage:
+                '# Deine kostenlose Testversion hat begonnen! Lass uns mit der Einrichtung loslegen.\n👋 Hallo, ich bin dein Expensify-Einrichtungsassistent. Jetzt, da du einen Workspace erstellt hast, hole das Beste aus deiner 30-tägigen kostenlosen Testphase heraus, indem du die folgenden Schritte befolgst!',
             onboardingTrackWorkspaceMessage:
                 '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
@@ -4556,9 +4571,8 @@ ${amount} für ${merchant} - ${date}`,
             cardholder: 'Karteninhaber',
             card: 'Karte',
             cardName: 'Kartenname',
-            brokenConnectionErrorFirstPart: `Die Verbindung zum Karten-Feed ist unterbrochen. Bitte`,
-            brokenConnectionErrorLink: 'Melden Sie sich bei Ihrer Bank an',
-            brokenConnectionErrorSecondPart: 'damit wir die Verbindung erneut herstellen können.',
+            brokenConnectionError:
+                '<rbr>Die Verbindung zum Karten-Feed ist unterbrochen. Bitte <a href="#">Melden Sie sich bei Ihrer Bank an</a> damit wir die Verbindung erneut herstellen können.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `hat ${assignee} einen ${link} zugewiesen! Importierte Transaktionen werden in diesem Chat angezeigt.`,
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Karten-Feed auswählen',
@@ -4609,6 +4623,7 @@ ${amount} für ${merchant} - ${date}`,
                 monthly: 'Monatlich',
             },
             cardDetails: 'Kartendetails',
+            cardPending: ({name}: {name: string}) => `Die Karte ist derzeit ausstehend und wird ausgestellt, sobald ${name}s Konto verifiziert wurde.`,
             virtual: 'Virtuell',
             physical: 'Physisch',
             deactivate: 'Karte deaktivieren',
@@ -5117,12 +5132,25 @@ ${amount} für ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Hinzugefügt durch sekundären Login ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Gesamtanzahl der Arbeitsbereichsmitglieder: ${count}`,
             importMembers: 'Mitglieder importieren',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Wenn du ${approver} aus diesem Arbeitsbereich entfernst, ersetzen wir diese Person im Genehmigungsworkflow durch ${workspaceOwner}, den/die Eigentümer(in) des Arbeitsbereichs.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} hat ausstehende Spesenberichte zur Genehmigung. Bitte bitten Sie die Person, diese zu genehmigen, oder übernehmen Sie die Kontrolle über die Berichte dieser Person, bevor Sie die Person aus dem Arbeitsbereich entfernen.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Sie können ${memberName} nicht aus diesem Arbeitsbereich entfernen. Bitte legen Sie unter Workflows > Zahlungen ausführen oder nachverfolgen eine neue erstattende Person fest und versuchen Sie es dann erneut.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Wenn du ${memberName} aus diesem Arbeitsbereich entfernst, wird ${workspaceOwner}, der/die Inhaber/in des Arbeitsbereichs, als bevorzugte/r Exporteur/in festgelegt.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Wenn du ${memberName} aus diesem Arbeitsbereich entfernst, ersetzen wir sie/ihn als technischen Kontakt durch ${workspaceOwner}, den Arbeitsbereichsinhaber.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} hat einen Bericht in Bearbeitung, zu dem eine Aktion erforderlich ist. Bitte fordern Sie sie auf, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
         },
         card: {
             getStartedIssuing: 'Beginnen Sie, indem Sie Ihre erste virtuelle oder physische Karte ausstellen.',
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
+                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
@@ -6433,6 +6461,11 @@ ${amount} für ${merchant} - ${date}`,
         newReport: {
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
+            emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Möchtest du wirklich einen weiteren Bericht in ${workspaceName} erstellen? Du kannst auf deine leeren Berichte zugreifen unter`,
+            emptyReportConfirmationPromptLink: 'Berichte',
+            genericWorkspaceName: 'diesem Arbeitsbereich',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuchen Sie es später erneut.',
         genericAddCommentFailureMessage: 'Unerwarteter Fehler beim Posten des Kommentars. Bitte versuchen Sie es später noch einmal.',
@@ -7143,6 +7176,8 @@ ${amount} für ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'setze die Raumbeschreibung auf:',
         clearRoomDescription: 'Raumbeschreibung gelöscht',
+        changedRoomAvatar: 'Hat das Raum-Avatar geändert',
+        removedRoomAvatar: 'Hat das Raum-Avatar entfernt',
     },
     delegate: {
         switchAccount: 'Konten wechseln:',
