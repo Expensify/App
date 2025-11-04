@@ -46,6 +46,7 @@ import {
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
@@ -147,7 +148,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -582,6 +583,75 @@ describe('ReportUtils', () => {
                 errors,
             };
             expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(true);
+        });
+    });
+
+    describe('getDisplayNameForParticipant', () => {
+        it('should return the display name for a participant', async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            waitForBatchedUpdates();
+
+            const policyExpenseChat: Report = {
+                ...createRandomReport(2),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const lastReportPreviewAction = {
+                action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-07-10',
+                childReportID: '5186125925096828',
+                created: '2025-07-10 17:45:31.448',
+                reportActionID: '7425617950691586420',
+                shouldShow: true,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'a owes ETB 5.00',
+                        text: 'a owes ETB 5.00',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                        reactions: [],
+                    },
+                ],
+                originalMessage: {
+                    linkedReportID: '5186125925096828',
+                    actionableForAccountIDs: [20232605],
+                    isNewDot: true,
+                    lastModified: '2025-07-10 17:45:53.635',
+                },
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f100',
+                    },
+                ],
+                parentReportID: policyExpenseChat.reportID,
+            };
+
+            const iouReport = {
+                reportName: 'Expense Report 2025-07-10',
+                reportID: '5186125925096828',
+                policyID: policy.id,
+                type: 'expense',
+                currency: 'ETB',
+                ownerAccountID: 1,
+                total: -500,
+                nonReimbursableTotal: 0,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: lastReportPreviewAction.reportActionID,
+                chatReportID: policyExpenseChat.reportID,
+            } as Report;
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
+            expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
     });
 
