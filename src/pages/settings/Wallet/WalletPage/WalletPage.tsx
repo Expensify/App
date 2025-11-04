@@ -250,13 +250,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
+        fundList,
+        bankAccountList,
+        styles,
+        translate,
+        paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.selectedPaymentMethodType,
-        bankAccountList,
-        fundList,
-        styles,
     ]);
 
     const deletePaymentMethod = useCallback(() => {

@@ -133,7 +133,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
-    }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
+    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
     const onAddBankAccountPress = () => {
         if (shouldShowDefaultDeleteMenu) {
