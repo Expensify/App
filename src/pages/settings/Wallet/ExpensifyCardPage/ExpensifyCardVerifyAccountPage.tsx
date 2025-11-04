@@ -53,10 +53,8 @@ function ExpensifyCardVerifyAccountPage({
                         [cardID]: error,
                     }));
 
-                    // We can dismiss the RHP for missing private details error as user has nothing to action on validate code page
-                    if (error === 'cardPage.missingPrivateDetails') {
-                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-                    }
+                    // We can dismiss the RHP as user has nothing to action on validate code page
+                    Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                 })
                 .finally(() => {
                     setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));

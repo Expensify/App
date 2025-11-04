@@ -270,7 +270,11 @@ function PaymentMethodList({
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!assignedCardsGroupedItem.errors) {
+                        if (
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
+                            Object.keys(assignedCardsGroupedItem.errors).length > 0
+                        ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }

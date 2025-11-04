@@ -2018,8 +2018,7 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) =>
-            `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
         unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです。',

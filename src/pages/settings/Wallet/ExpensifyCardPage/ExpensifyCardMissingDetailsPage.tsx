@@ -69,4 +69,3 @@ function ExpensifyCardMissingDetailsPage({
 ExpensifyCardMissingDetailsPage.displayName = 'ExpensifyCardMissingDetailsPage';
 
 export default ExpensifyCardMissingDetailsPage;
-
