@@ -2703,7 +2703,6 @@ type MultiFactorAuthenticationParamList = {
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
         transactionID: string;
-        reportID: string;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
         promptType: PromptType;

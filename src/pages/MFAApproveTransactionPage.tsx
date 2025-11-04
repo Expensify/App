@@ -15,6 +15,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -22,22 +24,40 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
 import {contextMenuRef} from './home/report/ContextMenu/ReportActionContextMenu';
-import type {ContextMenuAnchor} from './home/report/ContextMenu/ReportActionContextMenu';
 
-function MFAScenarioApproveTransactionPage() {
-    // FAKE DATA
-    const transactionID = '9084365218195969699'; // TODO: replace with actual transactionID
-    const chatReportID = '1995450016258047'; // TODO: replace with actual chatReportID
-    const reportID = '3711684730350502'; // TODO: replace with actual reportID -> very often its same as chatReportID
-    const iouReportID = '3711684730350502'; // TODO: replace with actual iouReportID
-    const action = {} as ReportAction; // TODO: replace with actual action
-    const contextMenuAnchor = {} as ContextMenuAnchor; // TODO: replace with actual contextMenuAnchor
-    const shouldDisplayContextMenu = false; // TODO: replace with actual shouldDisplayContextMenu
-    const isBiometryAvailable = false; // TODO: remove -> BIOMETRY WRAPPER WILL HANDLE IT
+type MFAApproveTransactionPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION>;
+
+function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPageProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const transactionID = route.params.transactionID;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const iouReportID = transaction?.reportID;
+    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
+    const chatReportID = iouReport?.chatReportID ?? iouReportID;
+    const reportID = chatReportID ?? iouReportID;
+    const action = useMemo(() => {
+        return getIOUActionForReportID(chatReportID, transactionID) ?? getIOUActionForReportID(iouReportID, transactionID);
+    }, [chatReportID, iouReportID, transactionID]);
+    const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
+    const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
+    // Context menu is not needed for MFA flow
+    const contextMenuAnchor = undefined;
+    const shouldDisplayContextMenu = false;
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+
+    const onGoBackPress = useCallback(() => {
+        Navigation.goBack();
+    }, []);
 
     const showConfirmModal = () => {
         setConfirmModalVisibility(true);
@@ -47,43 +67,24 @@ function MFAScenarioApproveTransactionPage() {
         setConfirmModalVisibility(false);
     };
 
-    const onGoBackPress = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
-    // const fakeBiometryCall = useCallback(() => {}); // TODO: replace with proper logic from MFAContext
-
-    // TODO: replace with the correct logic
+    // TODO: replace with proper logic from MFAContext - now only for testing
     const approveTransaction = useCallback(() => {
-        if (isBiometryAvailable) {
-            return;
-        }
         Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
-        // fakeBiometryCall();
-    }, [isBiometryAvailable]);
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
-    const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
-    const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+    }, []);
 
     const reportPreviewStyles = useMemo(
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length),
         [StyleUtils, shouldUseNarrowLayout, transactions.length],
     );
+
     const shouldShowPayerAndReceiver = useMemo(() => {
-        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
+        if (!action || (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU)) {
             return false;
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
-    }, [transactions, action.childType, iouReport]);
+        return transactions.some((tx) => (tx?.modifiedAmount || tx?.amount) < 0);
+    }, [transactions, action, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
@@ -123,7 +124,7 @@ function MFAScenarioApproveTransactionPage() {
                         <TransactionPreview
                             allReports={allReports}
                             chatReportID={chatReportID}
-                            action={getIOUActionForReportID(chatReportID, transactionID)}
+                            action={action}
                             contextAction={action}
                             reportID={reportID}
                             isBillSplit={isSplitBillAction}
@@ -164,7 +165,6 @@ function MFAScenarioApproveTransactionPage() {
                         prompt={translate('multiFactorAuthentication.approveTransaction.denyTransactionContent')}
                         confirmText={translate('multiFactorAuthentication.approveTransaction.denyTransactionButton')}
                         cancelText={translate('common.cancel')}
-                        shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
                 </View>

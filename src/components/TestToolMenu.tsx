@@ -30,14 +30,13 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const transactionID = '9084365218195969699'; // TODO: replace with actual transactionID
-    const chatReportID = '1995450016258047'; // TODO: replace with actual chatReportID
+    const transactionID = '8306097696830615207'; // TODO: delete - here only for testing purposes
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID, chatReportID));
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID));
         }),
     );
 

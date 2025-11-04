@@ -3330,8 +3330,8 @@ const ROUTES = {
     },
 
     MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
-        route: 'multifactor-authentication/approve-transaction/:transactionID/:reportID',
-        getRoute: (transactionID: string, reportID: string) => `multifactor-authentication/approve-transaction/${transactionID}/${reportID}` as const,
+        route: 'multifactor-authentication/approve-transaction/:transactionID',
+        getRoute: (transactionID: string) => `multifactor-authentication/approve-transaction/${transactionID}` as const,
     },
 
     MULTIFACTORAUTHENTICATION_PROMPT: {
