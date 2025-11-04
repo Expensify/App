@@ -25,7 +25,9 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run React Compiler Compliance Check
-        run: npm run react-compiler-compliance-check check-changed
+        # In phase 1 of the React Compiler compliance check rollout,
+        # we want to report failures but don't fail the check.
+        run: npm run react-compiler-compliance-check check-changed || true
         env:
           CI: true
           GITHUB_TOKEN: ${{ github.token }}
