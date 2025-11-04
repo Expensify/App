@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'Code postal',
         whatThis: "Qu'est-ce que c'est ?",
         iAcceptThe: "J'accepte le",
+        acceptTermsAndPrivacy: `J'accepte le <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation d'Expensify</a> et <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>`,
+        acceptTermsAndConditions: `J'accepte le <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">termes et conditions</a>`,
+        acceptTermsOfService: `J'accepte le <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation d'Expensify</a>`,
         remove: 'Supprimer',
         admin: 'Admin',
         owner: 'Propriétaire',
@@ -2255,10 +2258,9 @@ ${amount} pour ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `dans ${policyName}`,
-        generatingPDF: 'Génération du PDF',
+        generatingPDF: 'Génération du PDF...',
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF',
         errorPDF: "Une erreur s'est produite lors de la tentative de génération de votre PDF.",
-        generatedPDF: 'Votre rapport PDF a été généré !',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la chambre',
@@ -2614,10 +2616,8 @@ ${amount} pour ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de votre essai gratuit de 30 jours en suivant les étapes ci-dessous.'
-                    : '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et dépenses de votre équipe. Pour profiter pleinement de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration ci-dessous.',
+            onboardingManageTeamMessage:
+                '# Votre essai gratuit a commencé ! Passons à la configuration.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !',
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
@@ -4578,9 +4578,7 @@ ${amount} pour ${merchant} - ${date}`,
             cardholder: 'Titulaire de carte',
             card: 'Carte',
             cardName: 'Nom de la carte',
-            brokenConnectionErrorFirstPart: `La connexion du flux de carte est interrompue. S'il vous plaît`,
-            brokenConnectionErrorLink: 'connectez-vous à votre banque',
-            brokenConnectionErrorSecondPart: 'afin que nous puissions rétablir la connexion.',
+            brokenConnectionError: `<rbr>La connexion du flux de carte est interrompue. S'il vous plaît <a href="#">connectez-vous à votre banque</a> afin que nous puissions rétablir la connexion.</rbr>`,
             assignedCard: ({assignee, link}: AssignedCardParams) => `a attribué ${link} à ${assignee} ! Les transactions importées apparaîtront dans cette discussion.`,
             companyCard: "carte d'entreprise",
             chooseCardFeed: 'Choisir le flux de cartes',
@@ -5160,6 +5158,7 @@ ${amount} pour ${merchant} - ${date}`,
             issueCard: 'Émettre une carte',
             issueNewCard: {
                 whoNeedsCard: "Qui a besoin d'une carte ?",
+                inviteNewMember: 'Inviter un nouveau membre',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',
