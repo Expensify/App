@@ -3,7 +3,6 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
-apply plugin: "io.sentry.android.gradle"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
@@ -61,7 +60,7 @@ react {
     // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
     //
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
-    hermesFlags = ["-O", "-output-source-map"]
+    // hermesFlags = ["-O", "-output-source-map"]
     //
     /* Autolinking */
     autolinkLibrariesWithApp()
@@ -196,42 +195,6 @@ android {
             setIgnore(true)
         }
     }
-}
-
-sentry {
-    // Upload source maps, ProGuard/R8 mappings, and native symbols
-    autoUploadProguardMapping = true
-    uploadNativeSymbols = true
-    includeNativeSources = true
-    
-    // Enable React Native source map upload (includes Debug IDs from Metro)
-    autoUploadReactNativeSourceMaps = true
-    
-    tracingInstrumentation {
-        enabled = false
-    }
-    
-    // Must match the release in Sentry.init() runtime call
-    releaseName = "new.expensify@${android.defaultConfig.versionName}"
-    
-    // Upload for all release builds except development
-    autoUpload = !project.gradle.startParameter.taskNames.any { 
-        it.contains("Development")
-    }
-    
-    // Enable verbose logging
-    debug = true
-}
-
-// Log Sentry configuration
-gradle.taskGraph.whenReady { taskGraph ->
-    println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    println "[SENTRY] Configuration:"
-    println "[SENTRY] Release: new.expensify@${getVersionFromPackageJson()}"
-    println "[SENTRY] Auto Upload: ${!project.gradle.startParameter.taskNames.any { it.contains("Development") }}"
-    println "[SENTRY] Auth Token Set: ${System.getenv('SENTRY_AUTH_TOKEN') != null}"
-    println "[SENTRY] Task Names: ${project.gradle.startParameter.taskNames}"
-    println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 afterEvaluate {

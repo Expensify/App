@@ -14,23 +14,6 @@ if [[ "$CONFIGURATION" = *Debug* ]]; then
   export SKIP_BUNDLING=1
 fi
 
-# Disable Sentry source map upload for development builds
-if [[ "$CONFIGURATION" == *"Development"* ]]; then
-  export SENTRY_DISABLE_AUTO_UPLOAD=true
-  echo "[SENTRY] Development build detected - auto upload disabled"
-fi
-
-# Set release name to match Sentry.init() runtime call
-SENTRY_RELEASE="new.expensify@$("$NODE_BINARY" -p "require('$PROJECT_ROOT/package.json').version")"
-export SENTRY_RELEASE
-echo "[SENTRY] Release name set to: $SENTRY_RELEASE"
-
-if [[ -z "$SENTRY_AUTH_TOKEN" ]]; then
-  echo "[SENTRY] WARNING: SENTRY_AUTH_TOKEN is not set"
-else
-  echo "[SENTRY] Auth token is set ✓"
-fi
-
 if [[ -z "$ENTRY_FILE" ]]; then
   # Set the entry JS file using the bundler's entry resolution.
   ENTRY_FILE="$("$NODE_BINARY" -e "require('expo/scripts/resolveAppEntry')" "$PROJECT_ROOT" ios relative | tail -n 1)"
