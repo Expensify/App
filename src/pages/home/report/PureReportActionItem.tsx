@@ -18,7 +18,7 @@ import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -42,7 +42,6 @@ import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -51,6 +50,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -205,6 +205,9 @@ type PureReportActionItemProps = {
     /** All the data of the policy collection */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
+    /** Model of onboarding selected */
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -324,6 +327,7 @@ type PureReportActionItemProps = {
         reportID: string | undefined,
         actionName: IOUAction,
         reportActionID: string,
+        introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -342,7 +346,8 @@ type PureReportActionItemProps = {
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-        isReportArchived: boolean | undefined,
+        isReportArchived: boolean,
+        translate: LocalizedTranslate,
         policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
@@ -387,6 +392,9 @@ type PureReportActionItemProps = {
 
     /** Current user's account id */
     currentUserAccountID?: number;
+
+    /** The bank account list */
+    bankAccountList?: OnyxTypes.BankAccountList | undefined;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -403,6 +411,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     allReports,
     policies,
+    introSelected,
     action,
     report,
     policy,
@@ -453,6 +462,7 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    bankAccountList,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -465,7 +475,6 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
@@ -785,6 +794,7 @@ function PureReportActionItem({
                             reportActionReportID,
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
+                            introSelected,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -798,14 +808,14 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
                         },
                     },
                 );
@@ -889,6 +899,7 @@ function PureReportActionItem({
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
                             formatPhoneNumber,
                             isOriginalReportArchived,
+                            translate,
                         ),
                     isPrimary: true,
                 },
@@ -909,6 +920,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
@@ -926,6 +938,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
@@ -940,6 +953,7 @@ function PureReportActionItem({
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                         formatPhoneNumber,
                         isOriginalReportArchived,
+                        translate,
                         policy,
                     ),
                 isMediumSized: true,
@@ -956,7 +970,6 @@ function PureReportActionItem({
         policy,
         currentUserAccountID,
         personalDetail.timezone,
-        isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -967,6 +980,7 @@ function PureReportActionItem({
         formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
+        introSelected,
     ]);
 
     /**
@@ -1202,7 +1216,21 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                const originalMessage = getOriginalMessage(action);
+                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+                if (originalMessage?.bankAccountID) {
+                    const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
+                    children = (
+                        <ReportActionItemBasicMessage
+                            message={translate(originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {
+                                amount,
+                                last4Digits: bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                            })}
+                        />
+                    );
+                } else {
+                    children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
             const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
@@ -1451,10 +1479,10 @@ function PureReportActionItem({
                                         </Button>
                                     )}
                                     {/**
-                                These are the actionable buttons that appear at the bottom of a Concierge message
-                                for example: Invite a user mentioned but not a member of the room
-                                https://github.com/Expensify/App/issues/32741
-                            */}
+                                     These are the actionable buttons that appear at the bottom of a Concierge message
+                                     for example: Invite a user mentioned but not a member of the room
+                                     https://github.com/Expensify/App/issues/32741
+                                     */}
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
@@ -1794,6 +1822,7 @@ function PureReportActionItem({
         </PressableWithSecondaryInteraction>
     );
 }
+
 export type {PureReportActionItemProps};
 export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
@@ -1833,6 +1862,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        deepEqual(prevProps.introSelected, nextProps.introSelected) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
@@ -1843,6 +1873,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
-        prevProps.shouldHighlight === nextProps.shouldHighlight
+        prevProps.shouldHighlight === nextProps.shouldHighlight &&
+        deepEqual(prevProps.bankAccountList, nextProps.bankAccountList)
     );
 });

@@ -20,9 +20,12 @@ type WorkspaceCompanyCardsListRowProps = {
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
-function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceCompanyCardsListRowProps) {
+function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
     const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const theme = useTheme();
@@ -62,7 +65,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={theme.icon}
-                    additionalStyles={[styles.alignSelfCenter]}
+                    additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                     medium
                     isButtonIcon
                 />

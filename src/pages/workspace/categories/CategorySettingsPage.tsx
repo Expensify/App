@@ -11,13 +11,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,8 +60,10 @@ function CategorySettingsPage({
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
+    const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
@@ -141,6 +144,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyCategories,
             policyTagLists,
             allTransactionViolations,
@@ -160,6 +164,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
             policyTagLists,
             policyCategories,
             allTransactionViolations,
@@ -184,7 +189,7 @@ function CategorySettingsPage({
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={categoryName}
+                    title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -230,7 +235,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={policyCategory.name}
+                            title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon

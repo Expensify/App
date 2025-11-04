@@ -1,14 +1,13 @@
 import React from 'react';
+import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
 import colors from '@styles/theme/colors';
 import ConfirmModal from './ConfirmModal';
 import {ThreeLeggedLaptopWoman} from './Icon/Illustrations';
-import Text from './Text';
-import TextLinkWithRef from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type FocusModeNotificationProps = {
     onClose: () => void;
@@ -19,7 +18,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const StyleUtils = useStyleUtils();
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const href = `${environmentURL}/settings/preferences/priority-mode`;
+    const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
 
     return (
         <ConfirmModal
@@ -30,19 +29,9 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             onBackdropPress={onClose}
             onCancel={onClose}
             prompt={
-                <Text>
-                    {translate('focusModeUpdateModal.prompt')}
-                    <TextLinkWithRef
-                        style={styles.link}
-                        onPress={() => {
-                            onClose();
-                            openLink(href, environmentURL);
-                        }}
-                    >
-                        {translate('focusModeUpdateModal.settings')}
-                    </TextLinkWithRef>
-                    .
-                </Text>
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', {priorityModePageUrl})} />
+                </View>
             }
             isVisible
             image={ThreeLeggedLaptopWoman}

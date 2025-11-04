@@ -84,7 +84,10 @@ type SearchPersonalDetails = {
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
-/** Model of report search result */
+/** Model of report search result
+ *
+ * @deprecated - Use Report instead
+ */
 type SearchReport = {
     /** The ID of the report */
     reportID: string;
@@ -106,9 +109,6 @@ type SearchReport = {
 
     /** The accountID of the report manager */
     managerID?: number;
-
-    /** The accountID of the user who created the report  */
-    accountID?: number;
 
     /** The policyID of the report */
     policyID?: string;
@@ -558,6 +558,7 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
@@ -582,6 +583,7 @@ export type {
     SearchTransactionAction,
     SearchPersonalDetails,
     SearchDataTypes,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
     SearchReportAction,
     SearchPolicy,
