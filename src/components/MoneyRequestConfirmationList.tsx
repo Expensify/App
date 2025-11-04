@@ -326,7 +326,6 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
