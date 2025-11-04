@@ -88,7 +88,7 @@ function useOptions() {
             countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, nvpDismissedProductTraining, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
