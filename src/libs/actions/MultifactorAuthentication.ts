@@ -1,10 +1,10 @@
 /* eslint-disable rulesdir/no-api-side-effects-method */
 import type {ValueOf} from 'type-fest';
-import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type {MultifactorAuthenticationResponseTranslationPath, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import {makeRequestWithSideEffects} from '../../../__mocks__/ecuk_api';
 
 /** Helper method to create an object with an HTTP code and the reason translation path */
 function parseHttpCode(
