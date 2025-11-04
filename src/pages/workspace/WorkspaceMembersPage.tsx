@@ -155,8 +155,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
