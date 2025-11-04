@@ -51,8 +51,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
         [task?.shareDestination, reports, personalDetails, localeCompare],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const ancestors = useAncestors(parentReport);
     const [errorMessage, setErrorMessage] = useState('');
-    const ancestors = useAncestors(task as OnyxEntry<OnyxTypes.Report>);
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
 

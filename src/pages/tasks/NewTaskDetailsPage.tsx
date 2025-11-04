@@ -40,7 +40,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
     const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
     const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
-    const ancestors = useAncestors(task as OnyxEntry<OnyxTypes.Report>);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, {canBeMissing: true}, [task?.shareDestination]);
+    const ancestors = useAncestors(parentReport);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backTo = route.params?.backTo;
