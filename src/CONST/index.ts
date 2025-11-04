@@ -427,8 +427,6 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
-    FREE_TRIAL_MARKDOWN:
-        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -3261,6 +3259,7 @@ const CONST = {
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+        SMALL: 'small',
     },
 
     QR_CODE_SIZE: {
@@ -3311,6 +3310,7 @@ const CONST = {
             CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         TRANSACTION_START_DATE_OPTIONS: {
             FROM_BEGINNING: 'fromBeginning',
@@ -3356,6 +3356,7 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
