@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 type MFAFactorAuthenticatorFormProps = {
     twoFactorAuthCode: string;
     formError: string | undefined;
-    inputRef: React.RefObject<MagicCodeInputHandle>;
+    inputRef: React.RefObject<MagicCodeInputHandle | null>;
     isValidateCodeFormSubmitting: boolean;
     onCodeInput: (text: string) => void;
     validateAndSubmitForm: () => void;
