@@ -63,6 +63,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         return <NotFoundPage />;
     }
 
+    // TODO: replace with MFA logic - now only for testing
     const onConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
     }, []);
