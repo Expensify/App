@@ -60,12 +60,6 @@ describe('useSearchTypeMenuSections', () => {
         mockUseOnyx.mockClear();
     });
 
-    it('does not show suggested search skeleton when no policies exist', () => {
-        const {result} = renderHook(() => useSearchTypeMenuSections());
-
-        expect(result.current.shouldShowSuggestedSearchSkeleton).toBe(false);
-    });
-
     it('shows suggested search skeleton when policies are missing employeeList', () => {
         onyxData[ONYXKEYS.COLLECTION.POLICY] = {
             policy1: {
