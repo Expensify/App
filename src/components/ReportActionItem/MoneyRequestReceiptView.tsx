@@ -246,6 +246,7 @@ function MoneyRequestReceiptView({
         isChatIOUReportArchived,
         errorsWithoutReportCreation,
         reportCreationError,
+        isInNarrowPaneModal,
     ]);
 
     let receiptStyle: StyleProp<ViewStyle>;
