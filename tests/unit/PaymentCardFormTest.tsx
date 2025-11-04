@@ -12,10 +12,6 @@ import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
