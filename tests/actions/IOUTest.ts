@@ -8104,6 +8104,10 @@ describe('actions/IOU', () => {
                         comment: 'Test expense',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserEmailParam: TEST_USER_LOGIN,
+                    transactionViolations: {},
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8206,7 +8210,12 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
+                    isChatReportArchived: false,
                     isNewDotRevertSplitsEnabled: true,
+                    currentUserAccountIDParam: 1,
+                    currentUserEmailParam: 'test@test.com',
+                    transactionViolations: {},
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
