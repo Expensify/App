@@ -1275,7 +1275,7 @@ function MoneyReportHeader({
             }
             handleDeleteTransactions();
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo]);
+    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
 
     const showExportAgainModal = useCallback(() => {
         if (!connectedIntegration) {
