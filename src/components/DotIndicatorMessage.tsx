@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
-import React, {useState} from 'react';
 import type {ReactElement} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
