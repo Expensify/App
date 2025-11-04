@@ -116,7 +116,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
-    isPendingCardOrScanningTransaction,
+    isPending,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
@@ -1207,7 +1207,7 @@ function getActions(
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 
-    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
+    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (
