@@ -140,7 +140,6 @@ function MoneyRequestParticipantsSelector({
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const showImportContacts = isNative && !isCategorizeOrShareAction && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -275,6 +274,12 @@ function MoneyRequestParticipantsSelector({
             countryCode,
         ],
     );
+    const showImportContacts =
+        isNative &&
+        !isCategorizeOrShareAction &&
+        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        inputHelperText === translate('common.noResultsFound');
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
