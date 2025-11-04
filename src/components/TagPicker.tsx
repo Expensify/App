@@ -124,7 +124,7 @@ function TagPicker({
                   data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
               }))
             : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, localeCompare, translate, shouldOrderListByTagName]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
