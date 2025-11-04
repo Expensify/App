@@ -2019,7 +2019,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2510,7 +2510,6 @@ describe('SearchUIUtils', () => {
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
-                    accountID: 2074551,
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
@@ -2652,7 +2651,7 @@ describe('SearchUIUtils', () => {
                 } as OnyxTypes.Policy,
             };
 
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2666,7 +2665,7 @@ describe('SearchUIUtils', () => {
                 successfulDate: new Date().toISOString(),
             };
 
-            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
     });

@@ -103,7 +103,7 @@ function useAttachmentUploadValidation({
                           reportID,
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-            setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
+            setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true, file.type);
             setMoneyRequestParticipantsFromReport(newTransactionID, report);
         });
         Navigation.navigate(
@@ -116,7 +116,7 @@ function useAttachmentUploadValidation({
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated, false);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
 
     const validateAttachments = useCallback(
         ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
@@ -161,7 +161,7 @@ function useAttachmentUploadValidation({
             const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
 
             attachmentUploadType.current = 'attachment';
-            validateFiles(fileObjects, filteredItems);
+            validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
         },
         [isAttachmentPreviewActive, validateFiles],
     );
@@ -187,7 +187,7 @@ function useAttachmentUploadValidation({
             }
 
             attachmentUploadType.current = 'receipt';
-            validateFiles(files, items);
+            validateFiles(files, items, {isValidatingReceipts: true});
         },
         [policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
     );

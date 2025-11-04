@@ -25,8 +25,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -610,7 +610,7 @@ function IOURequestStepScan({
                 return;
             }
             const source = URL.createObjectURL(file as Blob);
-            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing, file.type);
             updateScanAndNavigate(file, source);
             return;
         }
@@ -628,7 +628,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source, transactionID});
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         });
 
         if (shouldSkipConfirmation) {
@@ -740,7 +740,7 @@ function IOURequestStepScan({
             const transactionID = transaction?.transactionID ?? initialTransactionID;
             const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
             setReceiptFiles(newReceiptFiles);
 
             if (isMultiScanEnabled) {
@@ -852,8 +852,7 @@ function IOURequestStepScan({
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                         {cameraPermissionState === 'denied' ? (
                             <Text style={[styles.subTextFileUpload]}>
-                                {translate('receipt.deniedCameraAccess')}
-                                <TextLink href={CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}>{translate('receipt.deniedCameraAccessInstructions')}</TextLink>.
+                                <RenderHTML html={translate('receipt.deniedCameraAccess')} />
                             </Text>
                         ) : (
                             <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
