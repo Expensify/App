@@ -4990,6 +4990,10 @@ const translations = {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Cannot make tag list required',
+                description: `You can only make a tag list required if your policy has multiple tag levels configured.`,
+            },
             tagCount: () => ({
                 one: '1 Tag',
                 other: (count: number) => `${count} Tags`,
