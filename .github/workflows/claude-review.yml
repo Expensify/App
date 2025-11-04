@@ -14,14 +14,9 @@ concurrency:
 
 jobs:
   review:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
-      - name: Skip draft PRs on opened event
-        if: github.event.action == 'opened' && github.event.pull_request.draft == true
-        run: |
-          echo "::notice::Skipping review because the PR is a draft"
-          exit 0
-
       - name: Check for excluded PRs
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
