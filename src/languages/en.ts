@@ -2823,6 +2823,7 @@ const translations = {
         routingNumber: 'Routing number',
         chooseAnAccountBelow: 'Choose an account below',
         addBankAccount: 'Add bank account',
+        addANewBankAccount: 'Add a new bank account',
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Log into your bank',
         connectManually: 'Connect manually',

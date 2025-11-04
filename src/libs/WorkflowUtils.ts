@@ -435,10 +435,26 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
     });
 }
 
+function getBusinessBankAccountsThatAreBeingSetUp(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, policyID: string | undefined) {
+    if (!bankAccountList || policyCurrency === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policyCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.additionalData?.policyID === policyID
+        );
+    });
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    getBusinessBankAccountsThatAreBeingSetUp,
     getEligibleExistingBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,

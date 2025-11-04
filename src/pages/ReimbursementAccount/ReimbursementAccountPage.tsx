@@ -160,6 +160,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
 
         if (policyIDParam) {
+            console.log(stepToOpen, subStep, localCurrentStep, policyIDParam);
             openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
         }
     }
