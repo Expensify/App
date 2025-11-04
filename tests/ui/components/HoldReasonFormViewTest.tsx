@@ -31,6 +31,8 @@ describe('HoldReasonFormView', () => {
         );
 
         expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
+        const holdExpenseElements = screen.getAllByText(translateLocal('iou.holdExpense', {count: 1}));
+        expect(holdExpenseElements.length).toBeGreaterThanOrEqual(2); // Title and button
     });
 
     it('renders plural copy when multiple expenses are selected', () => {
@@ -46,5 +48,7 @@ describe('HoldReasonFormView', () => {
         );
 
         expect(screen.getByText(translateLocal('iou.explainHold', {count: 2}))).toBeTruthy();
+        const holdExpenseElements = screen.getAllByText(translateLocal('iou.holdExpense', {count: 2}));
+        expect(holdExpenseElements.length).toBeGreaterThanOrEqual(2); // Title and button
     });
 });
