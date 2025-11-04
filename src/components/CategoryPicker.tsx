@@ -60,6 +60,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             categories,
             localeCompare,
             recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+            translate,
         });
 
         const categoryData = categoryOptions?.at(0)?.data ?? [];
