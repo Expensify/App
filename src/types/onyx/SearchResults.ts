@@ -110,9 +110,6 @@ type SearchReport = {
     /** The accountID of the report manager */
     managerID?: number;
 
-    /** The accountID of the user who created the report  */
-    accountID?: number;
-
     /** The policyID of the report */
     policyID?: string;
 
