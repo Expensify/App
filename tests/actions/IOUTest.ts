@@ -4766,6 +4766,142 @@ describe('actions/IOU', () => {
                 expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
             }
         });
+
+        it('update reportPreview with childVisibleActionCount if the IOU report is not deleted', async () => {
+            await waitForBatchedUpdates();
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                callback: (val) => (iouReport = val),
+            });
+            await waitForBatchedUpdates();
+
+            // Given a second expense in addition to the first one
+
+            jest.advanceTimersByTime(10);
+            const amount2 = 20000;
+            const comment2 = 'Send me money please 2';
+            if (chatReport) {
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: TEST_USER_LOGIN,
+                        payeeAccountID: TEST_USER_ACCOUNT_ID,
+                        participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: amount2,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: '',
+                        comment: comment2,
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                });
+            }
+
+            await waitForBatchedUpdates();
+
+            // Then we expect the IOU report and reportPreview to update with new totals
+
+            expect(iouReport).toBeTruthy();
+            expect(iouReport).toHaveProperty('reportID');
+            expect(iouReport).toHaveProperty('chatReportID');
+            expect(iouReport?.total).toBe(30000);
+
+            await waitForBatchedUpdates();
+
+            // Given a transaction thread
+            thread = buildTransactionThread(createIOUAction, iouReport);
+
+            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            await waitForBatchedUpdates();
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            jest.advanceTimersByTime(10);
+
+            // When a comment is added
+            addComment(thread.reportID, thread.reportID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            await waitForBatchedUpdates();
+
+            // Then comment details should match the expected report action
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            reportActionID = resultAction?.reportActionID;
+            expect(resultAction?.message).toEqual(REPORT_ACTION.message);
+            expect(resultAction?.person).toEqual(REPORT_ACTION.person);
+
+            await waitForBatchedUpdates();
+
+            // Then the childVisibleActionCount of createIOUAction and iouPreview should be increased by 1
+            const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.iouReportID}`];
+            createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                isMoneyRequestAction(reportAction),
+            );
+            expect(createIOUAction).toBeTruthy();
+            expect(createIOUAction?.childVisibleActionCount).toEqual(1);
+            expect(createIOUAction?.childCommenterCount).toEqual(1);
+
+            let iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(1);
+            expect(iouPreview?.childCommenterCount).toEqual(1);
+
+            // When we delete the first expense
+            mockFetch?.pause?.();
+            jest.advanceTimersByTime(10);
+            if (transaction && createIOUAction) {
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+            }
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+
+            iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(0);
+            expect(iouPreview?.childCommenterCount).toEqual(0);
+
+            // When we resume
+            mockFetch?.resume?.();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+            iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(0);
+            expect(iouPreview?.childCommenterCount).toEqual(0);
+        });
     });
 
     describe('bulk deleteMoneyRequest', () => {
