@@ -13,12 +13,13 @@ export default function useShortMentionsList() {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
-    const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
     const availableLoginsList = useMemo(() => {
         if (!personalDetails) {
             return [];
         }
+
+        const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
+        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
 
         return Object.values(personalDetails)
             .map((personalDetail) => {
@@ -38,7 +39,7 @@ export default function useShortMentionsList() {
                 return username;
             })
             .filter((login): login is string => !!login);
-    }, [currentUserDomain, isCurrentUserPublicDomain, personalDetails]);
+    }, [currentUserPersonalDetails.login, personalDetails]);
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {
