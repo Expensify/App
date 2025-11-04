@@ -15,6 +15,7 @@ import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import FixedFooter from '@components/FixedFooter';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
@@ -71,7 +72,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <BlockingView
                         animation={contentData.animation}
                         animationStyles={styles.emptyLHNAnimation}
@@ -83,19 +84,17 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                         testID={MultiFactorAuthenticationPromptPage.displayName}
                     />
                 </View>
-                <View style={[styles.flexColumn, styles.gap3, styles.m5]}>
+                <FixedFooter style={[styles.flexColumn, styles.gap3]}>
                     <Button
-                        style={[styles.flex1]}
                         onPress={onGoBackPress}
                         text={translate('common.notNow')}
                     />
                     <Button
                         success
-                        style={[styles.flex1]}
                         onPress={onConfirm}
                         text={translate('common.buttonConfirm')}
                     />
-                </View>
+                </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
