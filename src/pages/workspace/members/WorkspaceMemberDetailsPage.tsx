@@ -103,6 +103,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
+    const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {approvalWorkflows} = useMemo(
@@ -128,14 +130,52 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = isApproverUserAction(policy, memberLogin);
+        const isTechnicalContact = policy?.technicalContact === details?.login;
+        const exporters = [
+            policy?.connections?.intacct?.config?.export?.exporter,
+            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policy?.connections?.xero?.config?.export?.exporter,
+            policy?.connections?.netsuite?.options.config.exporter,
+        ];
+        const isUserExporter = exporters.includes(details.login);
+
+        if (isTechnicalContact) {
+            return translate('workspace.people.removeMemberPromptTechContact', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isReimburser) {
+            return translate('workspace.people.removeMemberPromptReimburser', {
+                memberName: displayName,
+            });
+        }
+
+        if (isUserExporter) {
+            return translate('workspace.people.removeMemberPromptExporter', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
+
+        if (isApprover) {
+            return translate('workspace.people.removeMemberPromptApprover', {
+                approver: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [memberLogin, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [policy, memberLogin, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
     const roleItems: ListItemType[] = useMemo(() => {
         const items: ListItemType[] = [
@@ -176,6 +216,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
+        if (isReimburser) {
+            setIsCannotRemoveUser(true);
+            return;
+        }
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
@@ -351,6 +395,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.people.removeMemberTitle')}
+                                isVisible={isCannotRemoveUser}
+                                onConfirm={() => {
+                                    setIsCannotRemoveUser(false);
+                                }}
+                                prompt={confirmModalPrompt}
+                                confirmText={translate('common.buttonConfirm')}
+                                success
+                                shouldShowCancelButton={false}
                             />
                         </View>
                         <View style={styles.w100}>

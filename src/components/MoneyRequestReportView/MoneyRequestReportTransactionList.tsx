@@ -312,6 +312,13 @@ function MoneyRequestReportTransactionList({
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
 
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
+    );
+
     const listHorizontalPadding = styles.ph5;
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
@@ -336,7 +343,7 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -392,6 +399,7 @@ function MoneyRequestReportTransactionList({
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             forwardedFSClass={transactionItemFSClass}
+                            onArrowRightPress={handleArrowRightPress}
                         />
                     );
                 })}
