@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -26,11 +27,15 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
 
     useEffect(() => {
-        if (domain?.validated) {
+        if (domain?.accountID === undefined || domain?.validated) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID), {forceReplace: true}));
-    }, [accountID, domain?.validated]);
+    }, [accountID, domain?.validated, domain?.accountID]);
+
+    if (!domain) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
@@ -51,7 +56,6 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
                 onButtonPress={() => Navigation.dismissModal()}
-                footerStyle={styles.mb5}
             />
         </ScreenWrapper>
     );

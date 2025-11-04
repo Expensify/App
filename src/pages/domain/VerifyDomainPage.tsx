@@ -23,6 +23,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -57,11 +58,15 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     }, [accountID, domain?.validated]);
 
     useEffect(() => {
-        if (!accountID) {
+        if (domain?.accountID === undefined) {
             return;
         }
         getDomainValidationCode(accountID, domainName);
-    }, [accountID, domainName]);
+    }, [accountID, domainName, domain?.accountID]);
+
+    if (!domain) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
