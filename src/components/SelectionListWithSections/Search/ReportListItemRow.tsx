@@ -196,12 +196,6 @@ function ReportListItemRow({
                         amount={item.total}
                     />
                 </View>
-                <Icon
-                    src={Expensicons.ArrowRight}
-                    fill={theme.icon}
-                    additionalStyles={{opacity: 0.5}}
-                    small
-                />
             </View>
         </View>
     );
