@@ -64,6 +64,9 @@ type AvatarButtonWithIconProps = {
 
     /** The name associated with avatar */
     name?: string;
+
+    /** Original file name. Used for recognizing and display optimization of letter avatars. */
+    originalFileName?: string;
 };
 
 /**
@@ -86,6 +89,7 @@ function AvatarButtonWithIcon({
     editIcon = Expensicons.Pencil,
     anchorRef,
     name = '',
+    originalFileName,
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -115,6 +119,7 @@ function AvatarButtonWithIcon({
                             size={size}
                             type={type}
                             name={name}
+                            originalFileName={originalFileName}
                         />
                     ) : (
                         <DefaultAvatar />

@@ -25,9 +25,12 @@ type AvatarWithIndicatorProps = {
 
     /** Indicates whether the avatar is loaded or not  */
     isLoading?: boolean;
+
+    /** Used for recognizing and display optimization of letter avatars. */
+    originalFileName?: string;
 };
 
-function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true, originalFileName}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
 
     return (
@@ -43,6 +46,7 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
                             fallbackIcon={fallbackIcon}
                             avatarID={accountID}
                             type={CONST.ICON_TYPE_AVATAR}
+                            originalFileName={originalFileName}
                         />
                         <Indicator />
                     </>

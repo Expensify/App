@@ -68,6 +68,9 @@ type Icon = {
 
     /** Fill color of the icon */
     fill?: string;
+
+    /** Name of the original file - used for recognizing letter avatars */
+    originalFileName?: string;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, TranslationKeyError, TranslationKeyErrors};

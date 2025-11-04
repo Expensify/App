@@ -154,6 +154,7 @@ function ReportActionAvatarSingle({
                     fallbackIcon={fallbackIcon}
                     testID="ReportActionAvatars-SingleAvatar"
                     reportID={reportID}
+                    originalFileName={avatar?.originalFileName}
                 />
             </View>
         </UserDetailsTooltip>
@@ -235,6 +236,7 @@ function ReportActionAvatarSubscript({
                         fallbackIcon={primaryAvatar.fallbackIcon}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
                         reportID={reportID}
+                        originalFileName={primaryAvatar.originalFileName}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -265,6 +267,7 @@ function ReportActionAvatarSubscript({
                             fallbackIcon={secondaryAvatar.fallbackIcon}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                             reportID={reportID}
+                            originalFileName={secondaryAvatar.originalFileName}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -408,6 +411,7 @@ function ReportActionAvatarMultipleHorizontal({
                             fallbackIcon={icon.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
                             reportID={reportID}
+                            originalFileName={icon?.originalFileName}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -550,6 +554,7 @@ function ReportActionAvatarMultipleDiagonal({
                             fallbackIcon={icons.at(0)?.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
                             reportID={reportID}
+                            originalFileName={icons.at(0)?.originalFileName}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -582,6 +587,7 @@ function ReportActionAvatarMultipleDiagonal({
                                     fallbackIcon={icons.at(1)?.fallbackIcon}
                                     testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
                                     reportID={reportID}
+                                    originalFileName={icons.at(1)?.originalFileName}
                                 />
                             </View>
                         </UserDetailsTooltip>

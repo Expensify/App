@@ -2979,6 +2979,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
             type: CONST.ICON_TYPE_AVATAR,
             name: displayNameLogin ?? '',
             fallbackIcon: personalDetails?.[accountID]?.fallbackIcon ?? '',
+            originalFileName: personalDetails?.[accountID]?.originalFileName,
         };
         avatars.push(userIcon);
     }
@@ -3305,6 +3306,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
         fallbackIcon: details?.fallbackIcon,
+        originalFileName: details?.originalFileName,
     };
 }
 
@@ -3350,6 +3352,7 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
         type: CONST.ICON_TYPE_AVATAR,
         name: actorDetails?.displayName ?? '',
         fallbackIcon: actorDetails?.fallbackIcon,
+        originalFileName: actorDetails?.originalFileName,
     };
     return [memberIcon, workspaceIcon];
 }
@@ -3371,6 +3374,7 @@ function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails
         name: formatPhoneNumber(actorDisplayName),
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
+        originalFileName: actorDetails?.originalFileName,
     };
 
     if (isWorkspaceThread(report)) {
@@ -3466,6 +3470,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         type: CONST.ICON_TYPE_AVATAR,
         name: managerDetails?.displayName ?? '',
         fallbackIcon: managerDetails?.fallbackIcon,
+        originalFileName: managerDetails?.originalFileName,
     };
     const ownerIcon = {
         id: report?.ownerAccountID,
@@ -3473,6 +3478,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
+        originalFileName: ownerDetails?.originalFileName,
     };
     const isManager = currentUserAccountID === report?.managerID;
 

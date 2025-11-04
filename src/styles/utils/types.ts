@@ -21,6 +21,7 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeSmall'
         | 'avatarSizeSmaller'
         | 'avatarSizeXLarge'
+        | 'avatarSizeXXLarge'
         | 'avatarSizeLarge'
         | 'avatarSizeMedium'
         | 'avatarSizeMediumLarge'

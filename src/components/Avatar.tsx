@@ -55,6 +55,9 @@ type AvatarProps = {
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
 
+    /** Used for recognizing and display optimization of letter avatars. */
+    originalFileName?: string;
+
     /** Test ID for the Avatar component */
     testID?: string;
 };
@@ -72,6 +75,7 @@ function Avatar({
     name = '',
     avatarID,
     testID = 'Avatar',
+    originalFileName,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,8 +90,8 @@ function Avatar({
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, originalFileName, size});
 
-    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID});
     let optimizedSource = source;
     const maybeDefaultAvatarName = getCustomAvatarNameFromURL(source);
 

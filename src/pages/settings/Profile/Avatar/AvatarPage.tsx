@@ -149,7 +149,6 @@ function ProfileAvatar() {
 
     const onPress = useCallback(() => {
         isSavingRef.current = true;
-
         if (imageData.file) {
             updateAvatar(imageData.file, {
                 avatar: currentUserPersonalDetails?.avatar,
@@ -214,6 +213,7 @@ function ProfileAvatar() {
                     fileName={selected ?? 'avatar'}
                 >
                     <Avatar
+                        originalFileName={currentUserPersonalDetails?.originalFileName}
                         containerStyles={avatarStyle}
                         imageStyles={avatarStyle}
                         source={avatarURL}

@@ -364,8 +364,7 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
-
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, iconFileName, ...menuItemProps} = item;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -383,6 +382,7 @@ function BasePopoverMenu({
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
+                    iconFileName={iconFileName}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;

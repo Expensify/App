@@ -1,5 +1,9 @@
 import {md5} from 'expensify-common';
+import React from 'react';
+import type {SvgProps} from 'react-native-svg';
+import ColoredLetterAvatar from '@components/ColoredLetterAvatar';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {ALL_CUSTOM_AVATARS, DEFAULT_AVATAR_PREFIX, getAvatarLocal, getAvatarURL, getLetterAvatar} from './Avatars/CustomAvatarCatalog';
@@ -39,6 +43,11 @@ type DefaultAvatarArgsType = CommonAvatarArgsType & {
 type GetAvatarArgsType = CommonAvatarArgsType & {
     /** The avatar source - can be a URL string or SVG component */
     avatarSource?: AvatarSource;
+
+    /** Name of the original file - used for recognizing letter avatars */
+    originalFileName?: string;
+
+    size?: AvatarSizeName;
 };
 
 /**
@@ -193,6 +202,33 @@ function isLetterAvatar(originalFileName?: string): boolean {
 }
 
 /**
+ * Extracts the letter and colors from a letter avatar filename.
+ * Letter avatars follow the pattern: letter-avatar-#RRGGBB-#RRGGBB-X.png
+ * where the first RRGGBB is the background color, second is the text color, and X is the letter.
+ *
+ * @param originalFileName - The original filename of the avatar
+ * @returns An object containing the letter and colors, or undefined if not a valid letter avatar
+ */
+function extractLetterAvatarData(originalFileName?: string): {letter: string; backgroundColor: string; textColor: string} | undefined {
+    if (!isLetterAvatar(originalFileName)) {
+        return undefined;
+    }
+
+    // Extract components using regex groups
+    const match = originalFileName?.match(/^letter-avatar-(#[0-9A-F]{6})-(#[0-9A-F]{6})-([A-Z])\.png$/);
+
+    if (!match) {
+        return undefined;
+    }
+
+    return {
+        backgroundColor: match[1],
+        textColor: match[2],
+        letter: match[3],
+    };
+}
+
+/**
  * Returns the appropriate avatar source (SVG asset or URL) for rendering in React components.
  *
  * **This is the primary function for getting avatar sources throughout the application.**
@@ -212,9 +248,37 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
-function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
+function getAvatar({
+    avatarSource,
+    accountID = CONST.DEFAULT_NUMBER_ID,
+    accountEmail,
+    originalFileName,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+}: GetAvatarArgsType): AvatarSource | React.FC<SvgProps> | undefined {
     if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource});
+    }
+    if (isLetterAvatar(originalFileName)) {
+        function StyledLetterAvatar() {
+            const letterAvatarData = extractLetterAvatarData(originalFileName);
+            if (!letterAvatarData) {
+                return null;
+            }
+            const avatarComponent = getLetterAvatar(letterAvatarData.letter);
+            if (!avatarComponent) {
+                return null;
+            }
+
+            return (
+                <ColoredLetterAvatar
+                    fillColor={letterAvatarData.textColor}
+                    backgroundColor={letterAvatarData.backgroundColor}
+                    component={avatarComponent}
+                    size={size}
+                />
+            );
+        }
+        return StyledLetterAvatar ?? avatarSource;
     }
 
     const maybeCustomAvatarName = getCustomAvatarNameFromURL(avatarSource);
@@ -252,7 +316,7 @@ function getAvatarUrl({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
  * @returns The full-size avatar source
  */
 function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
-    const source = getAvatar(args);
+    const source = getAvatar({...args, size: CONST.AVATAR_SIZE.X_X_LARGE});
     if (typeof source !== 'string') {
         return source;
     }

@@ -114,6 +114,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
             errorTextStyle: styles.mt2,
+            iconFileName: personalDetails?.originalFileName,
             ...additionalProps,
         };
     };
@@ -197,6 +198,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             avatarID={currentUserPersonalDetails?.accountID}
                             source={currentUserPersonalDetails?.avatar}
                             fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                            originalFileName={currentUserPersonalDetails.originalFileName}
                         />
                         <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                             <View style={[styles.flexRow, styles.gap1]}>

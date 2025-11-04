@@ -36,9 +36,9 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
 
     // Temp variables are coming as '' therefore || is needed
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID, originalFileName});
     const headerTitle = formatPhoneNumber(displayName);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !avatarURL;
