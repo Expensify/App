@@ -32,6 +32,7 @@ function MFARevokePage() {
         hideConfirmModal();
         onGoBackPress();
     };
+
     return (
         <ScreenWrapper testID={MFARevokePage.displayName}>
             <HeaderWithBackButton
@@ -43,7 +44,7 @@ function MFARevokePage() {
                 {isAccessRevokedOnAllDevices ? (
                     <>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.mt5, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.renableContent')}</Text>
+                            <Text style={[styles.mt3, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.renableContent')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.m5]}>
                             <Button
@@ -57,7 +58,7 @@ function MFARevokePage() {
                 ) : (
                     <>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.mt5, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.revokeContent')}</Text>
+                            <Text style={[styles.mt3, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.revokeContent')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.m5]}>
                             <Button
