@@ -116,10 +116,6 @@ const useSearchTypeMenuSections = () => {
     const isSuggestedSearchDataReady = useMemo(() => {
         const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
 
-        if (policiesList.length === 0) {
-            return true;
-        }
-
         return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
     }, [allPolicies]);
 
