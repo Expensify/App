@@ -22,9 +22,9 @@ import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
+import {getDefaultAvatarName, isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
-import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -77,7 +77,8 @@ function ProfileAvatar() {
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
+
+    const isUsingDefaultAvatar = (!imageData.uri && isDefaultOrCustomDefaultAvatar(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.originalFileName)) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -123,33 +124,22 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
-        if (isDirty) {
-            setSelected(undefined);
-            setImageData({...EMPTY_FILE});
-            return;
-        }
-        deleteAvatar({
-            avatar: currentUserPersonalDetails?.avatar,
-            fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-            accountID: currentUserPersonalDetails?.accountID,
-            email: currentUserPersonalDetails?.email,
-        });
-        setSelected(undefined);
+        setSelected(getDefaultAvatarName(currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email));
         setImageData({...EMPTY_FILE});
-        Navigation.dismissModal();
-    }, [currentUserPersonalDetails, isDirty]);
+    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
 
     const clearError = useCallback(() => {
         setError(null, {});
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
-        isAvatarSelected: isDirty,
         isUsingDefaultAvatar,
         accountID,
         onImageRemoved,
         showAvatarCropModal,
         clearError,
+        source: imageData.uri,
+        originalFileName: imageData.name,
     });
 
     const onPress = useCallback(() => {
@@ -197,6 +187,7 @@ function ProfileAvatar() {
                 accountID: currentUserPersonalDetails?.accountID,
             });
             setSelected(undefined);
+            setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
             isSavingRef.current = false;
         });
@@ -281,17 +272,17 @@ function ProfileAvatar() {
                             setSelected(id);
                         }}
                     />
-                    {!!errorData.validationError && (
-                        <DotIndicatorMessage
-                            style={styles.mt6}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                            type="error"
-                        />
-                    )}
                 </View>
             </ScrollView>
             <FixedFooter style={styles.mtAuto}>
+                {!!errorData.validationError && (
+                    <DotIndicatorMessage
+                        style={styles.mv5}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        type="error"
+                    />
+                )}
                 <Button
                     large
                     success

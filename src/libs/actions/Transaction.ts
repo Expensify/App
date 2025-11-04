@@ -50,12 +50,6 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 
-let recentWaypoints: RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
-
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -100,7 +94,15 @@ function isViolationWithName(violation: unknown): violation is {name: string} {
     return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
 }
 
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
+type SaveWaypointProps = {
+    transactionID: string;
+    index: string;
+    waypoint: RecentWaypoint | null;
+    isDraft?: boolean;
+    recentWaypointsList?: RecentWaypoint[];
+};
+
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = []}: SaveWaypointProps) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -142,9 +144,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     if (deepEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
-    const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
+    const recentWaypointAlreadyExists = recentWaypointsList.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
-        const clonedWaypoints = lodashClone(recentWaypoints);
+        const clonedWaypoints = lodashClone(recentWaypointsList);
         const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
@@ -612,10 +614,6 @@ function openDraftDistanceExpense() {
         ],
     };
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
-}
-
-function getRecentWaypoints() {
-    return recentWaypoints;
 }
 
 /**
@@ -1302,7 +1300,6 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    getRecentWaypoints,
     sanitizeRecentWaypoints,
     getLastModifiedExpense,
     revert,

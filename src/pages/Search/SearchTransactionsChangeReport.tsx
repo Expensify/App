@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -30,13 +31,14 @@ function SearchTransactionsChangeReport() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -69,15 +71,7 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys]);
 
-    const createReport = () => {
-        if (shouldSelectPolicy) {
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
-            return;
-        }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
-            return;
-        }
+    const createReportForPolicy = () => {
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         changeTransactionsReport({
@@ -94,6 +88,25 @@ function SearchTransactionsChangeReport() {
         });
         clearSelectedTransactions();
         Navigation.goBack();
+    };
+
+    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+        policyID: policyForMovingExpensesID,
+        policyName: policyForMovingExpenses?.name ?? '',
+        onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
+    });
+
+    const createReport = () => {
+        if (shouldSelectPolicy) {
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
+            return;
+        }
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
+            return;
+        }
+        handleCreateReport();
     };
 
     const selectReport = (item: TransactionGroupListItem) => {
@@ -142,17 +155,20 @@ function SearchTransactionsChangeReport() {
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={undefined}
-            transactionIDs={selectedTransactionsKeys}
-            selectedReportID={selectedReportID}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            createReport={createReport}
-            isEditing
-            isUnreported={areAllTransactionsUnreported}
-            targetOwnerAccountID={targetOwnerAccountID}
-        />
+        <>
+            {CreateReportConfirmationModal}
+            <IOURequestEditReportCommon
+                backTo={undefined}
+                transactionIDs={selectedTransactionsKeys}
+                selectedReportID={selectedReportID}
+                selectReport={selectReport}
+                removeFromReport={removeFromReport}
+                createReport={createReport}
+                isEditing
+                isUnreported={areAllTransactionsUnreported}
+                targetOwnerAccountID={targetOwnerAccountID}
+            />
+        </>
     );
 }
 
