@@ -1,14 +1,13 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {InteractionManager, Animated as RNAnimated} from 'react-native';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {calculateReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
@@ -30,23 +29,19 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 
 const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
+const singleRHPWidth = variables.sideBarWidth;
+const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+const getSuperWideRHPWidth = (windowWidth: number) => windowWidth - variables.sideBarWithLHBWidth - variables.navigationTabBarSize;
+
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, wideRHPRouteKeys, shouldRenderThirdOverlay, thirdOverlayProgress} =
-        useContext(WideRHPContext);
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
-    const {sidePanelTranslateX} = useSidePanel();
-
-    const secondaryOverlayPositionRight = RNAnimated.add(variables.sideBarWidth, sidePanelTranslateX ? RNAnimated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const width = interpolate(
-            expandedRHPProgress.get(),
-            [0, 1, 2],
-            [variables.sideBarWidth, variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth), windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth],
-        );
+        const width = interpolate(expandedRHPProgress.get(), [0, 1, 2], [singleRHPWidth, getWideRHPWidth(windowWidth), getSuperWideRHPWidth(windowWidth)]);
 
         return {
             height: '100%',
@@ -288,10 +283,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 </Animated.View>
                 {/* The second overlay is here to cover the wide rhp screen underneath */}
                 {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
-                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRhpFocused && (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionRightValue={isWideRhpFocused ? variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth) : variables.sideBarWidth}
+                        positionRightValue={variables.sideBarWidth}
+                        onPress={() => Navigation.closeRHPFlow()}
+                    />
+                )}
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRhpFocused && (
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        positionRightValue={wideRHPWidth}
                         onPress={() => Navigation.closeRHPFlow()}
                     />
                 )}

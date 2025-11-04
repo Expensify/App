@@ -20,7 +20,9 @@ import type {WideRHPContextType} from './types';
 const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
-const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + variables.sideBarWidth;
+const singleRHPWidth = variables.sideBarWidth;
+const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
+const sidebarWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 /**
  * Utility function that extracts all unique navigation keys from a React Navigation state.
@@ -67,11 +69,15 @@ function extractNavigationKeys(state: NavigationState | PartialState<NavigationS
 const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
     const calculatedWidth = windowWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - windowWidth) : variables.receiptPaneRHPMaxWidth;
 
-    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - variables.sideBarWidth);
+    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - singleRHPWidth);
 };
 
 // This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
+
+const wideRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width) + singleRHPWidth);
+const modalStackOverlayWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - calculateReceiptPaneRHPWidth(Dimensions.get('window').width - singleRHPWidth));
+const modalStackOverlaySuperWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - singleRHPWidth);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -343,9 +349,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useEffect(() => {
         const handleDimensionChange = () => {
             const windowWidth = Dimensions.get('window').width;
-            const newWidth = calculateReceiptPaneRHPWidth(windowWidth);
-
-            receiptPaneRHPWidth.setValue(newWidth);
+            const newReceiptPaneRHPWidth = calculateReceiptPaneRHPWidth(windowWidth);
+            const newWideRHPWidth = newReceiptPaneRHPWidth + singleRHPWidth;
+            receiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
+            wideRHPWidth.setValue(newWideRHPWidth);
+            modalStackOverlayWideRHPWidth.setValue(windowWidth - newWideRHPWidth - sidebarWidth);
+            modalStackOverlaySuperWideRHPWidth.setValue(windowWidth - sidebarWidth - singleRHPWidth);
         };
 
         // Set initial value
@@ -472,4 +481,15 @@ WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
 
-export {calculateReceiptPaneRHPWidth, extractNavigationKeys, receiptPaneRHPWidth, secondOverlayProgress, useShowSuperWideRHPVersion, useShowWideRHPVersion, WideRHPContext};
+export {
+    calculateReceiptPaneRHPWidth,
+    extractNavigationKeys,
+    receiptPaneRHPWidth,
+    wideRHPWidth,
+    modalStackOverlayWideRHPWidth,
+    modalStackOverlaySuperWideRHPWidth,
+    secondOverlayProgress,
+    useShowSuperWideRHPVersion,
+    useShowWideRHPVersion,
+    WideRHPContext,
+};
