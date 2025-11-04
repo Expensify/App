@@ -2,13 +2,13 @@ import React, {memo} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
-type MFAApproveTransactionConfirmModalProps = {
+type MFARevokeConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
 };
 
-function MFAApproveTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFAApproveTransactionConfirmModalProps) {
+function MFARevokeConfirmModal({isVisible, onConfirm, onCancel}: MFARevokeConfirmModalProps) {
     const {translate} = useLocalize();
 
     return (
@@ -18,14 +18,16 @@ function MFAApproveTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFA
             onConfirm={onConfirm}
             onCancel={onCancel}
             isVisible={isVisible}
-            prompt={translate('multiFactorAuthentication.approveTransaction.denyTransactionContent')}
-            confirmText={translate('multiFactorAuthentication.approveTransaction.denyTransactionButton')}
+            prompt={translate('multiFactorAuthentication.revokePage.confirmationContent')}
+            confirmText={translate('multiFactorAuthentication.revokePage.bottomButtonContent')}
             cancelText={translate('common.cancel')}
+            shouldDisableConfirmButtonWhenOffline
             shouldShowCancelButton
         />
     );
 }
 
-MFAApproveTransactionConfirmModal.displayName = 'MFAApproveTransactionConfirmModal';
+MFARevokeConfirmModal.displayName = 'MFARevokeConfirmModal';
 
-export default memo(MFAApproveTransactionConfirmModal);
+export default memo(MFARevokeConfirmModal);
+

@@ -1,16 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MagicCodeInput from '@components/MagicCodeInput';
+import MFAFactorAuthenticatorForm from '@components/MFA/MFAFactorAuthenticatorForm';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
@@ -24,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function MFAFactorAuthenticatorPage() {
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -88,6 +82,8 @@ function MFAFactorAuthenticatorPage() {
 
     const errorMessage = useMemo(() => getLatestErrorMessage(account), [account]);
 
+    const formErrorText = formError.twoFactorAuthCode ?? errorMessage;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -102,35 +98,14 @@ function MFAFactorAuthenticatorPage() {
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView
-                    style={[styles.w100, styles.h100, styles.flex1]}
-                    contentContainerStyle={styles.flexGrow1}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
-                        <Text style={styles.mb3}>{translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}</Text>
-                        <MagicCodeInput
-                            autoComplete="one-time-code"
-                            name="twoFactorAuthCode"
-                            value={twoFactorAuthCode}
-                            onChangeText={onCodeInput}
-                            onFulfill={validateAndSubmitForm}
-                            errorText={formError.twoFactorAuthCode ?? errorMessage}
-                            ref={inputRef}
-                            autoFocus={false}
-                            testID="twoFactorAuthCodeInput"
-                        />
-                        <Button
-                            success
-                            large
-                            style={[styles.w100, styles.p5, styles.mtAuto]}
-                            onPress={validateAndSubmitForm}
-                            text={translate('common.verify')}
-                            isLoading={isValidateCodeFormSubmitting}
-                            isDisabled={isOffline}
-                        />
-                    </View>
-                </ScrollView>
+                <MFAFactorAuthenticatorForm
+                    twoFactorAuthCode={twoFactorAuthCode}
+                    formError={formErrorText}
+                    inputRef={inputRef}
+                    isValidateCodeFormSubmitting={isValidateCodeFormSubmitting}
+                    onCodeInput={onCodeInput}
+                    validateAndSubmitForm={validateAndSubmitForm}
+                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -284,4 +284,4 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
 
 MFAValidateCodePage.displayName = 'MFAValidateCodePage';
 
-export default MFAValidateCodePage;
+export default memo(MFAValidateCodePage);

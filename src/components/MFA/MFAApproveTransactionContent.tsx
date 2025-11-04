@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -134,4 +134,4 @@ function MFAApproveTransactionContent({transactionID}: MFAApproveTransactionCont
 
 MFAApproveTransactionContent.displayName = 'MFAApproveTransactionContent';
 
-export default MFAApproveTransactionContent;
+export default memo(MFAApproveTransactionContent);

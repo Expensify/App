@@ -1,15 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import MFAPromptActions from '@components/MFA/MFAPromptActions';
+import MFAPromptContent from '@components/MFA/MFAPromptContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
@@ -51,7 +48,6 @@ const getPromptContentData = (promptType: PromptType): PromptContentData => {
 
 function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const onGoBackPress = useCallback(() => {
         Navigation.dismissModal();
     }, []);
@@ -76,29 +72,15 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <View style={styles.flex1}>
-                    <BlockingView
-                        animation={contentData.animation}
-                        animationStyles={styles.emptyLHNAnimation}
-                        animationWebStyle={styles.emptyLHNAnimation}
-                        title={translate(contentData.title)}
-                        subtitle={translate(contentData.subtitle)}
-                        subtitleStyle={styles.textSupporting}
-                        containerStyle={styles.p0}
-                        testID={MultiFactorAuthenticationPromptPage.displayName}
-                    />
-                </View>
-                <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    <Button
-                        onPress={onGoBackPress}
-                        text={translate('common.notNow')}
-                    />
-                    <Button
-                        success
-                        onPress={onConfirm}
-                        text={translate('common.buttonConfirm')}
-                    />
-                </FixedFooter>
+                <MFAPromptContent
+                    animation={contentData.animation}
+                    title={contentData.title}
+                    subtitle={contentData.subtitle}
+                />
+                <MFAPromptActions
+                    onGoBackPress={onGoBackPress}
+                    onConfirm={onConfirm}
+                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
