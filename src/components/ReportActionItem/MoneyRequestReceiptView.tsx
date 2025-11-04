@@ -235,7 +235,18 @@ function MoneyRequestReceiptView({
             }
             navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
         }
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, iouReport, chatIOUReport, isChatIOUReportArchived, reportCreationError]);
+    }, [
+        transaction,
+        chatReport,
+        parentReportAction,
+        linkedTransactionID,
+        report?.reportID,
+        iouReport,
+        chatIOUReport,
+        isChatIOUReportArchived,
+        errorsWithoutReportCreation,
+        reportCreationError,
+    ]);
 
     let receiptStyle: StyleProp<ViewStyle>;
 
