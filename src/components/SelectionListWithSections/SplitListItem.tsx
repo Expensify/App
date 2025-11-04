@@ -37,15 +37,20 @@ function SplitListItem<TItem extends ListItem>({
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = (amount: string) => {
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-    };
+    const onSplitExpenseAmountChange = useCallback(
+        (amount: string) => {
+            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+        },
+        [splitItem],
+    );
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
-    const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    // Use absolute value for contentWidth calculation since we don't want the minus sign to affect width
+    const absoluteFormattedAmount = convertToDisplayStringWithoutCurrency(Math.abs(splitItem.originalAmount), splitItem.currency);
+    const contentWidth = (absoluteFormattedAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
             return;
@@ -177,6 +182,7 @@ function SplitListItem<TItem extends ListItem>({
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length + 1}
                                 contentWidth={contentWidth}
+                                allowFlippingAmount
                                 shouldApplyPaddingToContainer
                                 shouldUseDefaultLineHeightForPrefix={false}
                                 shouldWrapInputInContainer={false}
