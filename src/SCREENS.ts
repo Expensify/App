@@ -404,9 +404,7 @@ const SCREENS = {
         ROOT: 'NewReportWorkspaceSelection_Root',
     },
 
-    SET_DEFAULT_WORKSPACE: {
-        ROOT: 'SetDefaultWorkspace_Root',
-    },
+    SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
@@ -558,7 +556,6 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
-        COMPANY_CARDS_TRANSACTION_START_DATE: 'Workspace_CompanyCards_TransactionStartDate',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
