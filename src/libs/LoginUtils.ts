@@ -35,19 +35,19 @@ function appendCountryCode(phone: string, countryCode: number): string {
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
+    const emailDomain = getEmailDomain(email);
     return PUBLIC_DOMAINS_SET.has(emailDomain);
 }
 
+function isDomainPublic(domain: string): boolean {
+    return PUBLIC_DOMAINS_SET.has(domain);
+}
+
 /**
- * Get the domain and whether it is public domain for an email
+ * Get the domain for an email
  */
-function getEmailDomainInfo(email: string) {
-    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    return {
-        domain: emailDomain,
-        isPublicDomain: PUBLIC_DOMAINS_SET.has(emailDomain),
-    };
+function getEmailDomain(email: string): string {
+    return Str.extractEmailDomain(email).toLowerCase();
 }
 
 /**
@@ -125,5 +125,6 @@ export {
     postSAMLLogin,
     handleSAMLLoginError,
     formatE164PhoneNumber,
-    getEmailDomainInfo,
+    getEmailDomain,
+    isDomainPublic,
 };
