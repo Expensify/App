@@ -71,6 +71,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
                     hasAccessiblePolicies: false,
                     currentOnboardingCompanySize: undefined,
                     currentOnboardingPurposeSelected: undefined,
+                    onboardingValues: onboarding,
                 });
             });
 
