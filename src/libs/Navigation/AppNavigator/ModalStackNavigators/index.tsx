@@ -37,7 +37,6 @@ import type {
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
-    SetDefaultWorkspaceNavigatorParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
     SignInNavigatorParamList,
@@ -185,6 +184,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceMap').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceManual').default,
+    [SCREENS.SET_DEFAULT_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
@@ -211,10 +211,6 @@ const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorPar
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewReportWorkspaceSelectionPage').default,
-});
-
-const SetDefaultWorkspaceModalStackNavigator = createModalStackNavigator<SetDefaultWorkspaceNavigatorParamList>({
-    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
@@ -932,7 +928,6 @@ export {
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
-    SetDefaultWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,

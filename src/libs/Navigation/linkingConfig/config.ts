@@ -26,7 +26,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
-        [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
+        [SCREENS.PROFILE_AVATAR]: {
+            path: ROUTES.PROFILE_AVATAR.route,
+            parse: {
+                accountID: Number,
+            },
+        },
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
@@ -1114,11 +1119,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: {
-                    screens: {
-                        [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: ROUTES.SET_DEFAULT_WORKSPACE.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
                     screens: {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
@@ -1427,6 +1427,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,
                         },
+                        [SCREENS.SET_DEFAULT_WORKSPACE]: ROUTES.SET_DEFAULT_WORKSPACE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {

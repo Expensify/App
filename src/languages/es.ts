@@ -423,6 +423,9 @@ const translations = {
         zipPostCode: 'Código postal',
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
+        acceptTermsAndPrivacy: `Acepto los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">la Política de Privacidad de Expensify</a>`,
+        acceptTermsAndConditions: `Acepto los <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">Términos y Condiciones</a>`,
+        acceptTermsOfService: `Acepto los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a>`,
         remove: 'Eliminar',
         admin: 'Administrador',
         owner: 'Dueño',
@@ -2581,10 +2584,8 @@ ${amount} para ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
             onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# ¡Tu prueba gratuita ha comenzado! Vamos a poner todo a punto.\n👋 Hola, soy tu especialista de configuración de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos que aparecen a continuación.'
-                    : '# ¡Tu prueba gratuita ha comenzado! Vamos a configurarlo.\n👋 Hola, soy tu especialista asignado de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, solo sigue los pasos de configuración restantes a continuación.',
+            onboardingManageTeamMessage:
+                '# ¡Tu prueba gratuita ha comenzado! Vamos a poner todo a punto.\n👋 Hola, soy tu especialista de configuración de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos que aparecen a continuación.',
             onboardingTrackWorkspaceMessage:
                 '# Vamos a configurarte\n👋 ¡Estoy aquí para ayudarte! Para comenzar, he personalizado la configuración de tu espacio de trabajo para propietarios únicos y negocios similares. Puedes ajustar tu espacio de trabajo haciendo clic en el enlace de abajo.\n\nAsí es como puedes organizar tus gastos en unos pocos clics:',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
@@ -4607,6 +4608,7 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             cardDetails: 'Datos de la tarjeta',
+            cardPending: ({name}: {name: string}) => `La tarjeta está pendiente y se emitirá una vez que la cuenta de ${name} haya sido validada.`,
             virtual: 'Virtual',
             physical: 'Física',
             deactivate: 'Desactivar tarjeta',
@@ -5379,6 +5381,7 @@ ${amount} para ${merchant} - ${date}`,
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
+                inviteNewMember: 'Invitar nuevo miembro',
                 findMember: 'Buscar miembro',
                 chooseCardType: 'Elegir un tipo de tarjeta',
                 physicalCard: 'Tarjeta física',

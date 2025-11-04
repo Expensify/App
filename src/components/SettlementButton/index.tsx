@@ -131,7 +131,7 @@ function SettlementButton({
     // whether the user has single policy and the expense is p2p
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -188,7 +188,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated]);
+    }, [isAccountLocked, isUserValidated, policy, showLockedAccountModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {

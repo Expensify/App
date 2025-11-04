@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: '邮政编码',
         whatThis: '这是什么？',
         iAcceptThe: '我接受',
+        acceptTermsAndPrivacy: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a> 和 <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>`,
+        acceptTermsAndConditions: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">条款和条件</a>`,
+        acceptTermsOfService: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a>`,
         remove: '移除',
         admin: '管理员',
         owner: '所有者',
@@ -2591,10 +2594,8 @@ ${merchant}的${amount} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请充分利用 30 天免费试用，并按照下面的步骤操作！'
-                    : '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设绎专员。我已经创建了一个工作区，用于帮助管理您团队的收据和费用。为了充分利用 30 天免费试用，请按照下面的剩余步骤操作！',
+            onboardingManageTeamMessage:
+                '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请充分利用 30 天免费试用，并按照下面的步骤操作！',
             onboardingTrackWorkspaceMessage:
                 '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
@@ -4535,6 +4536,7 @@ ${merchant}的${amount} - ${date}`,
                 monthly: '每月',
             },
             cardDetails: '卡片详情',
+            cardPending: ({name}: {name: string}) => `卡片目前待处理，将在验证${name}的账户后发放。`,
             virtual: 'Virtual',
             physical: '物理的',
             deactivate: '停用卡片',
@@ -5047,6 +5049,7 @@ ${merchant}的${amount} - ${date}`,
             issueCard: '发卡',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
+                inviteNewMember: '邀请新成员',
                 findMember: '查找成员',
                 chooseCardType: '选择卡类型',
                 physicalCard: '实体卡',

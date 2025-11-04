@@ -1359,12 +1359,6 @@ type NewReportWorkspaceSelectionNavigatorParamList = {
     };
 };
 
-type SetDefaultWorkspaceNavigatorParamList = {
-    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: {
-        navigateTo?: Routes;
-    };
-};
-
 type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: {
         reportID: string;
@@ -1814,6 +1808,9 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.SET_DEFAULT_WORKSPACE]: {
+        navigateTo?: Routes;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -2058,7 +2055,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: NavigatorScreenParams<SetDefaultWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
@@ -2750,7 +2746,6 @@ export type {
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
     ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
-    SetDefaultWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
