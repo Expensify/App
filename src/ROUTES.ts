@@ -268,6 +268,14 @@ const ROUTES = {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
+    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
+        route: 'settings/card/:cardID/update-address',
+        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
+    },
+    SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/card/:cardID/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-magic-code` as const,
+    },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
@@ -456,10 +464,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseRoute, backTo);
         },
-    },
-    SET_DEFAULT_WORKSPACE: {
-        route: 'set-default-workspace',
-        getRoute: (navigateTo?: string) => (navigateTo ? (`set-default-workspace?navigateTo=${encodeURIComponent(navigateTo)}` as const) : ('set-default-workspace' as const)),
     },
     REPORT: 'r',
     REPORT_WITH_ID: {
@@ -898,6 +902,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? '?shouldTurnOffSelectionMode=true' : ''}`, backTo);
         },
     },
+    SET_DEFAULT_WORKSPACE: {
+        route: 'set-default-workspace',
+        getRoute: (navigateTo?: string) => (navigateTo ? (`set-default-workspace?navigateTo=${encodeURIComponent(navigateTo)}` as const) : ('set-default-workspace' as const)),
+    },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
         getRoute: (policyID: string | undefined, backTo = '') => {
@@ -1260,8 +1268,14 @@ const ROUTES = {
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         route: 'workspaces/:policyID/invite-message/role',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role`, backTo)}` as const,
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INVITE_MESSAGE_ROLE route');
+            }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role` as const, backTo);
+        },
     },
     WORKSPACE_OVERVIEW: {
         route: 'workspaces/:policyID/overview',
