@@ -1,4 +1,4 @@
-import {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Option} from './OptionsListUtils';
 import type {OptionData} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
