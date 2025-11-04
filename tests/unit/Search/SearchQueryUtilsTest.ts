@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
+import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import {
     buildFilterFormValuesFromQuery,
@@ -25,7 +26,7 @@ const personalDetailsFakeData = {
 } as Record<string, {accountID: number}>;
 
 jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof import('@libs/PersonalDetailsUtils')>('@libs/PersonalDetailsUtils');
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
     return {
         ...actual,
         getPersonalDetailByEmail(email: string) {
