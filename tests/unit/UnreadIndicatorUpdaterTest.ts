@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../src/CONST';
-import * as UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
+import UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
 import * as TestHelper from '../utils/TestHelper';
 
 const TEST_USER_ACCOUNT_ID = 1;

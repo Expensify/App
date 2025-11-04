@@ -1,11 +1,13 @@
-import {translateLocal} from '@libs/Localize';
+import Onyx from 'react-native-onyx';
 import {
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
+    getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -13,13 +15,22 @@ import {
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 describe('MergeTransactionUtils', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForBatchedUpdates();
+    });
+
     describe('getSourceTransactionFromMergeTransaction', () => {
         it('should return undefined when mergeTransaction is undefined', () => {
             // Given a null merge transaction
@@ -508,6 +519,7 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                reportName: 'Test Report',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -533,6 +545,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                reportName: 'Test Report',
             });
         });
     });
@@ -605,6 +618,30 @@ describe('MergeTransactionUtils', () => {
                 targetTransaction: cashTransaction1,
                 sourceTransaction: cashTransaction2,
             });
+        });
+    });
+
+    describe('getReceiptFileName', () => {
+        it('should return filename from source when source is a string', () => {
+            const receipt = {
+                source: 'https://example.com/receipts/receipt123.jpg',
+                filename: 'backup-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt123.jpg');
+        });
+
+        it('should return filename when source is not a string', () => {
+            const receipt = {
+                source: 12345,
+                filename: 'receipt-from-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt-from-filename.jpg');
         });
     });
 
@@ -693,7 +730,6 @@ describe('MergeTransactionUtils', () => {
                 {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
             ];
-
             const result = getDisplayValue('attendees', transaction, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
@@ -715,6 +751,114 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+
+        it('should return "None" for unreported reportID', () => {
+            // Given a transaction with unreported reportID
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return translated "None"
+            expect(result).toBe('common.none');
+        });
+
+        it("should return transaction's reportName when available for reportID", () => {
+            // Given a transaction with reportID and reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: '123',
+                reportName: 'Test Report Name',
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return the reportName
+            expect(result).toBe('Test Report Name');
+        });
+
+        it("should return report's name when no reportName available on transaction", async () => {
+            // Given a random report
+            const reportID = 456;
+            const report = {
+                ...createRandomReport(reportID, undefined),
+                reportName: 'Test Report Name',
+            };
+
+            // Store the report in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // Given a transaction with reportID but no reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: report.reportID,
+                reportName: undefined,
+            };
+
+            // When we get display value for reportID
+            const result = getDisplayValue('reportID', transaction, translateLocal);
+
+            // Then it should return the report's name from Onyx
+            expect(result).toBe(report.reportName);
+        });
+    });
+
+    describe('getMergeFieldUpdatedValues', () => {
+        it('should return updated values with the field value for non-special fields', () => {
+            // Given a transaction and a basic field like merchant
+            const transaction = createRandomTransaction(0);
+            const fieldValue = 'New Merchant Name';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should return an object with the field value
+            expect(result).toEqual({
+                merchant: 'New Merchant Name',
+            });
+        });
+
+        it('should include currency when field is amount', () => {
+            // Given a transaction with EUR currency
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.EUR,
+            };
+            const fieldValue = 2500;
+
+            // When we get updated values for amount field
+            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+
+            // Then it should include both amount and currency
+            expect(result).toEqual({
+                amount: 2500,
+                currency: CONST.CURRENCY.EUR,
+            });
+        });
+
+        it('should include reportName when field is reportID', () => {
+            // Given a transaction with a reportID and reportName
+            const transaction = {
+                ...createRandomTransaction(0),
+                reportID: '123',
+                reportName: 'Test Report',
+            };
+            const fieldValue = '456';
+
+            // When we get updated values for reportID field
+            const result = getMergeFieldUpdatedValues(transaction, 'reportID', fieldValue);
+
+            // Then it should include both reportID and reportName
+            expect(result).toEqual({
+                reportID: '456',
+                reportName: 'Test Report',
+            });
         });
     });
 

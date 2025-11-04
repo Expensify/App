@@ -1,7 +1,8 @@
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +24,7 @@ function DebitCardPage() {
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-
+    const kycWallRef = useContext(KYCWallContext);
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
      */
@@ -40,8 +41,8 @@ function DebitCardPage() {
             return;
         }
 
-        continueSetup();
-    }, [prevFormDataSetupComplete, formData?.setupComplete]);
+        continueSetup(kycWallRef);
+    }, [prevFormDataSetupComplete, formData?.setupComplete, kycWallRef]);
 
     const addPaymentCard = useCallback(
         (params: PaymentCardParams) => {
