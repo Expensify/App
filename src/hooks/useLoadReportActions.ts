@@ -84,7 +84,7 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
     const isReportActionLoaded = useCallback(
         (actionID: string | undefined) => {
             if (!actionID) {
-                return false;
+                return true;
             }
 
             return reportActions.some((action) => action.reportActionID === actionID);
