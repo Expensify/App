@@ -719,12 +719,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(
-            accountID,
-            searchResults?.data,
-            false,
-            searchResults?.search?.type,
-        );
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [accountID, searchResults?.data, searchResults?.search?.type]);
