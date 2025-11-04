@@ -8799,13 +8799,13 @@ describe('ReportUtils', () => {
         };
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`]: chatReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]: {
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
-            },
-        });
+            }),
+        ]);
         await waitForBatchedUpdates();
 
         const reason = reasonForReportToBeInOptionList({
