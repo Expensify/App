@@ -18,14 +18,7 @@ type MFAFactorAuthenticatorFormProps = {
     validateAndSubmitForm: () => void;
 };
 
-function MFAFactorAuthenticatorForm({
-    twoFactorAuthCode,
-    formError,
-    inputRef,
-    isValidateCodeFormSubmitting,
-    onCodeInput,
-    validateAndSubmitForm,
-}: MFAFactorAuthenticatorFormProps) {
+function MFAFactorAuthenticatorForm({twoFactorAuthCode, formError, inputRef, isValidateCodeFormSubmitting, onCodeInput, validateAndSubmitForm}: MFAFactorAuthenticatorFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -66,4 +59,3 @@ function MFAFactorAuthenticatorForm({
 MFAFactorAuthenticatorForm.displayName = 'MFAFactorAuthenticatorForm';
 
 export default memo(MFAFactorAuthenticatorForm);
-

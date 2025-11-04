@@ -59,7 +59,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const onConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
     }, []);
-    
+
     if (!contentData) {
         return <NotFoundPage />;
     }

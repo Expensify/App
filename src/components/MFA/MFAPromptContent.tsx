@@ -1,9 +1,9 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import type {DotLottieAnimation} from '@components/LottieAnimations/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {DotLottieAnimation} from '@components/LottieAnimations/types';
 import type {TranslationPaths} from '@src/languages/types';
 
 type MFAPromptContentProps = {
@@ -35,4 +35,3 @@ function MFAPromptContent({animation, title, subtitle}: MFAPromptContentProps) {
 MFAPromptContent.displayName = 'MFAPromptContent';
 
 export default memo(MFAPromptContent);
-

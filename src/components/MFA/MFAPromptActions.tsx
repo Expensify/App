@@ -31,4 +31,3 @@ function MFAPromptActions({onGoBackPress, onConfirm}: MFAPromptActionsProps) {
 MFAPromptActions.displayName = 'MFAPromptActions';
 
 export default memo(MFAPromptActions);
-

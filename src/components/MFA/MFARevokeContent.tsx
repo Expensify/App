@@ -53,4 +53,3 @@ function MFARevokeContent({isAccessRevoked, onGoBackPress, onShowConfirmModal}: 
 MFARevokeContent.displayName = 'MFARevokeContent';
 
 export default memo(MFARevokeContent);
-

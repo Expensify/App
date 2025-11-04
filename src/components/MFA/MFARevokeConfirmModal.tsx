@@ -30,4 +30,3 @@ function MFARevokeConfirmModal({isVisible, onConfirm, onCancel}: MFARevokeConfir
 MFARevokeConfirmModal.displayName = 'MFARevokeConfirmModal';
 
 export default memo(MFARevokeConfirmModal);
-
