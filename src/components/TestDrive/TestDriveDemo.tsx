@@ -46,11 +46,7 @@ function TestDriveDemo() {
     });
 
     useEffect(() => {
-        if (hasSeenTour) {
-            return;
-        }
-
-        if (!viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
             return;
         }
 
