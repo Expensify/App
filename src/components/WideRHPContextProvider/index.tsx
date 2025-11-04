@@ -63,22 +63,6 @@ function extractNavigationKeys(state: NavigationState | PartialState<NavigationS
 }
 
 /**
- * Returns the route key of the last visible RHP navigator,
- * or undefined if RHP is not currently visible.
- */
-function getLastVisibleRHPRouteKey(state: NavigationState): string | undefined {
-    const lastFullScreenRouteIndex = state.routes.findLastIndex((route) => isFullScreenName(route.name));
-    const lastRHPRouteIndex = state.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-    // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
-    if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
-        return undefined;
-    }
-
-    return state?.routes.at(lastRHPRouteIndex)?.key;
-}
-
-/**
  * Calculates the optimal width for the receipt pane RHP based on window width.
  * Ensures the RHP doesn't exceed maximum width and maintains minimum responsive width.
  *
@@ -122,6 +106,23 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const focusedRouteKey = useRootNavigationState((state) => findFocusedRoute(state))?.key;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
+    // Return undefined if RHP is not the last route
+    const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
+        const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
+        const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
+        if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
+            return undefined;
+        }
+
+        return state?.routes.at(lastRHPRouteIndex)?.key;
+    });
+
     const wideRHPRouteKeys = useMemo(() => {
         const rootState = navigationRef.getRootState();
 
@@ -129,7 +130,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return [];
         }
 
-        const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(rootState);
         const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
         if (!lastRHPRoute) {
@@ -140,7 +140,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const currentKeys = allWideRHPRouteKeys.filter((key) => lastRHPKeys.has(key));
 
         return currentKeys;
-    }, [allWideRHPRouteKeys]);
+    }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
     const isWideRhpFocused = useMemo(() => {
         return focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
