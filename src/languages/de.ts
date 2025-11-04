@@ -7488,6 +7488,8 @@ ${amount} für ${merchant} - ${date}`,
             pageTitle: 'Bitte genehmigen Sie diese Transaktion',
             pageContent: 'Eine Expensify Card Transaktion erfordert Ihre Genehmigung, bitte überprüfen Sie sie unten.',
             transactionDetails: 'Transaktionsdetails',
+            denyTransactionButton: 'Transaktion ablehnen',
+            denyTransactionContent: 'Die Transaktion wird abgelehnt, wenn Sie diesen Bildschirm schließen.',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrie (Nicht registriert)',

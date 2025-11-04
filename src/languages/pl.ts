@@ -7471,6 +7471,8 @@ ${amount} dla ${merchant} - ${date}`,
             pageTitle: 'Proszę zatwierdzić tę transakcję',
             pageContent: 'Transakcja Expensify Card wymaga Twojej aprobaty, proszę przejrzyj ją poniżej.',
             transactionDetails: 'Szczegóły transakcji',
+            denyTransactionButton: 'Odrzuć transakcję',
+            denyTransactionContent: 'Transakcja zostanie odrzucona, jeśli zamkniesz ten ekran.',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometria (Nie zarejestrowano)',

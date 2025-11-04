@@ -7439,6 +7439,8 @@ const translations = {
             pageTitle: 'Please approve this transaction',
             pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
             transactionDetails: 'Transaction Details',
+            denyTransactionButton: 'Deny transaction',
+            denyTransactionContent: 'The transaction will be denied if you close this screen.',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrics (Not registered)',

@@ -1,7 +1,8 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -35,6 +36,16 @@ function MFAScenarioApproveTransactionPage() {
     const contextMenuAnchor = {} as ContextMenuAnchor; // TODO: replace with actual contextMenuAnchor
     const shouldDisplayContextMenu = false; // TODO: replace with actual shouldDisplayContextMenu
     const isBiometryAvailable = false; // TODO: remove -> BIOMETRY WRAPPER WILL HANDLE IT
+
+    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+
+    const showConfirmModal = () => {
+        setConfirmModalVisibility(true);
+    };
+
+    const hideConfirmModal = () => {
+        setConfirmModalVisibility(false);
+    };
 
     const onGoBackPress = useCallback(() => {
         Navigation.goBack();
@@ -84,11 +95,19 @@ function MFAScenarioApproveTransactionPage() {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const denyTransaction = () => {
+        if (isConfirmModalVisible) {
+            hideConfirmModal();
+        }
+        // MFAdenyTransaction(); // TODO: update context or sth
+        onGoBackPress();
+    };
+
     return (
         <ScreenWrapper testID={MFAScenarioApproveTransactionPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.approveTransaction.headerButtonTitle')}
-                onBackButtonPress={onGoBackPress}
+                onBackButtonPress={showConfirmModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -125,7 +144,7 @@ function MFAScenarioApproveTransactionPage() {
                             danger
                             large
                             style={styles.flex1}
-                            onPress={onGoBackPress}
+                            onPress={denyTransaction}
                             text={translate('common.deny')}
                         />
                         <Button
@@ -136,6 +155,18 @@ function MFAScenarioApproveTransactionPage() {
                             text={translate('common.approve')}
                         />
                     </FixedFooter>
+                    <ConfirmModal
+                        danger
+                        title={translate('common.areYouSure')}
+                        onConfirm={denyTransaction}
+                        onCancel={hideConfirmModal}
+                        isVisible={isConfirmModalVisible}
+                        prompt={translate('multiFactorAuthentication.approveTransaction.denyTransactionContent')}
+                        confirmText={translate('multiFactorAuthentication.approveTransaction.denyTransactionButton')}
+                        cancelText={translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
+                        shouldShowCancelButton
+                    />
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

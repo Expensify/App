@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -15,7 +16,6 @@ import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import FixedFooter from '@components/FixedFooter';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';

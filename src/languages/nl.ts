@@ -7483,6 +7483,8 @@ ${amount} voor ${merchant} - ${date}`,
             pageTitle: 'Goedkeur deze transactie alstublieft',
             pageContent: 'Een Expensify Card transactie vereist uw goedkeuring, controleer deze hieronder.',
             transactionDetails: 'Transactiedetails',
+            denyTransactionButton: 'Transactie weigeren',
+            denyTransactionContent: 'De transactie wordt geweigerd als u dit scherm sluit.',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrie (Niet geregistreerd)',

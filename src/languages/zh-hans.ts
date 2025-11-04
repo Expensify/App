@@ -7324,6 +7324,8 @@ ${merchant}的${amount} - ${date}`,
             pageTitle: '请批准此交易',
             pageContent: 'Expensify Card交易需要您的批准，请在下面查看。',
             transactionDetails: '交易详情',
+            denyTransactionButton: '拒绝交易',
+            denyTransactionContent: '如果您关闭此屏幕，交易将被拒绝。',
         },
         biometrics: {
             biometricsNotRegistered: '生物识别（未注册）',

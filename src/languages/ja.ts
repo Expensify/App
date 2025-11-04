@@ -7434,6 +7434,8 @@ ${date} - ${merchant}に${amount}`,
             pageTitle: 'このトランザクションを承認してください',
             pageContent: 'Expensify Cardのトランザクションには承認が必要です。以下で確認してください。',
             transactionDetails: 'トランザクション詳細',
+            denyTransactionButton: 'トランザクションを拒否',
+            denyTransactionContent: 'この画面を閉じると、トランザクションが拒否されます。',
         },
         biometrics: {
             biometricsNotRegistered: '生体認証（未登録）',
