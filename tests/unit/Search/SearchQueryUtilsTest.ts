@@ -25,7 +25,7 @@ const personalDetailsFakeData = {
 } as Record<string, {accountID: number}>;
 
 jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual('@libs/PersonalDetailsUtils');
+    const actual = jest.requireActual<typeof import('@libs/PersonalDetailsUtils')>('@libs/PersonalDetailsUtils');
     return {
         ...actual,
         getPersonalDetailByEmail(email: string) {
