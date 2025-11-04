@@ -156,7 +156,6 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             title: translate('common.recent'),
             shouldShow: true,
             data,
@@ -167,7 +166,6 @@ function getDestinationListSections({
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         title: translate('common.all'),
         shouldShow: true,
         data,
