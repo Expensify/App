@@ -3334,6 +3334,8 @@ const ROUTES = {
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
+
+    NOT_FOUND: '/not-found'
 } as const;
 
 /**
