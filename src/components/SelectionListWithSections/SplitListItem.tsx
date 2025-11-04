@@ -41,7 +41,8 @@ function SplitListItem<TItem extends ListItem>({
         (amount: string) => {
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
         },
-        [splitItem],
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [splitItem.onSplitExpenseAmountChange, splitItem.transactionID],
     );
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
