@@ -222,4 +222,87 @@ describe('useSearchHighlightAndScroll', () => {
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
     });
+
+    it('should return multiple new search result keys when there are multiple new expenses', () => {
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
+        });
+        const updatedProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                },
+            },
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+                '3': {transactionID: '3'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
+    });
+
+    it('should return multiple new search result keys when there are multiple new chats', () => {
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+        const updatedProps = {
+            ...chatProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    reportActions_1: {
+                        '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    },
+                    reportActions_2: {
+                        '2': {actionName: 'EXISTING', reportActionID: '2'},
+                    },
+                },
+            },
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+                reportActions_2: {
+                    '2': {actionName: 'EXISTING', reportActionID: '2'},
+                },
+                reportActions_3: {
+                    '3': {actionName: 'EXISTING', reportActionID: '3'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
+    });
 });
