@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,7 +20,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {clearShareBankAccount, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccount, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,13 +62,20 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         [selectedOptions],
     );
 
+    useEffect(() => {
+        if (!sharedBankAccountData?.admins) {
+            return;
+        }
+        setSelectedOptions(sharedBankAccountData.admins);
+    }, [sharedBankAccountData?.admins]);
+
     const handleConfirm = useCallback(() => {
         if (selectedOptions.length === 0 || !bankAccountID) {
             return;
         }
 
         const emails = selectedOptions.map((member) => member.login).filter(Boolean);
-
+        setShareBankAccountAdmins(selectedOptions);
         shareBankAccount(Number(bankAccountID), emails);
     }, [bankAccountID, selectedOptions]);
 
@@ -155,7 +162,9 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
     const onButtonPress = () => {
-        clearShareBankAccount();
+        if (!isLoading) {
+            clearShareBankAccount();
+        }
         goBack();
     };
 
@@ -187,6 +196,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     onChangeText={setSearchTerm}
                     sections={sections}
                     onSelectAll={toggleSelectAll}
+                    selectAllStyle={styles.mutedNormalTextLabel}
                     headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
                     shouldShowTextInputAfterHeader
                     shouldShowListEmptyContent={false}

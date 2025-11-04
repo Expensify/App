@@ -25,6 +25,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MemberForList} from '@libs/OptionsListUtils';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -1287,6 +1288,10 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
+function setShareBankAccountAdmins(admins?: MemberForList[]) {
+    Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {admins});
+}
+
 function shareBankAccount(bankAccountID: number, emails: string[]) {
     const parameters: ShareBankAccountParams = {
         bankAccountID,
@@ -1311,6 +1316,7 @@ function shareBankAccount(bankAccountID: number, emails: string[]) {
                 value: {
                     isLoading: false,
                     errors: null,
+                    admins: null,
                     shouldShowSuccess: true,
                 },
             },
@@ -1369,6 +1375,7 @@ export {
     validatePlaidSelection,
     fetchCorpayFields,
     shareBankAccount,
+    setShareBankAccountAdmins,
     clearShareBankAccount,
     clearReimbursementAccountBankCreation,
     getCorpayBankAccountFields,
