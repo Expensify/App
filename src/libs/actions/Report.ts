@@ -171,7 +171,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Account,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,

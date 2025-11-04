@@ -24,12 +24,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx';
-import type {Report} from '@src/types/onyx';
+import type {Account, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
-import {OnboardingCompanySize, OnboardingPurpose, startOnboardingFlow} from './Welcome/OnboardingFlow';
+import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
