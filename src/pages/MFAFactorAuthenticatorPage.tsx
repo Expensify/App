@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -86,7 +86,7 @@ function MFAFactorAuthenticatorPage() {
         }, []),
     );
 
-    const errorMessage = getLatestErrorMessage(account);
+    const errorMessage = useMemo(() => getLatestErrorMessage(account), [account]);
 
     return (
         <ScreenWrapper

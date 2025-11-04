@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import {contextMenuRef} from './home/report/ContextMenu/ReportActionContextMenu';
 
 type MFAApproveTransactionPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION>;
@@ -47,7 +49,34 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    // Only subscribe to chatReport if it's different from iouReport (we already have iouReport from useReportWithTransactionsAndViolations)
+    // This avoids subscribing to ALL reports which is expensive and triggers re-renders on every report change
+    const needsChatReport = !!chatReportID && chatReportID !== iouReportID;
+    const chatReportKey = useMemo(() => {
+        if (!needsChatReport || !chatReportID) {
+            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
+        }
+        return `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+    }, [needsChatReport, chatReportID]);
+    const [chatReportFromOnyx] = useOnyx(chatReportKey, {canBeMissing: true});
+    
+    // Use chatReport from Onyx if it's different from iouReport, otherwise use iouReport
+    const chatReport = needsChatReport ? chatReportFromOnyx : iouReport;
+    
+    // Create minimal allReports object for TransactionPreview - only include the reports we actually need
+    // This avoids subscribing to ALL reports which triggers re-renders whenever any report changes
+    const allReports = useMemo((): OnyxCollection<Report> => {
+        const reports: OnyxCollection<Report> = {};
+        if (iouReportID && iouReport) {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` as const;
+            reports[reportKey] = iouReport;
+        }
+        if (needsChatReport && chatReportID && chatReport) {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+            reports[reportKey] = chatReport;
+        }
+        return reports;
+    }, [iouReportID, iouReport, needsChatReport, chatReportID, chatReport]);
 
     // Context menu is not needed for MFA flow
     const contextMenuAnchor = undefined;
@@ -59,13 +88,13 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
         Navigation.goBack();
     }, []);
 
-    const showConfirmModal = () => {
+    const showConfirmModal = useCallback(() => {
         setConfirmModalVisibility(true);
-    };
+    }, []);
 
-    const hideConfirmModal = () => {
+    const hideConfirmModal = useCallback(() => {
         setConfirmModalVisibility(false);
-    };
+    }, []);
 
     // TODO: replace with proper logic from MFAContext - now only for testing
     const approveTransaction = useCallback(() => {
@@ -96,13 +125,13 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    const denyTransaction = () => {
+    const denyTransaction = useCallback(() => {
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
         // MFAdenyTransaction(); // TODO: update context or sth
         onGoBackPress();
-    };
+    }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
 
     return (
         <ScreenWrapper testID={MFAScenarioApproveTransactionPage.displayName}>

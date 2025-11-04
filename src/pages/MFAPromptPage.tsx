@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -52,17 +52,20 @@ const getPromptContentData = (promptType: PromptType): PromptContentData => {
 function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onGoBackPress = () => Navigation.dismissModal();
+    const onGoBackPress = useCallback(() => {
+        Navigation.dismissModal();
+    }, []);
 
-    const contentData = getPromptContentData(route.params.promptType);
+    // Memoize to avoid recalculating on every render
+    const contentData = useMemo(() => getPromptContentData(route.params.promptType), [route.params.promptType]);
 
     if (!contentData) {
         return <NotFoundPage />;
     }
 
-    const onConfirm = () => {
+    const onConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
-    };
+    }, []);
 
     return (
         <ScreenWrapper testID={MultiFactorAuthenticationPromptPage.displayName}>

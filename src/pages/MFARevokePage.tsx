@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -13,25 +13,28 @@ import Navigation from '@libs/Navigation/Navigation';
 function MFARevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onGoBackPress = () => Navigation.dismissModal();
 
     const isAccessRevokedOnAllDevices = false; // TODO: replace with actual logic
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const showConfirmModal = () => {
+    const onGoBackPress = useCallback(() => {
+        Navigation.dismissModal();
+    }, []);
+
+    const showConfirmModal = useCallback(() => {
         setConfirmModalVisibility(true);
-    };
+    }, []);
 
-    const hideConfirmModal = () => {
+    const hideConfirmModal = useCallback(() => {
         setConfirmModalVisibility(false);
-    };
+    }, []);
 
-    const onConfirm = () => {
+    const onConfirm = useCallback(() => {
         // revokeMFA(); // TODO: implement the revokeMFA action
         hideConfirmModal();
         onGoBackPress();
-    };
+    }, [hideConfirmModal, onGoBackPress]);
 
     return (
         <ScreenWrapper testID={MFARevokePage.displayName}>

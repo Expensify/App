@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -77,10 +77,13 @@ const getNotificationData = (notificationType: NotificationType, styles: ThemeSt
 function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onGoBackPress = () => Navigation.dismissModal();
+    const onGoBackPress = useCallback(() => {
+        Navigation.dismissModal();
+    }, []);
 
     // TODO: replace with notification which gets the actual data from SCENARIO file
-    const data = getNotificationData(route.params.notificationType, styles);
+    // Memoize to avoid recalculating on every render
+    const data = useMemo(() => getNotificationData(route.params.notificationType, styles), [route.params.notificationType, styles]);
 
     // data2  // TODO: replace with the correct data from MFAcontext
     const {headerTitle, title, content} = {headerTitle: 'headerTitle', title: 'Title', content: 'Content'};

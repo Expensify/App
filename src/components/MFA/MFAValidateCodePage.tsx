@@ -210,7 +210,7 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
     /**
      * Render resend code button with timer
      */
-    const renderResendCodeButton = () => {
+    const renderResendCodeButton = useCallback(() => {
         if (shouldShowTimer) {
             return (
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
@@ -238,7 +238,7 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
                 </Text>
             </PressableWithFeedback>
         );
-    };
+    }, [shouldShowTimer, timeRemaining, styles, translate, resendValidationCode, shouldDisableResendCode, resendButtonText, hasError, StyleUtils]);
 
     return (
         <ScreenWrapper testID={MFAValidateCodePage.displayName}>
