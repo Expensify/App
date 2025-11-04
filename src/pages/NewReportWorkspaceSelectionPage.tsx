@@ -57,6 +57,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -112,16 +113,18 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
-                changeTransactionsReport(
-                    selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                changeTransactionsReport({
+                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    newReport: optimisticReport,
                     isASAPSubmitBetaEnabled,
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserPersonalDetails?.email ?? '',
-                    optimisticReport,
-                    policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: currentUserPersonalDetails?.email ?? '',
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
-                    undefined,
-                );
+                    allReportsCollection: allReports,
+                    allTransactionsCollection: allTransactions,
+                    allTransactionViolationsCollection: transactionViolations,
+                });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
                 setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
@@ -138,6 +141,9 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             navigateToNewReport(optimisticReport.reportID);
         },
+        // Large collections omitted from deps to avoid recreation on every change.
+        // Callback recreates via other deps during normal interaction, keeping data sufficiently current.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [
             activePolicyID,
             currentUserPersonalDetails,
