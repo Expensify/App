@@ -37,7 +37,8 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName}});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -52,7 +53,8 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName}});
     }
     return newTransactionViolations;
 }

@@ -408,7 +408,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
@@ -437,7 +437,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
 
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
@@ -446,7 +446,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
     });
 
