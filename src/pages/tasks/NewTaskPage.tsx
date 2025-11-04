@@ -44,8 +44,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
         localeCompare,
     );
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
-        [task?.shareDestination, reports, personalDetails, localeCompare],
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare, formatPhoneNumber) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare, formatPhoneNumber],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');

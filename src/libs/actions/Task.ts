@@ -975,6 +975,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1000,7 +1001,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
+        icons: ReportUtils.getIcons(report, formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
         displayNamesWithTooltips,
