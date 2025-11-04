@@ -3,7 +3,7 @@ import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
@@ -34,28 +34,24 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
+    const navigator = useContext(NavigationContext);
+
     useEffect(() => {
-        if (!shouldLoadAfterInteractions) {
+        if (!shouldLoadAfterInteractions || !navigator) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
+        return navigator.addListener('transitionEnd', () => {
+            console.log('transitionEnd');
             setIsInteractionComplete(true);
         });
-
-        return () => {
-            interactionTask.cancel();
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [navigator, shouldLoadAfterInteractions]);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
     const browser = getBrowser();
     const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
     const navigationContainerRef = useContext(NavigationContainerRefContext);
-    const navigator = useContext(NavigationContext);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
