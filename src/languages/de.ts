@@ -1352,7 +1352,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Unerwarteter Fehler beim Entfernen dieser Ausgabe von der Warteschleife. Bitte versuchen Sie es später erneut.',
             receiptDeleteFailureError: 'Unerwarteter Fehler beim Löschen dieser Quittung. Bitte versuchen Sie es später erneut.',
             receiptFailureMessage:
-                '<rbr>Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte <clickable id="receiptFailureMessage.retry">nochmals versuchen</clickable> oder <clickable id="receiptFailureMessage.download">Beleg speichern</clickable> später hochladen.</rbr>',
+                '<rbr>Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte <a href="retry">nochmals versuchen</a> oder <a href="download">Beleg speichern</a> später hochladen.</rbr>',
             receiptFailureMessageShort: 'Beim Hochladen Ihres Belegs ist ein Fehler aufgetreten.',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuchen Sie es später erneut.',

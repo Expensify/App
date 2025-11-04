@@ -1,5 +1,5 @@
 /* eslint-disable react/no-array-index-key */
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -9,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {removeHTMLClickableAction, setHTMLClickableAction} from '@libs/HTMLClickableActionsUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -50,6 +49,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
+
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -61,32 +64,27 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    useEffect(() => {
+    const handleLinkPress = (href: string) => {
         if (!receiptError) {
             return;
         }
 
-        // Register clickable actions
-        setHTMLClickableAction('receiptFailureMessage.retry', () => handleRetryPress(receiptError, dismissError, setShouldShowErrorModal));
-        setHTMLClickableAction('receiptFailureMessage.download', () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError()));
-
-        // Cleanup when component unmounts or dependencies change
-        return () => {
-            removeHTMLClickableAction('receiptFailureMessage.retry');
-            removeHTMLClickableAction('receiptFailureMessage.download');
-        };
-    }, [receiptError, dismissError]);
-
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
+        if (href.endsWith('retry')) {
+            handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
+        } else if (href.endsWith('download')) {
+            fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
+        }
+    };
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
                 <>
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
+                        <RenderHTML
+                            html={translate('iou.error.receiptFailureMessage')}
+                            onLinkPress={(_evt, href) => handleLinkPress(href)}
+                        />
                     </View>
 
                     <ConfirmModal
