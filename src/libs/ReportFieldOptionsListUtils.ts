@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Option} from './OptionsListUtils';
 import type {OptionData} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -27,11 +26,13 @@ function getReportFieldOptionsSection({
     recentlyUsedOptions,
     selectedOptions,
     searchValue,
+    translate,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
     selectedOptions: Array<Partial<OptionData>>;
     searchValue: string;
+    translate: LocalizedTranslate;
 }) {
     const reportFieldOptionsSections = [];
     const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
@@ -70,7 +71,7 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Recent" section
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             indexOffset,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
@@ -82,7 +83,7 @@ function getReportFieldOptionsSection({
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         indexOffset,
         data: getReportFieldOptions(filteredOptions),

@@ -63,6 +63,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             ],
             options: validFieldOptions,
             recentlyUsedOptions,
+            translate,
         });
 
         const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
