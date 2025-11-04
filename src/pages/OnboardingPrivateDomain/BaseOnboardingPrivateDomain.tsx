@@ -16,6 +16,7 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
@@ -72,7 +73,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack((route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute())}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
