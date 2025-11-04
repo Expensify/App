@@ -593,8 +593,7 @@ describe('ReportUtils', () => {
             waitForBatchedUpdates();
 
             const policyExpenseChat: Report = {
-                ...createRandomReport(2),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID: policy.id,
                 policyName: policy.name,
                 type: CONST.REPORT.TYPE.CHAT,
