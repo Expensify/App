@@ -129,7 +129,7 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const reportHeaders: SearchColumnConfig[] = [
+const expenseReportHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
         translationKey: undefined,
@@ -178,7 +178,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return reportHeaders;
+            return expenseReportHeaders;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
