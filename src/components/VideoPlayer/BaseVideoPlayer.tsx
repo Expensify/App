@@ -94,7 +94,7 @@ function BaseVideoPlayer({
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
-    const [isSafariLoading, setIsMobileSafariLoading] = useState(false);
+    const [isSafariLoading, setIsSafariLoading] = useState(false);
     const isLoading = useMemo(() => {
         return status === 'loading' || isSafariLoading;
     }, [isSafariLoading, status]);
@@ -228,7 +228,7 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (isSafariLoading) {
-            setIsMobileSafariLoading(false);
+            setIsSafariLoading(false);
         }
         if (payload.status !== 'readyToPlay') {
             return;
@@ -376,12 +376,12 @@ function BaseVideoPlayer({
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
         const videoElement = videoViewRef.current?.nativeRef?.current as HTMLVideoElement;
-        if (!videoElement || hasError || !isSafari()) {
+        if (!videoElement || hasError || !isSafari() || sharedElement) {
             return;
         }
         videoElement.load();
-        setIsMobileSafariLoading(true);
-    }, [hasError]);
+        setIsSafariLoading(true);
+    }, [hasError, sharedElement]);
 
     return (
         <>
