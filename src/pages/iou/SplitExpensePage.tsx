@@ -209,6 +209,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         transactionID,
         transactionDetails?.currency,
+        isChatIOUReportArchived,
+        iouReport,
+        iouActions,
+        chatReport,
+        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(

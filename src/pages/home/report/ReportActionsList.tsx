@@ -356,6 +356,7 @@ function ReportActionsList({
     // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
+    const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
@@ -399,63 +400,27 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
-    const prevIsFocused = usePrevious(isFocused);
-    const prevIsVisible = usePrevious(isVisible);
-
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
 
-        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && hasNewMessagesInView) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
-                lastMessageTime.current = null;
-                return;
+            } else {
+                readActionSkipped.current = true;
             }
-            readActionSkipped.current = true;
         }
-
-        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
-        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
-        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
-        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        if (!isVisible || !isFocused || (prevIsFocused === isFocused && prevIsVisible === isVisible)) {
-            if (!lastMessageTime.current) {
-                lastMessageTime.current = lastAction?.created ?? '';
-            }
-            return;
-        }
-
-        // In case the user read new messages (after being inactive) with other device we should
-        // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
-        lastMessageTime.current = null;
-
-        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
-            (reportAction) =>
-                newMessageTimeReference &&
-                newMessageTimeReference < reportAction.created &&
-                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
-        );
-
-        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
-            return;
-        }
-
-        readNewestAction(report.reportID);
-        userActiveSince.current = DateUtils.getDBTime();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isFocused]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -488,6 +453,10 @@ function ReportActionsList({
         }
     }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
+    useEffect(() => {
+        sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
+    }, [sortedVisibleReportActions]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -506,7 +475,7 @@ function ReportActionsList({
                     });
                     return;
                 }
-                const index = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === action?.reportActionID);
+                const index = sortedVisibleReportActionsRef.current.findIndex((item) => keyExtractor(item) === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
                         setTimeout(() => {
@@ -527,7 +496,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -652,6 +621,46 @@ function ReportActionsList({
 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
+
+    useEffect(() => {
+        if (report.reportID !== prevReportID) {
+            return;
+        }
+
+        if (!isVisible || !isFocused) {
+            if (!lastMessageTime.current) {
+                lastMessageTime.current = lastAction?.created ?? '';
+            }
+            return;
+        }
+
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        lastMessageTime.current = null;
+
+        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
+        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasUnreadReportAction = sortedVisibleReportActions.some(
+            (reportAction) =>
+                newMessageTimeReference &&
+                newMessageTimeReference < reportAction.created &&
+                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
+        );
+
+        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
+            return;
+        }
+
+        readNewestAction(report.reportID);
+        userActiveSince.current = DateUtils.getDBTime();
+
+        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
+        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
+        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
+        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {

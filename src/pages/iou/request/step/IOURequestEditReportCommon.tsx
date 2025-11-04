@@ -4,9 +4,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,7 @@ import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOURep
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -35,7 +35,7 @@ type Props = {
     selectedReportID?: string;
     selectedPolicyID?: string;
     targetOwnerAccountID?: number;
-    selectReport: (item: TransactionGroupListItem) => void;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
@@ -88,7 +88,10 @@ function IOURequestEditReportCommon({
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
-    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : isSelectedReportUnreported;
+    const isOwner = useMemo(
+        () => resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported,
+        [resolvedReportOwnerAccountID, currentUserPersonalDetails.accountID, isSelectedReportUnreported],
+    );
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -102,7 +105,8 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isSelectedReportUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport =
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -172,6 +176,7 @@ function IOURequestEditReportCommon({
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
+                    keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
@@ -240,14 +245,17 @@ function IOURequestEditReportCommon({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <SelectionList
-                sections={[{data: reportOptions}]}
+                data={reportOptions}
                 onSelectRow={selectReport}
-                textInputValue={searchValue}
-                onChangeText={setSearchValue}
-                textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
+                shouldShowTextInput={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                textInputOptions={{
+                    value: searchValue,
+                    label: translate('common.search'),
+                    headerMessage,
+                    onChangeText: setSearchValue,
+                }}
                 shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={selectedReportID}
+                initiallyFocusedItemKey={selectedReportID}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
                     <>
