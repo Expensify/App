@@ -3367,7 +3367,12 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
 /**
  * Helper function to get the icons for a chat thread. Only to be used in getIcons().
  */
-function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Icon[] {
+function getIconsForChatThread(
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    policy: OnyxInputOrEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Icon[] {
     if (!report || !report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
@@ -3497,7 +3502,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
+function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Icon[] {
     if (!report) {
         return [];
     }
@@ -3506,7 +3511,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        name: getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, undefined, true, report),
     };
     return [groupChatIcon];
 }
@@ -3627,7 +3632,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report);
+        return getIconsForGroupChat(report, formatPhoneNumber);
     }
     if (isInvoiceReport(report)) {
         return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);

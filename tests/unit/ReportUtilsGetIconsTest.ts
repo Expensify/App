@@ -29,8 +29,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
-import {formatPhoneNumber} from '../utils/TestHelper';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -299,7 +299,7 @@ describe('getIcons', () => {
         expect(isSelfDM(report)).toBe(true);
         expect(isChatReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber,           FAKE_PERSONAL_DETAILS);
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Email Five');
     });
@@ -419,7 +419,7 @@ describe('getIcons', () => {
         expect(isTaskReport(report)).toBe(true);
         expect(isWorkspaceTaskReport(report)).toBe(true);
 
-        const icons = getIcons(report, formatPhoneNumber,               FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
 
         expect(icons).toHaveLength(2); // Owner + workspace icon
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
@@ -559,7 +559,7 @@ describe('getIcons', () => {
         expect(isInvoiceReport(report)).toBe(true);
 
         const policy = LHNTestUtils.getFakePolicy('1');
-        const icons = getIcons(report, formatPhoneNumber,   FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(1)?.name).toBe('Email Three');
