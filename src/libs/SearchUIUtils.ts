@@ -2314,16 +2314,14 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
- * @param isExpenseReportType: true when we are displaying expense report search results (type:expense-report).
  */
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
-    isTaskView = false,
-    isExpenseReportType = false,
+    type?: SearchDataTypes,
 ): Record<SearchColumnType, boolean> {
-    if (isExpenseReportType) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return {
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -2348,7 +2346,7 @@ function getColumnsToShow(
         };
     }
 
-    if (isTaskView) {
+    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return {
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
