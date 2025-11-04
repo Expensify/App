@@ -91,6 +91,7 @@ function SearchTransactionsChangeReport() {
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
     });
 
     const createReport = () => {
