@@ -1,7 +1,9 @@
 import React, {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -17,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -32,7 +35,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
-
+    const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -53,19 +56,22 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
 
-    const selectReport = (item: TransactionGroupListItem) => {
+    const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissModal();
             return;
         }
 
+        const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+
         changeTransactionsReport(
             selectedTransactionIDs,
-            item.value,
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
+            newReport,
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -79,13 +85,29 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
         Navigation.dismissModal();
     };
+
+    const createReportForPolicy = () => {
+        if (!policyForMovingExpensesID) {
+            return;
+        }
+
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        selectReport({value: optimisticReport.reportID}, optimisticReport);
+    };
+
+    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+        policyID: policyForMovingExpensesID,
+        policyName: policyForMovingExpenses?.name ?? '',
+        onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
+    });
 
     const createReport = () => {
         if (!policyForMovingExpensesID && !shouldSelectPolicy) {
@@ -99,21 +121,23 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        selectReport({value: createdReportID});
+        handleCreateReport();
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={backTo}
-            selectedReportID={reportID}
-            transactionIDs={selectedTransactionIDs}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={createReport}
-            isPerDiemRequest={hasPerDiemTransactions}
-        />
+        <>
+            {CreateReportConfirmationModal}
+            <IOURequestEditReportCommon
+                backTo={backTo}
+                selectedReportID={reportID}
+                transactionIDs={selectedTransactionIDs}
+                selectReport={selectReport}
+                removeFromReport={removeFromReport}
+                isEditing={action === CONST.IOU.ACTION.EDIT}
+                createReport={createReport}
+                isPerDiemRequest={hasPerDiemTransactions}
+            />
+        </>
     );
 }
 

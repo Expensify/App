@@ -1291,6 +1291,18 @@ type SettingsNavigatorParamList = {
     };
 } & ReimbursementAccountNavigatorParamList;
 
+type DomainCardNavigatorParamList = {
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
+        cardID: string;
+    };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
+        cardID: string;
+    };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
+};
+
 type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1342,13 +1354,6 @@ type ProfileNavigatorParamList = {
 type NewReportWorkspaceSelectionNavigatorParamList = {
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
         isMovingExpenses?: boolean;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-};
-
-type SetDefaultWorkspaceNavigatorParamList = {
-    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -1803,6 +1808,9 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.SET_DEFAULT_WORKSPACE]: {
+        navigateTo?: Routes;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -2041,7 +2049,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: NavigatorScreenParams<SetDefaultWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
@@ -2468,6 +2475,8 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
+        source?: AvatarSource;
+        originalFileName?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2707,6 +2716,7 @@ export type {
     BackToParams,
     DebugParamList,
     DetailsNavigatorParamList,
+    DomainCardNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
@@ -2732,7 +2742,6 @@ export type {
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
-    SetDefaultWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,

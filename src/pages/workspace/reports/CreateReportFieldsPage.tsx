@@ -172,7 +172,22 @@ function WorkspaceCreateReportFieldsPage({
                                 label={translate('common.type')}
                                 subtitle={translate('workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
-                                onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
+                                onTypeSelected={(type) => {
+                                    let initialValue;
+                                    if (type === CONST.REPORT_FIELD_TYPES.DATE) {
+                                        initialValue = defaultDate;
+                                    } else if (type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+                                        initialValue = '{report:id}';
+                                    } else {
+                                        initialValue = '';
+                                    }
+
+                                    formRef.current?.resetForm({
+                                        ...inputValues,
+                                        type,
+                                        initialValue,
+                                    });
+                                }}
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (

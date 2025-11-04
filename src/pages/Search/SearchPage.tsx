@@ -57,7 +57,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -103,6 +103,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
@@ -254,6 +255,7 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -318,7 +320,7 @@ function SearchPage({route}: SearchPageProps) {
 
             // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
@@ -468,9 +470,28 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID = transactionEntry.ownerAccountID ?? getReportOrDraftReport(transactionEntry.reportID)?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+                if (ownerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        if (canAllTransactionsBeMoved) {
+        if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
                 icon: Expensicons.DocumentMerge,
@@ -594,7 +615,7 @@ function SearchPage({route}: SearchPageProps) {
                 source,
                 transactionID,
             });
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         });
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
@@ -710,7 +731,7 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
@@ -867,6 +888,7 @@ function SearchPage({route}: SearchPageProps) {
                                     onSortPressedCallback={() => {
                                         setIsSorting(true);
                                     }}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter
