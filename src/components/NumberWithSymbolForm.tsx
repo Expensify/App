@@ -450,36 +450,37 @@ function NumberWithSymbolForm({
     );
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <ScrollView
+            contentContainerStyle={styles.flexGrow1}
+            style={!shouldWrapInputInContainer && styles.flexGrow0}
+        >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View
                         id={NUMBER_VIEW_ID}
                         onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                        style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                        style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                     >
-                        {textInputComponent}
+                        <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
+                        {isSymbolPressable && !!currency && !canUseTouchScreen && (
+                            <Button
+                                shouldShowRightIcon
+                                small
+                                iconRight={Expensicons.DownArrow}
+                                onPress={onSymbolButtonPress}
+                                style={styles.minWidth18}
+                                isContentCentered
+                                text={currency}
+                            />
+                        )}
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
                     </View>
-
-                    {isSymbolPressable && !!currency && !canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onSymbolButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-
-                    {!!errorText && (
-                        <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
-                            isError
-                            message={errorText}
-                        />
-                    )}
                 </View>
             ) : (
                 textInputComponent
