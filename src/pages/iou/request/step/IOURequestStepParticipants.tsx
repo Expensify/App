@@ -82,6 +82,8 @@ function IOURequestStepParticipants({
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -93,6 +95,7 @@ function IOURequestStepParticipants({
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
+    const selectedParticipants = useRef<Participant[]>([]);
     // We can assume that shouldAutoReport is true as the initial value is not used. shouldAutoReport is only used after the selectedReportID changes in addParticipant where we'd update shouldAutoReport too
     const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
@@ -207,6 +210,7 @@ function IOURequestStepParticipants({
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipant = val.at(0);
+            selectedParticipants.current = val;
 
             if (firstParticipant?.isSelfDM) {
                 trackExpense();
@@ -297,8 +301,13 @@ function IOURequestStepParticipants({
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
+        const newParticipant = selectedParticipants.current?.at(0) ?? {};
         transactions.forEach((transaction) => {
-            const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
+            // Check if the policy has multi level tags and reset the tag value if it does
+            const policyTags = Object.values(allPoliciesTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${newParticipant?.policyID}`] ?? {});
+            const hasMultiLevelTags = policyTags.length > 1 || (policyTags.length === 1 && policyTags.at(0)?.name !== CONST.POLICY.DEFAULT_TAG_LIST.Tag.name);
+            const tag = isMovingTransactionFromTrackExpense && transaction?.tag && !hasMultiLevelTags ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
