@@ -84,7 +84,10 @@ type SearchPersonalDetails = {
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
-/** Model of report search result */
+/** Model of report search result
+ *
+ * @deprecated - Use Report instead
+ */
 type SearchReport = {
     /** The ID of the report */
     reportID: string;
