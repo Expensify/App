@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 
 function MFAScenarioBiometricsTestPage() {
     const {translate} = useLocalize();
@@ -32,25 +33,27 @@ function MFAScenarioBiometricsTestPage() {
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1]}>
-                <BlockingView
-                    icon={Illustrations.OpenPadlock}
-                    contentFitImage="fill"
-                    iconWidth={variables.openPadlockWidth}
-                    iconHeight={variables.openPadlockHeight}
-                    title={translate('multiFactorAuthentication.biometrics.biometricsTest')}
-                    containerStyle={styles.p1}
-                    testID={MFAScenarioBiometricsTestPage.displayName}
-                />
-            </View>
-            <View style={[styles.flexRow, styles.m5]}>
-                <Button
-                    success
-                    style={[styles.flex1]}
-                    onPress={testBiometrics}
-                    text={translate('common.test')}
-                />
-            </View>
+            <FullPageOfflineBlockingView>
+                <View style={[styles.flex1]}>
+                    <BlockingView
+                        icon={Illustrations.OpenPadlock}
+                        contentFitImage="fill"
+                        iconWidth={variables.openPadlockWidth}
+                        iconHeight={variables.openPadlockHeight}
+                        title={translate('multiFactorAuthentication.biometrics.biometricsTest')}
+                        containerStyle={styles.p1}
+                        testID={MFAScenarioBiometricsTestPage.displayName}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.m5]}>
+                    <Button
+                        success
+                        style={[styles.flex1]}
+                        onPress={testBiometrics}
+                        text={translate('common.test')}
+                    />
+                </View>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
