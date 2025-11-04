@@ -209,11 +209,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         transactionID,
         transactionDetails?.currency,
-        isChatIOUReportArchived,
-        iouReport,
-        iouActions,
-        chatReport,
-        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -363,6 +358,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
+
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
                         renderScrollComponent={(props) => (
