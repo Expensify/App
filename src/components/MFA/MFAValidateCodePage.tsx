@@ -5,14 +5,12 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import RenderHTML from '@components/RenderHTML';
+import MFAValidateCodeResendButton from '@components/MFA/MFAValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -56,7 +54,6 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     // Onyx data
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -207,39 +204,6 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
         Navigation.goBack();
     }, []);
 
-    /**
-     * Render resend code button with timer
-     */
-    const renderResendCodeButton = useCallback(() => {
-        if (shouldShowTimer) {
-            return (
-                <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
-                    <RenderHTML
-                        html={translate('validateCodeForm.requestNewCode', {
-                            timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
-                        })}
-                    />
-                </View>
-            );
-        }
-
-        return (
-            <PressableWithFeedback
-                style={[styles.mt5]}
-                onPress={resendValidationCode}
-                disabled={shouldDisableResendCode}
-                hoverDimmingValue={1}
-                pressDimmingValue={0.2}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate(resendButtonText)}
-            >
-                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
-                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}
-                </Text>
-            </PressableWithFeedback>
-        );
-    }, [shouldShowTimer, timeRemaining, styles, translate, resendValidationCode, shouldDisableResendCode, resendButtonText, hasError, StyleUtils]);
-
     return (
         <ScreenWrapper testID={MFAValidateCodePage.displayName}>
             <HeaderWithBackButton
@@ -267,7 +231,14 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
                     maxLength={CONST.MAGIC_CODE_LENGTH}
                 />
                 {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                {renderResendCodeButton()}
+                <MFAValidateCodeResendButton
+                    shouldShowTimer={shouldShowTimer}
+                    timeRemaining={timeRemaining}
+                    shouldDisableResendCode={shouldDisableResendCode}
+                    hasError={hasError}
+                    resendButtonText={resendButtonText}
+                    onResendValidationCode={resendValidationCode}
+                />
             </View>
             <Button
                 success
