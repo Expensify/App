@@ -136,6 +136,48 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
 
+    const selectedPerDiemSubRateIDs = useMemo(() => {
+        return selectedPerDiem.map((subRate) => subRate.subRateID);
+    }, [selectedPerDiem]);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+    });
+    const eligibleTransactionIDs = useMemo(() => {
+        if (!customUnit?.customUnitID || selectedPerDiemSubRateIDs.length === 0) {
+            return new Set<string>();
+        }
+
+        return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+            if (
+                transaction &&
+                transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
+                transaction?.comment?.customUnit?.subRates?.some((subRate) => selectedPerDiemSubRateIDs.includes(subRate.id))
+            ) {
+                transactionIDs.add(transaction?.transactionID);
+            }
+            return transactionIDs;
+        }, new Set<string>());
+    }, [transactions, customUnit, selectedPerDiemSubRateIDs]);
+    console.log('data', {
+        selectedPerDiem,
+        eligibleTransactionIDs,
+        selectedPerDiemSubRateIDs,
+    });
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations) => {
+            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
+                return undefined;
+            }
+            return Object.fromEntries(
+                Object.entries(violations ?? {}).filter(([key]) => {
+                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+                    return eligibleTransactionIDs?.has(id);
+                }),
+            );
+        },
+        canBeMissing: true,
+    });
+
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     const fetchPerDiem = useCallback(() => {
@@ -256,7 +298,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const handleDeletePerDiemRates = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
+        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem, Array.from(eligibleTransactionIDs ?? []), transactionViolations);
         setDeletePerDiemConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
