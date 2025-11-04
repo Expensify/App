@@ -58,7 +58,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
         const approver = getPersonalDetailByEmail(tagApprover);
         return approver?.displayName ?? tagApprover;
-    }, [route.params?.tagName, policy?.rules?.approvalRules]);
+    }, [route.params?.tagName, policy]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = useMemo(() => {
         if (hasDependentTags) {
