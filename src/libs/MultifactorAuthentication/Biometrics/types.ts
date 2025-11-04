@@ -4,6 +4,7 @@ import type MULTI_FACTOR_AUTHENTICATION_SCENARIOS from '@components/MultifactorA
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthenticationContext/config';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
 
 type BasicMultifactorAuthenticationRequirementTypes = {
@@ -43,7 +44,7 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
      * The numeric authentication type identifier from SecureStore.
      * Indicates which authentication method was used (e.g. multifactorial authentication, passcode).
      */
-    type?: ValueOf<typeof VALUES.AUTH_TYPE>['CODE'];
+    type?: ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 };
 
 /**

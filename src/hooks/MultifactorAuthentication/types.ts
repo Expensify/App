@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
@@ -118,7 +119,7 @@ type MultifactorAuthenticationScenarioStatus = {
 type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE>;
 
 /** Names of supported authentication types */
-type AuthTypeName = ValueOf<typeof CONST.MULTI_FACTOR_AUTHENTICATION.AUTH_TYPE>['NAME'];
+type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
 
 /**
  * Function to update the multifactorial authentication status.

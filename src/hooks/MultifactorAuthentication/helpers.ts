@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationPartialStatus,
@@ -184,7 +185,7 @@ function createRefreshStatusStatus(isMultifactorAuthenticationConfiguredValue: b
  * a human-readable string name.
  */
 const getAuthTypeName = <T>({type}: MultifactorAuthenticationPartialStatus<T>): AuthTypeName | undefined =>
-    Object.values(CONST.MULTI_FACTOR_AUTHENTICATION.AUTH_TYPE).find(({CODE}) => CODE === type)?.NAME;
+    Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === type)?.NAME;
 
 const additionalParametersToExclude = ['chainedWithAuthorization', 'chainedPrivateKeyStatus'] as const;
 

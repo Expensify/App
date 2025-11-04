@@ -1,5 +1,4 @@
 import SCENARIO from '@components/MultifactorAuthenticationContext/scenarios';
-import {SECURE_STORE_VALUES} from './SecureStore';
 
 /** HTTP codes returned by the API, mapped to the multifactorial authentication translation paths */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -128,7 +127,6 @@ const MULTI_FACTOR_AUTHENTICATION_VALUES = {
     },
     FACTORS: MULTI_FACTOR_AUTHENTICATION_FACTORS,
     RESPONSE_TRANSLATION_PATH,
-    AUTH_TYPE: SECURE_STORE_VALUES.AUTH_TYPE,
 } as const;
 
 export default MULTI_FACTOR_AUTHENTICATION_VALUES;
