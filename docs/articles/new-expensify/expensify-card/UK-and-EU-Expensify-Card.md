@@ -50,7 +50,7 @@ The Expensify Card is supported in **21 countries** across the EU and UK:
 - Sweden  
 - United Kingdom
 
-**Note:** Companies in a country that is not currently supported can’t currently sign up for the card. However, businesses elsewhere can issue cards to employees in those countries.
+**Note:** While companies based in an unsupported country can’t currently sign up for the Expensify Card, cards may be issued to employees in these countries.
 
 ## How to set up the Expensify Card
 
