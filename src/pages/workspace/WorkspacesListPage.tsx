@@ -211,21 +211,16 @@ function WorkspacesListPage() {
             return;
         }
 
-        setIsDeleteModalOpen(false);
-
-        setTimeout(() => {
-            deleteWorkspace(
-                policyIDToDelete,
-                policyNameToDelete,
-                lastAccessedWorkspacePolicyID,
-                defaultCardFeeds,
-                reportsToArchive,
-                transactionViolations,
-                reimbursementAccountError,
-                lastPaymentMethod,
-            );
-        }, CONST.ANIMATED_TRANSITION);
-
+        deleteWorkspace(
+            policyIDToDelete,
+            policyNameToDelete,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastPaymentMethod,
+        );
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
