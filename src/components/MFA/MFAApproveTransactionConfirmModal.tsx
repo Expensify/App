@@ -29,4 +29,3 @@ function MFAApproveTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFA
 MFAApproveTransactionConfirmModal.displayName = 'MFAApproveTransactionConfirmModal';
 
 export default MFAApproveTransactionConfirmModal;
-

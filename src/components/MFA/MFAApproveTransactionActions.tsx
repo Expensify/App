@@ -15,8 +15,20 @@ function MFAApproveTransactionActions({onApprove, onDeny}: MFAApproveTransaction
 
     return (
         <FixedFooter style={[styles.flexRow, styles.gap2]}>
-            <Button danger large style={styles.flex1} onPress={onDeny} text={translate('common.deny')} />
-            <Button success large style={styles.flex1} onPress={onApprove} text={translate('common.approve')} />
+            <Button
+                danger
+                large
+                style={styles.flex1}
+                onPress={onDeny}
+                text={translate('common.deny')}
+            />
+            <Button
+                success
+                large
+                style={styles.flex1}
+                onPress={onApprove}
+                text={translate('common.approve')}
+            />
         </FixedFooter>
     );
 }
@@ -24,4 +36,3 @@ function MFAApproveTransactionActions({onApprove, onDeny}: MFAApproveTransaction
 MFAApproveTransactionActions.displayName = 'MFAApproveTransactionActions';
 
 export default MFAApproveTransactionActions;
-

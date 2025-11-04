@@ -9,16 +9,16 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import Navigation from '@libs/Navigation/Navigation';
 
 type MFAApproveTransactionContentProps = {
     transactionID: string;
@@ -135,4 +135,3 @@ function MFAApproveTransactionContent({transactionID}: MFAApproveTransactionCont
 MFAApproveTransactionContent.displayName = 'MFAApproveTransactionContent';
 
 export default MFAApproveTransactionContent;
-

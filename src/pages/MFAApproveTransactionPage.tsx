@@ -58,8 +58,15 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
                     <MFAApproveTransactionContent transactionID={transactionID} />
-                    <MFAApproveTransactionActions onApprove={approveTransaction} onDeny={showConfirmModal} />
-                    <MFAApproveTransactionConfirmModal isVisible={isConfirmModalVisible} onConfirm={denyTransaction} onCancel={hideConfirmModal} />
+                    <MFAApproveTransactionActions
+                        onApprove={approveTransaction}
+                        onDeny={showConfirmModal}
+                    />
+                    <MFAApproveTransactionConfirmModal
+                        isVisible={isConfirmModalVisible}
+                        onConfirm={denyTransaction}
+                        onCancel={hideConfirmModal}
+                    />
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
