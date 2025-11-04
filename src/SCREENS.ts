@@ -404,9 +404,7 @@ const SCREENS = {
         ROOT: 'NewReportWorkspaceSelection_Root',
     },
 
-    SET_DEFAULT_WORKSPACE: {
-        ROOT: 'SetDefaultWorkspace_Root',
-    },
+    SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
