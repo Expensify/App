@@ -1,14 +1,14 @@
 ---
 title: Setup Expensify Card (UK/EU)
 description: Learn how to set up and use the Expensify Card in the UK and EU, including eligibility, supported countries, and step-by-step setup instructions.
-keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, supported countries]
+keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, supported countries, early release]
 ---
 
 <div id="new-expensify" markdown="1">
 
 The Expensify Card is now available for companies in the United Kingdom and Europe! This guide walks you through eligibility and how to set up and start using the card in GBP or EUR. We are currently issuing virtual cards only, but will be releasing physical cards very soon!
 
-<!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow these instructions -->
+<!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow the instructions below -->
 
 # UK/EU Expensify Card setup
 
@@ -22,7 +22,7 @@ The card is currently available for:
 - Companies with a **GBP or EUR business bank account** connected
 - Businesses located in supported **UK or EEA countries**
 
-If your company hasn’t yet connected a GBP or EUR business bank account, [follow this process](link-to-ND-GR-process) to get started.
+If your company hasn’t yet connected a GBP or EUR business bank account, [follow this process](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement) to get started.
 
 ## Supported countries
 
@@ -54,13 +54,17 @@ The Expensify Card is supported in **21 countries** across the EU and UK:
 
 ## How to set up the Expensify Card
 
+### Pre-Requisites
+1. Have a GBP or EUR bank account connected, [follow this process](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement) to connect one.
+2. Complete the **[Know Your Customer (KYC)](https://launch-workflow.trulioo.com/68223577c5dae52a6ec9347f)** and **[Know Your Business (KYB)](https://launch-workflow.trulioo.com/681a7cc4e65d2e48f19de9c3)** forms.
+3. Share the last 90 days of statements from your connected GBP or EUR bank account with Concierge so they can assess your eligible limit
+
 ### 1. Enable the Expensify Card for your workspace
 
-1. If you don’t already have a GBP or EUR bank account connected, [follow this process](link-to-ND-GR-process) to connect one.
-2. Complete the **Know Your Customer (KYC)** form.
-3. From the left-hand menu, go to **Settings > Workspaces > [Workspace Name] > More features**.
-4. Under **Spend**, toggle on **Expensify Card**.
-5. Once enabled, the **Expensify Card** tab will appear in the left-hand menu.
+1. From the left-hand menu, go to **Settings > Workspaces > [Workspace Name] > More features**.
+2. Under **Spend**, toggle on **Expensify Card**.
+3. So that we can assess your request, reach out to Concierge and provide the last 90 days of statements
+4. Once enabled, the **Expensify Card** tab will appear in the left-hand menu.
 
 ### 2. Link a settlement bank account
 
