@@ -33,7 +33,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
+    feed: OnyxTypes.CombinedFeedKey;
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
@@ -45,7 +45,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 

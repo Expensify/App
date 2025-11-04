@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName} from '@libs/CardUtils';
@@ -50,12 +51,13 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const translationKey = getCardInstructionHeader(feedProvider);
     const {isBetaEnabled} = usePermissions();
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(feedProvider, policyID);
+            updateSelectedFeed(`${feedProvider}#${workspaceAccountID}`, policyID);
             Navigation.goBack();
             return;
         }

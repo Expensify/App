@@ -436,7 +436,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
         });
     });
@@ -487,7 +487,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         });
     });

@@ -1,11 +1,24 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CompanyCardFeed} from '@src/types/onyx';
+import type {CardFeeds, CombinedFeedKey, CompanyCardFeed} from '@src/types/onyx';
+import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
+type CombinedCardFeed = CustomCardFeedData &
+    Partial<DirectCardFeedData> & {
+        /** Custom feed name, originally coming from settings.companyCardNicknames */
+        customFeedName?: string;
+
+        /** Feed name */
+        feed: CompanyCardFeed;
+    };
+
+type CombinedCardFeeds = Record<CombinedFeedKey, CombinedCardFeed>;
+
 /**
+ * UPDATE
  * This is a custom hook that combines workspace and domain card feeds for a given policy.
  *
  * This hook:
@@ -20,7 +33,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
  */
-const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, boolean] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
@@ -30,18 +43,9 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
             return undefined;
         }
 
-        const {companyCards = {}, companyCardNicknames = {}, oAuthAccountDetails = {}} = defaultFeed?.settings ?? {};
+        const result: CombinedCardFeeds = {};
 
-        const result: CardFeeds & {settings: Required<CardFeeds['settings']>} = {
-            settings: {
-                companyCards: {...companyCards},
-                companyCardNicknames: {...companyCardNicknames},
-                oAuthAccountDetails: {...oAuthAccountDetails},
-            },
-            isLoading: defaultFeed?.isLoading,
-        };
-
-        return Object.entries(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>((acc, [onyxKey, feed]) => {
+        return Object.entries(allFeeds).reduce<CombinedCardFeeds>((acc, [onyxKey, feed]) => {
             if (!feed?.settings?.companyCards) {
                 return acc;
             }
@@ -49,29 +53,29 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
             Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
                 const feedName = key as CompanyCardFeed;
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
-                const feedCompanyCardNicknames = feed.settings.companyCardNicknames?.[feedName];
+                const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
+                const domainID = onyxKey.split('_').at(-1);
+                const combinedFeedKey: CombinedFeedKey = `${feedName}#${domainID}`;
 
-                if (feedSettings.preferredPolicy !== policyID || acc.settings.companyCards[feedName]) {
+                if (feedSettings.preferredPolicy !== policyID) {
                     return;
                 }
 
-                const domainID = onyxKey.split('_').at(-1);
-
-                acc.settings.companyCards[feedName] = {...feedSettings, domainID: domainID ? Number(domainID) : undefined};
-
-                if (feedOAuthAccountDetails) {
-                    acc.settings.oAuthAccountDetails[feedName] = feedOAuthAccountDetails;
-                }
-                if (feedCompanyCardNicknames) {
-                    acc.settings.companyCardNicknames[feedName] = feedCompanyCardNicknames;
-                }
+                acc[combinedFeedKey] = {
+                    ...feedSettings,
+                    ...feedOAuthAccountDetails,
+                    customFeedName: feedCompanyCardNickname,
+                    domainID: Number(domainID),
+                    feed: feedName,
+                };
             });
 
             return acc;
         }, result);
-    }, [allFeeds, defaultFeed?.isLoading, defaultFeed?.settings, policyID]);
+    }, [allFeeds, policyID]);
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed];
+    return [workspaceFeeds, allFeedsResult, defaultFeed, !!defaultFeed?.isLoading];
 };
 
 export default useCardFeeds;
+export type {CombinedCardFeeds, CombinedFeedKey, CombinedCardFeed};

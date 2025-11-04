@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
+import type {CombinedCardFeed, CombinedFeedKey} from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -18,7 +19,7 @@ import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
     getCardFeedIcon,
-    getCompanyFeeds,
+    getCombinedCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getPlaidInstitutionIconUrl,
@@ -39,8 +40,11 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
+    /** Combined feed key */
+    value: CombinedFeedKey;
+
     /** Card feed value */
-    value: CompanyCardFeed;
+    feed: CompanyCardFeed;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -57,24 +61,24 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
     const isCollect = isCollectPolicy(policy);
 
-    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
-        const feed = key as CompanyCardFeed;
+    const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CombinedFeedKey, CombinedCardFeed]>).map(([key, feedSettings]) => {
         const filteredFeedCards = filterInactiveCards(
-            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feedSettings.feed}`],
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
-        const plaidUrl = getPlaidInstitutionIconUrl(feed);
+        const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
 
         return {
-            value: feed,
-            text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
-            keyForList: feed,
-            isSelected: feed === selectedFeed,
-            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[feed]?.pendingAction,
+            value: key,
+            feed: feedSettings.feed,
+            text: getCustomOrFormattedFeedName(feedSettings.feed, cardFeeds?.[key]?.customFeedName),
+            keyForList: key,
+            isSelected: key === selectedFeed,
+            isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: companyFeeds[key]?.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
             leftElement: plaidUrl ? (
@@ -84,7 +88,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feed, illustrations)}
+                    src={getCardFeedIcon(feedSettings.feed, illustrations)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}

@@ -14,12 +14,12 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CombinedFeedKey} from '@src/types/onyx/CardFeeds';
 
 type InviteeNewMemberStepProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps & {
         /** Selected feed */
-        feed: CompanyCardFeed;
+        feed: CombinedFeedKey;
     };
 
 function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: InviteeNewMemberStepProps) {
@@ -29,7 +29,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     const isEditing = assignCard?.isEditing;
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

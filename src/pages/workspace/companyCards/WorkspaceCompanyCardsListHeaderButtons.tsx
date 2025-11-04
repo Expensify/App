@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import type {CombinedFeedKey} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,9 +23,10 @@ import {
     flatAllCardsList,
     getBankName,
     getCardFeedIcon,
-    getCompanyFeeds,
+    getCombinedCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
+    getOriginalFeedName,
     getPlaidCountry,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -35,7 +37,7 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
+import type {CurrencyList} from '@src/types/onyx';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -44,7 +46,7 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
     policyID: string;
 
     /** Currently selected feed */
-    selectedFeed: CompanyCardFeed;
+    selectedFeed: CombinedFeedKey;
 
     /** Whether to show assign card button */
     shouldShowAssignCardButton?: boolean;
@@ -66,21 +68,22 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const originalFeedName = getOriginalFeedName(selectedFeed);
+    const formattedFeedName = getCustomOrFormattedFeedName(originalFeedName, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
     const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
-    const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(selectedFeed);
+    const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(originalFeedName);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const hasFeedError = !!cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed]?.errors;
+    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
 
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
         const data: Partial<AssignCardData> = {
-            bankName: selectedFeed,
+            bankName: originalFeedName,
         };
         if (institutionId) {
             const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
@@ -119,7 +122,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 <FeedSelector
                     plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    cardIcon={getCardFeedIcon(selectedFeed, illustrations)}
+                    cardIcon={getCardFeedIcon(originalFeedName, illustrations)}
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}

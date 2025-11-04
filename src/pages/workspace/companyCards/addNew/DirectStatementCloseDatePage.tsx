@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCombinedCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
@@ -52,7 +52,7 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
             }
             const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
             if (selectedFeed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
+                setFeedStatementPeriodEndDay(policyID, getOriginalFeedName(selectedFeed), domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             goBack();
@@ -65,7 +65,7 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
             return;
         }
 
-        clearErrorField(selectedFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+        clearErrorField(getOriginalFeedName(selectedFeed), domainOrWorkspaceAccountID, 'statementPeriodEndDay');
     }, [selectedFeed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {

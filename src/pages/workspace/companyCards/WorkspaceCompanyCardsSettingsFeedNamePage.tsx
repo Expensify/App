@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCombinedCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getOriginalFeedName, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -44,8 +44,8 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(getOriginalFeedName(selectedFeed), cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
     const validate = useCallback(
@@ -69,7 +69,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
         if (selectedFeed) {
-            setWorkspaceCompanyCardFeedName(policyID, domainOrWorkspaceAccountID, selectedFeed, name);
+            setWorkspaceCompanyCardFeedName(policyID, domainOrWorkspaceAccountID, getOriginalFeedName(selectedFeed), name);
         }
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
     };

@@ -13,9 +13,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
-    getCompanyFeeds,
+    getCombinedCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getOriginalFeedName,
     getPlaidCountry,
     getPlaidInstitutionId,
     getSelectedFeed,
@@ -55,7 +56,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, , , isCardFeedsLoading] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
@@ -67,9 +68,9 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
 
-    const companyCards = getCompanyFeeds(cardFeeds);
+    const companyCards = getCombinedCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
@@ -83,7 +84,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policyID, domainOrWorkspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
+    const isLoading = !isOffline && (!cardFeeds || (isCardFeedsLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
@@ -96,7 +97,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, selectedFeed);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, getOriginalFeedName(selectedFeed));
     }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
@@ -118,19 +119,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         const data: Partial<AssignCardData> = {
-            bankName: selectedFeed,
+            bankName: getOriginalFeedName(selectedFeed),
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        const selectedFeedCompanyCardsData = selectedFeed ? cardFeeds?.settings?.companyCards?.[selectedFeed] : undefined;
-        const selectedFeedOAuthData = selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined;
-        const isFeedExpired = isSelectedFeedExpired(selectedFeedOAuthData);
-        const plaidAccessToken = selectedFeedCompanyCardsData?.plaidAccessToken;
+        const isFeedExpired = isSelectedFeedExpired(selectedFeedData);
+        const plaidAccessToken = selectedFeedData?.plaidAccessToken;
 
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken) {
-            const country = selectedFeedCompanyCardsData?.country ?? '';
+            const country = selectedFeedData?.country ?? '';
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
         }
 
