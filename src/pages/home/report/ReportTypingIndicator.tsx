@@ -18,6 +18,20 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
 
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
     const styles = useThemeStyles();
+    const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
+    const firstUserTyping = usersTyping.at(0);
+
+    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
+
+    // If we are offline, the user typing statuses are not up-to-date so do not show them
+    if (!!isOffline || !firstUserTyping) {
+        return null;
+    }
+
+    // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
+    const firstUserTypingDisplayName = isUserTypingADisplayName
+        ? firstUserTyping
+        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber});
 
     if (usersTyping.length === 1) {
         return (
