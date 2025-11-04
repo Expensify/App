@@ -217,6 +217,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         currentUserPersonalDetails.login,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
