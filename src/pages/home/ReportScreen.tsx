@@ -924,13 +924,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     shouldShowButton
                                 />
                             )}
-                            {/* TODO: REMOVE BEFORE MERGING, ONLY FOR TESTING  */}
-                            <Button
-                                text="Send sentry test error"
-                                onPress={() => {
-                                    Sentry.captureException(new Error('First error with Source maps'));
-                                }}
-                            />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>

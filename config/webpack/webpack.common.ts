@@ -73,7 +73,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     if (!isDevelopment) {
         const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
-        console.debug(`[SENTRY ${platform.toUpperCase()}] Auth Token Set: ${!!process.env.SENTRY_AUTH_TOKEN}`);
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}'}`);
     }
 
@@ -194,7 +193,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                               assets: platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}',
                               filesToDeleteAfterUpload: platform === 'desktop' ? './desktop/dist/www/**/*.map' : './dist/**/*.map',
                           },
-                          debug: true,
+                          debug: false,
                           telemetry: false,
                       }),
                   ] as WebpackPluginInstance[])),
