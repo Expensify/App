@@ -244,6 +244,7 @@ function ReceiptImage({
             onLoad={onLoad}
             shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
             imageWidthToCalculateHeight={receiptImageWidth}
+            onError={onLoadFailure}
         />
     );
 }
