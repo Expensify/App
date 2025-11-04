@@ -111,7 +111,7 @@ function handleActionButtonPress(
                 return;
             }
 
-            const policy = (snapshotPolicy ?? {}) as Policy;
+            const policy = snapshotPolicy ?? {};
             const connectedIntegration = getValidConnectedIntegration(policy);
 
             if (!connectedIntegration) {
