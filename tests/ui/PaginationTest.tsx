@@ -247,7 +247,7 @@ async function signInAndGetApp(): Promise<void> {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             }),
-            
+
             // Setup a 2nd report to test comment linking.
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${COMMENT_LINKING_REPORT_ID}`, {
                 reportID: COMMENT_LINKING_REPORT_ID,
