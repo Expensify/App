@@ -228,6 +228,8 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+    POPOVER_MENU_MAX_HEIGHT: 496,
+    POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -425,8 +427,6 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
-    FREE_TRIAL_MARKDOWN:
-        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -1137,6 +1137,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -1335,6 +1336,7 @@ const CONST = {
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
+                    UPDATE_ROOM_AVATAR: 'UPDATEROOMAVATAR',
                 },
                 REJECTEDTRANSACTION_THREAD: 'REJECTEDTRANSACTION_THREAD',
                 REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
@@ -1609,6 +1611,9 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+    },
+    TELEMETRY: {
+        CONTEXT_FULLSTORY: 'Fullstory',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2071,6 +2076,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify',
     EMAIL,
@@ -2852,6 +2858,12 @@ const CONST = {
         },
     },
 
+    CATEGORY_SOURCE: {
+        AI: 'agentZero',
+        MCC: 'mccMapping',
+        MANUAL: 'manual',
+    } as const,
+
     GROWL: {
         SUCCESS: 'success',
         ERROR: 'error',
@@ -3248,6 +3260,7 @@ const CONST = {
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+        SMALL: 'small',
     },
 
     QR_CODE_SIZE: {
@@ -3298,6 +3311,7 @@ const CONST = {
             CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         TRANSACTION_START_DATE_OPTIONS: {
             FROM_BEGINNING: 'fromBeginning',
@@ -3343,6 +3357,7 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
@@ -5178,6 +5193,11 @@ const CONST = {
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 
+    ACCESSIBILITY_LABELS: {
+        COLLAPSE: 'Collapse',
+        EXPAND: 'Expand',
+    },
+
     /**
      * Acceptable values for the `role` attribute on react native components.
      *
@@ -5332,6 +5352,7 @@ const CONST = {
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
         LARGE: 'large',
         MEDIUM: 'medium',
         SMALL: 'small',
@@ -6519,7 +6540,6 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
-            REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {

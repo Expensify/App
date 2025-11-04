@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'Postcode',
         whatThis: 'Wat is dit?',
         iAcceptThe: 'Ik accepteer de',
+        acceptTermsAndPrivacy: `Ik accepteer de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Gebruiksvoorwaarden</a> en <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>`,
+        acceptTermsAndConditions: `Ik accepteer de <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">algemene voorwaarden</a>`,
+        acceptTermsOfService: `Ik accepteer de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Gebruiksvoorwaarden</a>`,
         remove: 'Verwijderen',
         admin: 'Admin',
         owner: 'Eigenaar',
@@ -641,6 +644,18 @@ const translations = {
         help: 'Help',
         expenseReport: 'Onkostennota',
         expenseReports: "Onkostennota's",
+        leaveWorkspace: 'Werkruimte verlaten',
+        leaveWorkspaceConfirmation: 'Als je deze werkruimte verlaat, kun je er geen declaraties meer bij indienen.',
+        leaveWorkspaceConfirmationAuditor: 'Als je deze werkruimte verlaat, kun je de rapporten en instellingen ervan niet meer bekijken.',
+        leaveWorkspaceConfirmationAdmin: 'Als je deze werkruimte verlaat, kun je de instellingen niet meer beheren.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Als je deze werkruimte verlaat, word je in de goedkeuringsworkflow vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Als je deze werkruimte verlaat, word je als voorkeursexporteur vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Als je deze werkruimte verlaat, word je als technisch contactpersoon vervangen door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+        leaveWorkspaceReimburser:
+            'Je kunt deze werkruimte niet verlaten als de uitbetaler. Stel een nieuwe uitbetaler in via Workspaces > Make or track payments en probeer het daarna opnieuw.',
         rateOutOfPolicy: 'Tarief buiten beleid',
         reimbursable: 'Vergoedbaar',
         editYourProfile: 'Bewerk je profiel',
@@ -1303,6 +1318,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `de ${valueName} naar ${newValueToDisplay} (voorheen ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `veranderde de ${translatedChangedField} naar ${newMerchant} (voorheen ${oldMerchant}), wat het bedrag bijwerkte naar ${newAmountToDisplay} (voorheen ${oldAmountToDisplay})`,
+        basedOnAI: 'op basis van eerdere activiteit',
+        basedOnMCC: 'op basis van werkruimteregel',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `voor ${comment}` : 'uitgave'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Factuurrapport #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} verzonden${comment ? `voor ${comment}` : ''}`,
@@ -1851,10 +1868,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Voor beveiligingsdoeleinden vereist Xero tweefactorauthenticatie om de integratie te verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Twee-factor authenticatie vereist',
         twoFactorAuthIsRequiredForAdminsTitle: 'Schakel alsjeblieft twee-factor authenticatie in.',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Uw Xero-boekhoudkoppeling vereist het gebruik van tweefactorauthenticatie. Om Expensify te blijven gebruiken, schakelt u dit in.',
+        twoFactorAuthIsRequiredXero: 'Je Xero-boekhoudkoppeling vereist het gebruik van tweefactorauthenticatie. Schakel tweefactorauthenticatie in om Expensify te blijven gebruiken.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Twee-factor authenticatie (2FA) is vereist voor uw Xero-verbinding en kan niet worden uitgeschakeld.',
         explainProcessToRemoveWithRecovery: 'Om tweefactorauthenticatie (2FA) uit te schakelen, voer een geldige herstelcode in.',
+        twoFactorAuthIsRequiredCompany: 'Uw bedrijf vereist het gebruik van tweefactorauthenticatie. Schakel tweefactorauthenticatie in om Expensify te blijven gebruiken.',
     },
     recoveryCodeForm: {
         error: {
@@ -2231,10 +2249,9 @@ ${amount} voor ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF genereren',
+        generatingPDF: 'PDF genereren...',
         waitForPDF: 'Even geduld terwijl we de PDF genereren.',
         errorPDF: 'Er is een fout opgetreden bij het genereren van uw PDF.',
-        generatedPDF: 'Je rapport-PDF is gegenereerd!',
     },
     reportDescriptionPage: {
         roomDescription: 'Kamerbeschrijving',
@@ -2615,10 +2632,8 @@ ${amount} voor ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# Je gratis proefperiode is gestart! Laten we aan de slag gaan.\n👋 Hoi, ik ben je Expensify-instellingsspecialist. Nu je een werkruimte hebt gemaakt, haal het meeste uit je 30 dagen gratis proefperiode door de onderstaande stappen te volgen!'
-                    : '# Je gratis proefperiode is gestart! Laten we aan de slag gaan.\n👋 Hoi, ik ben je Expensify-instellingsspecialist. Ik heb al een werkruimte gemaakt om je te helpen met het beheren van de bonnetjes en uitgaven van je team. Haal het meeste uit je 30 dagen gratis proefperiode door eenvoudig de resterende instellingsstappen hieronder te volgen!',
+            onboardingManageTeamMessage:
+                '# Je gratis proefperiode is begonnen! Laten we aan de slag gaan met de installatie.\n👋 Hallo, ik ben je Expensify-installatiespecialist. Nu je een workspace hebt gemaakt, haal het meeste uit je 30 dagen gratis proefperiode door de onderstaande stappen te volgen!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -4565,9 +4580,7 @@ ${amount} voor ${merchant} - ${date}`,
             cardholder: 'Kaart houder',
             card: 'Kaart',
             cardName: 'Kaartnaam',
-            brokenConnectionErrorFirstPart: `Kaartfeedverbinding is verbroken. Alsjeblieft`,
-            brokenConnectionErrorLink: 'log in op uw bank',
-            brokenConnectionErrorSecondPart: 'zodat we de verbinding opnieuw kunnen herstellen.',
+            brokenConnectionError: '<rbr>Kaartfeedverbinding is verbroken. Alsjeblieft <a href="#">log in op uw bank</a> zodat we de verbinding opnieuw kunnen herstellen.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `heeft ${assignee} een ${link} toegewezen! Geïmporteerde transacties zullen in deze chat verschijnen.`,
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kies kaartfeed',
@@ -4619,6 +4632,7 @@ ${amount} voor ${merchant} - ${date}`,
                 monthly: 'Maandelijks',
             },
             cardDetails: 'Kaartgegevens',
+            cardPending: ({name}: {name: string}) => `De kaart is momenteel in behandeling en wordt uitgegeven zodra het account van ${name} is gevalideerd.`,
             virtual: 'Virtueel',
             physical: 'Fysiek',
             deactivate: 'Deactiveer kaart',
@@ -4802,9 +4816,8 @@ ${amount} voor ${merchant} - ${date}`,
                 noAccountsFound: 'Geen accounts gevonden',
                 defaultCard: 'Standaardkaart',
                 downgradeTitle: `Kan werkruimte niet downgraden`,
-                downgradeSubTitleFirstPart: `Deze werkruimte kan niet worden gedowngraded omdat er meerdere kaartfeeds zijn verbonden (met uitzondering van Expensify Cards). Alstublieft`,
-                downgradeSubTitleMiddlePart: `houd slechts één kaartfeed`,
-                downgradeSubTitleLastPart: 'om door te gaan.',
+                downgradeSubTitle: `Deze werkruimte kan niet worden gedowngraded omdat er meerdere kaartfeeds zijn verbonden (met uitzondering van Expensify Cards). Alstublieft <a href="#">houd slechts één kaartfeed</a> om door te gaan.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Voeg het account toe in ${connection} en synchroniseer de verbinding opnieuw.`,
                 expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
@@ -5122,12 +5135,25 @@ ${amount} voor ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Toegevoegd door secundaire login ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal leden van de werkruimte: ${count}`,
             importMembers: 'Leden importeren',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Als je ${approver} uit deze werkruimte verwijdert, vervangen we deze persoon in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} heeft openstaande onkostendeclaraties die moeten worden goedgekeurd. Vraag hen deze goed te keuren, of neem hun declaraties over voordat je hen uit de werkruimte verwijdert.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Je kunt ${memberName} niet uit deze werkruimte verwijderen. Stel een nieuwe uitbetaler in via Werkstromen > Betalingen uitvoeren of bijhouden en probeer het daarna opnieuw.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hem/haar als voorkeursexporteur door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Als je ${memberName} uit deze werkruimte verwijdert, vervangen we hen als technisch contactpersoon door ${workspaceOwner}, de eigenaar van de werkruimte.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} heeft een openstaand rapport in behandeling waarvoor actie nodig is. Vraag hen om de vereiste actie te voltooien voordat je hen uit de werkruimte verwijdert.`,
         },
         card: {
             getStartedIssuing: 'Begin met het aanvragen van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft een kaart nodig?',
+                inviteNewMember: 'Nieuw lid uitnodigen',
                 findMember: 'Lid zoeken',
                 chooseCardType: 'Kies een kaarttype',
                 physicalCard: 'Fysieke kaart',
@@ -6244,7 +6270,6 @@ ${amount} voor ${merchant} - ${date}`,
             delete: 'Verwijderen',
             hold: 'Vasthouden',
             unhold: 'Verwijder blokkering',
-            reject: 'Afwijzen',
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep uitgaven.',
         },
         filtersHeader: 'Filters',
@@ -6430,6 +6455,11 @@ ${amount} voor ${merchant} - ${date}`,
         newReport: {
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
+            emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Weet je zeker dat je nog een rapport wilt maken in ${workspaceName}? Je kunt je lege rapporten vinden onder`,
+            emptyReportConfirmationPromptLink: 'Rapporten',
+            genericWorkspaceName: 'deze werkruimte',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
         genericAddCommentFailureMessage: 'Onverwachte fout bij het plaatsen van de opmerking. Probeer het later opnieuw.',
@@ -7134,6 +7164,8 @@ ${amount} voor ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'stel de kamerbeschrijving in op:',
         clearRoomDescription: 'de kamerbeschrijving gewist',
+        changedRoomAvatar: 'De avatar van de kamer is gewijzigd',
+        removedRoomAvatar: 'De avatar van de kamer is verwijderd',
     },
     delegate: {
         switchAccount: 'Accounts wisselen:',

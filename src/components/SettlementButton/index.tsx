@@ -63,6 +63,7 @@ function SettlementButton({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    extraSmall = false,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
@@ -131,7 +132,7 @@ function SettlementButton({
     // whether the user has single policy and the expense is p2p
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -188,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated]);
+    }, [isAccountLocked, isUserValidated, policy, showLockedAccountModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -583,6 +584,7 @@ function SettlementButton({
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
                     success={!hasOnlyHeldExpenses}
+                    extraSmall={extraSmall}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}

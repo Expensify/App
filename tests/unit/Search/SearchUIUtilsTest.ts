@@ -2510,7 +2510,6 @@ describe('SearchUIUtils', () => {
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
-                    accountID: 2074551,
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',

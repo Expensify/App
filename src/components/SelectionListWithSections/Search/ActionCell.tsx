@@ -5,6 +5,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {PaymentData} from '@components/Search/types';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
@@ -49,6 +50,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
+    extraSmall?: boolean;
 };
 
 function ActionCell({
@@ -63,6 +65,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
+    extraSmall = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -102,7 +105,7 @@ function ActionCell({
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
-            <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
                     icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
@@ -115,9 +118,10 @@ function ActionCell({
                         StyleUtils.getMinimumHeight(variables.h20),
                         isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
+                    textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
+                    shouldUseXXSmallIcon={extraSmall}
                 />
             </View>
         );
@@ -131,7 +135,8 @@ function ActionCell({
                 testID={ActionCell.displayName}
                 text={text}
                 onPress={goToItem}
-                small
+                small={!extraSmall}
+                extraSmall={extraSmall}
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
@@ -146,24 +151,26 @@ function ActionCell({
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
         return (
-            <SettlementButton
-                shouldUseShortForm
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                currency={currency}
-                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                policyID={policyID || iouReport?.policyID}
-                iouReport={iouReport}
-                chatReportID={iouReport?.chatReportID}
-                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
-                style={[styles.w100]}
-                wrapperStyle={[styles.w100]}
-                shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
-                isDisabled={isOffline}
-                isLoading={isLoading}
-                onlyShowPayElsewhere={shouldOnlyShowElsewhere}
-            />
+            <SearchScopeProvider isOnSearch={false}>
+                <SettlementButton
+                    shouldUseShortForm
+                    buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                    currency={currency}
+                    formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    policyID={policyID || iouReport?.policyID}
+                    iouReport={iouReport}
+                    chatReportID={iouReport?.chatReportID}
+                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
+                    style={[styles.w100]}
+                    wrapperStyle={[styles.w100]}
+                    shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
+                    isDisabled={isOffline}
+                    isLoading={isLoading}
+                    onlyShowPayElsewhere={shouldOnlyShowElsewhere}
+                />
+            </SearchScopeProvider>
         );
     }
 
@@ -171,7 +178,8 @@ function ActionCell({
         <Button
             text={text}
             onPress={goToItem}
-            small
+            small={!extraSmall}
+            extraSmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
             success

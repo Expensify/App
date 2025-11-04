@@ -1,9 +1,9 @@
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -188,15 +188,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));

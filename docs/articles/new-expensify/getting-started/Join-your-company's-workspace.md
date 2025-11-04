@@ -1,7 +1,7 @@
 ---
 title: Join Your Company's Workspace
 description: Learn how to join your company's workspace, set up your profile, add expenses, and secure your account in New Expensify.
-keywords: [New Expensify, join workspace, setup profile, add expense, enable two-factor authentication, SmartScan, Concierge]
+keywords: [New Expensify, join workspace, set up profile, add expense, enable two-factor authentication, SmartScan, Concierge]
 ---
 
 
@@ -9,9 +9,21 @@ Welcome to Expensify! If you've received an invite to join your company's worksp
 
 ---
 
+# Getting invited to your company's workspace
+
+Ask one of your company's Expensify workspace admins to send you an invite using these steps: 
+
+1. Click **Workspaces** on the left-hand navigation menu.
+2. Click on the workspace that you should be joining.
+3. Click **Members** > **Invite member**
+
+Now, check your email inbox for the invite to join your company's workspace. If you don't see it, check your **Spam** and **Archive** folders.
+
+---
+
 # Step 1: Access Expensify
 
-Download the Expensify app:
+Once you have gained access to Expensify, download the Expensify app:
 
 - **Mobile:** [Android](https://play.google.com/store/apps/details?id=com.expensify.chat) | [iOS](https://apps.apple.com/us/app/expensify-cash/id1530278510)
 - **Desktop:** [macOS](https://new.expensify.com/NewExpensify.dmg)
