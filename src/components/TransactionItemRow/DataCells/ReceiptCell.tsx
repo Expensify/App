@@ -22,9 +22,9 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const StyleUtils = useStyleUtils();
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
-    const lacksReceiptSource = !hasReceiptSource(transactionItem);
-    const isEReceipt = transactionItem.hasEReceipt && lacksReceiptSource;
-    const isPerDiem = isPerDiemRequest(transactionItem) && lacksReceiptSource;
+    const isMissingReceiptSource = !hasReceiptSource(transactionItem);
+    const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
+    const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
     let source = transactionItem?.receipt?.source ?? '';
     let previewSource = transactionItem?.receipt?.source ?? '';
 
