@@ -26,17 +26,14 @@ If your company hasn’t yet connected a GBP or EUR business bank account, [foll
 
 ## Supported countries
 
-The Expensify Card is supported in **27 countries** across the EU and UK:
+The Expensify Card is supported in **21 countries** across the EU and UK:
 
 - Belgium  
 - Cyprus  
-- Czech Republic  
 - Denmark  
 - Estonia  
 - Finland  
 - Gibraltar  
-- Germany  
-- Greece  
 - Hungary  
 - Ireland  
 - Latvia  
@@ -45,9 +42,7 @@ The Expensify Card is supported in **27 countries** across the EU and UK:
 - Luxembourg  
 - Malta  
 - Netherlands  
-- Norway  
 - Poland  
-- Portugal  
 - Romania  
 - Slovakia  
 - Slovenia  
@@ -55,7 +50,7 @@ The Expensify Card is supported in **27 countries** across the EU and UK:
 - Sweden  
 - United Kingdom
 
-**Note:** Companies in France, Italy, Austria, Iceland, Croatia, or Bulgaria can’t currently sign up for the card. However, businesses elsewhere can issue cards to employees in those countries.
+**Note:** Companies in a country that is not currently supported can’t currently sign up for the card. However, businesses elsewhere can issue cards to employees in those countries.
 
 ## How to set up the Expensify Card
 
