@@ -185,7 +185,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitExpenses,
         childTransactions.length,
         isBetaEnabled,
-        draftTransaction,
+        draftTransaction?.errors,
+        draftTransaction?.reportID,
+        draftTransaction?.comment?.originalTransactionID,
+        draftTransaction?.comment?.splitExpensesTotal,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
@@ -193,19 +196,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitFieldDataFromChildTransactions,
         allTransactions,
         allReports,
+        allReportNameValuePairs,
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
         policyRecentlyUsedCategories,
+        iouReport,
+        chatReport,
+        iouActions,
+        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
-        isChatIOUReportArchived,
-        iouReport,
-        iouActions,
-        chatReport,
-        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -355,6 +358,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
+
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
                         renderScrollComponent={(props) => (
