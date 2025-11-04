@@ -10482,7 +10482,7 @@ function approveMoneyRequest(
 
     const optimisticNextStep = buildNextStep({
         report: expenseReport,
-        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        predictedNextStatus,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
