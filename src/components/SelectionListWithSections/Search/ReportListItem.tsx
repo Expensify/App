@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionListWithSections/types';
@@ -45,7 +45,7 @@ function ReportListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
     }, [snapshot, reportItem.policyID]);
 
-    const handleOnButtonPress = () => {
+    const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
             currentSearchHash,
             reportItem,
@@ -57,7 +57,7 @@ function ReportListItem<TItem extends ListItem>({
             currentSearchKey,
             onDEWModalOpen,
         );
-    };
+    }, [currentSearchHash, reportItem, onSelectRow, shouldUseNarrowLayout, canSelectMultiple, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
