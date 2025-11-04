@@ -7975,7 +7975,6 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
-                    isNewDotRevertSplitsEnabled: true,
                 });
                 await waitForBatchedUpdates();
 
