@@ -1,37 +1,5 @@
 import SCENARIO from '@components/MultifactorAuthenticationContext/scenarios';
-import SECURE_STORE_VALUES from './SecureStoreValues';
-
-/** Type of used authentication method returned by the SecureStore mapped to names */
-const AUTH_TYPE = {
-    UNKNOWN: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN,
-        NAME: 'Unknown',
-    },
-    NONE: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.NONE,
-        NAME: 'None',
-    },
-    CREDENTIALS: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.CREDENTIALS,
-        NAME: 'Credentials',
-    },
-    BIOMETRICS: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.BIOMETRICS,
-        NAME: 'Biometrics',
-    },
-    FACE_ID: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.FACE_ID,
-        NAME: 'FaceID',
-    },
-    TOUCH_ID: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.TOUCH_ID,
-        NAME: 'TouchID',
-    },
-    OPTIC_ID: {
-        CODE: SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID,
-        NAME: 'OpticID',
-    },
-} as const;
+import {SECURE_STORE_VALUES} from './SecureStore';
 
 /** HTTP codes returned by the API, mapped to the multifactorial authentication translation paths */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -160,7 +128,7 @@ const MULTI_FACTOR_AUTHENTICATION_VALUES = {
     },
     FACTORS: MULTI_FACTOR_AUTHENTICATION_FACTORS,
     RESPONSE_TRANSLATION_PATH,
-    AUTH_TYPE,
+    AUTH_TYPE: SECURE_STORE_VALUES.AUTH_TYPE,
 } as const;
 
 export default MULTI_FACTOR_AUTHENTICATION_VALUES;
