@@ -38,6 +38,7 @@ import type {
     SearchReportAction,
     SearchTask,
     SearchTransaction,
+    SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -370,6 +371,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
+
+        /** The available actions that can be performed for the report */
+        allActions?: SearchTransactionAction[];
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
