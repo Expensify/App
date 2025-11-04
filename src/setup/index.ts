@@ -78,7 +78,7 @@ export default function () {
 
             cachePreloader
                 .preloadAllData({
-                    maxConcurrency: 2, // Reduced concurrency to prevent overwhelming
+                    maxConcurrency: 10, // Reduced concurrency to prevent overwhelming
                     collections: true, // Load all collections
                     singleKeys: true, // Load all single keys
                     loadExisting: true, // Discover and load any other existing data

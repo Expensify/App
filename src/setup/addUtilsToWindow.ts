@@ -59,7 +59,7 @@ export default function addUtilsToWindow() {
                 onProgress: (progress) => {
                     const completed = progress.filter((p) => p.status === 'completed').length;
                     const total = progress.length;
-                    console.log(`📊 Cache Preload Progress: ${completed}/${total}`);
+                    console.log(`📊 Cache Preload Progress: ${completed}/${total} in windows`);
                 },
             });
         };

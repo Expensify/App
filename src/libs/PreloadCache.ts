@@ -165,9 +165,43 @@ class CachePreloader {
                     cacheData[fullKey] = itemData;
                 });
 
-                // Use multiSet to efficiently cache all items
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await Onyx.multiSet(cacheData as any);
+                // CHUNK the multiSet to avoid blocking on large collections
+                const CHUNK_SIZE = 10; // REDUCED from 50 to 10 - smaller chunks for mobile
+                const entries = Object.entries(cacheData);
+                const chunks: Array<[string, unknown][]> = [];
+
+                for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+                    chunks.push(entries.slice(i, i + CHUNK_SIZE));
+                }
+
+                console.log(`[CachePreloader] Processing ${itemCount} items in ${chunks.length} chunks (${CHUNK_SIZE} per chunk)...`);
+
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+                    const chunkData: Record<string, unknown> = {};
+                    chunk.forEach(([key, value]) => {
+                        chunkData[key] = value;
+                    });
+
+                    const chunkStartTime = performance.now();
+                    console.log(`[CachePreloader] ⏳ Chunk ${i + 1}/${chunks.length}: Setting ${chunk.length} items...`);
+
+                    try {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        await Onyx.multiSet(chunkData as any);
+                        const chunkDuration = performance.now() - chunkStartTime;
+                        console.log(`[CachePreloader] ✅ Chunk ${i + 1}/${chunks.length} completed in ${Math.round(chunkDuration)}ms`);
+                    } catch (chunkError) {
+                        const chunkDuration = performance.now() - chunkStartTime;
+                        console.error(`[CachePreloader] ❌ Chunk ${i + 1}/${chunks.length} failed after ${Math.round(chunkDuration)}ms:`, chunkError);
+                        throw chunkError;
+                    }
+
+                    // INCREASED delay between chunks to avoid SQLite lock contention
+                    if (i < chunks.length - 1) {
+                        await new Promise<void>((resolve) => setTimeout(resolve, 100)); // Increased from 10ms to 100ms
+                    }
+                }
 
                 console.log(`[CachePreloader] ✅ Cached ${itemCount} items for ${collectionKey} in memory`);
             } else {
@@ -590,7 +624,7 @@ class CachePreloader {
             return this.progress;
         }
 
-        const {onProgress, maxConcurrency = 3, collections = true, singleKeys = true, loadExisting = false} = options;
+        const {onProgress, maxConcurrency = 1, collections = true, singleKeys = true, loadExisting = false} = options;
 
         this.isPreloading = true;
         this.progress = [];
@@ -624,7 +658,7 @@ class CachePreloader {
                     await Promise.all(batchPromises);
 
                     // Small delay between batches to prevent overwhelming the system
-                    return new Promise<void>((resolve) => setTimeout(resolve, 200));
+                    return new Promise<void>((resolve) => setTimeout(resolve, 500)); // Increased from 200ms to 500ms
                 }, Promise.resolve());
             }
 
