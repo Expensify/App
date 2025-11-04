@@ -481,7 +481,7 @@ describe('ReportUtils', () => {
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
             const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
-            const setupSpecialistDetail = Object.values(personalDetailsData ?? {})[0];
+            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
 
             expect(setupSpecialistDetail).toBeDefined();
             expect(setupSpecialistDetail?.avatar).toBeDefined();
