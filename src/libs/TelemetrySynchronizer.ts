@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 import {getActivePolicies} from './PolicyUtils';
 
-
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
  */
