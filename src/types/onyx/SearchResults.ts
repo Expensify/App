@@ -116,9 +116,6 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The main action that can be performed for the report */
-    action?: SearchTransactionAction;
-
     /** The available actions that can be performed for the report */
     allActions?: SearchTransactionAction[];
 
