@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -21,7 +22,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>

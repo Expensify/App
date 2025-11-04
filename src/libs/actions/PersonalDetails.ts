@@ -1,5 +1,6 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
@@ -33,17 +34,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-let currentUserEmail = '';
-let currentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = val?.email ?? '';
-        currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-function updatePronouns(pronouns: string) {
+function updatePronouns(pronouns: string, currentUserAccountID: number) {
     if (!currentUserAccountID) {
         return;
     }
@@ -65,7 +56,7 @@ function updatePronouns(pronouns: string) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
     if (!currentUserAccountID) {
         return;
     }
@@ -86,7 +77,7 @@ function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: 
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
     if (!currentUserAccountID) {
         return;
     }
@@ -121,7 +112,7 @@ function updateLegalName(
     legalFirstName: string,
     legalLastName: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+    currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: OnyxUpdate[] = [
@@ -140,9 +131,9 @@ function updateLegalName(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetail.accountID]: {
                     displayName: PersonalDetailsUtils.createDisplayName(
-                        currentUserEmail ?? '',
+                        currentUserPersonalDetail.email ?? '',
                         {
                             firstName: legalFirstName,
                             lastName: legalLastName,
@@ -262,7 +253,7 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  */
-function updateAutomaticTimezone(timezone: Timezone) {
+function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: number) {
     if (!currentUserAccountID) {
         return;
     }
@@ -291,7 +282,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
  * Updates user's 'selected' timezone, then navigates to the
  * initial Timezone page.
  */
-function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
+function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserAccountID: number) {
     const timezone: Timezone = {
         selected: selectedTimezone,
     };
@@ -366,11 +357,23 @@ function openPublicProfilePage(accountID: number) {
     API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
+type DefaultAvatarResult = {uri: string; name: string; customExpensifyAvatarID: string};
+
+/**
+ * Type guard to check if a file object is a DefaultAvatarResult
+ */
+function isDefaultAvatarResult(file: File | CustomRNImageManipulatorResult | DefaultAvatarResult): file is DefaultAvatarResult {
+    return 'customExpensifyAvatarID' in file && typeof file.customExpensifyAvatarID === 'string';
+}
+
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPersonalDetails: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'>) {
-    if (!currentUserAccountID) {
+function updateAvatar(
+    file: File | CustomRNImageManipulatorResult | DefaultAvatarResult,
+    currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'>,
+) {
+    if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
@@ -379,7 +382,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPe
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     avatar: file.uri,
                     avatarThumbnail: file.uri,
                     originalFileName: file.name,
@@ -400,7 +403,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPe
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     pendingFields: {
                         avatar: null,
                     },
@@ -413,7 +416,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPe
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     avatar: currentUserPersonalDetails?.avatar,
                     avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
                     pendingFields: {
@@ -424,28 +427,29 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPe
         },
     ];
 
-    const parameters: UpdateUserAvatarParams = {file};
+    const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file) ? {customExpensifyAvatarID: file.customExpensifyAvatarID} : {file};
 
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
+// TODO remove when no longer needed
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar(currentUserPersonalDetails: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'>) {
-    if (!currentUserAccountID) {
+function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
+    if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     avatar: defaultAvatar,
                     fallbackIcon: null,
                 },
@@ -457,7 +461,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<PersonalDetails, 'fallbac
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     avatar: currentUserPersonalDetails?.avatar,
                     fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
                 },
@@ -471,7 +475,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<PersonalDetails, 'fallbac
 /**
  * Clear error and pending fields for the current user's avatar
  */
-function clearAvatarErrors() {
+function clearAvatarErrors(currentUserAccountID: number) {
     if (!currentUserAccountID) {
         return;
     }
@@ -501,7 +505,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCodeWithCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',

@@ -134,6 +134,10 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
+                    if (!isUserValidated) {
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+                        return;
+                    }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
@@ -203,6 +207,7 @@ function SecuritySettingsPage() {
     }, [
         isAccountLocked,
         isDelegateAccessRestricted,
+        isUserValidated,
         showDelegateNoAccessModal,
         showLockedAccountModal,
         privateSubscription?.type,
@@ -235,7 +240,7 @@ function SecuritySettingsPage() {
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role, true));
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -252,7 +257,7 @@ function SecuritySettingsPage() {
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
-                        onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
+                        onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                         error,
                         onPress,
                         success: selectedEmail === email,
@@ -437,7 +442,7 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    removeDelegate(selectedDelegate?.email ?? '');
+                                    removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
                                 }}

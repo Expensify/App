@@ -35,6 +35,9 @@ type InteractiveStepWrapperProps = {
     // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
 
+    // Should show offline indicator in wide screen
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
@@ -53,6 +56,11 @@ type InteractiveStepWrapperProps = {
      * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Callback to be called when the screen entry transition ends.
+     */
+    onEntryTransitionEnd?: () => void;
 };
 
 function InteractiveStepWrapper(
@@ -66,10 +74,12 @@ function InteractiveStepWrapper(
         stepNames,
         shouldEnableMaxHeight,
         shouldShowOfflineIndicator,
+        shouldShowOfflineIndicatorInWideScreen,
         shouldEnablePickerAvoiding = false,
         offlineIndicatorStyle,
         shouldKeyboardOffsetBottomSafeAreaPadding,
         enableEdgeToEdgeBottomSafeAreaPadding,
+        onEntryTransitionEnd,
     }: InteractiveStepWrapperProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -84,8 +94,10 @@ function InteractiveStepWrapper(
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+            onEntryTransitionEnd={onEntryTransitionEnd}
         >
             <HeaderWithBackButton
                 title={headerTitle}

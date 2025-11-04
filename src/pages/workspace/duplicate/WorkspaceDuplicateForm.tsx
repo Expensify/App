@@ -61,7 +61,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 return;
             }
             const newPolicyID = generatePolicyID();
-            setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
+            setDuplicateWorkspaceData({policyID: newPolicyID, name, fileURI: avatarFile?.uri});
             Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
         },
         [policyID],
@@ -110,7 +110,6 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}

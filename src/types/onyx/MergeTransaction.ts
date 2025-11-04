@@ -1,3 +1,4 @@
+import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt} from './Transaction';
 
@@ -50,6 +51,12 @@ type MergeTransaction = {
 
     /** The report ID of the transaction */
     reportID: string;
+
+    /** The report name of the transaction */
+    reportName: string;
+
+    /** The attendees of the transaction */
+    attendees?: Attendee[];
 };
 
 export default MergeTransaction;

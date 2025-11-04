@@ -51,9 +51,8 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 shouldHideFixErrorsAlert
                 isSubmitActionDangerous
             >
-                <View>
-                    <Text style={styles.mb6}>{translate('iou.reject.reasonPageDescription1')}</Text>
-                    <Text style={styles.mb6}>{translate('iou.reject.reasonPageDescription2')}</Text>
+                <View style={styles.mb6}>
+                    <Text>{translate('iou.reject.reasonPageDescription')}</Text>
                 </View>
                 <View>
                     <InputWrapper

@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import usePrevious from '@hooks/usePrevious';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 

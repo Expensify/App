@@ -200,6 +200,29 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense total>1 total<1000');
         });
 
+        test('equal to filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountEqualTo: '500',
+                totalEqualTo: '750',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:500 total:750');
+        });
+
+        test('combined equal to and range filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountEqualTo: '100',
+                totalGreaterThan: '50',
+                totalLessThan: '200',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:100 total>50 total<200');
+        });
+
         test('with withdrawal type filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',

@@ -14,6 +14,33 @@ import Permissions from './Permissions';
 import {getTitleReportField, isArchivedReport} from './ReportUtils';
 
 /**
+ * Get the title field from report name value pairs
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near future
+function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
+    const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+    return reportNameValuePairs?.expensify_text_title;
+}
+
+/**
+ * Temporary function to get the title field from a policy. Eventually we want to move this to report name value pairs.
+ * @param policyId
+ * @param context
+ */
+function getTitleFieldFromPolicy(policyId: string | undefined, context: UpdateContext) {
+    if (!policyId) {
+        return;
+    }
+
+    const policy = context.allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyId}`];
+    if (!policy || !policy.fieldList) {
+        return;
+    }
+
+    return getTitleReportField(policy.fieldList);
+}
+
+/**
  * Get the object type from an Onyx key
  */
 function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'unknown' {
@@ -136,8 +163,8 @@ function getReportKey(reportID: string): OnyxKey {
 /**
  * Check if a report should have its name automatically computed
  */
-function shouldComputeReportName(report: Report, policy: Policy | undefined): boolean {
-    if (!report || !policy) {
+function shouldComputeReportName(report: Report, context: UpdateContext): boolean {
+    if (!report) {
         return false;
     }
 
@@ -146,9 +173,9 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     }
 
     // Only compute names for expense reports with policies that have title fields
-    // Check if the policy has a title field with a formula
-    const titleField = getTitleReportField(policy.fieldList ?? {});
-    if (!titleField?.defaultValue) {
+    // Check if the report has a title field with a formula in policy
+    const policyTitleField = getTitleFieldFromPolicy(report.policyID, context);
+    if (!policyTitleField?.defaultValue) {
         return false;
     }
     return true;
@@ -182,18 +209,15 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const policy = getPolicyByID(targetReport.policyID, allPolicies);
 
-    if (!shouldComputeReportName(targetReport, policy)) {
+    if (!shouldComputeReportName(targetReport, context)) {
         return null;
     }
 
-    const titleField = getTitleReportField(policy?.fieldList ?? {});
-    if (!titleField?.defaultValue) {
-        return null;
-    }
+    const titleField = getTitleFieldFromPolicy(targetReport.policyID, context);
 
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
-    const formula = titleField.defaultValue;
+    const formula = titleField?.defaultValue;
     const formulaParts = parse(formula);
 
     let transaction: Transaction | undefined;
@@ -257,7 +281,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
-    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
         return updates;
     }
 

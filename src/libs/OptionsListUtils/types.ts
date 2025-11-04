@@ -43,6 +43,7 @@ type SearchOptionData = Pick<
     | 'avatar'
     | 'phoneNumber'
     | 'searchText'
+    | 'timezone'
 
     // State properties
     | 'isSelected'
@@ -153,11 +154,24 @@ type GetValidReportsConfig = {
     shouldShowGBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
-type GetValidReportsReturnTypeCombined = {
-    selfDMOption: SearchOptionData | undefined;
-    workspaceOptions: SearchOptionData[];
-    recentReports: SearchOptionData[];
-};
+type IsValidReportsConfig = Pick<
+    GetValidReportsConfig,
+    | 'betas'
+    | 'includeMultipleParticipantReports'
+    | 'includeOwnedWorkspaceChats'
+    | 'includeThreads'
+    | 'includeTasks'
+    | 'includeMoneyRequests'
+    | 'includeReadOnly'
+    | 'transactionViolations'
+    | 'includeSelfDM'
+    | 'includeInvoiceRooms'
+    | 'action'
+    | 'includeP2P'
+    | 'includeDomainEmail'
+    | 'loginsToExclude'
+    | 'excludeNonAdminWorkspaces'
+>;
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
@@ -169,6 +183,7 @@ type GetOptionsConfig = {
     canShowManagerMcTest?: boolean;
     searchString?: string;
     maxElements?: number;
+    maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
 } & GetValidReportsConfig;
 
@@ -183,6 +198,7 @@ type GetUserToInviteConfig = {
     avatar?: AvatarSource;
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
+    countryCode?: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -251,7 +267,6 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
     OptionList,
@@ -267,4 +282,5 @@ export type {
     Section,
     SectionBase,
     SectionForSearchTerm,
+    IsValidReportsConfig,
 };

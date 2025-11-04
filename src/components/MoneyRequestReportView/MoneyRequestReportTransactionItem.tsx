@@ -4,7 +4,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -59,6 +59,9 @@ type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
+
+    /** Callback function that navigates to the transaction thread */
+    onArrowRightPress?: (transactionID: string) => void;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -78,11 +81,12 @@ function MoneyRequestReportTransactionItem({
     taxAmountColumnSize,
     scrollToNewTransaction,
     forwardedFSClass,
+    onArrowRightPress,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
@@ -150,7 +154,11 @@ function MoneyRequestReportTransactionItem({
                     columns={columns}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
-                    style={[styles.p3]}
+                    style={[styles.p3, isLargeScreenWidth && styles.pr0]}
+                    onButtonPress={() => {
+                        handleOnPress(transaction.transactionID);
+                    }}
+                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

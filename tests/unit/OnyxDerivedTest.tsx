@@ -77,6 +77,32 @@ describe('OnyxDerived', () => {
             });
         });
 
+        it('should clear the report attributes when the report is cleared', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+            let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: mockReport.reportName,
+                    },
+                },
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, null);
+
+            derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {},
+            });
+        });
+
         it('updates when locale changes', async () => {
             renderLocaleContextProvider();
             await waitForBatchedUpdates();
@@ -97,8 +123,8 @@ describe('OnyxDerived', () => {
             const reportID1 = '0';
             const reportID2 = '1';
             const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1)),
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2)),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1), undefined),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2), undefined),
             };
             const transaction = createRandomTransaction(1);
 
@@ -205,7 +231,7 @@ describe('OnyxDerived', () => {
 
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
-                const report = createRandomReport(1);
+                const report = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await waitForBatchedUpdates();
 
@@ -215,7 +241,7 @@ describe('OnyxDerived', () => {
 
             it('combines report error fields with report action errors', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -254,7 +280,7 @@ describe('OnyxDerived', () => {
 
             it('handles multiple error sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -305,7 +331,7 @@ describe('OnyxDerived', () => {
 
             it('handles empty error objects in sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {},
                         field2: {

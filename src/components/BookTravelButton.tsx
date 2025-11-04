@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -9,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -42,7 +43,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
         return;
     }
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
@@ -60,7 +61,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
@@ -127,6 +128,14 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         // - Public domains are not allowed; an error page is shown in that case.
         else if (adminDomains.length === 1) {
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+            // Always validate OTP first before proceeding to address details or terms acceptance
+            if (!isUserValidated) {
+                // Determine where to redirect after OTP validation
+                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+                setTravelProvisioningNextStep(nextStep);
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+                return;
+            }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
                 Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
@@ -143,8 +152,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         travelSettings?.hasAcceptedTerms,
         travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
-        styles.flexRow,
-        StyleUtils,
         translate,
         isUserValidated,
         phoneErrorMethodsRoute,

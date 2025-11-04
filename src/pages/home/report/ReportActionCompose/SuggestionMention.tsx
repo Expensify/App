@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
@@ -26,7 +25,6 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
-import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionValues = {
@@ -58,10 +56,18 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
-    ref: ForwardedRef<SuggestionsRef>,
-) {
+function SuggestionMention({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    isGroupPolicyReport,
+    policyID,
+    ref,
+}: SuggestionProps) {
     const personalDetails = usePersonalDetails();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -482,4 +488,4 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default forwardRef(SuggestionMention);
+export default SuggestionMention;

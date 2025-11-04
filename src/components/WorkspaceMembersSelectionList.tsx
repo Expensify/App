@@ -15,9 +15,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import SelectionList from './SelectionList';
-import InviteMemberListItem from './SelectionList/InviteMemberListItem';
-import type {Section} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import InviteMemberListItem from './SelectionListWithSections/InviteMemberListItem';
+import type {Section} from './SelectionListWithSections/types';
 
 type SelectionListApprover = {
     text: string;
@@ -43,7 +43,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
