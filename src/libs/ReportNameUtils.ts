@@ -1,19 +1,60 @@
 /**
  * This file contains utility functions for managing and computing report names
  */
-import { Str } from 'expensify-common';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import { translateLocal } from '@libs/Localize';
-import { getForReportAction, getMovedReportID } from '@libs/ModifiedExpenseMessage';
-import Parser from '@libs/Parser';
-import { getCleanedTagName } from '@libs/PolicyUtils';
-import { getActionableCardFraudAlertResolutionMessage, getCardIssuedMessage, getChangedApproverActionMessage, getIntegrationSyncFailedMessage, getJoinRequestMessage, getMessageOfOldDotReportAction, getOriginalMessage, getPolicyChangeLogDefaultBillableMessage, getPolicyChangeLogDefaultReimbursableMessage, getPolicyChangeLogDefaultTitleEnforcedMessage, getPolicyChangeLogMaxExpenseAmountNoReceiptMessage, getRenamedAction, getReopenedMessage, getReportActionMessage as getReportActionMessageReportUtils, getRetractedMessage, getTravelUpdateMessage, getWorkspaceCurrencyUpdateMessage, getWorkspaceFrequencyUpdateMessage, getWorkspaceReportFieldAddMessage, getWorkspaceReportFieldDeleteMessage, getWorkspaceReportFieldUpdateMessage, getWorkspaceTagUpdateMessage, getWorkspaceUpdateFieldMessage, isActionableJoinRequest, isActionOfType, isCardIssuedAction, isMarkAsClosedAction, isModifiedExpenseAction, isMoneyRequestAction, isMovedAction, isOldDotReportAction, isRenamedAction, isReportActionAttachment, isTagModificationAction, isTransactionThread, isUnapprovedAction } from '@libs/ReportActionsUtils';
+import {Str} from 'expensify-common';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction } from '@src/types/onyx';
-import type { ReportNameValuePairsCollectionDataSet } from '@src/types/onyx/ReportNameValuePairs';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {convertToDisplayString} from './CurrencyUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translateLocal} from './Localize';
+import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import Parser from './Parser';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getCleanedTagName} from './PolicyUtils';
+import {
+    getActionableCardFraudAlertResolutionMessage,
+    getCardIssuedMessage,
+    getChangedApproverActionMessage,
+    getIntegrationSyncFailedMessage,
+    getJoinRequestMessage,
+    getMessageOfOldDotReportAction,
+    getOriginalMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRenamedAction,
+    getReopenedMessage,
+    getReportActionMessage as getReportActionMessageFromActionsUtils,
+    getReportActionText,
+    getRetractedMessage,
+    getTravelUpdateMessage,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReportFieldAddMessage,
+    getWorkspaceReportFieldDeleteMessage,
+    getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceTagUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
+    isActionOfType,
+    isCardIssuedAction,
+    isMarkAsClosedAction,
+    isModifiedExpenseAction,
+    isMoneyRequestAction,
+    isMovedAction,
+    isOldDotReportAction,
+    isRenamedAction,
+    isReportActionAttachment,
+    isTagModificationAction,
+    isTransactionThread,
+    isUnapprovedAction,
+} from './ReportActionsUtils';
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
@@ -21,14 +62,18 @@ import {
     getGroupChatName,
     getInvoicesChatName,
     getMoneyRequestSpendBreakdown,
-    getMovedActionMessage, getParentReport,
+    getMovedActionMessage,
+    getParentReport,
     getPolicyChangeMessage,
-    getPolicyExpenseChatName, getPolicyName,
-    getRejectedReportMessage, getReportOrDraftReport,
+    getPolicyExpenseChatName,
+    getPolicyName,
+    getRejectedReportMessage,
+    getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
-    getWorkspaceNameUpdatedMessage, hasNonReimbursableTransactions,
+    getWorkspaceNameUpdatedMessage,
+    hasNonReimbursableTransactions,
     isAdminRoom,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -41,17 +86,19 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isMoneyRequestReport,
-    isNewDotInvoice, isOpenExpenseReport, isOpenInvoiceReport,
-    isPolicyExpenseChat, isProcessingReport, isReportApproved,
-    isSelfDM, isSettled,
+    isNewDotInvoice,
+    isOpenExpenseReport,
+    isOpenInvoiceReport,
+    isPolicyExpenseChat,
+    isProcessingReport,
+    isReportApproved,
+    isSelfDM,
+    isSettled,
     isTaskReport,
     isThread,
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 function generateArchivedReportName(reportName: string): string {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -66,7 +113,7 @@ function generateArchivedReportName(reportName: string): string {
 const buildReportNameFromParticipantNames = ({report, personalDetailsList: personalDetailsData}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((id) => id !== currentUserAccountID)
+        .filter((id) => id !== report?.ownerAccountID)
         .slice(0, 5)
         .map((accountID) => ({
             accountID,
@@ -94,7 +141,6 @@ function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
 
-
 /**
  * Get the invoice payer name based on its type:
  * - Individual - a receiver display name.
@@ -102,21 +148,23 @@ function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
  */
 function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
     const invoiceReceiver = report?.invoiceReceiver;
-    const invoiceReceiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumber(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID]));
+        return formatPhoneNumber(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? undefined));
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy});
 }
 
-
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {
+function getMoneyRequestReportName({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+}: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
@@ -345,19 +393,19 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     return undefined;
 }
 
-function computeChatThreadReportName(report: Report, reportNameValuePairs: ReportNameValuePairs, transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
+function computeChatThreadReportName(report: Report, reportNameValuePairs: ReportNameValuePairs, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
     }
     if (!parentReportAction) {
-        return undefined
+        return undefined;
     }
 
-    const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
+    const parentReportActionMessage = getReportActionMessageFromActionsUtils(parentReportAction);
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-        let formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
+        let formattedName = getTransactionReportName({reportAction: parentReportAction});
 
         if (isArchivedNonExpense) {
             formattedName = generateArchivedReportName(formattedName);
@@ -370,7 +418,8 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
     }
 
     if (isRenamedAction(parentReportAction)) {
-        return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
+        const parent = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        return getRenamedAction(parentReportAction, isExpenseReport(parent));
     }
 
     if (parentReportActionMessage?.isDeletedParentAction) {
@@ -384,13 +433,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
     }
 
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-    const reportActionMessage = getReportActionMessage({
-        reportAction: parentReportAction,
-        reportID: report?.parentReportID,
-        childReportID: report?.reportID,
-        reports,
-        personalDetails,
-    }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
+    const reportActionMessage = getReportActionText(parentReportAction).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
     if (isAttachment && reportActionMessage) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `[${translateLocal('common.attachment')}]`;
@@ -404,17 +447,17 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
         return translateLocal('parentReportAction.hiddenMessage');
     }
     if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
-        return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
+        return reportActionMessage;
     }
 
     if (reportActionMessage && isArchivedNonExpense) {
         return generateArchivedReportName(reportActionMessage);
     }
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-        const policyID = reports?.find((r) => r.reportID === report?.reportID)?.policyID;
+        const policyID = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.policyID;
 
-        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
-        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+        const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+        const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
         const modifiedMessage = getForReportAction({
             reportAction: parentReportAction,
             policyID,
@@ -450,7 +493,6 @@ function computeReportName(
 
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
 
-
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
@@ -464,12 +506,13 @@ function computeReportName(
         return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
-    const chatThreadReportName = computeChatThreadReportName(report, parentReportAction, reportNameValuePairs);
+    const chatThreadReportName = computeChatThreadReportName(report, reportNameValuePairs ?? {}, reports ?? {}, parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
 
-    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
+    if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');
     }
@@ -494,15 +537,28 @@ function computeReportName(
     }
 
     if (isInvoiceReport(report)) {
+        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        let chatReceiverPolicyID: string | undefined;
+        const chatReceiver = chatReport?.invoiceReceiver as unknown;
+        if (chatReceiver && typeof chatReceiver === 'object' && 'policyID' in chatReceiver) {
+            chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
+        }
+        const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
         formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
+        let receiverPolicyID: string | undefined;
+        const receiver = report?.invoiceReceiver as unknown;
+        if (receiver && typeof receiver === 'object' && 'policyID' in receiver) {
+            receiverPolicyID = (receiver as {policyID: string}).policyID;
+        }
+        const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList});
     }
 
     if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetails});
+        formattedName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetailsList});
     }
 
     if (isConciergeChatReport(report)) {
@@ -516,7 +572,7 @@ function computeReportName(
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetailsList});
 
-    const finalName = formattedName ?? (report?.reportName ?? '');
+    const finalName = formattedName ?? report?.reportName ?? '';
 
     return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
@@ -533,13 +589,6 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
     }
 
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
-}
-
-/**
- * Get report name for SearchUI context
- */
-function getSearchReportName(): string {
-
 }
 
 export {computeReportName, getReportName};
