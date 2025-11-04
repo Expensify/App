@@ -1368,8 +1368,8 @@ const translations = {
         hold: 'Vasthouden',
         unhold: 'Verwijder blokkering',
         holdExpense: () => ({
-            one: 'Uitgave vasthouden',
-            other: 'Uitgaven vasthouden',
+            one: 'Uitgave in de wacht zetten',
+            other: 'Uitgaven in de wacht zetten',
         }),
         unholdExpense: 'Uitgave deblokkeren',
         heldExpense: 'deze uitgave vastgehouden',
@@ -1382,8 +1382,8 @@ const translations = {
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         newReport: 'Nieuw rapport',
         explainHold: () => ({
-            one: 'Leg uit waarom je deze uitgave vasthoudt.',
-            other: 'Leg uit waarom je deze uitgaven vasthoudt.',
+            one: 'Leg uit waarom je deze uitgave aanhoudt.',
+            other: 'Leg uit waarom je deze uitgaven aanhoudt.',
         }),
         retracted: 'ingetrokken',
         retract: 'Intrekken',

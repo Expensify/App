@@ -1349,8 +1349,8 @@ const translations = {
         hold: '保持',
         unhold: '移除保留',
         holdExpense: () => ({
-            one: '保留费用',
-            other: '保留费用',
+            one: '搁置费用',
+            other: '冻结费用',
         }),
         unholdExpense: '取消保留费用',
         heldExpense: '保留此费用',
@@ -1363,8 +1363,8 @@ const translations = {
         addUnreportedExpenseConfirm: '添加到报告',
         newReport: '新报告',
         explainHold: () => ({
-            one: '请解释您为何保留此费用。',
-            other: '请解释您为何保留这些费用。',
+            one: '请说明你为何暂扣此笔费用。',
+            other: '解释你为何暂扣这些费用。',
         }),
         retracted: '撤回',
         retract: '撤回',

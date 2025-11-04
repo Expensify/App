@@ -1382,8 +1382,8 @@ const translations = {
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
         explainHold: () => ({
-            one: 'この経費を保留している理由を説明してください。',
-            other: 'これらの経費を保留している理由を説明してください。',
+            one: 'この経費を保留にしている理由を説明してください。',
+            other: 'これらの経費を保留にしている理由を説明してください。',
         }),
         retracted: '撤回されました',
         retract: '取り消す',

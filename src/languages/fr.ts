@@ -1387,8 +1387,8 @@ const translations = {
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
         newReport: 'Nouveau rapport',
         explainHold: () => ({
-            one: 'Expliquez pourquoi vous retenez cette dépense.',
-            other: 'Expliquez pourquoi vous retenez ces dépenses.',
+            one: 'Expliquez pourquoi vous mettez cette dépense en attente.',
+            other: 'Expliquez pourquoi vous mettez ces dépenses en attente.',
         }),
         retracted: 'retraité',
         retract: 'Retirer',

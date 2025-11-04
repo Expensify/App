@@ -1378,7 +1378,7 @@ const translations = {
         newReport: 'Novo relatório',
         explainHold: () => ({
             one: 'Explique por que você está retendo esta despesa.',
-            other: 'Explique por que você está retendo estas despesas.',
+            other: 'Explique por que você está retendo essas despesas.',
         }),
         retracted: 'retraído',
         retract: 'Retrair',

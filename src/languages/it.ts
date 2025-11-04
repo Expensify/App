@@ -1366,8 +1366,8 @@ const translations = {
         hold: 'Attendere',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
-            one: 'Trattieni spesa',
-            other: 'Trattieni spese',
+            one: 'Sospendi spesa',
+            other: 'Metti in sospeso le spese',
         }),
         unholdExpense: 'Sblocca spesa',
         heldExpense: 'trattenuto questa spesa',
@@ -1380,8 +1380,8 @@ const translations = {
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         newReport: 'Nuovo rapporto',
         explainHold: () => ({
-            one: 'Spiega perché stai trattenendo questa spesa.',
-            other: 'Spiega perché stai trattenendo queste spese.',
+            one: 'Spiega perché stai mettendo in sospeso questa spesa.',
+            other: 'Spiega perché stai mettendo in sospeso queste spese.',
         }),
         retracted: 'retratato',
         retract: 'Ritirare',
