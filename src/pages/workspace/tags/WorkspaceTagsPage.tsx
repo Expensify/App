@@ -424,9 +424,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }
                     close(() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                            downloadMultiLevelTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                hasDependentTags,
+                            );
                         } else {
                             downloadTagsCSV(policyID, () => {
                                 setIsDownloadFailureModalVisible(true);
@@ -439,7 +443,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID]);
+    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
