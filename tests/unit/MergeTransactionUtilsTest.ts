@@ -1,4 +1,5 @@
 import {
+    areTransactionsEligibleForMerge,
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
@@ -771,6 +772,169 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the generic error message with lowercase field name
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('areTransactionsEligibleForMerge', () => {
+        it('should return false when either transaction is undefined', () => {
+            // Given one transaction is undefined
+            const transaction = createRandomTransaction(0);
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(undefined, transaction);
+            const result2 = areTransactionsEligibleForMerge(transaction, undefined);
+            const result3 = areTransactionsEligibleForMerge(undefined, undefined);
+
+            // Then it should return false because both transactions are required
+            expect(result1).toBe(false);
+            expect(result2).toBe(false);
+            expect(result3).toBe(false);
+        });
+
+        it('should return false when source transaction is pending delete', () => {
+            // Given transactions where source is pending delete
+            const targetTransaction = createRandomTransaction(0);
+            const sourceTransaction = {
+                ...createRandomTransaction(1),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(targetTransaction, sourceTransaction);
+
+            // Then it should return false because source transaction is pending delete
+            expect(result).toBe(false);
+        });
+
+        it('should return true if both transactions are cash', () => {
+            // Given both transactions are cash transactions
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return true because both are cash transactions
+            expect(result).toBe(true);
+        });
+
+        it('should return true if one transaction is cash and one is card', () => {
+            // Given one cash and one card transaction
+            const cashTransaction = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                managedCard: false,
+            };
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                managedCard: true,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(cashTransaction, cardTransaction);
+            const result2 = areTransactionsEligibleForMerge(cardTransaction, cashTransaction);
+
+            // Then it should return true for both orders
+            expect(result1).toBe(true);
+            expect(result2).toBe(true);
+        });
+
+        it('should return false if both transactions are from a card', () => {
+            // Given both transactions are card transactions
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: true,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: true,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return false because both are card transactions
+            expect(result).toBe(false);
+        });
+
+        it('should return false if both transactions have $0 amount', () => {
+            // Given both transactions have $0 amount
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                amount: 0,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                amount: 0,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return false because both have $0 amount
+            expect(result).toBe(false);
+        });
+
+        it('should return true if only one transaction has $0 amount', () => {
+            // Given one transaction has $0 amount and the other has a non-zero amount
+            const zeroTransaction = {
+                ...createRandomTransaction(0),
+                amount: 0,
+            };
+            const nonZeroTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(zeroTransaction, nonZeroTransaction);
+            const result2 = areTransactionsEligibleForMerge(nonZeroTransaction, zeroTransaction);
+
+            // Then it should return true for both orders
+            expect(result1).toBe(true);
+            expect(result2).toBe(true);
+        });
+
+        it('should return false if per diem transaction is merged with card transaction', () => {
+            // Given a per diem transaction and a card transaction
+            const perDiemTransaction = {
+                ...createRandomTransaction(0),
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                managedCard: true,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(perDiemTransaction, cardTransaction);
+            const result2 = areTransactionsEligibleForMerge(cardTransaction, perDiemTransaction);
+
+            // Then it should return false for both orders
+            expect(result1).toBe(false);
+            expect(result2).toBe(false);
         });
     });
 });
