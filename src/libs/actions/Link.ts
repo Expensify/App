@@ -33,7 +33,7 @@ import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/Onboardin
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
-
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
@@ -54,6 +54,7 @@ Onyx.connectWithoutView({
 });
 
 let account: OnyxEntry<Account>;
+// Use connectWithoutView to subscribe to account data without affecting UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
@@ -268,6 +269,7 @@ function openReportFromDeepLink(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
+            // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
