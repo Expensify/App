@@ -80,9 +80,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     const openBankConnection = () => {
-        if (!isAllowedToIssueCompanyCard) {
-            return;
-        }
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
         const data: Partial<AssignCardData> = {
             bankName: selectedFeed,
