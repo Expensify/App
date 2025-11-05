@@ -6,6 +6,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,14 +17,11 @@ import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
-// TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
+// TODO: dodac co configa scenario: success i failure screen i tam zdefiniowac to nizej a runoutoftime do constow
 type NotificationType = 'authentication-successful' | 'authentication-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time';
 
 type MultiFactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION>;
-
-// TODO: remove, as this data will actually come from the SCENARIOS file
 type NotificationData =
     | {
           illustration: React.FC<SvgProps>;
@@ -33,7 +31,6 @@ type NotificationData =
       }
     | undefined;
 
-// TODO: remove, as this data will actually come from the SCENARIOS file
 const getNotificationData = (notificationType: NotificationType, styles: ThemeStyles): NotificationData => {
     switch (notificationType) {
         case 'authentication-successful':
@@ -82,12 +79,11 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
         Navigation.dismissModal();
     }, []);
 
-    // TODO: replace with notification which gets the actual data from SCENARIO file
-    // Memoize to avoid recalculating on every render
     const {info} = useMultifactorAuthenticationContext();
+
+    // TODO: jak wyzej
     const data = useMemo(() => getNotificationData(route.params.notificationType, styles), [route.params.notificationType, styles]);
 
-    // data2  // TODO: replace with the correct data from MFAcontext
     const {headerTitle, title, content} = {headerTitle: info.title, title: info.title, content: info.message};
 
     if (!data) {

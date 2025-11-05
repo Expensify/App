@@ -5,15 +5,15 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MFAApproveTransactionActions from '@components/MFA/MFAApproveTransactionActions';
 import MFAApproveTransactionConfirmModal from '@components/MFA/MFAApproveTransactionConfirmModal';
 import MFAApproveTransactionContent from '@components/MFA/MFAApproveTransactionContent';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 
 type MFAApproveTransactionPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION>;
 
@@ -38,14 +38,14 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
     }, []);
 
     const approveTransaction = useCallback(() => {
-        process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID})
+        process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID});
     }, [process, transactionID]);
 
     const denyTransaction = useCallback(() => {
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        // MFAdenyTransaction(); // TODO: update context or sth
+        // MFAdenyTransaction(); // TODO: trigger(cancel) do transaction denied page
         onGoBackPress();
     }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
 

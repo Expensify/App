@@ -5,12 +5,12 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import CONST from '@src/CONST';
 
 function MFAScenarioBiometricsTestPage() {
@@ -43,7 +43,7 @@ function MFAScenarioBiometricsTestPage() {
                         success
                         style={[styles.flex1]}
                         onPress={() => {
-                            process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: "fake"});
+                            process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: 'fake'});
                         }}
                         text={translate('common.test')}
                     />

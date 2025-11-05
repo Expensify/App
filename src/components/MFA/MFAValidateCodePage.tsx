@@ -5,7 +5,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MFAValidateCodeResendButton from '@components/MFA/MFAValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +21,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import MFAValidateCodeResendButton from './MFAValidateCodeResendButton';
 
 type FormError = {
     inputCode?: TranslationPaths;

@@ -5,16 +5,14 @@ import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MFAPromptActions from '@components/MFA/MFAPromptActions';
 import MFAPromptContent from '@components/MFA/MFAPromptContent';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
@@ -61,7 +59,6 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const onGoBackPress = useCallback(() => {
         update({softPromptDecision: false});
     }, [update]);
-
 
     if (!contentData) {
         return <NotFoundPage />;

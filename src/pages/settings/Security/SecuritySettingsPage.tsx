@@ -226,6 +226,7 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        userHasRegisteredOnAtLeastOneDevice,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,

@@ -1,14 +1,14 @@
 import React from 'react';
 import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
 function MFAFactorMagicCodePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const email = account?.primaryLogin ?? '';
     const {update} = useMultifactorAuthenticationContext();
-    
+
     return (
         <MFAValidateCodePage
             title="multiFactorAuthentication.biometrics.fallbackPageTitle"

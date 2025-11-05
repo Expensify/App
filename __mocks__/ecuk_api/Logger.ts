@@ -5,7 +5,7 @@ const wrapReasonWithSourceData = (reason: string, args: Record<string, unknown>)
     return `${reason}, source data:\n${JSON.stringify(args, null, 2)}\n`;
 };
 
-const HEADER = ["\x1b[41m%s\x1b[0m", "MOCKED_API"]
+const HEADER = ['\x1b[41m%s\x1b[0m', 'MOCKED_API'];
 
 const Logger = {
     e: (...args: unknown[]) => {

@@ -31,7 +31,7 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {setup} = useNativeBiometrics();
 
-    const transactionID = '309980146545648755'; // TODO: delete - here only for testing purposes
+    const transactionID = '5053749577858718685'; // TODO: delete - here only for testing purposes
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();

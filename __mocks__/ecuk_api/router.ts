@@ -1,13 +1,12 @@
-import { Buffer } from 'buffer';
+import {Buffer} from 'buffer';
 import Onyx from 'react-native-onyx';
-import type { MFAChallenge } from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import type { OnyxValues } from '@src/ONYXKEYS';
+import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { ReadCommands, WriteCommands } from './index';
+import type {ReadCommands, WriteCommands} from './index';
 import Logger from './Logger';
 import {ed, FALLBACK_ACCOUNT_ID, FALLBACK_EMAIL, generateSixDigitNumber, isChallengeValid, MOCKED_AUTHENTICATOR_CODE, PHONE_NUMBER, STORAGE} from './utils';
-
 
 let sessionData: OnyxValues[typeof ONYXKEYS.SESSION] = {};
 
@@ -82,7 +81,7 @@ router.post['/resend_validate_code'] = ({email}: Partial<WriteCommands['ResendVa
     }
 
     const randomCode = generateSixDigitNumber();
-    const emailWithFallback = sessionData.email ?? email
+    const emailWithFallback = sessionData.email ?? email;
 
     STORAGE.validateCodes[emailWithFallback] ??= [];
     STORAGE.validateCodes[emailWithFallback].push(randomCode);
@@ -300,7 +299,7 @@ const callMockedAPI = (
 ) => {
     const methodLowerCase = options.method === 'GET' ? 'get' : 'post';
 
-    if (path === "/trigger") {
+    if (path === '/trigger') {
         return;
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call

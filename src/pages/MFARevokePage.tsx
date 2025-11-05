@@ -3,17 +3,17 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MFARevokeConfirmModal from '@components/MFA/MFARevokeConfirmModal';
 import MFARevokeContent from '@components/MFA/MFARevokeContent';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import CONST from '@src/CONST';
 
 function MFARevokePage() {
     const {translate} = useLocalize();
     const {trigger, info} = useMultifactorAuthenticationContext();
 
-    const isAccessRevokedOnAllDevices = !info.isBiometryConfigured; // TODO: replace with actual logic
+    const isAccessRevokedOnAllDevices = !info.isBiometryConfigured; // TODO: to z contextu powinnismy wiedziec, mock na backend
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
@@ -30,10 +30,10 @@ function MFARevokePage() {
     }, []);
 
     const onConfirm = useCallback(() => {
-        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.REVOKE)
+        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.REVOKE);
         hideConfirmModal();
         onGoBackPress();
-    }, [hideConfirmModal, onGoBackPress]);
+    }, [hideConfirmModal, onGoBackPress, trigger]);
 
     return (
         <ScreenWrapper testID={MFARevokePage.displayName}>

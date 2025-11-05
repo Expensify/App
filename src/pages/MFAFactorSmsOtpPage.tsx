@@ -1,10 +1,11 @@
 import React from 'react';
 import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
+import {PHONE_NUMBER} from '../../__mocks__/ecuk_api/utils';
 
 function MFAFactorSmsOtpPage() {
-    // TODO: Get phoneNumber from account/session when available i dont really know where from - waiting for response on slack
-    const phoneNumber = '+48660939866';
+    // TODO: numer telefonu z sesji
+    const phoneNumber = PHONE_NUMBER;
     const {update} = useMultifactorAuthenticationContext();
 
     return (

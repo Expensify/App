@@ -13,7 +13,7 @@ import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
-import {clearAccountMessages, validateTwoFactorAuth} from '@userActions/Session';
+import {clearAccountMessages} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -24,7 +24,7 @@ function MFAFactorAuthenticatorPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
-    const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
+    // const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     const clearAccountErrorsIfPresent = useCallback(() => {
@@ -60,9 +60,10 @@ function MFAFactorAuthenticatorPage() {
 
         setFormError({});
 
-        validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData); // TODO: verify whether this is the appropriate endpoint and whether it should be handled this way
-        Navigation.dismissModal(); // TODO: we know that if we are here, this is our second factor, which is probably some context trading and navigation to notifications
-    }, [translate, twoFactorAuthCode, shouldClearData]);
+        // TODO: update({2FA: kod})
+        // validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData);
+        // Navigation.dismissModal();
+    }, [translate, twoFactorAuthCode]);
 
     useFocusEffect(
         useCallback(() => {

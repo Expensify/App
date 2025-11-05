@@ -28,7 +28,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 // TODO: Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
 // import {requestValidateCodeAction} from '@libs/actions/User';
-import {triggerOnyxConnect, requestValidateCodeAction} from '../../../__mocks__/ecuk_api';
+import {requestValidateCodeAction, triggerOnyxConnect} from '../../../__mocks__/ecuk_api';
 import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from './config';
 
 const MultifactorAuthenticationContext = createContext<UseMultifactorAuthentication>({
@@ -103,7 +103,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // TODO: SPLIT OTP INTO AUTHENTICATOR & SMS OTP
+        // TODO: zrobic nowy factor, 2FA
         if (step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.OTP && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP)) {
             Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP);
             success.current = undefined;
@@ -114,7 +114,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // TODO: NAVIGATE TO PROPER SUCCESS OR FAILURE ROUTES
+        // TODO: naviguj do success/failure screena ze scenariusza
         if (step.wasRecentStepSuccessful && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'))) {
             Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'));
             success.current = true;

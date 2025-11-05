@@ -19,7 +19,7 @@ const options = (key: string): SecureStoreOptions => {
         keychainService: VALUES.KEYCHAIN_SERVICE,
         keychainAccessible: SECURE_STORE_VALUES.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
         enableCredentialsAlternative: true,
-        authenticationPrompt: "Approve the transaction",
+        authenticationPrompt: 'Approve the transaction',
     };
 };
 
