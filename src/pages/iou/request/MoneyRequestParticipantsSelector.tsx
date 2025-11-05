@@ -123,7 +123,6 @@ function MoneyRequestParticipantsSelector({
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const showImportContacts = isNative && !isCategorizeOrShareAction && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -185,6 +184,17 @@ function MoneyRequestParticipantsSelector({
         [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
     );
 
+    const handleSelectionChange = useCallback(
+        (options: OptionData[]) => {
+            if (!isIOUSplit) {
+                return;
+            }
+            const sanitizedParticipants: Participant[] = options.map((option) => sanitizedSelectedParticipant(option, iouType));
+            onParticipantsAdded(sanitizedParticipants);
+        },
+        [isIOUSplit, iouType, onParticipantsAdded],
+    );
+
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
@@ -197,13 +207,7 @@ function MoneyRequestParticipantsSelector({
         enablePhoneContacts: isNative,
         contactOptions: contacts,
         initialSelected: participants as OptionData[],
-        onSelectionChange: (options: OptionData[]) => {
-            if (!isIOUSplit) {
-                return;
-            }
-            const sanitizedParticipants: Participant[] = options.map((option) => sanitizedSelectedParticipant(option, iouType));
-            onParticipantsAdded(sanitizedParticipants);
-        },
+        onSelectionChange: handleSelectionChange,
         onSingleSelect: (option: OptionData) => {
             if (isIOUSplit) {
                 return;
@@ -242,6 +246,13 @@ function MoneyRequestParticipantsSelector({
             countryCode,
         ],
     );
+
+    const showImportContacts =
+        isNative &&
+        !isCategorizeOrShareAction &&
+        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        inputHelperText === translate('common.noResultsFound');
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -326,10 +337,10 @@ function MoneyRequestParticipantsSelector({
         reportAttributesDerived,
         translate,
         availableOptions.workspaceChats,
+        availableOptions.selfDMChat,
         availableOptions.userToInvite,
         availableOptions.recentReports,
         availableOptions.personalDetails,
-        availableOptions.selfDMChat,
         isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
