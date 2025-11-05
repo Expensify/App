@@ -198,7 +198,7 @@ function parsePart(definition: string): FormulaPart {
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
     const formulaValues = extract(fieldValue);
-    if (formulaValues.length === 0) {
+    if (formulaValues.length === 0 || isEmptyObject(fieldList)) {
         return false;
     }
 
