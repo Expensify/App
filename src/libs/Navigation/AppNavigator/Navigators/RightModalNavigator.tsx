@@ -27,6 +27,7 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
 const singleRHPWidth = variables.sideBarWidth;
+const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
