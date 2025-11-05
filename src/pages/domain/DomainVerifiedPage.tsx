@@ -26,12 +26,14 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const accountID = route.params.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
 
+    const doesDomainExist = !!domain;
+
     useEffect(() => {
-        if (domain?.accountID === undefined || domain?.validated) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID), {forceReplace: true}));
-    }, [accountID, domain?.validated, domain?.accountID]);
+    }, [accountID, domain?.validated, doesDomainExist]);
 
     if (!domain) {
         return <NotFoundPage />;
@@ -48,7 +50,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
                 heading={translate('domain.domainVerified.header')}
                 descriptionComponent={
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain?.email ?? '')})} />
+                        <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
                     </View>
                 }
                 innerContainerStyle={styles.p10}

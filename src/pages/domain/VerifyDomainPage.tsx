@@ -50,6 +50,8 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
 
+    const doesDomainExist = !!domain;
+
     useEffect(() => {
         if (!domain?.validated) {
             return;
@@ -58,15 +60,18 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     }, [accountID, domain?.validated]);
 
     useEffect(() => {
-        if (domain?.accountID === undefined) {
+        if (!doesDomainExist) {
             return;
         }
         getDomainValidationCode(accountID, domainName);
-    }, [accountID, domainName, domain?.accountID]);
+    }, [accountID, domainName, doesDomainExist]);
 
     useEffect(() => {
+        if (!doesDomainExist) {
+            return;
+        }
         resetDomainValidationError(accountID);
-    }, [accountID]);
+    }, [accountID, doesDomainExist]);
 
     if (!domain) {
         return <NotFoundPage />;
@@ -103,16 +108,16 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                                 <View style={styles.flex1}>
                                     <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
 
-                                    {!domain?.validateCodeError && (
+                                    {!domain.validateCodeError && (
                                         <CopyableTextField
-                                            value={domain?.validateCode}
-                                            isLoading={domain?.isValidateCodeLoading}
+                                            value={domain.validateCode}
+                                            isLoading={domain.isValidateCodeLoading}
                                         />
                                     )}
                                 </View>
                             </OrderedListRow>
 
-                            {!!domain?.validateCodeError && (
+                            {!!domain.validateCodeError && (
                                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                     <FormHelpMessage
                                         message={getLatestErrorMessage({errors: domain.validateCodeError})}
@@ -148,10 +153,10 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(accountID, domainName)}
-                    message={getLatestErrorMessage({errors: domain?.domainValidationError})}
-                    isAlertVisible={!!domain?.domainValidationError}
+                    message={getLatestErrorMessage({errors: domain.domainValidationError})}
+                    isAlertVisible={!!domain.domainValidationError}
                     containerStyles={styles.mb5}
-                    isLoading={domain?.isValidationPending}
+                    isLoading={domain.isValidationPending}
                 />
             </View>
         </ScreenWrapper>
