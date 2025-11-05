@@ -116,6 +116,7 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import SmartScanMock from '@assets/images/simple-illustrations__smartscan_mock_for_testing.svg';
 
 export {
     Abracadabra,
@@ -236,4 +237,5 @@ export {
     RunOutOfTime,
     HumptyDumpty,
     EncryptionMan,
+    SmartScanMock,
 };
