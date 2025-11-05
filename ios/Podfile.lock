@@ -29,7 +29,7 @@ PODS:
   - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXAV (15.1.5):
+  - EXAV (15.1.7):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXConstants (18.0.9):
@@ -4564,7 +4564,7 @@ SPEC CHECKSUMS:
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
+  EXAV: 28241f071fd70ea38d278d94096b61d893645946
   EXConstants: 59d46d25b89f88cc38291a56dbce4d550758f72d
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 01474352998b00f61c6fc81351c7e7b595058579
@@ -4748,4 +4748,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: b8d8822965874a00c1e9d5ce99cb02c3618245b2
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
