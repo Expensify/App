@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -184,6 +185,12 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.getSessionId().then((sessionId) => {
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
