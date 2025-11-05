@@ -194,7 +194,7 @@ function MoneyRequestReceiptView({
             ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
             ...parentReportAction?.errors,
         }),
-        [transaction, parentReportAction],
+        [transaction?.errorFields?.route, transaction?.errorFields?.waypoints, transaction?.errors, parentReportAction?.errors],
     );
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
     const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
