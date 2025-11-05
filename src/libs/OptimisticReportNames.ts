@@ -13,6 +13,11 @@ import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
 import {getTitleReportField, isArchivedReport} from './ReportUtils';
 
+type ReportNameUpdate = {
+    name: string | undefined;
+    isPending?: boolean;
+};
+
 /**
  * Get the title field from report name value pairs
  */
@@ -197,7 +202,7 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): {name: string; isPending: boolean} | null {
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): ReportNameUpdate | null {
     const {allPolicies, isOffline} = context;
 
     // If no report is provided, extract it from the update (for new reports)
@@ -263,24 +268,28 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     // When we cannot properly compute the formula (e.g., currency conversion requires exchange rates),
     // computing while online causes flickering between incorrect optimistic values and correct backend values.
     // Return null to skip optimistic updates and let the backend provide the accurate result.
-    if (!isOffline && needsBackendComputation) {
-        return null;
+    if (needsBackendComputation) {
+        if (!isOffline) {
+            return null;
+        }
+
+        return {
+            name: targetReport.reportName,
+            isPending: true,
+        };
     }
 
     const newName = compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
     if (newName && newName !== targetReport.reportName) {
-        const isPending = isOffline && needsBackendComputation;
         Log.info('[OptimisticReportNames] Report name computed', false, {
             updateType,
             isNewReport: !report,
-            isPending,
         });
 
         return {
             name: newName,
-            isPending,
         };
     }
 
@@ -306,7 +315,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     /**
      * Helper function to create a report name update with pending field if needed
      */
-    function createReportNameUpdate(reportID: string, reportNameUpdate: {name: string; isPending: boolean}): OnyxUpdate {
+    function createReportNameUpdate(reportID: string, reportNameUpdate: ReportNameUpdate): OnyxUpdate {
         return {
             key: getReportKey(reportID),
             onyxMethod: Onyx.METHOD.MERGE,
