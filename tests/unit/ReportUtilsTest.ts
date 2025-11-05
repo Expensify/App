@@ -2,10 +2,13 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
@@ -26,6 +29,7 @@ import {
     buildTransactionThread,
     canAddTransaction,
     canCreateRequest,
+    canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -56,6 +60,7 @@ import {
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
+    getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionActorAccountID,
     getReportIDFromLink,
@@ -66,6 +71,7 @@ import {
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    hasEmptyReportsForPolicy,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -81,6 +87,7 @@ import {
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
+    pushTransactionViolationsOnyxData,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -106,6 +113,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
+    PolicyTag,
     Report,
     ReportAction,
     ReportActions,
@@ -113,15 +121,19 @@ import type {
     ReportNameValuePairs,
     Transaction,
 } from '@src/types/onyx';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
-import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
+import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
+import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
+import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
@@ -343,7 +355,6 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -3410,6 +3421,24 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canDeleteMoneyRequestReport', () => {
+        it('should allow deletion if the report is open invoice report', async () => {
+            const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+            // since it relies on the session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+            expect(canDeleteMoneyRequestReport(invoiceReport, [], [])).toBe(true);
+        });
+    });
+
     describe('canEditMoneyRequest', () => {
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
@@ -6137,6 +6166,120 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('pushTransactionViolationsOnyxData', () => {
+        beforeAll(() => {
+            initOnyxDerivedValues();
+        });
+        it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
+            // Given policy categories, the first is pending deletion
+            const fakePolicyCategories = createRandomPolicyCategories(3);
+            const fakePolicyCategoryNameToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [fakePolicyCategoryNameToDelete]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    enabled: false,
+                },
+            };
+
+            // Given policy tags, the first is pending deletion
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 3);
+            const fakePolicyTagsToDelete = Object.entries(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {}).slice(1, 2);
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        ...fakePolicyTagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, [tagName]) => {
+                            acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
+                            return acc;
+                        }, {}),
+                    },
+                },
+            };
+
+            const fakePolicyID = '0';
+
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresTag: true,
+                areTagsEnabled: true,
+                requiresCategory: true,
+                areCategoriesEnabled: true,
+            };
+
+            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
+                    ...mockIOUReport,
+                    policyID: fakePolicyID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
+                    ...mockedChatReport,
+                    policyID: fakePolicyID,
+                },
+            };
+
+            // Populating Onyx with required data
+            await Onyx.multiSet({
+                ...fakePolicyReports,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
+                    [mockIOUAction.reportActionID]: mockIOUAction,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: mockIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: fakePolicyCategoryNameToDelete,
+                    tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+
+            const expectedOnyxData = {
+                // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: [
+                            {
+                                name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+
+                            {
+                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+                        ],
+                    },
+                ],
+
+                // Expecting the failure data to clear the violations.
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: null,
+                    },
+                ],
+            };
+
+            expect(onyxData).toMatchObject(expectedOnyxData);
+        });
+    });
+
     describe('canLeaveChat', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -8321,7 +8464,7 @@ describe('ReportUtils', () => {
     describe('getReportOrDraftReport', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
-        const mockSearchReport: SearchReport = {
+        const mockSearchReport: Report = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
@@ -8350,27 +8493,27 @@ describe('ReportUtils', () => {
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockDraftReport);
         });
 
         test('returns fallback report when no other reports exist', () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
         });
@@ -8401,7 +8544,7 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes onyx report over draft report when both exist', async () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8410,7 +8553,7 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes draft report over fallback when both exist', async () => {
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
             expect(result).toEqual(mockDraftReport);
@@ -8421,6 +8564,328 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID);
             expect(result).toEqual(mockOnyxReport);
+        });
+    });
+
+    describe('hasEmptyReportsForPolicy', () => {
+        const policyID = 'workspace-001';
+        const otherPolicyID = 'workspace-002';
+        const accountID = 987654;
+        const otherAccountID = 123456;
+
+        const buildReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: overrides.reportID ?? 'report-1',
+            policyID,
+            ownerAccountID: accountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 0,
+            nonReimbursableTotal: 0,
+            pendingAction: null,
+            errors: undefined,
+            ...overrides,
+        });
+
+        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
+            reports.reduce<Record<string, Report>>((acc, report, index) => {
+                acc[report.reportID ?? String(index)] = report;
+                return acc;
+            }, {});
+
+        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
+            ...createRandomTransaction(index),
+            reportID,
+            transactionID: `${reportID}-transaction-${index}`,
+        });
+
+        it('returns false when policyID is missing or accountID invalid', () => {
+            const reportID = 'report-1';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, undefined, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+        });
+
+        it('returns true when an owned open expense report has no transactions', () => {
+            const reportID = 'empty-report';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+        });
+
+        it('returns true when an owned submitted expense report has no transactions', () => {
+            const reportID = 'submitted-empty-report';
+            const reports = toCollection(
+                buildReport({
+                    reportID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                }),
+            );
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+        });
+
+        it('returns false when an owned expense report already has transactions', () => {
+            const reportID = 'with-transaction';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [createTransactionForReport(reportID)],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+        });
+
+        it('treats transactions pending deletion as removed when checking emptiness', () => {
+            const reportID = 'pending-delete-report';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [
+                    {
+                        ...createTransactionForReport(reportID),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                ],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+        });
+
+        it('ignores reports owned by other users or policies', () => {
+            const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
+            const transactions: Record<string, Transaction[]> = {
+                'other-owner': [],
+                'other-policy': [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+        });
+
+        it('ignores reports that are not open expense reports even if they have no transactions', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'closed', statusNum: CONST.REPORT.STATUS_NUM.CLOSED}),
+                buildReport({reportID: 'approved', stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
+                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
+            );
+            const transactions: Record<string, Transaction[]> = {
+                closed: [],
+                approved: [],
+                chat: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+        });
+
+        it('ignores reports flagged for deletion or with errors', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+                buildReport({reportID: 'with-errors', errors: {test: 'error'}}),
+            );
+
+            const transactions: Record<string, Transaction[]> = {
+                'pending-delete': [],
+                'with-errors': [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+        });
+
+        it('returns true when at least one qualifying report exists among mixed data', () => {
+            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
+
+            const transactions: Record<string, Transaction[]> = {
+                'valid-empty': [],
+                'with-transaction': [createTransactionForReport('with-transaction')],
+                other: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+        });
+
+        it('returns false when accountID is the default one', () => {
+            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
+
+            const transactions: Record<string, Transaction[]> = {
+                'valid-empty': [],
+                'with-transaction': [createTransactionForReport('with-transaction')],
+                other: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+        });
+
+        it('supports minimal report summaries array', () => {
+            const reportID = 'summary-report';
+            const minimalReports = [
+                {
+                    reportID,
+                    policyID,
+                    ownerAccountID: accountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    nonReimbursableTotal: 0,
+                    pendingAction: null,
+                    errors: undefined,
+                },
+            ];
+
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(minimalReports, policyID, accountID, transactions)).toBe(true);
+        });
+    });
+
+    describe('getPolicyIDsWithEmptyReportsForAccount', () => {
+        const policyID = 'workspace-001';
+        const otherPolicyID = 'workspace-002';
+        const accountID = 555555;
+        const otherAccountID = 999999;
+
+        const buildReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: overrides.reportID ?? 'report-1',
+            policyID,
+            ownerAccountID: accountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 0,
+            nonReimbursableTotal: 0,
+            pendingAction: null,
+            errors: undefined,
+            ...overrides,
+        });
+
+        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
+            reports.reduce<Record<string, Report>>((acc, report, index) => {
+                acc[report.reportID ?? String(index)] = report;
+                return acc;
+            }, {});
+
+        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
+            ...createRandomTransaction(index),
+            reportID,
+            transactionID: `${reportID}-txn-${index}`,
+        });
+
+        it('returns empty object when accountID is missing', () => {
+            const reportID = 'empty';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, undefined, transactions)).toEqual({});
+        });
+
+        it('marks policy IDs that have empty reports owned by the user', () => {
+            const reportA = 'policy-a';
+            const reportB = 'policy-b';
+            const reports = toCollection(buildReport({reportID: reportA, policyID}), buildReport({reportID: reportB, policyID: otherPolicyID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportA]: [],
+                [reportB]: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
+                [policyID]: true,
+                [otherPolicyID]: true,
+            });
+        });
+
+        it('marks submitted empty reports as outstanding for the policy lookup', () => {
+            const reportID = 'submitted-empty-lookup';
+            const reports = toCollection(
+                buildReport({
+                    reportID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                }),
+            );
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
+                [policyID]: true,
+            });
+        });
+
+        it('ignores transactions pending deletion when compiling policy lookup', () => {
+            const reportID = 'pending-delete-lookup';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [
+                    {
+                        ...createTransactionForReport(reportID),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                ],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
+                [policyID]: true,
+            });
+        });
+
+        it('supports minimal summaries input', () => {
+            const reportID = 'summary-report';
+            const summaries = [
+                {
+                    reportID,
+                    policyID,
+                    ownerAccountID: accountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    nonReimbursableTotal: 0,
+                    pendingAction: null,
+                    errors: undefined,
+                },
+            ];
+
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(summaries, accountID, transactions)).toEqual({
+                [policyID]: true,
+            });
+        });
+
+        it('ignores reports that do not qualify', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'with-money', total: 100}),
+                buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}),
+                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+                buildReport({reportID: 'with-errors', errors: {message: 'error'}}),
+                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
+            );
+
+            const transactions: Record<string, Transaction[]> = {
+                'with-money': [createTransactionForReport('with-money')],
+                'other-owner': [],
+                'pending-delete': [],
+                'with-errors': [],
+                chat: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
     });
 });
