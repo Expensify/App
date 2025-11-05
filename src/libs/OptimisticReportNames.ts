@@ -293,6 +293,33 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         updatesCount: updates.length,
     });
 
+    // Build an updated context that includes new reports and transactions from the current batch of updates
+    const updatedAllReports = {...allReports};
+    const updatedAllTransactions = {...context.allTransactions};
+
+    for (const update of updates) {
+        const objectType = determineObjectTypeByKey(update.key);
+
+        if (objectType === 'report' && update.value) {
+            const existingReport = updatedAllReports[update.key];
+            // Merge the update with existing report data if it exists
+            updatedAllReports[update.key] = existingReport ? {...existingReport, ...(update.value as Partial<Report>)} : (update.value as Report);
+        }
+
+        if (objectType === 'transaction' && update.value) {
+            const transactionUpdate = update.value as Partial<Transaction>;
+            const existingTransaction = updatedAllTransactions[update.key];
+            // Merge the update with existing transaction data if it exists
+            updatedAllTransactions[update.key] = existingTransaction ? {...existingTransaction, ...transactionUpdate} : (transactionUpdate as Transaction);
+        }
+    }
+
+    const updatedContext: UpdateContext = {
+        ...context,
+        allReports: updatedAllReports,
+        allTransactions: updatedAllTransactions,
+    };
+
     const additionalUpdates: OnyxUpdate[] = [];
 
     for (const update of updates) {
@@ -303,8 +330,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
 
-                // Handle both existing and new reports with the same function
-                const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+                const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
 
                 if (reportNameUpdate) {
                     additionalUpdates.push({
@@ -320,9 +346,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
-                const affectedReports = getReportsForNameComputation(policyID, allReports, context);
+                const affectedReports = getReportsForNameComputation(policyID, updatedAllReports, updatedContext);
                 for (const report of affectedReports) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
 
                     if (reportNameUpdate) {
                         additionalUpdates.push({
@@ -341,13 +367,13 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 let report: Report | undefined;
                 const transactionUpdate = update.value as Partial<Transaction>;
                 if (transactionUpdate.reportID) {
-                    report = getReportByID(transactionUpdate.reportID, allReports);
+                    report = getReportByID(transactionUpdate.reportID, updatedAllReports);
                 } else {
-                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
+                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), updatedContext);
                 }
 
                 if (report) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
 
                     if (reportNameUpdate) {
                         additionalUpdates.push({
