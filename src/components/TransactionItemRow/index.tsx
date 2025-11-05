@@ -3,17 +3,23 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionList/Search/ActionCell';
-import DateCell from '@components/SelectionList/Search/DateCell';
-import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
+import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
+import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -37,11 +43,9 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
-type ColumnComponents = {
-    [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
-};
+type ColumnComponents = Record<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>, React.ReactElement>;
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
@@ -79,6 +83,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** Report to which the transaction belongs */
+    report?: Report;
 };
 
 type TransactionItemRowProps = {
@@ -105,6 +112,8 @@ type TransactionItemRowProps = {
     isDisabled?: boolean;
     areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
+    shouldShowBottomBorder?: boolean;
+    onArrowRightPress?: () => void;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -144,11 +153,14 @@ function TransactionItemRow({
     isDisabled = false,
     areAllOptionalColumnsHidden = false,
     violations,
+    shouldShowBottomBorder,
+    onArrowRightPress,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-
+    const theme = useTheme();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
@@ -170,8 +182,12 @@ function TransactionItemRow({
     const merchantOrDescription = merchant || description;
 
     const missingFieldError = useMemo(() => {
+        if (isSettled(report)) {
+            return '';
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -181,14 +197,14 @@ function TransactionItemRow({
                 error = translate('violations.reviewRequired');
             } else if (amountMissing) {
                 error = translate('iou.missingAmount');
-            } else if (merchantMissing) {
+            } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
             } else if (isCustomUnitOutOfPolicy) {
                 error = translate('violations.customUnitOutOfPolicy');
             }
             return error;
         }
-    }, [transactionItem, translate]);
+    }, [transactionItem, translate, report]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
@@ -392,40 +408,60 @@ function TransactionItemRow({
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}>
-                <View style={[styles.flexRow]}>
-                    {shouldShowCheckbox && (
-                        <Checkbox
-                            disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isChecked={isSelected}
+            <>
+                <View
+                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                    testID="transaction-item-row"
+                >
+                    <View style={[styles.flexRow]}>
+                        {shouldShowCheckbox && (
+                            <Checkbox
+                                disabled={isDisabled}
+                                onPress={() => {
+                                    onCheckboxPress(transactionItem.transactionID);
+                                }}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                isChecked={isSelected}
+                                style={styles.mr3}
+                                wrapperStyle={styles.justifyContentCenter}
+                            />
+                        )}
+                        <ReceiptCell
+                            transactionItem={transactionItem}
+                            isSelected={isSelected}
                             style={styles.mr3}
-                            wrapperStyle={styles.justifyContentCenter}
                         />
-                    )}
-                    <ReceiptCell
-                        transactionItem={transactionItem}
-                        isSelected={isSelected}
-                        style={styles.mr3}
-                    />
-                    <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                            <DateCell
-                                created={createdAt}
-                                showTooltip={shouldShowTooltip}
-                                isLargeScreenWidth={!shouldUseNarrowLayout}
-                            />
-                            <Text style={[styles.textMicroSupporting]}> • </Text>
-                            <TypeCell
-                                transactionItem={transactionItem}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            />
-                            {!merchantOrDescription && (
-                                <View style={[styles.mlAuto]}>
+                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
+                                <DateCell
+                                    created={createdAt}
+                                    showTooltip={shouldShowTooltip}
+                                    isLargeScreenWidth={!shouldUseNarrowLayout}
+                                />
+                                <Text style={[styles.textMicroSupporting]}> • </Text>
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                {!merchantOrDescription && (
+                                    <View style={[styles.mlAuto]}>
+                                        <TotalCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                            {!!merchantOrDescription && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                    <MerchantOrDescriptionCell
+                                        merchantOrDescription={merchantOrDescription}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        isDescription={!merchant}
+                                    />
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
@@ -434,24 +470,83 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
-                        {!!merchantOrDescription && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                <MerchantOrDescriptionCell
-                                    merchantOrDescription={merchantOrDescription}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    isDescription={!merchant}
-                                />
-                                <TotalCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                        {shouldShowRadioButton && (
+                            <View style={[styles.ml3, styles.justifyContentCenter]}>
+                                <RadioButton
+                                    isChecked={isSelected}
+                                    disabled={isDisabled}
+                                    onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
+                                    accessibilityLabel={CONST.ROLE.RADIO}
+                                    shouldUseNewStyle
                                 />
                             </View>
                         )}
                     </View>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
+                        <View style={[styles.flexColumn, styles.flex1]}>
+                            {hasCategoryOrTag && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
+                                    <CategoryCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                    <TagCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                </View>
+                            )}
+                            {shouldShowErrors && (
+                                <TransactionItemRowRBR
+                                    transaction={transactionItem}
+                                    violations={violations}
+                                    report={report}
+                                    containerStyles={[styles.mt2, styles.minHeight4]}
+                                    missingFieldError={missingFieldError}
+                                />
+                            )}
+                        </View>
+                        {shouldRenderChatBubbleCell && (
+                            <ChatBubbleCell
+                                transaction={transactionItem}
+                                containerStyles={[styles.mt2]}
+                                isInSingleTransactionReport={isInSingleTransactionReport}
+                            />
+                        )}
+                    </View>
+                </View>
+                {!!shouldShowBottomBorder && (
+                    <View style={bgActiveStyles}>
+                        <View style={styles.ph3}>
+                            <View style={[styles.borderBottom]} />
+                        </View>
+                    </View>
+                )}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    {!shouldShowRadioButton && (
+                        <Checkbox
+                            disabled={isDisabled}
+                            onPress={() => {
+                                onCheckboxPress(transactionItem.transactionID);
+                            }}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isChecked={isSelected}
+                            style={styles.mr1}
+                            wrapperStyle={styles.justifyContentCenter}
+                        />
+                    )}
+                    {columns?.map((column) => columnComponent[column as keyof ColumnComponents]).filter(Boolean)}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml3, styles.justifyContentCenter]}>
+                        <View style={[styles.ml1, styles.justifyContentCenter]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
@@ -461,82 +556,43 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                    <View style={[styles.flexColumn, styles.flex1]}>
-                        {hasCategoryOrTag && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                <CategoryCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                <TagCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                            </View>
-                        )}
-                        {shouldShowErrors && (
-                            <TransactionItemRowRBRWithOnyx
-                                transaction={transactionItem}
-                                violations={violations}
-                                report={report}
-                                containerStyles={[styles.mt2, styles.minHeight4]}
-                                missingFieldError={missingFieldError}
-                            />
-                        )}
-                    </View>
-                    {shouldRenderChatBubbleCell && (
-                        <ChatBubbleCell
-                            transaction={transactionItem}
-                            containerStyles={[styles.mt2]}
-                            isInSingleTransactionReport={isInSingleTransactionReport}
-                        />
+                    {!!isLargeScreenWidth && !!onArrowRightPress && (
+                        <PressableWithFeedback
+                            onPress={() => onArrowRightPress?.()}
+                            style={[styles.p3Half, styles.pl0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={CONST.ROLE.BUTTON}
+                        >
+                            {({hovered}) => {
+                                return (
+                                    <Icon
+                                        src={Expensicons.ArrowRight}
+                                        fill={theme.icon}
+                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                        small
+                                    />
+                                );
+                            }}
+                        </PressableWithFeedback>
                     )}
                 </View>
-            </View>
-        );
-    }
-
-    return (
-        <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                {!shouldShowRadioButton && (
-                    <Checkbox
-                        disabled={isDisabled}
-                        onPress={() => {
-                            onCheckboxPress(transactionItem.transactionID);
-                        }}
-                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                        isChecked={isSelected}
-                        style={styles.mr1}
-                        wrapperStyle={styles.justifyContentCenter}
+                {shouldShowErrors && (
+                    <TransactionItemRowRBR
+                        transaction={transactionItem}
+                        violations={violations}
+                        report={report}
+                        missingFieldError={missingFieldError}
                     />
                 )}
-                {columns?.map((column) => columnComponent[column as keyof ColumnComponents]).filter(Boolean)}
-                {shouldShowRadioButton && (
-                    <View style={[styles.ml1, styles.justifyContentCenter]}>
-                        <RadioButton
-                            isChecked={isSelected}
-                            disabled={isDisabled}
-                            onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                            accessibilityLabel={CONST.ROLE.RADIO}
-                            shouldUseNewStyle
-                        />
-                    </View>
-                )}
             </View>
-            {shouldShowErrors && (
-                <TransactionItemRowRBRWithOnyx
-                    transaction={transactionItem}
-                    violations={violations}
-                    report={report}
-                    missingFieldError={missingFieldError}
-                />
+            {!!shouldShowBottomBorder && (
+                <View style={bgActiveStyles}>
+                    <View style={styles.ph3}>
+                        <View style={styles.borderBottom} />
+                    </View>
+                </View>
             )}
-        </View>
+        </>
     );
 }
 

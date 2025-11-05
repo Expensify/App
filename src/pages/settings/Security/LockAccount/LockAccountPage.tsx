@@ -45,6 +45,7 @@ function LockAccountPage() {
                 testID={LockAccountPage.displayName}
                 footer={lockAccountButton}
                 childrenContainerStyles={[styles.pt3, styles.gap6]}
+                shouldShowOfflineIndicatorInWideScreen
             >
                 <View style={[styles.flex1, styles.gap4, styles.mh5]}>
                     <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
@@ -81,7 +82,7 @@ function LockAccountPage() {
                 prompt={
                     <>
                         <Text style={[styles.mb5]}>{translate('lockAccountPage.areYouSure')}</Text>
-                        <Text style={[styles.mb5]}>{translate('lockAccountPage.ourTeamWill')}</Text>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.onceLocked')}</Text>
                     </>
                 }
                 confirmText={translate('lockAccountPage.lockAccount')}

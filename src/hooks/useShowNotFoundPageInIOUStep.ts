@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
@@ -6,7 +6,7 @@ import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
@@ -22,6 +22,8 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -31,12 +33,23 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         return actionsReportID;
     }, [isEditing, iouType, report?.reportID, report?.parentReportID]);
 
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
-        canEvict: false,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        selector: (reportActions) => reportActions?.[`${report?.parentReportActionID || reportActionID}`],
-        canBeMissing: true,
-    });
+    const getReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return reportActions?.[`${report?.parentReportActionID || reportActionID}`];
+        },
+        [report?.parentReportActionID, reportActionID],
+    );
+
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
@@ -49,7 +62,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction);
         }
     }
 

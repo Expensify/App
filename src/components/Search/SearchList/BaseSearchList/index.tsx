@@ -2,7 +2,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';

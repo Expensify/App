@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
+      NODE_OPTIONS: --max_old_space_size=8192
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [ 1, 2, 3, 4 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
@@ -51,7 +52,7 @@ jobs:
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
-          flags: unit,shard-${{ matrix.chunk }}
+          flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
           fail_ci_if_error: true
@@ -75,7 +76,7 @@ jobs:
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
-          flags: unit,shard-${{ matrix.chunk }}
+          flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
           fail_ci_if_error: true
