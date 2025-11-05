@@ -1269,7 +1269,14 @@ function createFilteredOptionList(
     const sortedReports = reportsArray.sort((a, b) => {
         const aTime = a.lastVisibleActionCreated ?? '';
         const bTime = b.lastVisibleActionCreated ?? '';
-        return bTime.localeCompare(aTime);
+        // ISO date strings sort correctly with standard string comparison
+        if (bTime > aTime) {
+            return -1;
+        }
+        if (bTime < aTime) {
+            return 1;
+        }
+        return 0;
     });
 
     // Step 3: Limit to top N reports
