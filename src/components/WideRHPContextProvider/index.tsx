@@ -6,7 +6,6 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -22,6 +21,7 @@ import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
 // 0 is folded/hidden, 1 is expanded/shown
+const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
@@ -121,8 +121,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [shouldRenderThirdOverlay, setShouldRenderThirdOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
-
-    const expandedRHPProgress = useSharedValue<number>(0);
 
     const focusedRouteKey = useRootNavigationState((state) => findFocusedRoute(state))?.key;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
@@ -332,13 +330,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     useEffect(() => {
         if (superWideRHPRouteKeys.length > 0) {
-            expandedRHPProgress.set(2);
+            expandedRHPProgress.setValue(2);
         } else if (wideRHPRouteKeys.length > 0) {
-            expandedRHPProgress.set(1);
+            expandedRHPProgress.setValue(1);
         } else {
-            expandedRHPProgress.set(0);
+            expandedRHPProgress.setValue(0);
         }
-    }, [expandedRHPProgress, superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
+    }, [superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
 
     /**
      * Effect that manages the secondary overlay animation and rendering state.
@@ -429,7 +427,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isWideRhpFocused,
         }),
         [
-            expandedRHPProgress,
             wideRHPRouteKeys,
             superWideRHPRouteKeys,
             showWideRHPVersion,
@@ -534,8 +531,11 @@ export {
     wideRHPWidth,
     modalStackOverlayWideRHPWidth,
     modalStackOverlaySuperWideRHPWidth,
+    modalStackOverlayWideRHPWidth,
+    receiptPaneRHPWidth,
     secondOverlayProgress,
     useShowSuperWideRHPVersion,
     useShowWideRHPVersion,
     WideRHPContext,
+    wideRHPWidth,
 };
