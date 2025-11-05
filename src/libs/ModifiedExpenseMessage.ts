@@ -527,7 +527,8 @@ function getForReportActionTemp({
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
