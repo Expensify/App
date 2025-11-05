@@ -21,6 +21,8 @@ function MFAPromptContent({title, subtitle}: MFAPromptContentProps) {
         <View style={styles.flex1}>
             <BlockingView
                 icon={Illustrations.SmartScanMock}
+                iconWidth={204}
+                iconHeight={204}
                 // animation={animation}    // TODO: Bring back the animation instead of mock image
                 // animationStyles={styles.emptyLHNAnimation}
                 // animationWebStyle={styles.emptyLHNAnimation}
