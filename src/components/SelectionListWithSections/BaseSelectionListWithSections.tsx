@@ -419,6 +419,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, []);
 
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, []);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
@@ -437,9 +440,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
-        onArrowUpDownCallback: () => {
-            setShouldDisableHoverStyle(true);
-        },
+        onArrowUpDownCallback,
     });
 
     useEffect(() => {
@@ -665,19 +666,23 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         };
     }, []);
 
+    const setCurrentHoverIndex = useCallback(
+        (e: React.MouseEvent, hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            e.stopPropagation();
+            currentHoverIndexRef.current = hoverIndex;
+        },
+        [currentHoverIndexRef, shouldDisableHoverStyle],
+    );
+
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-        const setCurrentHoverIndex = (e: React.MouseEvent, hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            e.stopPropagation();
-            currentHoverIndexRef.current = hoverIndex;
-        };
 
         return (
             <View
