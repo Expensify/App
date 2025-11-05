@@ -1,6 +1,18 @@
+import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
-type ReportVirtualCardFraudForm = Form;
+const INPUT_IDS = {
+    CARD_ID: 'cardID',
+} as const;
 
-// eslint-disable-next-line import/prefer-default-export
+type InputID = ValueOf<typeof INPUT_IDS>;
+
+type ReportVirtualCardFraudForm = Form<
+    InputID,
+    {
+        [INPUT_IDS.CARD_ID]: string;
+    }
+>;
+
 export type {ReportVirtualCardFraudForm};
+export {INPUT_IDS};
