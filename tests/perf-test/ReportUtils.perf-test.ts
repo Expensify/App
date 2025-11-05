@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import usePolicyData from '@hooks/usePolicyData';
+import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -20,10 +21,10 @@ import {
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -35,7 +36,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
@@ -68,7 +68,7 @@ describe('ReportUtils', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
-        initOnyxDerivedValues()
+        initOnyxDerivedValues();
     });
 
     beforeEach(async () => {

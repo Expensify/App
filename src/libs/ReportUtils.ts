@@ -23,6 +23,8 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type PolicyData from '@hooks/usePolicyData/types';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
@@ -47,6 +49,7 @@ import type {
     PolicyCategory,
     PolicyReportField,
     PolicyTagLists,
+    PolicyTags,
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
@@ -58,7 +61,6 @@ import type {
     Task,
     Transaction,
     TransactionViolation,
-    TransactionViolations,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
@@ -292,6 +294,7 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
+import { ReportTransactionsAndViolations } from '@src/types/onyx/DerivedValues';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -1946,61 +1949,131 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
- * @param policyUpdate Changed policy properties, if none pass empty object
- * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ * @param onyxData - The OnyxData object to push updates to
+ * @param policyData - The current policy Data
+ * @param policyUpdate - Changed policy properties, if none pass empty object
+ * @param categoriesUpdate - Changed categories properties, if none pass empty object
+ * @param tagListsUpdate - Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policyID: string,
-    policyTagLists: PolicyTagLists,
-    policyCategories: PolicyCategories,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    policyData: PolicyData,
     policyUpdate: Partial<Policy> = {},
-    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-): OnyxData {
-    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
-        return onyxData;
-    }
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-        return acc;
-    }, {}) as PolicyCategories;
-
-    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
-
-    getAllPolicyReports(policyID).forEach((report) => {
-        const isReportAnInvoice = isInvoiceReport(report);
-        if (!report?.reportID || isReportAnInvoice) {
-            return;
+    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+) {
+    const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
+        // Skipping invoice reports since they should not have any category or tag violations
+        if (isInvoiceReport(report)) {
+            return acc;
         }
+        const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
+        if (!isEmptyObject(reportTransactionsAndViolations) && !isEmptyObject(reportTransactionsAndViolations.transactions)) {
+            acc.push(reportTransactionsAndViolations);
+        }
+        return acc;
+    }, []);
 
-        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+    if (nonInvoiceReportTransactionsAndViolations.length === 0) {
+        return;
+    }
 
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+    const updatedTagListsNames = Object.keys(tagListsUpdate);
+    const updatedCategoriesNames = Object.keys(categoriesUpdate);
+
+    // If there are no updates to policy, categories or tags, return early
+    const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
+    const isTagListsUpdateEmpty = updatedTagListsNames.length === 0;
+    const isCategoriesUpdateEmpty = updatedCategoriesNames.length === 0;
+    if (isPolicyUpdateEmpty && isTagListsUpdateEmpty && isCategoriesUpdateEmpty) {
+        return;
+    }
+
+    // Merge the existing policy with the optimistic updates
+    const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
+
+    // Merge the existing categories with the optimistic updates
+    const optimisticCategories = isCategoriesUpdateEmpty
+        ? policyData.categories
+        : {
+              ...Object.fromEntries(Object.entries(policyData.categories).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
+              ...Object.entries(categoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+                  if (!categoryUpdate) {
+                      return acc;
+                  }
+                  acc[categoryName] = {
+                      ...(policyData.categories?.[categoryName] ?? {}),
+                      ...categoryUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    // Merge the existing tag lists with the optimistic updates
+    const optimisticTagLists = isTagListsUpdateEmpty
+        ? policyData.tags
+        : {
+              ...Object.fromEntries(Object.entries(policyData.tags ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
+              ...Object.entries(tagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
+                  if (!tagListUpdate) {
+                      return acc;
+                  }
+
+                  const tagList = policyData.tags?.[tagListName];
+                  const tags = tagList.tags ?? {};
+                  const tagsUpdate = tagListUpdate?.tags ?? {};
+
+                  acc[tagListName] = {
+                      ...tagList,
+                      ...tagListUpdate,
+                      tags: {
+                          ...((): PolicyTags => {
+                              const optimisticTags: PolicyTags = Object.fromEntries(Object.entries(tags).filter(([tagName]) => !(tagName in tagsUpdate) || !!tagsUpdate[tagName]));
+                              for (const [tagName, tagUpdate] of Object.entries(tagsUpdate)) {
+                                  if (!tagUpdate) {
+                                      continue;
+                                  }
+                                  optimisticTags[tagName] = {
+                                      ...(tags[tagName] ?? {}),
+                                      ...tagUpdate,
+                                  };
+                              }
+                              return optimisticTags;
+                          })(),
+                      },
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
+
+    // Iterate through all policy reports to find transactions that need optimistic violations
+    for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
+        for (const transaction of Object.values(transactions)) {
+            const existingViolations = violations[transaction.transactionID];
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations,
+                existingViolations ?? [],
                 optimisticPolicy,
-                policyTagLists,
-                optimisticPolicyCategories,
+                optimisticTagLists,
+                optimisticCategories,
                 hasDependentTags,
-                isReportAnInvoice,
+                false,
             );
 
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
+            if (!isEmptyObject(optimisticViolations)) {
+                onyxData.optimisticData?.push(optimisticViolations);
+                onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
+                    value: existingViolations ?? null,
                 });
             }
-        });
-    });
-    return onyxData;
+        }
+    }
 }
 
 /**
