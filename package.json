@@ -202,7 +202,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "4.15.4",
     "react-native-share": "11.0.2",
-    "react-native-sound": "^0.11.2",
+    "react-native-sound": "^0.13.0",
     "react-native-svg": "15.12.1",
     "react-native-tab-view": "^4.1.0",
     "react-native-url-polyfill": "^2.0.0",
