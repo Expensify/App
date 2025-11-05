@@ -625,7 +625,10 @@ const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPA
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
-        const filteredFeeds = Object.keys(cardFeeds ?? {}).filter((str) => str.includes(feedKey));
+        const filteredFeeds = Object.keys(cardFeeds ?? {})
+            .filter((str) => str.includes(feedKey))
+            .map((str) => str.split('#').at(0))
+            .filter((str): str is string => !!str);
 
         const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
         feedNumbers.sort((a, b) => a - b);
