@@ -99,7 +99,7 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
-    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [footerContent, isKeyboardShown, safeAreaPaddingBottomStyle]);
+    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
     const hasFooter = confirmButtonConfig?.showButton || footerContent;
 
