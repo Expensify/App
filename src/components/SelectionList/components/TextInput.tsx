@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -42,6 +42,9 @@ type TextInputProps = {
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
+
+    /** Function to update the focused index in the list */
+    setFocusedIndex: (index: number) => void;
 };
 
 function TextInput({
@@ -56,6 +59,7 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
+    setFocusedIndex,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,6 +67,19 @@ function TextInput({
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+
+    const handleTextInputChange = useCallback(
+        (text: string) => {
+            options?.onChangeText?.(text);
+
+            if (text === '') {
+                setFocusedIndex(-1);
+            } else {
+                setFocusedIndex(0);
+            }
+        },
+        [options, setFocusedIndex],
+    );
 
     if (!shouldShowTextInput) {
         return null;
@@ -82,7 +99,7 @@ function TextInput({
                     value={options?.value}
                     placeholder={options?.placeholder}
                     maxLength={options?.maxLength}
-                    onChangeText={options?.onChangeText}
+                    onChangeText={handleTextInputChange}
                     inputMode={options?.inputMode}
                     selectTextOnFocus
                     spellCheck={false}
