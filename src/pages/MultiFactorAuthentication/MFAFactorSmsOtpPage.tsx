@@ -1,7 +1,7 @@
 import React from 'react';
-import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
+import MFAValidateCodePage from '@components/MultiFactorAuthentication/MFAValidateCodePage';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
-import {PHONE_NUMBER} from '../../__mocks__/ecuk_api/utils';
+import {PHONE_NUMBER} from '../../../__mocks__/ecuk_api/utils';
 
 function MFAFactorSmsOtpPage() {
     // TODO: numer telefonu z sesji

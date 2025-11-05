@@ -3,8 +3,8 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import MFAPromptActions from '@components/MFA/MFAPromptActions';
-import MFAPromptContent from '@components/MFA/MFAPromptContent';
+import MFAPromptActions from '@components/MultiFactorAuthentication/MFAPromptActions';
+import MFAPromptContent from '@components/MultiFactorAuthentication/MFAPromptContent';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +12,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import NotFoundPage from './ErrorPage/NotFoundPage';
+import NotFoundPage from '../ErrorPage/NotFoundPage';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
+import MFAValidateCodePage from '@components/MultiFactorAuthentication/MFAValidateCodePage';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';

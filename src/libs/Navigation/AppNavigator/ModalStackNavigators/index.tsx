@@ -924,14 +924,14 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
 });
 
 const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationParamList>({
-    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MFAFactorMagicCodePage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: () => require<ReactComponentModule>('../../../../pages/MFAFactorAuthenticatorPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: () => require<ReactComponentModule>('../../../../pages/MFAFactorSmsOtpPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MFAScenarioBiometricsTestPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MFANotificationPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MFAApproveTransactionPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MFAPromptPage').default,
-    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('../../../../pages/MFARevokePage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAFactorMagicCodePage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAFactorAuthenticatorPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAFactorSmsOtpPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFABiometricsTestPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFANotificationPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAApproveTransactionPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAPromptPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFARevokePage').default,
 });
 
 export {

@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MFARevokeConfirmModal from '@components/MFA/MFARevokeConfirmModal';
-import MFARevokeContent from '@components/MFA/MFARevokeContent';
+import MFARevokeConfirmModal from '@components/MultiFactorAuthentication/MFARevokeConfirmModal';
+import MFARevokeContent from '@components/MultiFactorAuthentication/MFARevokeContent';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';

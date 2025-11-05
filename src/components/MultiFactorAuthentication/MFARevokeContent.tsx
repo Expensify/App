@@ -18,7 +18,7 @@ function MFARevokeContent({isAccessRevoked, onGoBackPress, onShowConfirmModal}: 
     if (isAccessRevoked) {
         return (
             <>
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <Text style={[styles.mt3, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.renableContent')}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.m5]}>
@@ -35,7 +35,7 @@ function MFARevokeContent({isAccessRevoked, onGoBackPress, onShowConfirmModal}: 
 
     return (
         <>
-            <View style={[styles.flex1]}>
+            <View style={styles.flex1}>
                 <Text style={[styles.mt3, styles.ph5]}>{translate('multiFactorAuthentication.revokePage.revokeContent')}</Text>
             </View>
             <View style={[styles.flexRow, styles.m5]}>

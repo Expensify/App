@@ -13,21 +13,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function MFAScenarioBiometricsTestPage() {
+function MFABiometricsTestPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
     const {process} = useMultifactorAuthenticationContext();
 
     return (
-        <ScreenWrapper testID={MFAScenarioBiometricsTestPage.displayName}>
+        <ScreenWrapper testID={MFABiometricsTestPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.biometrics.biometricsTest')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <BlockingView
                         icon={Illustrations.OpenPadlock}
                         contentFitImage="fill"
@@ -35,13 +35,13 @@ function MFAScenarioBiometricsTestPage() {
                         iconHeight={variables.openPadlockHeight}
                         title={translate('multiFactorAuthentication.biometrics.biometricsTest')}
                         containerStyle={styles.p1}
-                        testID={MFAScenarioBiometricsTestPage.displayName}
+                        testID={MFABiometricsTestPage.displayName}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.m5]}>
                     <Button
                         success
-                        style={[styles.flex1]}
+                        style={styles.flex1}
                         onPress={() => {
                             process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: 'fake'});
                         }}
@@ -53,6 +53,6 @@ function MFAScenarioBiometricsTestPage() {
     );
 }
 
-MFAScenarioBiometricsTestPage.displayName = 'MFAScenarioBiometricsTestPage';
+MFABiometricsTestPage.displayName = 'MFABiometricsTestPage';
 
-export default MFAScenarioBiometricsTestPage;
+export default MFABiometricsTestPage;

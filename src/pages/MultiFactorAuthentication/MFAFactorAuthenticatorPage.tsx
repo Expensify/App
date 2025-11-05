@@ -3,7 +3,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MFAFactorAuthenticatorForm from '@components/MFA/MFAFactorAuthenticatorForm';
+import MFAFactorAuthenticatorForm from '@components/MultiFactorAuthentication/MFAFactorAuthenticatorForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';

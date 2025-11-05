@@ -37,7 +37,7 @@ function MFAValidateCodeResendButton({shouldShowTimer, timeRemaining, shouldDisa
 
     return (
         <PressableWithFeedback
-            style={[styles.mt5]}
+            style={styles.mt5}
             onPress={onResendValidationCode}
             disabled={shouldDisableResendCode}
             hoverDimmingValue={1}
