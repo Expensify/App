@@ -1,3 +1,4 @@
+import {log} from 'console';
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -13,7 +14,7 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails, isIOUReport, isMoneyRequestReportEligibleForMerge} from './ReportUtils';
+import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -346,11 +347,6 @@ function areTransactionsEligibleForMerge(targetTransaction?: Transaction, source
     }
 
     if (isTransactionPendingDelete(sourceTransaction)) {
-        return false;
-    }
-
-    const isUnreportedExpense = !sourceTransaction?.reportID || sourceTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    if (!isUnreportedExpense && sourceTransaction?.reportID && !isMoneyRequestReportEligibleForMerge(sourceTransaction?.reportID, false)) {
         return false;
     }
 
