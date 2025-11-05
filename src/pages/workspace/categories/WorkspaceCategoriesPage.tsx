@@ -32,7 +32,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyData from '@hooks/usePolicyData';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -76,10 +76,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
-    const {backTo, policyID: policyId} = route.params;
+    const policyId = route.params.policyID;
+    const backTo = route.params?.backTo;
+    const policy = usePolicy(policyId);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const policyData = usePolicyData(policyId);
-    const {policy, categories: policyCategories} = policyData;
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -150,15 +153,27 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
             setWorkspaceCategoryEnabled(
-                policyData,
+                policyId,
                 {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                policyCategories,
+                policyTagLists,
+                allTransactionViolations,
             );
         },
-        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID],
+        [
+            policyId,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -268,16 +283,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        if (policy !== undefined && selectedCategories.length >= 0) {
-            deleteWorkspaceCategories(
-                policyData,
-                selectedCategories,
-                isSetupCategoryTaskParentReportArchived,
-                setupCategoryTaskReport,
-                setupCategoryTaskParentReport,
-                currentUserPersonalDetails.accountID,
-            );
-        }
+        deleteWorkspaceCategories(
+            policyId,
+            selectedCategories,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyTagLists,
+            policyCategories,
+            allTransactionViolations,
+        );
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -383,12 +399,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(
-                            policyData,
+                            policyId,
                             categoriesToDisable,
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            policyCategories,
+                            policyTagLists,
+                            allTransactionViolations,
                         );
                     },
                 });
@@ -412,12 +431,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onSelected: () => {
                         setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(
-                            policyData,
+                            policyId,
                             categoriesToEnable,
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            policyCategories,
+                            policyTagLists,
+                            allTransactionViolations,
                         );
                     },
                 });
