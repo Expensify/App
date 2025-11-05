@@ -2004,7 +2004,7 @@ function createTypeMenuSections(
                                               if (
                                                   workspaceIDForReportCreation &&
                                                   shouldRestrictUserBillableActions(workspaceIDForReportCreation) &&
-                                                  groupPoliciesWithChatEnabled.length < 2
+                                                  groupPoliciesWithChatEnabled.length === 1
                                               ) {
                                                   Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                                                   return;
