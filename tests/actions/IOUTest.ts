@@ -2909,7 +2909,6 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 firstIOU: iouAction,
-                isNewDotRevertSplitsEnabled: true,
             });
 
             await waitForBatchedUpdates();
@@ -3012,7 +3011,6 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 firstIOU: undefined,
-                isNewDotRevertSplitsEnabled: true,
             });
 
             await waitForBatchedUpdates();
@@ -3128,7 +3126,6 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport,
                 firstIOU: undefined,
-                isNewDotRevertSplitsEnabled: true,
             });
 
             await waitForBatchedUpdates();
@@ -7866,7 +7863,6 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
-                    isNewDotRevertSplitsEnabled: true,
                 });
                 await waitForBatchedUpdates();
 
@@ -8009,7 +8005,6 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
-                    isNewDotRevertSplitsEnabled: true,
                 });
                 await waitForBatchedUpdates();
 
@@ -8166,7 +8161,6 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
-                    isNewDotRevertSplitsEnabled: true,
                 });
                 await waitForBatchedUpdates();
 
