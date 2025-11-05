@@ -488,6 +488,27 @@ describe('MergeTransactionUtils', () => {
                 expect(result.conflictFields).toContain('attendees');
             });
         });
+
+        it('auto-merges reportID and populates reportName when reportIDs match', () => {
+            const sharedReportID = 'R123';
+            const targetTransaction = {
+                ...createRandomTransaction(10),
+                reportID: sharedReportID,
+                reportName: 'Shared Report Name',
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(11),
+                reportID: sharedReportID,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('reportID');
+            expect(result.mergeableData).toMatchObject({
+                reportID: sharedReportID,
+                reportName: 'Shared Report Name',
+            });
+        });
     });
 
     describe('buildMergedTransactionData', () => {

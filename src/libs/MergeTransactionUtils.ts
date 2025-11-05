@@ -176,6 +176,26 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
 }
 
 /**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field, reportID
+ */
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
+    const updatedValues: MergeTransactionUpdateValues = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
+    }
+
+    return updatedValues;
+}
+
+/**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
@@ -233,7 +253,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                mergeableData[field] = targetValue;
+                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
+                Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
             }
@@ -435,26 +456,6 @@ function buildMergeFieldsData(
             options,
         };
     });
-}
-
-/**
- * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field, reportID
- */
-function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
-    const updatedValues: MergeTransactionUpdateValues = {
-        [field]: fieldValue,
-    };
-
-    if (field === 'amount') {
-        updatedValues.currency = getCurrency(transaction);
-    }
-
-    if (field === 'reportID') {
-        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
-    }
-
-    return updatedValues;
 }
 
 export {
