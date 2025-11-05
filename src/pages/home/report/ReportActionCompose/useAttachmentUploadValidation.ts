@@ -93,6 +93,7 @@ function useAttachmentUploadValidation({
             report,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         files.forEach((file, index) => {

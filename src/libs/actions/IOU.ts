@@ -8,6 +8,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
@@ -297,6 +298,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     localeCompare?: (a: string, b: string) => number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type MoneyRequestInformation = {
@@ -895,7 +897,7 @@ Onyx.connect({
     },
 });
 
-let currentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
+// let currentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -1020,6 +1022,7 @@ function initMoneyRequest({
     currentDate = '',
     lastSelectedDistanceRates,
     localeCompare,
+    currentUserPersonalDetails,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
