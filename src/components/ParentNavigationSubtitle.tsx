@@ -14,7 +14,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportManager} from '@libs/ReportUtils';
+import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
