@@ -34,7 +34,7 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockFetch, FormData as TestFormData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -919,26 +919,31 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
-        const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}` as const);
+        const selfDMActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}` as const)) as OnyxTypes.ReportActions | undefined;
         expect(selfDMActions).toBeTruthy();
         // Existing action still present
         expect(selfDMActions?.['123']).toBeTruthy();
 
         // Derive the created parentReportActionID from the self DM actions by finding the one that links to the child report
-        const createdEntry = Object.entries(selfDMActions ?? {}).find(([, a]) => (a as any)?.childReportID === CHILD_REPORT_ID);
-        expect(createdEntry).toBeTruthy();
-        const [parentReportActionID, createdAction] = createdEntry as [string, OnyxTypes.ReportAction];
+        const entries = Object.entries(selfDMActions ?? {}) as Array<[string, OnyxTypes.ReportAction]>;
+        const createdEntry = entries.find(([, action]) => action?.childReportID === CHILD_REPORT_ID);
+        expect(createdEntry).toBeDefined();
+        const [parentReportActionID, createdAction] = createdEntry!;
         expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
 
-        // Ensure we did not create a stray concatenated key like reportActions_<selfDMID><generatedActionID>
+        // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
         const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
         expect(wrongKeyValue).toBeUndefined();
 
         // The API call should include moneyRequestPreviewReportActionID matching the created action
         const openReportCalls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT);
         expect(openReportCalls.length).toBeGreaterThan(0);
-        const body = (openReportCalls.at(0)?.at(1) as RequestInit)?.body as any;
-        const params = body ? Object.fromEntries(body) : {};
+        const call = openReportCalls.at(0);
+        expect(call).toBeTruthy();
+        const body = (call?.[1] as RequestInit)?.body as TestFormData | undefined;
+        const paramsEntries = body?.entries() ?? [];
+        const params = Object.fromEntries(paramsEntries) as Record<string, string | Blob>;
+        expect(typeof params.moneyRequestPreviewReportActionID).toBe('string');
         expect(params.moneyRequestPreviewReportActionID).toBe(parentReportActionID);
     });
 
