@@ -1995,6 +1995,7 @@ const translations = {
         shareBankAccountTitle: 'この銀行口座を共有する管理者を選択してください',
         shareBankAccountSuccess: '銀行口座を共有しました！',
         shareBankAccountSuccessDescription: '選択した管理者にはコンシェルジュから確認メッセージが届きます',
+        shareBankAccountFailure: '銀行口座の共有中に予期しないエラーが発生しました。もう一度お試しください。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

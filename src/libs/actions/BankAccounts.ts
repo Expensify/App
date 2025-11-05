@@ -1324,10 +1324,10 @@ function shareBankAccount(bankAccountID: number, emails: string[]) {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.shareBankAccountFailure'),
                 },
             },
         ],

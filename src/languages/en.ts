@@ -1988,6 +1988,7 @@ const translations = {
         shareBankAccountTitle: 'Select the admins to share this bank account with:',
         shareBankAccountSuccess: 'Bank account shared!',
         shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
+        shareBankAccountFailure: 'An unexpected error occurred while trying to share bank account. Please try again.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

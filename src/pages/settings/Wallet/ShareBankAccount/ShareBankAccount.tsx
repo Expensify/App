@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getActiveAllAdminsFromWorkspaces} from '@libs/PolicyUtils';
@@ -39,6 +40,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
+    const shareBankAccountError = getLatestErrorMessage(sharedBankAccountData);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -150,13 +152,15 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         () => (
             <FormAlertWithSubmitButton
                 isLoading={isLoading}
+                isAlertVisible={!!shareBankAccountError}
+                message={shareBankAccountError}
                 isDisabled={!selectedOptions.length}
                 buttonText={translate('common.share')}
                 onSubmit={handleConfirm}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             />
         ),
-        [handleConfirm, isLoading, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [handleConfirm, isLoading, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate, shareBankAccountError],
     );
 
     const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);

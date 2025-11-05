@@ -1971,6 +1971,7 @@ const translations = {
         shareBankAccountTitle: '选择要共享此银行账户的管理员：',
         shareBankAccountSuccess: '已共享银行账户！',
         shareBankAccountSuccessDescription: '选定的管理员将收到来自礼宾部的确认消息。',
+        shareBankAccountFailure: '尝试共享银行账户时发生意外错误。请重试。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

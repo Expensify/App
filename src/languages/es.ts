@@ -1979,6 +1979,7 @@ const translations = {
         shareBankAccountTitle: 'Seleccionar los administradores con quienes compartir esta cuenta bancaria:',
         shareBankAccountSuccess: '¡Cuenta bancaria compartida!',
         shareBankAccountSuccessDescription: 'Los administradores seleccionados recibirán un mensaje de confirmación de Concierge.',
+        shareBankAccountFailure: 'Se produjo un error inesperado al intentar compartir la cuenta bancaria. Inténtelo de nuevo.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

@@ -1995,6 +1995,7 @@ const translations = {
         shareBankAccountTitle: 'Wybierz administratorów, z którymi chcesz udostępnić to konto bankowe:',
         shareBankAccountSuccess: 'Konto bankowe udostępnione!',
         shareBankAccountSuccessDescription: 'Wybrani administratorzy otrzymają wiadomość z potwierdzeniem od Concierge.',
+        shareBankAccountFailure: 'Wystąpił nieoczekiwany błąd podczas próby udostępnienia konta bankowego. Spróbuj ponownie.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
