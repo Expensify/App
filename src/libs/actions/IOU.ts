@@ -10850,9 +10850,9 @@ function submitReport(
 
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const isCurrentUserManager = deprecatedCurrentUserPersonalDetails?.accountID === expenseReport.managerID;
+    const isCurrentUserManager = currentUserAccountIDParam === expenseReport.managerID;
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
-    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? deprecatedCurrentUserPersonalDetails?.accountID : undefined;
+    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = buildNextStepNew({
         report: expenseReport,
