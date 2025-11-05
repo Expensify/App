@@ -19,6 +19,7 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {OptionData} from '@libs/ReportUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
@@ -38,6 +39,7 @@ import type {
     SearchReportAction,
     SearchTask,
     SearchTransaction,
+    SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -112,6 +114,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -370,6 +375,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
+
+        /** The available actions that can be performed for the report */
+        allActions?: SearchTransactionAction[];
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
@@ -609,6 +617,8 @@ type Section<TItem extends ListItem> = {
     /** Whether this section should be shown or not */
     shouldShow?: boolean;
 };
+
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
 type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
@@ -949,6 +959,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -1034,4 +1047,5 @@ export type {
     SplitListItemType,
     SearchListItem,
     UnreportedExpenseListItemType,
+    Sections,
 };
