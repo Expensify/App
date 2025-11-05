@@ -381,12 +381,6 @@ Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
 });
 
-let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
-Onyx.connect({
-    key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
-    callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
 let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -2460,13 +2454,14 @@ function updateReportField(
     accountID: number,
     email: string,
     hasViolationsParam: boolean,
+    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>,
     shouldFixViolations = false,
 ) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
     const reportViolations = getReportViolations(reportID);
     const fieldViolation = getFieldViolation(reportViolations, reportField);
-    const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
+    const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
@@ -2892,6 +2887,17 @@ function buildNewReportOptimisticData(
     ];
 
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
+            },
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {

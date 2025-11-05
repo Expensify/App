@@ -773,6 +773,7 @@ type ReplaceReceipt = {
     transactionID: string;
     file?: File;
     source: string;
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -849,13 +850,6 @@ Onyx.connect({
     callback: (value) => {
         allNextSteps = value ?? {};
     },
-});
-
-let allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
@@ -11567,7 +11561,7 @@ function payInvoice(
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
-function detachReceipt(transactionID: string | undefined) {
+function detachReceipt(transactionID: string | undefined, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
     if (!transactionID) {
         return;
     }
@@ -11621,7 +11615,6 @@ function detachReceipt(transactionID: string | undefined) {
     ];
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
-        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11629,7 +11622,7 @@ function detachReceipt(transactionID: string | undefined) {
             currentTransactionViolations,
             policy,
             policyTagList ?? {},
-            policyCategories ?? {},
+            transactionPolicyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
@@ -11689,7 +11682,7 @@ function detachReceipt(transactionID: string | undefined) {
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source, transactionPolicyCategories}: ReplaceReceipt) {
     if (!file) {
         return;
     }
@@ -11704,7 +11697,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
-    const retryParams = {transactionID, file: undefined, source};
+    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicyCategories};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
@@ -11750,7 +11743,6 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     ];
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
-        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11758,7 +11750,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
             currentTransactionViolations,
             policy,
             policyTagList ?? {},
-            policyCategories ?? {},
+            transactionPolicyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
@@ -13880,6 +13872,44 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
     });
 }
 
+/**
+ * Evenly distribute the draft split expense amounts across all split items.
+ * Remainders are added to the first or last item to ensure the total matches the original amount.
+ *
+ * Notes:
+ * - Works entirely on the provided `draftTransaction` to avoid direct Onyx reads.
+ * - Uses `calculateAmount` utility to handle currency subunits and rounding consistently with existing logic.
+ */
+function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!draftTransaction) {
+        return;
+    }
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const currency = getCurrency(draftTransaction);
+    const total = getAmount(draftTransaction);
+
+    if (!originalTransactionID || splitExpenses.length === 0) {
+        return;
+    }
+
+    // Floor-allocation with full remainder added to the last split so the last is always the largest
+    const splitCount = splitExpenses.length;
+    const lastIndex = splitCount - 1;
+
+    const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
+        ...splitExpense,
+        amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, 'floorToLast'),
+    }));
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
+}
+
 function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
@@ -14638,6 +14668,7 @@ export {
     initSplitExpense,
     initSplitExpenseItemData,
     addSplitExpenseField,
+    evenlyDistributeSplitExpenseAmounts,
     updateSplitExpenseAmountField,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,
