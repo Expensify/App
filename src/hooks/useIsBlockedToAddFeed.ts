@@ -11,7 +11,7 @@ import usePolicy from './usePolicy';
 
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
-    const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
+    const [cardFeeds, allFeedsResult, defaultFeed, isFeedsLoading] = useCardFeeds(policyID);
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const companyFeeds = getCompanyFeeds(cardFeeds, true);
@@ -19,19 +19,18 @@ function useIsBlockedToAddFeed(policyID?: string) {
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
-    const [prevOAuthDetails, setPrevOAuthDetails] = useState(cardFeeds?.settings?.oAuthAccountDetails);
+    const [prevCardFeeds, setPrevCardFeeds] = useState(cardFeeds);
     const [isNewFeedConnected, setIsNewFeedConnected] = useState(false);
 
-    const isLoading = !cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)) || !!defaultFeed?.isLoading;
+    const isLoading = !cardFeeds || (isFeedsLoading && isEmptyObject(cardsList)) || !!defaultFeed?.isLoading;
 
     useEffect(() => {
-        const currentOAuthDetails = cardFeeds?.settings?.oAuthAccountDetails ?? {};
         const plaidConnectedFeed = addNewCard?.data?.plaidConnectedFeed;
 
-        const {isNewFeedConnected: newFeedConnected} = checkIfNewFeedConnected(prevOAuthDetails ?? {}, currentOAuthDetails, plaidConnectedFeed);
+        const {isNewFeedConnected: newFeedConnected} = checkIfNewFeedConnected(prevCardFeeds ?? {}, cardFeeds ?? {}, plaidConnectedFeed);
         setIsNewFeedConnected(!!newFeedConnected);
-        setPrevOAuthDetails(currentOAuthDetails);
-    }, [cardFeeds?.settings?.oAuthAccountDetails, addNewCard?.data?.plaidConnectedFeed, prevOAuthDetails]);
+        setPrevCardFeeds(cardFeeds);
+    }, [addNewCard?.data?.plaidConnectedFeed, prevCardFeeds, cardFeeds]);
 
     return {
         isBlockedToAddNewFeeds: isCollect && Object.entries(companyFeeds)?.length >= 1 && !isNewFeedConnected,
