@@ -547,7 +547,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: SearchPolicy[]) {
+function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: SearchPolicy[] | Policy[]) {
     if (transactions.length > 2 || reports.length > 2 || policies.length > 2) {
         return false;
     }

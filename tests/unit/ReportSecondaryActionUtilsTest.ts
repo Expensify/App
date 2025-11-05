@@ -1,12 +1,13 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 
@@ -1822,6 +1823,187 @@ describe('getSecondaryTransactionThreadActions', () => {
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
+        });
+    });
+
+    describe('isMergeActionFromReportView', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return false when there are more than 2 transactions', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction, {transactionID: '2', amount: 200} as Transaction, {transactionID: '3', amount: 300} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as SearchPolicy[];
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are more than 2 reports', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [
+                {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE} as Report,
+                {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report,
+                {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE} as Report,
+            ];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are more than 2 policies', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE} as Report];
+            const policies = [
+                {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN},
+                {id: 'policy2', role: CONST.POLICY.ROLE.ADMIN},
+                {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
+            ] as Policy[];
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when a report is not eligible for merge', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.USER}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
+        });
+
+        it('should return true for single transaction when report is eligible for merge', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(true);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
+        });
+
+        it('should return true for two eligible transactions', () => {
+            const transaction1 = {
+                transactionID: '1',
+                amount: 100,
+                managedCard: false,
+            } as Transaction;
+            const transaction2 = {
+                transactionID: '2',
+                amount: 200,
+                managedCard: false,
+            } as Transaction;
+            const transactions = [transaction1, transaction2];
+            const reports = [
+                {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report,
+                {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report,
+            ];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when transactions are not eligible for merge', () => {
+            const transaction1 = {
+                transactionID: '1',
+                amount: 100,
+                managedCard: true,
+            } as Transaction;
+            const transaction2 = {
+                transactionID: '2',
+                amount: 200,
+                managedCard: true,
+            } as Transaction;
+            const transactions = [transaction1, transaction2];
+            const reports = [
+                {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report,
+                {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report,
+            ];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+        });
+
+        it('should handle missing policy gracefully', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            // Should return true because when policy is not found, function doesn't prevent merging
+            // (since we have 1 transaction, it will return true after the policy check)
+            expect(result).toBe(true);
+        });
+
+        it('should return true for admin user with eligible reports', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(true);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
+        });
+
+        it('should return false for non-admin user with ineligible reports', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction];
+            const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'} as Report];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.USER}] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
+        });
+
+        it('should return false when one of multiple reports is not eligible', () => {
+            const transactions = [{transactionID: '1', amount: 100} as Transaction, {transactionID: '2', amount: 200} as Transaction];
+            const reports = [
+                {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy2'},
+            ] as Report[];
+            const policies = [
+                {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN},
+                {id: 'policy2', role: CONST.POLICY.ROLE.USER},
+            ] as Policy[];
+
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge')
+                .mockReturnValueOnce(true) // First report eligible
+                .mockReturnValueOnce(false); // Second report not eligible
+
+            const result = isMergeActionFromReportView(transactions, reports, policies);
+
+            expect(result).toBe(false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false);
         });
     });
 });
