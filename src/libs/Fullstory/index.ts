@@ -88,7 +88,10 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {anonymous: true}),
 
-    getSessionId: () => {
+    getSessionId: async () => {
+        if (!isInitialized()) {
+            return;
+        }
         return FullStory('getSessionAsync', {format: 'id'});
     },
 };

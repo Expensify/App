@@ -9,11 +9,10 @@ import CurrencySelector from '@components/CurrencySelector';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,13 +45,7 @@ type PaymentCardFormProps = {
 function IAcceptTheLabel() {
     const {translate} = useLocalize();
 
-    return (
-        <Text>
-            {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={translate('common.acceptTermsAndPrivacy')} />;
 }
 
 const REQUIRED_FIELDS = [

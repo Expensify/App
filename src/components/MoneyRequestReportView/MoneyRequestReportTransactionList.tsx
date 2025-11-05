@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import openSearchReport from '@components/Search/openSearchReport';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -48,6 +47,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -263,7 +263,7 @@ function MoneyRequestReportTransactionList({
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                openSearchReport(routeParams.reportID, backTo);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [report, reportActions, sortedTransactions, markReportIDAsExpense],
@@ -307,6 +307,13 @@ function MoneyRequestReportTransactionList({
             navigateToTransaction(transactionID);
         },
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
+    );
+
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
     );
 
     const listHorizontalPadding = styles.ph5;
@@ -386,6 +393,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                            onArrowRightPress={handleArrowRightPress}
                         />
                     );
                 })}

@@ -75,7 +75,7 @@ type Fullstory = {
     anonymize: () => void;
 
     /**
-     * Returns the current Fullstory session ID.
+     * Returns the current FullStory session ID.
      */
     getSessionId: () => Promise<string | undefined>;
 };

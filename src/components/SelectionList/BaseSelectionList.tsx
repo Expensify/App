@@ -61,7 +61,7 @@ function BaseSelectionList<TItem extends ListItem>({
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
     includeSafeAreaPaddingBottom = true,
-    showListEmptyContent,
+    showListEmptyContent = true,
     showLoadingPlaceholder,
     showScrollIndicator = true,
     canSelectMultiple = false,
@@ -76,6 +76,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
+    shouldHighlightSelectedItem = true,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -324,6 +325,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={style?.listItemWrapperStyle}
                 titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
