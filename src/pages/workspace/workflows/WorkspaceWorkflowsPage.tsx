@@ -1,15 +1,15 @@
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { InteractionManager, View } from 'react-native';
-import type { TupleToUnion } from 'type-fest';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
-import type { BankName } from '@components/Icon/BankIconsUtils';
+import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
-import { Plus } from '@components/Icon/Expensicons';
-import { LockedAccountContext } from '@components/LockedAccountModalProvider';
+import {Plus} from '@components/Icon/Expensicons';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,40 +18,49 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import { useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, openPolicyWorkflowsPage, setIsForcedToChangeCurrency, setWorkspaceApprovalMode, setWorkspaceAutoHarvesting, setWorkspaceReimbursement, updateGeneralSettings } from '@libs/actions/Policy/Policy';
-import { setApprovalWorkflow } from '@libs/actions/Workflow';
-import { hasPartiallySetupBankAccount, isBankAccountPartiallySetup } from '@libs/BankAccountUtils';
-import { getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil } from '@libs/CardUtils';
-import { getLatestErrorField } from '@libs/ErrorUtils';
+import {
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
+    openPolicyWorkflowsPage,
+    setIsForcedToChangeCurrency,
+    setWorkspaceApprovalMode,
+    setWorkspaceAutoHarvesting,
+    setWorkspaceReimbursement,
+    updateGeneralSettings,
+} from '@libs/actions/Policy/Policy';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import { getPaymentMethodDescription } from '@libs/PaymentUtils';
-import { getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
-import { getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil } from '@libs/PolicyUtils';
-import { hasInProgressVBBA } from '@libs/ReimbursementAccountUtils';
-import { convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW } from '@libs/WorkflowUtils';
-import type { WorkspaceSplitNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import { getPaymentMethods } from '@userActions/PaymentMethods';
-import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { ToggleSettingOptionRowProps } from './ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import { getAutoReportingFrequencyDisplayNames } from './WorkspaceAutoReportingFrequencyPage';
-
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
