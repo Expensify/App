@@ -119,7 +119,7 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if (goToNextStep) {
+        if (goToNextStep && policy?.employeeList?.[Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '']) {
             goToNextStep();
             return;
         }
