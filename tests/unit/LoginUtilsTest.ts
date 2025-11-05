@@ -143,7 +143,7 @@ describe('LoginUtils', () => {
         });
 
         it('Should handle invalid email formats gracefully', () => {
-            expect(getEmailDomain('notanemail')).toBe('notanemail');
+            expect(getEmailDomain('email')).toBe('email');
             expect(getEmailDomain('')).toBe('');
             expect(getEmailDomain('@gmail.com')).toBe('gmail.com');
             expect(getEmailDomain('user@')).toBe('');
