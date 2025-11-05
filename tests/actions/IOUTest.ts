@@ -6,6 +6,7 @@ import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import createPersonalDetails from 'tests/utils/collections/personalDetails';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
@@ -6576,6 +6577,7 @@ describe('actions/IOU', () => {
     });
 
     describe('initMoneyRequest', () => {
+        const currentUserPersonalDetails = createPersonalDetails(RORY_ACCOUNT_ID);
         const fakeReport: Report = {
             ...createRandomReport(0, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -6646,6 +6648,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6665,6 +6668,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6684,6 +6688,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
