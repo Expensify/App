@@ -438,19 +438,6 @@ function AttachmentModal({
                         );
                     }
                 }}
-                // onDismiss={() => {
-                //     if (isReplaceReceipt.current) {
-                //         Navigation.navigate(
-                //             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                //                 iouAction ?? CONST.IOU.ACTION.EDIT,
-                //                 iouType,
-                //                 draftTransactionID ?? transaction?.transactionID,
-                //                 report?.reportID,
-                //                 Navigation.getActiveRoute(),
-                //             ),
-                //         );
-                //     }
-                // }}
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;

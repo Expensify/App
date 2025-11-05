@@ -1,4 +1,4 @@
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
+import {NavigationContainerRefContext, useNavigation} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
@@ -12,6 +12,8 @@ import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import type {PlatformStackNavigationProp} from '@navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@navigation/types';
 
 type Props = {
     source: DotLottieAnimation;
@@ -34,18 +36,17 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
-    const navigator = useContext(NavigationContext);
+    const navigator = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
     useEffect(() => {
-        if (!shouldLoadAfterInteractions || !navigator) {
+        if (!shouldLoadAfterInteractions || isInteractionComplete || !navigator) {
             return;
         }
 
         return navigator.addListener('transitionEnd', () => {
-            console.log('transitionEnd');
             setIsInteractionComplete(true);
         });
-    }, [navigator, shouldLoadAfterInteractions]);
+    }, [isInteractionComplete, navigator, shouldLoadAfterInteractions]);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
