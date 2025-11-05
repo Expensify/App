@@ -1010,10 +1010,9 @@ Onyx.connect({
                 return acc;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
+            if (report.preexistingReportID) {
                 handlePreexistingReport(report);
-            });
+            }
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
