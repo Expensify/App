@@ -55,8 +55,8 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     const goToNextStep = useCallback(() => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const data: Partial<AssignCardData> = {
-            email: assignCard?.data?.email,
-            cardName: getDefaultCardName(assignCard?.data?.email),
+            email: assignCard?.data?.invitingMemberEmail,
+            cardName: getDefaultCardName(assignCard?.data?.invitingMemberEmail),
             invitingMemberEmail: '',
         };
 
