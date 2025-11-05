@@ -61,13 +61,16 @@ function IOURequestStepUpgrade({
         [upgradePath],
     );
 
-    const navigateWithMicrotask = (route: Route) => {
-        if (isWebOrDesktop) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
-        } else {
-            Navigation.navigate(route);
-        }
-    };
+    const navigateWithMicrotask = useCallback(
+        (route: Route) => {
+            if (isWebOrDesktop) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isWebOrDesktop],
+    );
 
     const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
