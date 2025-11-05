@@ -55,7 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, shouldShowViolation, hasValidModifiedAmount} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -472,7 +472,7 @@ function Search({
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.policyID,
-                        amount: Number(transactionItem.modifiedAmount ?? transactionItem.amount),
+                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,

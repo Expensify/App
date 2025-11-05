@@ -2107,6 +2107,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    hasValidModifiedAmount,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,

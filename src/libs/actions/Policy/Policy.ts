@@ -132,6 +132,7 @@ import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
+import {hasValidModifiedAmount} from "@libs/TransactionUtils";
 
 type ReportCreationData = Record<
     string,
@@ -3690,7 +3691,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -Number(transaction.modifiedAmount) : 0,
+            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;

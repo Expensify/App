@@ -170,7 +170,7 @@ import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {isOnHold} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -5530,7 +5530,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -Number(transaction.modifiedAmount) : 0,
+            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
