@@ -1,8 +1,0 @@
-[commit]
-    gpgsign = true
-[user]
-    email = annaweber830@outlook.comm
-    name = joy
-    signingkey = 866F03EDE99D3AE3
-[gpg]
-    program = gpg
