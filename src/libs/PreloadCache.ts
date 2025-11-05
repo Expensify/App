@@ -27,62 +27,26 @@ class CachePreloader {
 
     private onProgressCallback?: (progress: PreloadProgress[]) => void;
 
-    // All major collections to preload (using actual ONYXKEYS)
-    private readonly COLLECTIONS_TO_PRELOAD = [
-        ONYXKEYS.COLLECTION.REPORT,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        ONYXKEYS.COLLECTION.POLICY,
-        ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-        ONYXKEYS.COLLECTION.POLICY_TAGS,
-        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-        ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS,
-        ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-        ONYXKEYS.COLLECTION.SNAPSHOT,
-        ONYXKEYS.COLLECTION.DOWNLOAD,
-        ONYXKEYS.COLLECTION.POLICY_DRAFTS,
-        ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT,
-        ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-        ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT,
-        ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        ONYXKEYS.COLLECTION.REPORT_METADATA,
-        ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
-        ONYXKEYS.COLLECTION.SECURITY_GROUP,
-        ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-        ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
-        ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
-        ONYXKEYS.COLLECTION.NEXT_STEP,
-    ];
+    // All major collections to preload - dynamically get ALL from ONYXKEYS.COLLECTION
+    private readonly COLLECTIONS_TO_PRELOAD = Object.values(ONYXKEYS.COLLECTION) as string[];
 
-    private readonly SINGLE_KEYS_TO_PRELOAD: OnyxKey[] = [
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        ONYXKEYS.ACCOUNT,
-        ONYXKEYS.SESSION,
-        ONYXKEYS.NETWORK,
-        ONYXKEYS.CREDENTIALS,
-        ONYXKEYS.CARD_LIST,
-        ONYXKEYS.FUND_LIST,
-        ONYXKEYS.BANK_ACCOUNT_LIST,
-        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        ONYXKEYS.USER_WALLET,
-        ONYXKEYS.WALLET_ONFIDO,
-        ONYXKEYS.WALLET_TERMS,
-        ONYXKEYS.BETAS,
-        ONYXKEYS.NVP_PRIORITY_MODE,
-        ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        ONYXKEYS.NVP_RECENT_WAYPOINTS,
-        ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-        ONYXKEYS.ONFIDO_TOKEN,
-        ONYXKEYS.ONFIDO_APPLICANT_ID,
-        ONYXKEYS.PLAID_DATA,
-        ONYXKEYS.PLAID_LINK_TOKEN,
-        ONYXKEYS.USER_LOCATION,
-        ONYXKEYS.LOGIN_LIST,
-    ];
+    // All single keys to preload - get all top-level keys that aren't collections/forms/derived
+    private readonly SINGLE_KEYS_TO_PRELOAD: OnyxKey[] = (() => {
+        const excludedKeys = [
+            'COLLECTION',
+            'FORMS',
+            'DERIVED',
+            'HYBRID_APP', // Add any other object keys you want to exclude
+        ];
+
+        return Object.entries(ONYXKEYS)
+            .filter(([keyName, value]) =>
+                !excludedKeys.includes(keyName) &&
+                typeof value === 'string' &&
+                !value.endsWith('_') // Collections end with underscore
+            )
+            .map(([, value]) => value as OnyxKey);
+    })();
 
     /**
      * Get current memory usage statistics
@@ -111,7 +75,7 @@ class CachePreloader {
      */
     private calculateDataSize(data: unknown): number {
         try {
-            return Math.round((JSON.stringify(data).length / 1024 / 1024) * 100) / 100; // MB with 2 decimal places
+            return Math.round((new TextEncoder().encode(JSON.stringify(data)).length / 1024 / 1024) * 100) / 100; // MB with 2 decimal places
         } catch {
             return 0;
         }
