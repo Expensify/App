@@ -218,7 +218,10 @@ type SearchReportAction = {
     reportName: string;
 };
 
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -469,6 +472,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
@@ -492,6 +496,7 @@ export type {
     ListItemType,
     ListItemDataType,
     SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
