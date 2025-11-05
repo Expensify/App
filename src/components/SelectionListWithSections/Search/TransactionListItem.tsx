@@ -197,6 +197,7 @@ function TransactionListItem<TItem extends ListItem>({
                     style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
+                    onArrowRightPress={onPress}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
