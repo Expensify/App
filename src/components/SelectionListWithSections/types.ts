@@ -308,7 +308,7 @@ type TransactionListItemType = ListItem &
 
         /** Parent report action id */
         moneyRequestReportActionID?: string;
-        
+
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
     };
