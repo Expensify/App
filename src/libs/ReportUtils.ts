@@ -1272,15 +1272,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * Uses recursion to iterate any depth of nested reports.
  */
 
-function getRootParentReport({
-    report,
-    reports,
-    visitedReportIDs = new Set<string>(),
-}: {
-    report: OnyxEntry<Report>;
-    reports?: Report[];
-    visitedReportIDs?: Set<string>;
-}): OnyxEntry<Report> {
+function getRootParentReport({report, reports, visitedReportIDs = new Set<string>()}: {report: OnyxEntry<Report>; reports?: Report[]; visitedReportIDs?: Set<string>}): OnyxEntry<Report> {
     if (!report) {
         return undefined;
     }
@@ -10623,7 +10615,7 @@ function shouldCreateNewMoneyRequestReport(
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
-    return (getReportOrDraftReport(transactionParentReportID) as OnyxEntry<Report>)?.tripData?.tripID;
+    return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
 
 /**
