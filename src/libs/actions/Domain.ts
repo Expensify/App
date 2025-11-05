@@ -72,4 +72,8 @@ function validateDomain(accountID: number, domainName: string) {
     API.write(WRITE_COMMANDS.VALIDATE_DOMAIN, {domainName}, {optimisticData, successData, failureData});
 }
 
-export {getDomainValidationCode, validateDomain};
+function resetDomainValidationError(accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {domainValidationError: null});
+}
+
+export {getDomainValidationCode, validateDomain, resetDomainValidationError};

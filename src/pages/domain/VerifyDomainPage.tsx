@@ -18,7 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainValidationCode, validateDomain} from '@libs/actions/Domain';
+import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -63,6 +63,10 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         }
         getDomainValidationCode(accountID, domainName);
     }, [accountID, domainName, domain?.accountID]);
+
+    useEffect(() => {
+        resetDomainValidationError(accountID);
+    }, [accountID]);
 
     if (!domain) {
         return <NotFoundPage />;
