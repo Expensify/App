@@ -1,25 +1,32 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import Navigation from '@navigation/Navigation';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
+import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -33,10 +40,22 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const {translate} = useLocalize();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
+
+    useEffect(() => {
+        if (!isBlockedToAddNewFeeds || !policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            forceReplace: true,
+        });
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     useEffect(() => {
         return () => {
@@ -54,7 +73,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
 
-    if (isAddCardFeedLoading) {
+    if (isAddCardFeedLoading || isBlockedToAddNewFeeds || isAllFeedsResultLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -97,10 +116,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <AmexCustomFeed />;
             break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = <PlaidConnectionStep />;
+            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            break;
+        case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
+            CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
             CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
@@ -108,12 +130,27 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <View
-            style={styles.flex1}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
-        >
-            {CurrentStep}
-        </View>
+        <>
+            <View
+                style={styles.flex1}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
+                {CurrentStep}
+            </View>
+            <ConfirmModal
+                isVisible={isModalVisible}
+                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
+                success
+                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
+                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
+                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
+                onCancel={() => setIsModalVisible(false)}
+                onConfirm={() => {
+                    setIsModalVisible(false);
+                    navigateToConciergeChat();
+                }}
+            />
+        </>
     );
 }
 

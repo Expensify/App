@@ -6,6 +6,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
+    getCustomUnitsForDuplication,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -13,7 +14,9 @@ import {
     getSubmitToAccountID,
     getTagList,
     getTagListByOrderWeight,
+    getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -272,6 +275,53 @@ describe('PolicyUtils', () => {
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
         });
     });
+    describe('getCustomUnitsForDuplication', () => {
+        const perDiemUnit = {
+            customUnitID: '123',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            enabled: true,
+            rates: {},
+        };
+        const otherUnit = {
+            customUnitID: '456',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            enabled: true,
+            rates: {},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                [perDiemUnit.customUnitID]: perDiemUnit,
+                [otherUnit.customUnitID]: otherUnit,
+            },
+        };
+
+        const policyWithoutCustomUnits: Policy = {
+            ...createRandomPolicy(0),
+        };
+
+        it('returns undefined if neither option is selected', () => {
+            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+        });
+
+        it('returns all custom units if both options are selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, true);
+            expect(result).toEqual(policy.customUnits);
+        });
+        it('returns only non-per-diem units if only custom units option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, false);
+            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+        });
+
+        it('returns only per diem unit if only per diem option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, false, true);
+            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+        });
+
+        it('returns undefined if customUnits is empty', () => {
+            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
+        });
+    });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
             const rate = getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
@@ -315,6 +365,50 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
+        });
+    });
+
+    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+        it('should return true if Uber connection is enabled and has an error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+        });
+
+        it('should return false if Uber connection is enabled but has no error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: undefined,
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection does not exist', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if policy is undefined', () => {
+            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
@@ -368,7 +462,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -383,7 +477,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -399,7 +493,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -418,7 +512,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -450,7 +544,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -477,7 +571,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -511,7 +605,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -546,7 +640,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -658,7 +752,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
             const result = getManagerAccountID(policy, report);
 
@@ -674,7 +768,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
 
             const result = getManagerAccountID(policy, report);
@@ -695,7 +789,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -712,7 +806,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -748,7 +842,7 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+        it('returns true if policy is paid group policy and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
@@ -1133,6 +1227,58 @@ describe('PolicyUtils', () => {
 
             const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
             expect(result2).toBeUndefined();
+        });
+    });
+
+    describe('hasDynamicExternalWorkflow', () => {
+        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when policy has BASIC approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has ADVANCED approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has OPTIONAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const result = hasDynamicExternalWorkflow(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has no approvalMode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: undefined,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
         });
     });
 });

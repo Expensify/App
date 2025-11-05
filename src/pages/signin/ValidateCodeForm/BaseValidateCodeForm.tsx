@@ -375,13 +375,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
-                            <Text style={[styles.mt2]}>
+                            <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
                                 <RenderHTML
                                     html={translate('validateCodeForm.requestNewCode', {
                                         timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
                                     })}
                                 />
-                            </Text>
+                            </View>
                         ) : (
                             <PressableWithFeedback
                                 style={[styles.mt2]}

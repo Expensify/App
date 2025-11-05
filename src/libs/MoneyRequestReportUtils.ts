@@ -116,13 +116,12 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
 function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        (!isTransactionDataReady || isStillLoadingData) &&
         !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
     );
 }
 

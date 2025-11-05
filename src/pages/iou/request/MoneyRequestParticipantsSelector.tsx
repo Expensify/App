@@ -79,6 +79,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -101,6 +104,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -110,14 +114,13 @@ function MoneyRequestParticipantsSelector({
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
-    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -126,6 +129,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -137,7 +141,14 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+
+    // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
+    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -165,6 +176,7 @@ function MoneyRequestParticipantsSelector({
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            draftComments,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -188,6 +200,7 @@ function MoneyRequestParticipantsSelector({
                 isPerDiemRequest,
                 showRBR: false,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -197,18 +210,20 @@ function MoneyRequestParticipantsSelector({
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        draftComments,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        countryCode,
         isCorporateCardTransaction,
     ]);
 
@@ -243,6 +258,7 @@ function MoneyRequestParticipantsSelector({
                     !isEmptyObject(chatOptions.selfDMChat),
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
+                countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         [
@@ -254,8 +270,15 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             debouncedSearchTerm,
             participants,
+            countryCode,
         ],
     );
+    const showImportContacts =
+        isNative &&
+        !isCategorizeOrShareAction &&
+        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        inputHelperText === translate('common.noResultsFound');
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -291,19 +314,22 @@ function MoneyRequestParticipantsSelector({
             shouldShow: !!chatOptions.selfDMChat,
         });
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-        });
+        if (!isWorkspacesOnly) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+        }
 
         if (
+            !isWorkspacesOnly &&
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
@@ -340,6 +366,7 @@ function MoneyRequestParticipantsSelector({
         chatOptions.userToInvite,
         personalDetails,
         translate,
+        isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
         reportAttributesDerived,
@@ -470,7 +497,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
@@ -637,4 +664,12 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
+        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
+        prevProps.onFinish === nextProps.onFinish,
+);

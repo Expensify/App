@@ -22,6 +22,8 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -60,7 +62,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction);
         }
     }
 

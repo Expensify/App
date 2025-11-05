@@ -5,13 +5,14 @@ import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
@@ -27,9 +28,11 @@ function TestDriveDemo() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-
-    const isViewTourParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
-
+    const {
+        taskReport: viewTourTaskReport,
+        taskParentReport: viewTourTaskParentReport,
+        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -37,21 +40,29 @@ function TestDriveDemo() {
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login)),
     });
 
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+        canBeMissing: true,
+    });
+
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+            return;
+        }
+
+        completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
+    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
-            completeTestDriveTask(isViewTourParentReportArchived);
         });
-
-        // This should fire only during mount.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack();
 

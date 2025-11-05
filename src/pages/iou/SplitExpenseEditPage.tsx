@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +23,7 @@ import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportName, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -41,10 +42,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(splitExpenseDraftTransaction, CONST.DATE.FNS_FORMAT_STRING, undefined, preferredLocale) ?? {},
-        [preferredLocale, splitExpenseDraftTransaction],
-    );
+    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, {canBeMissing: false}, [
+        splitExpenseDraftTransaction?.comment?.originalTransactionID,
+    ]);
+
+    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, preferredLocale) ?? {}, [splitExpenseDraftTransaction, preferredLocale]);
 
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
@@ -68,6 +70,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
+    const reportName = getReportName(report, policy);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, policy?.areRulesEnabled);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
@@ -115,13 +119,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleWrapperStyle={styles.flex1}
                             numberOfLinesTitle={2}
+                            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />
                         {shouldShowCategory && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={splitExpenseDraftTransactionDetails?.category}
+                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
@@ -198,9 +203,18 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                         />
+                        <MenuItemWithTopDescription
+                            key={translate('common.report')}
+                            description={translate('common.report')}
+                            title={reportName}
+                            numberOfLinesTitle={2}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            interactive={false}
+                        />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > 2 && (
+                        {Number(splitExpensesList?.length) > 1 && (
                             <Button
                                 danger
                                 large
@@ -220,7 +234,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, splitExpenseTransactionID);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

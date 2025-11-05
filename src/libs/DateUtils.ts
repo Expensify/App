@@ -40,6 +40,7 @@ import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -486,9 +487,11 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
 function getLocalizedTimePeriodDescription(data: string): string {
     switch (data) {
         case getEndOfToday():
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('statusPage.timePeriods.afterToday');
         case CONST.CUSTOM_STATUS_TYPES.NEVER:
         case '':
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('statusPage.timePeriods.never');
         default:
             return formatDateTimeTo12Hour(data);
@@ -497,35 +500,44 @@ function getLocalizedTimePeriodDescription(data: string): string {
 
 /**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
+ * param {string} inputDate - Date string in 'YYYY-MM-DD HH:mm:ss' format representing the source time.
+ * param {SelectedTimezone} inputDateTimeZone - Timezone in which the inputDate is provided.
+ * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
+ * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
  */
-function getStatusUntilDate(inputDate: string, locale: Locale = CONST.LOCALES.DEFAULT): string {
+function getStatusUntilDate(inputDate: string, inputDateTimeZone: SelectedTimezone, currentSelectedTimezone: SelectedTimezone, locale: Locale = CONST.LOCALES.DEFAULT): string {
     if (!inputDate) {
         return '';
     }
 
-    const input = new Date(inputDate);
-    const now = new Date();
+    const date = fromZonedTime(inputDate, inputDateTimeZone);
+    const input = toZonedTime(date, currentSelectedTimezone);
+    const now = toZonedTime(new Date(), currentSelectedTimezone);
     const endOfToday = endOfDay(now);
 
     // If the date is adjusted to the following day
     if (isSameSecond(input, endOfToday)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTomorrow');
     }
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
         const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
         const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.SHORT_DATE_WITH_LOCAL_TIME_FORMAT);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's in another year
     const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.FNS_DATE_WITH_LOCAL_TIME_FORMAT);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
 }
 
@@ -654,6 +666,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
@@ -677,6 +690,7 @@ const isFutureDay = (inputDate: Date): boolean => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
@@ -771,10 +785,12 @@ function getFormattedDateRange(date1: Date, date2: Date, locale: Locale = CONST.
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${monthDayAbbrFormatter.format(date1)} ${translateLocal('common.to').toLowerCase()} ${monthDayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days
     const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${monthDayYearAbbrFormatter.format(date1)} ${translateLocal('common.to').toLowerCase()} ${monthDayYearAbbrFormatter.format(date2)}`;
 }
 
@@ -799,9 +815,11 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Loca
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${monthDayWeekdayAbbrFormatter.format(date1)} ${translateLocal('common.conjunctionTo')} ${monthDayWeekdayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${monthDayWeekdayYearAbbrFormatter.format(date1)} ${translateLocal('common.conjunctionTo')} ${monthDayWeekdayYearAbbrFormatter.format(date2)}`;
 }
 
@@ -815,9 +833,11 @@ function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DE
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     if (isThisYear(date)) {
         const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${translateLocal('travel.departs')} ${monthDayWeekdayAbbrFormatter.format(date)} ${translateLocal('common.conjunctionAt')} ${timeFormatter.format(date)}`;
     }
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${translateLocal('travel.departs')} ${monthDayWeekdayYearAbbrFormatter.format(date)} ${translateLocal('common.conjunctionAt')} ${timeFormatter.format(date)}`;
 }
 

@@ -88,7 +88,7 @@ const colors: Record<string, Color> = {
     pink800: '#49225B',
 
     ice100: '#DFFDFE',
-    ice200: '#CCF7FF',
+    ice200: '#CCF6FF',
     ice300: '#A5FBFF',
     ice400: '#50EEF6',
     ice500: '#4ED7DE',
