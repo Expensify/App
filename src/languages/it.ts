@@ -28,7 +28,6 @@ import type {
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    AssignCardParams,
     AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
@@ -192,6 +191,7 @@ import type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
     RequestCountParams,
@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: 'CAP / Codice postale',
         whatThis: "Cos'è questo?",
         iAcceptThe: 'Accetto il',
+        acceptTermsAndPrivacy: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio di Expensify</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>`,
+        acceptTermsAndConditions: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">termini e condizioni</a>`,
+        acceptTermsOfService: `Accetto il <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio di Expensify</a>`,
         remove: 'Rimuovi',
         admin: 'Admin',
         owner: 'Proprietario',
@@ -642,6 +645,18 @@ const translations = {
         help: 'Aiuto',
         expenseReport: 'Report di spesa',
         expenseReports: 'Report di spesa',
+        leaveWorkspace: 'Abbandona lo spazio di lavoro',
+        leaveWorkspaceConfirmation: 'Se lasci questo spazio di lavoro, non potrai più inviare spese a questo spazio di lavoro.',
+        leaveWorkspaceConfirmationAuditor: 'Se lasci questo spazio di lavoro, non potrai visualizzarne i report e le impostazioni.',
+        leaveWorkspaceConfirmationAdmin: 'Se lasci questo spazio di lavoro, non potrai gestirne le impostazioni.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito nel flusso di approvazione da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito come esportatore preferito da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se lasci questo spazio di lavoro, verrai sostituito come contatto tecnico da ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+        leaveWorkspaceReimburser:
+            'Non puoi lasciare questo spazio di lavoro poiché sei il rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o traccia i pagamenti, quindi riprova.',
         rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
@@ -676,6 +691,7 @@ const translations = {
         pinned: 'Fissato',
         read: 'Letto',
         copyToClipboard: 'Copia negli appunti',
+        thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
     },
     supportalNoAccess: {
@@ -915,17 +931,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante + per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante + per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
@@ -1057,8 +1073,6 @@ const translations = {
         dragReceiptsAfterEmail: 'o scegli i file da caricare qui sotto.',
         desktopSubtitleSingle: `oppure trascinala qui`,
         desktopSubtitleMultiple: `oppure trascinale qui`,
-        chooseReceipt: 'Scegli una ricevuta da caricare o inoltra una ricevuta a',
-        chooseReceipts: 'Scegli ricevute da caricare o inoltra ricevute a',
         alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Scarica l’app</a> per scansionare dal telefono</label-text>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Inoltra le ricevute a <a href="mailto:${email}">${email}</a></label-text>`,
@@ -1067,8 +1081,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Invia ricevute via SMS a ${phoneNumber} (solo numeri USA)</label-text>`,
         takePhoto: 'Scatta una foto',
         cameraAccess: "L'accesso alla fotocamera è necessario per scattare foto delle ricevute.",
-        deniedCameraAccess: "L'accesso alla fotocamera non è ancora stato concesso, si prega di seguire",
-        deniedCameraAccessInstructions: 'queste istruzioni',
+        deniedCameraAccess: `L'accesso alla fotocamera non è ancora stato concesso, si prega di seguire <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">queste istruzioni</a>.`,
         cameraErrorTitle: 'Errore della fotocamera',
         cameraErrorMessage: 'Si è verificato un errore durante lo scatto della foto. Riprova.',
         locationAccessTitle: "Consenti l'accesso alla posizione",
@@ -1119,6 +1132,7 @@ const translations = {
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
         addSplit: 'Aggiungi divisione',
+        makeSplitsEven: 'Uniformare le suddivisioni',
         editSplits: 'Modifica suddivisioni',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} maggiore della spesa originale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} inferiore alla spesa originale.`,
@@ -1304,6 +1318,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `il ${valueName} a ${newValueToDisplay} (precedentemente ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `ha cambiato il ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), il che ha aggiornato l'importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
+        basedOnAI: 'basato su attività passate',
+        basedOnMCC: 'basato su regola dello spazio di lavoro',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rapporto Fattura n. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
@@ -1852,11 +1868,11 @@ const translations = {
         twoFactorAuthIsRequiredDescription: "Per motivi di sicurezza, Xero richiede l'autenticazione a due fattori per connettere l'integrazione.",
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticazione a due fattori richiesta',
         twoFactorAuthIsRequiredForAdminsTitle: "Si prega di abilitare l'autenticazione a due fattori",
-        twoFactorAuthIsRequiredForAdminsDescription:
-            "La tua connessione contabile Xero richiede l'uso dell'autenticazione a due fattori. Per continuare a utilizzare Expensify, ti preghiamo di abilitarla.",
+        twoFactorAuthIsRequiredXero: 'La tua connessione contabile con Xero richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.',
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori (2FA)",
         twoFactorAuthRequired: "L'autenticazione a due fattori (2FA) è necessaria per la tua connessione Xero e non può essere disabilitata.",
         explainProcessToRemoveWithRecovery: "Per disabilitare l'autenticazione a due fattori (2FA), inserisci un codice di recupero valido.",
+        twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’uso dell’autenticazione a due fattori. Per continuare a utilizzare Expensify, attivala.',
     },
     recoveryCodeForm: {
         error: {
@@ -2233,10 +2249,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generazione PDF',
+        generatingPDF: 'Generazione PDF...',
         waitForPDF: 'Attendere mentre generiamo il PDF',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
-        generatedPDF: 'Il tuo PDF del rapporto è stato generato!',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione della stanza',
@@ -2429,10 +2444,10 @@ ${amount} per ${merchant} - ${date}`,
                     '*Configura le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Categorie*.\n' +
-                    '5. Disattiva le categorie che non ti servono.\n' +
-                    '6. Aggiungi le tue categorie in alto a destra.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Categorie*.\n' +
+                    '4. Disattiva le categorie che non ti servono.\n' +
+                    '5. Aggiungi le tue categorie in alto a destra.\n' +
                     '\n' +
                     `[Vai alle impostazioni delle categorie dello spazio di lavoro](${workspaceCategoriesLink}).\n` +
                     '\n' +
@@ -2443,7 +2458,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
@@ -2456,7 +2471,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Conferma i dettagli.\n' +
@@ -2469,7 +2484,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Crea spesa*.\n' +
                     '3. Inserisci un importo o scansiona una ricevuta.\n' +
                     '4. Scegli il tuo spazio *personale*.\n' +
@@ -2483,12 +2498,11 @@ ${amount} per ${merchant} - ${date}`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' il tuo' : ' a'} ${integrationName} per una codifica automatica delle spese e sincronizzazione che semplifica la chiusura di fine mese.\n` +
                     '\n' +
-                    '1. Clicca su *Impostazioni*.\n' +
-                    '2. Vai a *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Contabilità*.\n' +
-                    `5. Trova ${integrationName}.\n` +
-                    '6. Clicca su *Connetti*.\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Contabilità*.\n' +
+                    `4. Trova ${integrationName}.\n` +
+                    '5. Clicca su *Connetti*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2514,10 +2528,10 @@ ${amount} per ${merchant} - ${date}`,
                     '*Invita il tuo team* su Expensify così possono iniziare a monitorare le spese oggi stesso.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Membri* > *Invita membro*.\n' +
-                    '5. Inserisci email o numeri di telefono.\n' +
-                    '6. Aggiungi un messaggio personalizzato se vuoi!\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Membri* > *Invita membro*.\n' +
+                    '4. Inserisci email o numeri di telefono.\n' +
+                    '5. Aggiungi un messaggio personalizzato se vuoi!\n' +
                     '\n' +
                     `[Vai ai membri dello spazio di lavoro](${workspaceMembersLink}).\n` +
                     '\n' +
@@ -2536,11 +2550,11 @@ ${amount} per ${merchant} - ${date}`,
                     'Usa i tag per aggiungere dettagli extra alle spese come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Altre funzionalità*.\n' +
-                    '5. Abilita *Tag*.\n' +
-                    '6. Vai a *Tag* nell’editor dello spazio di lavoro.\n' +
-                    '7. Clicca su *+ Aggiungi tag* per crearne uno tuo.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Altre funzionalità*.\n' +
+                    '4. Abilita *Tag*.\n' +
+                    '5. Vai a *Tag* nell’editor dello spazio di lavoro.\n' +
+                    '6. Clicca su *+ Aggiungi tag* per crearne uno tuo.\n' +
                     '\n' +
                     `[Vai a altre funzionalità](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
@@ -2564,7 +2578,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci un’email o numero di telefono.\n' +
                     '\n' +
@@ -2577,7 +2591,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     '*Dividi le spese* con una o più persone.\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Avvia chat*.\n' +
                     '3. Inserisci email o numeri di telefono.\n' +
                     '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
@@ -2599,7 +2613,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     'Ecco come creare un report:\n' +
                     '\n' +
-                    `1. Clicca sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clicca sul pulsante +.\n` +
                     '2. Scegli *Crea report*.\n' +
                     '3. Clicca su *Aggiungi spesa*.\n' +
                     '4. Aggiungi la tua prima spesa.\n' +
@@ -2617,10 +2631,8 @@ ${amount} per ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!'
-                    : '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui semplicemente i restanti passaggi di configurazione qui sotto!',
+            onboardingManageTeamMessage:
+                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -2770,6 +2782,7 @@ ${amount} per ${merchant} - ${date}`,
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Qualcosa è andato storto`,
         subtitle: 'La tua richiesta non può essere completata. Per favore riprova più tardi.',
+        wrongTypeSubtitle: 'Questa ricerca non è valida. Prova a modificare i criteri di ricerca.',
     },
     setPasswordPage: {
         enterPassword: 'Inserisci una password',
@@ -4534,6 +4547,12 @@ ${amount} per ${merchant} - ${date}`,
                     pleaseSelectCountry: 'Si prega di selezionare un paese prima di continuare',
                     pleaseSelectFeedType: 'Si prega di selezionare un tipo di feed prima di continuare',
                 },
+                exitModal: {
+                    title: 'Qualcosa non funziona?',
+                    prompt: 'Abbiamo notato che non hai terminato di aggiungere le tue carte. Se hai riscontrato un problema, faccelo sapere così possiamo aiutarti a risolverlo.',
+                    confirmText: 'Segnala un problema',
+                    cancelText: 'Salta',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
@@ -4548,7 +4567,8 @@ ${amount} per ${merchant} - ${date}`,
             directFeed: 'Feed diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseCard: 'Scegli una carta',
-            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Scegli una carta per ${assignee} dal feed delle carte ${feed}.`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
             noActiveCards: 'Nessuna carta attiva in questo feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oppure potrebbe esserci qualcosa di rotto. In ogni caso, se avete domande, <concierge-link>contattate il Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4563,9 +4583,8 @@ ${amount} per ${merchant} - ${date}`,
             cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome della carta',
-            brokenConnectionErrorFirstPart: `La connessione del feed della carta è interrotta. Per favore`,
-            brokenConnectionErrorLink: 'accedi al tuo conto bancario',
-            brokenConnectionErrorSecondPart: 'così possiamo ristabilire la connessione.',
+            brokenConnectionError:
+                '<rbr>La connessione del feed della carta è interrotta. Per favore <a href="#">accedi al tuo conto bancario</a> così possiamo ristabilire la connessione.</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `assegnato ${assignee} un ${link}! Le transazioni importate appariranno in questa chat.`,
             companyCard: 'carta aziendale',
             chooseCardFeed: 'Scegli il feed della carta',
@@ -4616,6 +4635,7 @@ ${amount} per ${merchant} - ${date}`,
                 monthly: 'Mensile',
             },
             cardDetails: 'Dettagli della carta',
+            cardPending: ({name}: {name: string}) => `La carta è attualmente in sospeso e verrà emessa una volta che l'account di ${name} sarà convalidato.`,
             virtual: 'Virtuale',
             physical: 'Fisico',
             deactivate: 'Disattiva carta',
@@ -4802,9 +4822,8 @@ ${amount} per ${merchant} - ${date}`,
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
-                downgradeSubTitleFirstPart: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore`,
-                downgradeSubTitleMiddlePart: `mantieni solo un feed di carte`,
-                downgradeSubTitleLastPart: 'per procedere.',
+                downgradeSubTitle: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore <a href="#">mantieni solo un feed di carte</a> per procedere.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Per favore, aggiungi l'account in ${connection} e sincronizza nuovamente la connessione.`,
                 expensifyCardBannerTitle: 'Ottieni la Expensify Card',
                 expensifyCardBannerSubtitle:
@@ -4901,9 +4920,11 @@ ${amount} per ${merchant} - ${date}`,
             textType: 'Testo',
             dateType: 'Data',
             dropdownType: 'Elenco',
+            formulaType: 'Formula',
             textAlternateText: "Aggiungi un campo per l'inserimento di testo libero.",
             dateAlternateText: 'Aggiungi un calendario per la selezione delle date.',
             dropdownAlternateText: 'Aggiungi un elenco di opzioni tra cui scegliere.',
+            formulaAlternateText: 'Aggiungi un campo formula.',
             nameInputSubtitle: 'Scegli un nome per il campo del rapporto.',
             typeInputSubtitle: 'Scegli quale tipo di campo del report utilizzare.',
             initialValueInputSubtitle: 'Inserisci un valore iniziale da mostrare nel campo del report.',
@@ -5121,12 +5142,25 @@ ${amount} per ${merchant} - ${date}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Se rimuovi ${approver} da questo spazio di lavoro, verrà sostituito/a nel flusso di approvazione con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} ha rapporti spese in sospeso da approvare. Chiedi loro di approvarli oppure assumi il controllo dei loro rapporti prima di rimuoverli dallo spazio di lavoro.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro. Imposta un nuovo responsabile dei rimborsi in Flussi di lavoro > Effettua o traccia i pagamenti, quindi riprova.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, lo/la sostituiremo come esportatore preferito con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se rimuovi ${memberName} da questo spazio di lavoro, sostituiremo il referente tecnico con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} ha un report in elaborazione che richiede un intervento. Ti preghiamo di chiedere loro di completare l'azione richiesta prima di rimuoverli dallo spazio di lavoro.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
+                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
@@ -6189,7 +6223,7 @@ ${amount} per ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
+                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante +.`,
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',
@@ -6316,6 +6350,7 @@ ${amount} per ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagare',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esportare',
             },
+            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} è ${value}`,
         },
         has: 'Ha',
         groupBy: 'Gruppo per',
@@ -6437,6 +6472,11 @@ ${amount} per ${merchant} - ${date}`,
         newReport: {
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
+            emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Sei sicuro di voler creare un altro rapporto in ${workspaceName}? Puoi accedere ai tuoi rapporti vuoti in`,
+            emptyReportConfirmationPromptLink: 'Rapporti',
+            genericWorkspaceName: 'questo spazio di lavoro',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Si prega di riprovare più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Per favore riprova più tardi.',
@@ -6837,6 +6877,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
+        reportContainsExpensesWithViolations: 'Il report contiene spese con violazioni.',
     },
     violationDismissal: {
         rter: {
@@ -7144,6 +7185,8 @@ ${amount} per ${merchant} - ${date}`,
     roomChangeLog: {
         updateRoomDescription: 'imposta la descrizione della stanza su:',
         clearRoomDescription: 'cancellato la descrizione della stanza',
+        changedRoomAvatar: "Ha cambiato l'avatar della stanza",
+        removedRoomAvatar: "Ha rimosso l'avatar della stanza",
     },
     delegate: {
         switchAccount: 'Cambia account:',
