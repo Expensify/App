@@ -2,8 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -69,8 +69,13 @@ function useOptions() {
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
-    // POC Phase 3: Dynamic loading with pagination
-    const {options: listOptions, isLoading, loadMore, hasMore, isLoadingMore} = useOptionsListCache({
+    const {
+        options: listOptions,
+        isLoading,
+        loadMore,
+        hasMore,
+        isLoadingMore,
+    } = useOptionsListCache({
         maxRecentReports: 100,
         enabled: didScreenTransitionEnd,
         includeP2P: true,
@@ -81,12 +86,10 @@ function useOptions() {
 
     const defaultOptions = useMemo(() => {
         if (!listOptions) {
-            return {recentReports: [], personalDetails: [], userToInvite: null};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const filterStartTime = performance.now();
-
-        const filteredOptions = memoizedGetValidOptions(
+        return memoizedGetValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
@@ -98,12 +101,10 @@ function useOptions() {
             },
             countryCode,
         );
-
-        const filterEndTime = performance.now();
-        console.log(`[POC] getValidOptions filtering took ${(filterEndTime - filterStartTime).toFixed(2)}ms`);
-
-        return filteredOptions;
-    }, [listOptions, contacts, draftComments, betas, countryCode]);
+        // We intentionally use listOptions?.reports and listOptions?.personalDetails instead of listOptions to avoid unnecessary re-executions when other properties change
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
@@ -168,12 +169,16 @@ function useOptions() {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions, personalData.accountID]);
+        // We intentionally use listOptions?.personalDetails instead of listOptions to avoid unnecessary re-executions when other properties change
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newGroupDraft?.participants, listOptions?.personalDetails, personalData.accountID]);
 
     const handleEndReached = useCallback(() => {
-        if (hasMore && !isLoadingMore && areOptionsInitialized) {
-            loadMore();
+        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+            return;
         }
+        loadMore();
     }, [hasMore, isLoadingMore, areOptionsInitialized, loadMore]);
 
     return {
@@ -216,8 +221,20 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized, handleEndReached, isLoadingMore} =
-        useOptions();
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+        handleEndReached,
+        isLoadingMore,
+    } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];

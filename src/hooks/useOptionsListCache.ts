@@ -1,10 +1,8 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import reportsSelector from '@selectors/Attributes';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 type UseOptionsListCacheConfig = {
@@ -86,8 +84,8 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
     });
 
     // Subscribe to Onyx data
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         canBeMissing: true,
         selector: reportsSelector,
@@ -111,28 +109,13 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
         const cacheHasSameBatches = cacheRef.current.loadedBatches === currentBatch;
 
         if (cacheRef.current.options && cacheAge < CACHE_TTL && cacheHasSameBatches) {
-            console.log(`[POC Cache] Using cached options (age: ${(cacheAge / 1000).toFixed(1)}s, batch: ${currentBatch})`);
             return cacheRef.current.options;
         }
 
-        // Cache miss, expired, or different batch - recompute
-        const batchType = currentBatch === 1 ? 'initial' : `batch ${currentBatch}`;
-        console.log(`[POC Cache] Loading ${batchType} (${reportsToProcess} reports)...`);
-        const startTime = performance.now();
-
-        const newOptions = createFilteredOptionList(
-            allPersonalDetails,
-            allReports,
-            reportAttributesDerived?.reports,
-            {
-                maxRecentReports: reportsToProcess,
-                includeP2P,
-            },
-        );
-
-        const endTime = performance.now();
-        console.log(`[POC Cache] createFilteredOptionList took ${(endTime - startTime).toFixed(2)}ms`);
-        console.log(`[POC Cache] Generated ${newOptions.reports.length}/${totalReportsRef.current} report options`);
+        const newOptions = createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+            maxRecentReports: reportsToProcess,
+            includeP2P,
+        });
 
         // Update cache with batch info
         cacheRef.current = {
@@ -141,13 +124,16 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
             loadedBatches: currentBatch,
         };
 
-        // Reset loading state after computation
-        if (isLoadingMore) {
-            setIsLoadingMore(false);
-        }
-
         return newOptions;
-    }, [allReports, allPersonalDetails, reportAttributesDerived?.reports, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination, isLoadingMore]);
+    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination]);
+
+    // Reset loading state after options are computed
+    useEffect(() => {
+        if (!isLoadingMore || !options) {
+            return;
+        }
+        setIsLoadingMore(false);
+    }, [options, isLoadingMore]);
 
     // Function to load more reports
     const loadMore = useCallback(() => {
@@ -157,7 +143,6 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
 
         const hasMoreToLoad = options.reports.length < totalReportsRef.current;
         if (hasMoreToLoad) {
-            console.log('[POC Pagination] User scrolled to end, loading more...');
             setIsLoadingMore(true);
             setCurrentBatch((prev) => prev + 1);
         }

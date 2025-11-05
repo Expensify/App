@@ -135,8 +135,8 @@ import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
-import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -1244,17 +1244,17 @@ function createFilteredOptionList(
 
         // Use the existing shouldReportBeInOptionList for basic filtering
         // This is cheaper than processReport because it doesn't create icons, format text, etc.
-        const shouldInclude = shouldReportBeInOptionList({
+        return shouldReportBeInOptionList({
             report,
+            chatReport: undefined,
             currentReportId: '',
             betas: [],
-            policies: {},
             doesReportHaveViolations: false,
             isInFocusMode: false,
             excludeEmptyChats: false,
+            isReportArchived: undefined,
+            draftComment: undefined,
         });
-
-        return shouldInclude;
     });
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first)
@@ -1286,9 +1286,15 @@ function createFilteredOptionList(
     const personalDetailsOptions = includeP2P
         ? Object.values(personalDetails ?? {}).map((personalDetail) => ({
               item: personalDetail,
-              ...createOption([personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], {
-                  showPersonalDetails: true,
-              }, reportAttributesDerived),
+              ...createOption(
+                  [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                  personalDetails,
+                  reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                  {
+                      showPersonalDetails: true,
+                  },
+                  reportAttributesDerived,
+              ),
           }))
         : [];
 
