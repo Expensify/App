@@ -1,7 +1,5 @@
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import usePolicyData from '@hooks/usePolicyData';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -16,20 +14,17 @@ import {
     getTransactionDetails,
     getWorkspaceChats,
     getWorkspaceIcon,
-    pushTransactionViolationsOnyxData,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
