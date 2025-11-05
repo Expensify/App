@@ -29,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
@@ -382,7 +383,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     value: 'leave',
                     text: translate('common.leave'),
                     icon: Expensicons.Exit,
-                    onSelected: handleLeave,
+                    onSelected: () => close(handleLeave),
                 });
                 return renderDropdownMenu(secondaryActions);
             }
@@ -436,7 +437,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 value: 'leave',
                 text: translate('common.leave'),
                 icon: Expensicons.Exit,
-                onSelected: handleLeave,
+                onSelected: () => close(handleLeave),
             });
         }
 
@@ -484,6 +485,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             source={policy?.avatarURL ?? ''}
                             avatarID={policy?.id}
                             size={CONST.AVATAR_SIZE.X_LARGE}
+                            name={policyName}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
                             DefaultAvatar={DefaultAvatar}
@@ -606,7 +608,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
-                                        title={getUserFriendlyWorkspaceType(policy.type)}
+                                        title={getUserFriendlyWorkspaceType(policy.type, translate)}
                                         description={translate('workspace.common.planType')}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -651,7 +653,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         danger
                     />
                     <ConfirmModal
-                        title={translate('common.leave')}
+                        title={translate('common.leaveWorkspace')}
                         isVisible={isLeaveModalOpen}
                         onConfirm={handleLeaveWorkspace}
                         onCancel={() => setIsLeaveModalOpen(false)}
