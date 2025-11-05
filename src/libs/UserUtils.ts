@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
@@ -12,8 +13,6 @@ import {ALL_CUSTOM_AVATARS, getAvatarLocal} from './Avatars/CustomAvatarCatalog'
 import type {CustomAvatarID} from './Avatars/CustomAvatarCatalog.types';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -181,14 +180,14 @@ function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accoun
  * @param avatarURL - the URL returned by getDefaultAvatarURL
  * @returns the avatar name (e.g., 'default-avatar_5', 'concierge') or undefined if not a valid default avatar URL
  */
-function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): string | undefined {
+function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): CustomAvatarID | undefined {
     if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
         return undefined;
     }
 
     // Extract avatar name from CloudFront URL and make sure it's one of defaults
-    const match = avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '';
-    if (ALL_CUSTOM_AVATARS[match as CustomAvatarID]) {
+    const match = (avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '') as CustomAvatarID;
+    if (ALL_CUSTOM_AVATARS[match]) {
         return match;
     }
 }
@@ -207,6 +206,25 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
         if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
+    }
+
+    return false;
+}
+
+/**
+ * * Given a user's avatar path and originalFileName, returns true if URL points to a default avatar, false otherwise
+ * @param avatarSource - the avatar source from user's personalDetails
+ * @param originalFileName - the avatar original file name from user's personalDetails
+ */
+function isDefaultOrCustomDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string): boolean {
+    if (
+        (typeof avatarSource === 'string' && avatarSource.includes('images/avatars/custom-avatars')) || // F1 avatars
+        (originalFileName && /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/.test(originalFileName)) // Letter avatars
+    ) {
+        return true;
+    }
+    if (isDefaultAvatar(avatarSource)) {
+        return true;
     }
 
     return false;
@@ -258,7 +276,7 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number, acc
     }
     const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(avatarSource);
     if (maybeDefaultAvatarName) {
-        return getAvatarLocal(maybeDefaultAvatarName as CustomAvatarID);
+        return getAvatarLocal(maybeDefaultAvatarName);
     }
 
     // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
@@ -292,7 +310,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 /**
  * Gets details about contact methods to be displayed as MenuItems
  */
-function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) {
+function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }
@@ -310,14 +328,11 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
 
         let description = '';
         if (defaultEmail === login?.partnerUserID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.getInTouch');
+            description = translate('contacts.getInTouch');
         } else if (login?.errorFields?.addedLogin) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.failedNewContact');
+            description = translate('contacts.failedNewContact');
         } else if (!login?.validatedDate) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description = translateLocal('contacts.pleaseVerify');
+            description = translate('contacts.pleaseVerify');
         }
         let indicator;
         if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
@@ -348,6 +363,8 @@ export {
     generateAccountID,
     getAvatar,
     getAvatarUrl,
+    getDefaultAvatarName,
+    getDefaultAvatarNameFromURL,
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
@@ -357,6 +374,7 @@ export {
     hasLoginListError,
     hasLoginListInfo,
     hashText,
+    isDefaultOrCustomDefaultAvatar,
     isDefaultAvatar,
     getContactMethod,
     isCurrentUserValidated,
