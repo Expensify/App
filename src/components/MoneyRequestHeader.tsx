@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -47,7 +47,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import { setNameValuePair } from '@libs/actions/User';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -65,6 +65,7 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
 import {WideRHPContext} from './WideRHPContextProvider';
+import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -101,10 +102,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -133,6 +134,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -183,14 +185,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const statusBarProps = getStatusBarProps();
-
-    // useEffect(() => {
-    //     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    //     if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
-    //         return;
-    //     }
-    //     Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-    // }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
         if (!report || !parentReport || !transaction) {
@@ -277,6 +271,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
     };
 
+    const dismissModalAndUpdateUseHold = () => {
+        setIsHoldEducationalModalVisible(false);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
+        if (parentReportAction) {
+            changeMoneyRequestHoldStatus(parentReportAction);
+        }
+    };
+
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
@@ -295,8 +297,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 if (dismissedHoldUseExplanation) {
                     changeMoneyRequestHoldStatus(parentReportAction);
                 } else {
-                    Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()))
+                    setIsHoldEducationalModalVisible(true);
                 }
+
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
@@ -479,6 +482,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 <HoldOrRejectEducationalModal
                     onClose={dismissModalAndUpdateUseReject}
                     onConfirm={dismissModalAndUpdateUseReject}
+                />
+            )}
+            {!!isHoldEducationalModalVisible && (
+                <ProcessMoneyRequestHoldMenu
+                    onClose={dismissModalAndUpdateUseHold}
+                    onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
         </View>
