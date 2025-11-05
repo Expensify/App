@@ -80,11 +80,12 @@ function ParentNavigationSubtitle({
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
-    const hasAccessToParentReport = canCurrentUserOpenReport(parentReport, isReportArchived);
+    const hasAccessToParentReport = canCurrentUserOpenReport(parentReport, isParentReportArchived);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
