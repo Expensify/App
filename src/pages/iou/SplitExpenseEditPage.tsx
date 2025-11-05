@@ -46,7 +46,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
 
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, preferredLocale) ?? {}, [splitExpenseDraftTransaction, preferredLocale]);
+    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(
+        () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
+        [splitExpenseDraftTransaction, preferredLocale],
+    );
 
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});

@@ -35,7 +35,15 @@ type GetBillingStatusProps = {
     locale?: Locale;
 };
 
-function getBillingStatus({translate, stripeCustomerId, accountData, purchase, retryBillingSuccessful, billingDisputePending, locale}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({
+    translate,
+    stripeCustomerId,
+    accountData,
+    purchase,
+    retryBillingSuccessful,
+    billingDisputePending,
+    locale,
+}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();

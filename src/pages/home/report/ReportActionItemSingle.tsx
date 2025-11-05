@@ -160,7 +160,12 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone, preferredLocale);
+    const formattedDate = DateUtils.getStatusUntilDate(
+        details.status?.clearAfter ?? '',
+        details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+        currentSelectedTimezone,
+        preferredLocale,
+    );
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
