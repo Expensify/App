@@ -44,7 +44,7 @@ function BaseListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldShowRightCaret = false,
     shouldHighlightSelectedItem = true,
-    isHoverStyleDisabled,
+    shouldDisableHoverStyle,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -56,7 +56,7 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const handleMouseLeave = () => {
         bind.onMouseLeave();
         setMouseUp();
     };
@@ -105,7 +105,7 @@ function BaseListItem<TItem extends ListItem>({
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={!isHoverStyleDisabled ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
+                hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}

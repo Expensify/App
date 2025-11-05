@@ -117,6 +117,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;

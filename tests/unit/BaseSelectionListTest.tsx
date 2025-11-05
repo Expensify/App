@@ -1,5 +1,5 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {useState} from 'react';
 import {SectionList} from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -7,6 +7,7 @@ import BaseSelectionList from '@components/SelectionListWithSections/BaseSelecti
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
 import type Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type BaseSelectionListSections<TItem extends ListItem> = {
@@ -51,6 +52,16 @@ jest.mock('@hooks/useLocalize', () =>
         numberFormat: jest.fn((num: number) => num.toString()),
     })),
 );
+
+let arrowUpCallback = () => {};
+let arrowDownCallback = () => {};
+jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: () => void) => {
+    if (key.shortcutKey === 'ArrowUp') {
+        arrowUpCallback = callback;
+    } else if (key.shortcutKey === 'ArrowDown') {
+        arrowDownCallback = callback;
+    }
+});
 
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
@@ -267,5 +278,47 @@ describe('BaseSelectionList', () => {
         // Search functionality should work - items should still be visible
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
+    });
+
+    it('the hovered item should be focused when the up or down arrow key is pressed', async () => {
+        render(
+            <BaseListItemRenderer
+                sections={[{data: largeMockSections}]}
+                canSelectMultiple={false}
+                initialNumToRender={50}
+            />,
+        );
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
+
+        // Trigger a mouse move event to hover the item
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`), 'mouseMove', {stopPropagation: () => {}});
+
+        // eslint-disable-next-line testing-library/no-unnecessary-act
+        act(() => {
+            arrowDownCallback();
+        });
+
+        // The focused item will be the hovered item
+        await waitFor(() => {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`)).toHaveStyle({backgroundColor: colors.productDark300});
+        });
+
+        act(() => {
+            arrowDownCallback();
+            arrowDownCallback();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}12`)).toHaveStyle({backgroundColor: colors.productDark300});
+        });
+
+        act(() => {
+            arrowUpCallback();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}11`)).toHaveStyle({backgroundColor: colors.productDark300});
+        });
     });
 });

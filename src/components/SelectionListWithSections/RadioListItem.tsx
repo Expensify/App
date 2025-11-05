@@ -24,7 +24,7 @@ function RadioListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem = true,
-    isHoverStyleDisabled,
+    shouldDisableHoverStyle,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -48,7 +48,7 @@ function RadioListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            isHoverStyleDisabled={isHoverStyleDisabled}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
             <>
                 {!!item.leftElement && item.leftElement}

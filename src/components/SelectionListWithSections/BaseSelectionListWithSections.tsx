@@ -417,7 +417,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     }, []);
 
-    const [isHoverStyleDisabled, setIsHoverStyleDisabled] = useState(false);
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
@@ -437,7 +437,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
         onArrowUpDownCallback: () => {
-            setIsHoverStyleDisabled(true);
+            setShouldDisableHoverStyle(true);
         },
     });
 
@@ -645,7 +645,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         const handler = () => {
-            setIsHoverStyleDisabled(false);
+            setShouldDisableHoverStyle(false);
         };
         document.addEventListener('mousemove', handler, true);
         return () => {
@@ -659,22 +659,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+        const setCurrentHoverIndex = (e: React.MouseEvent, hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            e.stopPropagation();
+            currentHoverIndexRef.current = hoverIndex;
+        };
 
         return (
             <View
                 onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => {
-                    if (isHoverStyleDisabled) {
-                        return;
-                    }
-                    currentHoverIndexRef.current = normalizedIndex;
-                }}
-                onMouseLeave={() => {
-                    if (isHoverStyleDisabled) {
-                        return;
-                    }
-                    currentHoverIndexRef.current = null;
-                }}
+                onMouseMove={(e) => setCurrentHoverIndex(e, normalizedIndex)}
+                onMouseLeave={(e) => setCurrentHoverIndex(e, null)}
             >
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
@@ -711,7 +708,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
-                    isHoverStyleDisabled={isHoverStyleDisabled}
+                    shouldDisableHoverStyle={shouldDisableHoverStyle}
                 />
             </View>
         );
