@@ -1,10 +1,7 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
-import {InteractionManager} from 'react-native';
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
+import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {calculateReceiptPaneRHPWidth, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,17 +37,20 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
 
-    const animatedStyle = useAnimatedStyle(() => {
-        const width = interpolate(expandedRHPProgress.get(), [0, 1, 2], [singleRHPWidth, getWideRHPWidth(windowWidth), getSuperWideRHPWidth(windowWidth)]);
+    const animatedWidth = expandedRHPProgress.interpolate({
+        inputRange: [0, 1, 2],
+        outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), getSuperWideRHPWidth(windowWidth)],
+    });
 
+    const animatedStyle = useMemo(() => {
         return {
             height: '100%',
             right: 0,
             position: 'absolute',
             overflow: 'hidden',
-            width: shouldUseNarrowLayout ? '100%' : width,
-        };
-    });
+            width: shouldUseNarrowLayout ? '100%' : (animatedWidth as unknown as number),
+        } as const;
+    }, [animatedWidth, shouldUseNarrowLayout]);
 
     const screenListeners = useMemo(
         () => ({

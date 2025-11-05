@@ -8,6 +8,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,6 +30,15 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
+function abs(a: any) {
+    const b = Animated.multiply(a, -1);
+    const clampedA = Animated.diffClamp(a, 0, Number.MAX_SAFE_INTEGER);
+    const clampedB = Animated.diffClamp(b, 0, Number.MAX_SAFE_INTEGER);
+
+    return Animated.add(clampedA, clampedB);
+}
+
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
@@ -36,6 +46,7 @@ const useRootNavigatorScreenOptions = () => {
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
     const {expandedRHPProgress} = useContext(WideRHPContext);
+    const {windowWidth} = useWindowDimensions();
 
     return {
         rightModalNavigator: {
@@ -56,7 +67,16 @@ const useRootNavigatorScreenOptions = () => {
                         // Adjust output range to match the wide RHP size
                         outputRangeMultiplier: isSmallScreenWidth
                             ? undefined
-                            : Animated.add(Animated.multiply(expandedRHPProgress.get(), variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
+                            : Animated.add(
+                                  Animated.add(
+                                      Animated.multiply(Animated.subtract(1, abs(Animated.subtract(1, expandedRHPProgress))), variables.receiptPaneRHPMaxWidth / variables.sideBarWidth),
+                                      Animated.multiply(
+                                          expandedRHPProgress.interpolate({inputRange: [1, 2], outputRange: [0, 1], extrapolate: 'clamp'}),
+                                          (windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth - variables.sideBarWidth) / variables.sideBarWidth,
+                                      ),
+                                  ),
+                                  1,
+                              ),
                     }),
             },
         },

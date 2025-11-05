@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
 type WideRHPContextType = {
@@ -10,8 +9,8 @@ type WideRHPContextType = {
     // Route keys of screens that should be displayed in super wide format
     superWideRHPRouteKeys: string[];
 
-    // Progress of changing format: 0 - narrow, 1 - wide
-    expandedRHPProgress: SharedValue<number>;
+    // Progress of changing format: 0 - narrow, 1 - wide, 2 - super-wide
+    expandedRHPProgress: Animated.Value;
 
     // Progress of the secondary overlay, the one covering wider RHP screen
     secondOverlayProgress: Animated.Value;
@@ -42,6 +41,9 @@ type WideRHPContextType = {
 
     // Navigate to the last element in wideRHPRouteKeys array
     dismissToWideReport: () => void;
+
+    // Whether the currently focused route is inside the wide RHP set
+    isWideRhpFocused: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
