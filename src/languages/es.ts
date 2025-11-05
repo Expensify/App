@@ -128,7 +128,7 @@ const translations: TranslationDeepObject<typeof en> = {
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
-        noResultsFoundMatching: ({searchString}) => `No se encontraron resultados que coincidan con "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `No se encontraron resultados que coincidan con "${searchString}"`,
         recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
