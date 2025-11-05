@@ -885,8 +885,7 @@ function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<On
  * @private
  * Generates a display name for IOU reports considering the personal details of the payer and the transaction details.
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
+function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: TransactionReportGroupListItemType) {
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     // For cases where the data personal detail for manager ID do not exist in search data.personalDetailsList
     // we fallback to the display name of the personal detail data from onyx.
