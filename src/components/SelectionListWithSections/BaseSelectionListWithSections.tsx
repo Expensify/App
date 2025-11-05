@@ -24,6 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
@@ -642,7 +643,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     useEffect(() => {
-        if (!canUseTouchScreen() && typeof document === 'undefined') {
+        if (canUseTouchScreen() || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
             return;
         }
 
