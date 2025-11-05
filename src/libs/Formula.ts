@@ -1,3 +1,4 @@
+import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -6,7 +7,7 @@ import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getHumanReadableStatus, getReportTransactions} from './ReportUtils';
+import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
@@ -236,6 +237,28 @@ function compute(formula?: string, context?: FormulaContext): string {
 }
 
 /**
+ * Compute auto-reporting info for a report formula part
+ */
+function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, subField: string | undefined, format: string | undefined): string {
+    const {report, policy} = context;
+
+    if (!subField) {
+        return part.definition;
+    }
+
+    const {startDate, endDate} = getAutoReportingDates(policy, report);
+
+    switch (subField.toLowerCase()) {
+        case 'start':
+            return formatDate(startDate?.toISOString(), format);
+        case 'end':
+            return formatDate(endDate?.toISOString(), format);
+        default:
+            return part.definition;
+    }
+}
+
+/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
@@ -264,6 +287,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+        case 'reimbursable':
+            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -273,6 +298,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'autoreporting': {
+            const subField = additionalPath.at(0);
+            // For multi-part formulas, format is everything after the subfield
+            const autoReportingFormat = additionalPath.length > 1 ? additionalPath.slice(1).join(':') : undefined;
+            return computeAutoReportingInfo(part, context, subField, autoReportingFormat);
+        }
         default:
             return part.definition;
     }
@@ -526,6 +557,139 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 }
 
 /**
+ * Calculate monthly reporting period for a specific day offset
+ */
+function getMonthlyReportingPeriod(currentDate: Date, offsetDay: number): {startDate: Date; endDate: Date} {
+    const currentDay = currentDate.getDate();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    if (currentDay <= offsetDay) {
+        // We haven't reached the reporting day yet - period is from last month's offset+1 to this month's offset
+        const prevMonth = currentMonth - 1;
+        const prevYear = prevMonth < 0 ? currentYear - 1 : currentYear;
+        const adjustedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
+
+        const prevMonthDays = lastDayOfMonth(new Date(prevYear, adjustedPrevMonth, 1)).getDate();
+        const prevOffsetDay = Math.min(offsetDay, prevMonthDays);
+
+        const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+        const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+        return {
+            startDate: new Date(prevYear, adjustedPrevMonth, prevOffsetDay + 1, 0, 0, 0, 0),
+            endDate: new Date(currentYear, currentMonth, currentOffsetDay, 23, 59, 59, 999),
+        };
+    }
+
+    // We've passed the reporting day - period is from this month's offset+1 to next month's offset
+    const nextMonth = currentMonth + 1;
+    const nextYear = nextMonth > 11 ? currentYear + 1 : currentYear;
+    const adjustedNextMonth = nextMonth > 11 ? 0 : nextMonth;
+
+    const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+    const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+    const nextMonthDays = lastDayOfMonth(new Date(nextYear, adjustedNextMonth, 1)).getDate();
+    const nextOffsetDay = Math.min(offsetDay, nextMonthDays);
+
+    return {
+        startDate: new Date(currentYear, currentMonth, currentOffsetDay + 1, 0, 0, 0, 0),
+        endDate: new Date(nextYear, adjustedNextMonth, nextOffsetDay, 23, 59, 59, 999),
+    };
+}
+
+/**
+ * Calculate monthly reporting period for last business day
+ */
+function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; endDate: Date} {
+    let endDate = endOfMonth(currentDate);
+
+    // Move backward to find last business day (Mon-Fri)
+    while (getDay(endDate) === 0 || getDay(endDate) === 6) {
+        endDate = subDays(endDate, 1);
+    }
+
+    return {
+        startDate: startOfMonth(currentDate),
+        endDate: endOfDay(endDate),
+    };
+}
+
+/**
+ * Calculate the start and end dates for auto-reporting based on the frequency and current date
+ */
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+    const frequency = policy?.autoReportingFrequency;
+    const offset = policy?.autoReportingOffset;
+
+    // Return undefined if no frequency is set
+    if (!frequency || !policy) {
+        return {startDate: undefined, endDate: undefined};
+    }
+
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
+            // Weekly: use the app's configured week start convention (Monday)
+            const weekStartsOn = CONST.WEEK_STARTS_ON;
+            startDate = startOfWeek(currentDate, {weekStartsOn});
+            endDate = endOfWeek(currentDate, {weekStartsOn});
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            // Semi-monthly: 1st-15th or 16th-end of month
+            const dayOfMonth = currentDate.getDate();
+            if (dayOfMonth <= 15) {
+                startDate = startOfMonth(currentDate);
+                endDate = set(currentDate, {date: 15, hours: 23, minutes: 59, seconds: 59, milliseconds: 999});
+            } else {
+                startDate = set(currentDate, {date: 16, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+                endDate = endOfMonth(currentDate);
+            }
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            // Monthly reporting with different offset configurations
+            if (offset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                const period = getMonthlyLastBusinessDayPeriod(currentDate);
+                startDate = period.startDate;
+                endDate = period.endDate;
+            } else if (typeof offset === 'number') {
+                const period = getMonthlyReportingPeriod(currentDate, offset);
+                startDate = period.startDate;
+                endDate = period.endDate;
+            } else {
+                // Default to full month
+                startDate = startOfMonth(currentDate);
+                endDate = endOfMonth(currentDate);
+            }
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
+            // For trip-based, use oldest transaction as start
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
+            endDate = currentDate;
+            break;
+        }
+
+        default:
+            // For any other frequency, use current date as both start and end
+            startDate = currentDate;
+            endDate = currentDate;
+            break;
+    }
+
+    return {startDate, endDate};
+}
+
+/**
  * Get the date of the newest transaction for a given report
  */
 function getNewestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
@@ -561,6 +725,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse};
 
 export type {FormulaContext, FormulaPart};
