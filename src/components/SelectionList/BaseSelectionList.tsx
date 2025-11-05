@@ -101,7 +101,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
-    const hasFooter = confirmButtonConfig?.showButton || footerContent;
+    const hasFooter = footerContent ?? confirmButtonConfig?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
