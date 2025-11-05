@@ -981,6 +981,8 @@ function getTransactionsSections(
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         let shouldShow = true;
+
+        // isActionLoading is coming from onyx, should we move this to transactions_metadata?
         if (queryJSON && !transactionItem.isActionLoading) {
             if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = queryJSON.status;
