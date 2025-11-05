@@ -118,6 +118,12 @@ function WorkspaceInviteMessageComponent({
         if (isEmptyObject(policy)) {
             return;
         }
+
+        if (goToNextStep) {
+            goToNextStep();
+            return;
+        }
+
         Navigation.goBack(backTo);
 
         // We only want to run this useEffect when the onyx values have loaded
