@@ -8,7 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
@@ -17,14 +16,12 @@ import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUn
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
-    evenlyDistributeSplitExpenseAmounts,
     getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
@@ -56,7 +53,6 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -120,15 +116,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction, transactionID]);
 
-    const onMakeSplitsEven = useCallback(() => {
-        if (!draftTransaction) {
-            return;
-        }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction);
-    }, [draftTransaction]);
-
     const onSaveSplitExpense = useCallback(() => {
-        if (splitExpenses.length <= 1 && (!childTransactions.length || !isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS))) {
+        if (splitExpenses.length <= 1 && !childTransactions.length) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
@@ -188,13 +177,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             chatReport,
             firstIOU: iouActions.at(0),
             isChatReportArchived: isChatIOUReportArchived,
-            isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
         });
     }, [
         splitExpenses,
         childTransactions.length,
-        isBetaEnabled,
-        draftTransaction,
+        draftTransaction?.errors,
+        draftTransaction?.reportID,
+        draftTransaction?.comment?.originalTransactionID,
+        draftTransaction?.comment?.splitExpensesTotal,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
@@ -202,19 +192,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitFieldDataFromChildTransactions,
         allTransactions,
         allReports,
+        allReportNameValuePairs,
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
         policyRecentlyUsedCategories,
+        iouReport,
+        chatReport,
+        iouActions,
+        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
-        isChatIOUReportArchived,
-        iouReport,
-        iouActions,
-        chatReport,
-        allReportNameValuePairs,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -290,27 +280,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
-    const listFooterContent = useMemo(() => {
-        const shouldShowMakeSplitsEven = childTransactions.length === 0;
-        return (
-            <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
-                <MenuItem
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+                <Button
+                    success
                     onPress={onAddSplitExpense}
-                    title={translate('iou.addSplit')}
                     icon={Expensicons.Plus}
-                    style={[styles.ph4]}
+                    text={translate('iou.addSplit')}
+                    style={[shouldUseNarrowLayout && styles.flex1]}
                 />
-                {shouldShowMakeSplitsEven && (
-                    <MenuItem
-                        onPress={onMakeSplitsEven}
-                        title={translate('iou.makeSplitsEven')}
-                        icon={Expensicons.ArrowsLeftRight}
-                        style={[styles.ph4]}
-                    />
-                )}
             </View>
-        );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+        ),
+        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
+    );
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
@@ -318,7 +301,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View ref={footerRef}>
+            <View
+                ref={footerRef}
+                style={styles.pt3}
+            >
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -338,7 +324,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -368,6 +354,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
+
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
                         renderScrollComponent={(props) => (
@@ -389,12 +376,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
+                        headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto]}
+                        containerStyle={[styles.flexBasisAuto, styles.pt1]}
                         footerContent={footerContent}
-                        listFooterContent={listFooterContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
