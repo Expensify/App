@@ -5005,7 +5005,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Debe haber al menos una etiqueta obligatoria porque la configuración de tu espacio de trabajo requiere etiquetas.`,
             },
             cannotMakeTagListRequired: {
-                title: 'No se puede hacer que la lista de etiquetas sea obligatoria.',
+                title: 'No se puede hacer que la lista de etiquetas sea obligatoria',
                 description: `olo puedes hacer que una lista de etiquetas sea obligatoria si tu política tiene varios niveles de etiquetas configurados.`,
             },
             tagCount: () => ({
