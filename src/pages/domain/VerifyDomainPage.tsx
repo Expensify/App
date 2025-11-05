@@ -70,11 +70,9 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
 
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
             testID={VerifyDomainPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
                 title={translate('domain.verifyDomain.title')}

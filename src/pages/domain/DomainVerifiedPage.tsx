@@ -39,16 +39,15 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
             testID={DomainVerifiedPage.displayName}
+            shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
             <ConfirmationPage
                 illustration={LottieAnimations.Fireworks}
                 heading={translate('domain.domainVerified.header')}
                 descriptionComponent={
-                    <View style={styles.w100}>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain?.email ?? '')})} />
                     </View>
                 }
