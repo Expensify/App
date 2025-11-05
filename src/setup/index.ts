@@ -81,7 +81,7 @@ export default function () {
                     maxConcurrency: 10, // Reduced concurrency to prevent overwhelming
                     collections: true, // Load all collections
                     singleKeys: true, // Load all single keys
-                    loadExisting: true, // Discover and load any other existing data
+                    loadExisting: false, // Discover and load any other existing data
                     onProgress: (progress) => {
                         const completed = progress.filter((p) => p.status === 'completed').length;
                         const total = progress.length;

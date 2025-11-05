@@ -40,10 +40,8 @@ class CachePreloader {
         ];
 
         return Object.entries(ONYXKEYS)
-            .filter(([keyName, value]) =>
-                !excludedKeys.includes(keyName) &&
-                typeof value === 'string' &&
-                !value.endsWith('_') // Collections end with underscore
+            .filter(
+                ([keyName, value]) => !excludedKeys.includes(keyName) && typeof value === 'string' && !value.endsWith('_'), // Collections end with underscore
             )
             .map(([, value]) => value as OnyxKey);
     })();
