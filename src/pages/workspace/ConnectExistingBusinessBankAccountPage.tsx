@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
@@ -36,11 +37,10 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         navigateToBankAccountRoute(policyID);
     };
 
-    const handleItemPress = ({methodID}: PaymentMethodPressHandlerParams) => {
+    const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
         if (policyID === undefined) {
             return;
         }
-
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
             policyID,
@@ -50,7 +50,14 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: true,
         });
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.closeRHPFlow());
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (isBankAccountPartiallySetup(accountData?.state)) {
+                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            } else {
+                Navigation.closeRHPFlow();
+            }
+        });
     };
 
     return (

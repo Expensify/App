@@ -30,6 +30,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -118,8 +119,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+
+    let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+    if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+        walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    } else if (hasPartiallySetupBankAccount(bankAccountList)) {
+        walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -178,6 +185,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+                badgeStyle: hasPartiallySetupBankAccount(bankAccountList) ? styles.badgeSuccess : undefined,
             },
             {
                 translationKey: 'common.preferences',
@@ -221,9 +229,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        subscriptionPlan,
-        styles.accountSettingsSectionContainer,
+        bankAccountList,
         styles.badgeSuccess,
+        styles.accountSettingsSectionContainer,
+        subscriptionPlan,
         privateSubscription?.errors,
         stripeCustomerId,
         freeTrialText,

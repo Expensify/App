@@ -34,6 +34,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
+import {getSettlementButtonPaymentMethods, handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
@@ -178,7 +179,7 @@ function SettlementButton({
         }
 
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            handleUnvalidatedUserNavigation(chatReportID, reportID);
             return true;
         }
 
@@ -188,7 +189,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [isAccountLocked, isUserValidated, policy, showLockedAccountModal]);
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -224,24 +225,7 @@ function SettlementButton({
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = {
-            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-                icon: Expensicons.User,
-                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            },
-            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusiness', {formattedAmount: ''}),
-                icon: Expensicons.Building,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            },
-            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                icon: Expensicons.CheckCircle,
-                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                shouldUpdateSelectedIndex: false,
-            },
-        };
+        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
 
         const shortFormPayElsewhereButton = {
             text: translate('iou.pay'),

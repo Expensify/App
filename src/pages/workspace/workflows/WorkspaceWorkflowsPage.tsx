@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -6,6 +7,7 @@ import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -15,6 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,6 +37,7 @@ import {
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -89,8 +93,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         [personalDetails, policy, localeCompare],
     );
     const {isBetaEnabled} = usePermissions();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -111,7 +116,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
-        getPaymentMethods();
+        getPaymentMethods(true);
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -149,6 +154,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useFocusEffect(() => {
+        getPaymentMethods(true);
+    });
+
     const confirmDisableApprovals = useCallback(() => {
         setIsDisableApprovalsConfirmModalOpen(false);
         setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL);
@@ -185,11 +194,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {bankAccountID} = policy?.achAccount ?? {};
-        const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        const bankAccount = bankAccountID
+            ? bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID]
+            : Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
+
         const bankName = policy?.achAccount?.bankName ?? bankAccount?.accountData?.additionalData?.bankName ?? '';
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
+        const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
-        const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
+        const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+        const isAccountInSetupState = bankAccountID ? isBankAccountPartiallySetup(state) && policy?.achAccount?.reimburser === currentUserLogin : isBankAccountPartiallySetup(state);
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
@@ -298,7 +314,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             )}
                             <MenuItem
-                                title={shouldShowBankAccount ? addressName : translate('bankAccount.addBankAccount')}
+                                title={shouldShowBankAccount ? bankTitle : translate('bankAccount.addBankAccount')}
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
                                 onPress={() => {
@@ -323,12 +339,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
                                 iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
+                                badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
+                                badgeIcon={isAccountInSetupState ? Expensicons.DotIndicator : undefined}
+                                badgeSuccess={isAccountInSetupState ? true : undefined}
+                                shouldShowRightIcon={isAccountInSetupState}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor={shouldShowBankAccount}
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
-                            {shouldShowBankAccount && (
+                            {shouldShowBankAccount && !isAccountInSetupState && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
                                     shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
@@ -360,10 +380,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [
         policy,
         bankAccountList,
+        currentUserLogin,
         styles,
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
+        filteredApprovalWorkflows,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,
@@ -375,7 +397,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hasValidExistingAccounts,
         shouldShowContinueModal,
         showLockedAccountModal,
-        filteredApprovalWorkflows,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
