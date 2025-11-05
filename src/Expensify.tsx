@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -42,8 +43,6 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
@@ -186,6 +185,12 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.getSessionId().then((sessionId) => {
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
