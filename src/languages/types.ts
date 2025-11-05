@@ -15,11 +15,7 @@ type PluralForm = {
 /**
  * Translation value can be a string or a function that returns a string
  */
-type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends string
-    ? string
-    : TStringOrFunction extends (...args: infer Args) => any
-      ? (...args: Args) => string | PluralForm
-      : string;
+type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends (...args: infer Args) => any ? (...args: Args) => string | PluralForm : string;
 
 /**
  * Translation object is a recursive object that can contain other objects or string/function values
