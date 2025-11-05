@@ -506,8 +506,8 @@ function getForReportActionTemp({
         }
 
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.category ?? '',
-            reportActionOriginalMessage?.oldCategory ?? '',
+            getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
+            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
             categoryLabel,
             true,
             setFragments,
@@ -527,8 +527,7 @@ function getForReportActionTemp({
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
+            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
