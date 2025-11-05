@@ -8,7 +8,7 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCombinedCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
@@ -29,7 +29,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     const [cardsList] = useCardsList(policyID, newFeed);
     const [cardFeeds] = useCardFeeds(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = newFeed ? companyFeeds[newFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 

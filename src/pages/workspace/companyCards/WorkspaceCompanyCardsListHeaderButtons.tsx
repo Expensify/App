@@ -23,7 +23,7 @@ import {
     flatAllCardsList,
     getBankName,
     getCardFeedIcon,
-    getCombinedCompanyFeeds,
+    getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getOriginalFeedName,
@@ -72,7 +72,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const formattedFeedName = getCustomOrFormattedFeedName(originalFeedName, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
     const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(originalFeedName);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);

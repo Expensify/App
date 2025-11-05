@@ -17,7 +17,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getCardFeedIcon,
-    getCombinedCompanyFeeds,
+    getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
@@ -75,7 +75,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds, false, true);
+    const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
     const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[selectedFeed as CombinedFeedKey]);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[selectedFeed as CombinedFeedKey]);
 

@@ -345,13 +345,10 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CompanyFeeds {
+function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
-            if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return false;
-            }
-            if (shouldFilterOutPendingFeeds && value.pending) {
+            if (value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value.pending) {
                 return false;
             }
             return key !== CONST.EXPENSIFY_CARD.BANK;
@@ -359,7 +356,7 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemoved
     );
 }
 
-function getCombinedCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CombinedCardFeeds {
+function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CombinedCardFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds ?? {}).filter(([, value]) => {
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -368,7 +365,6 @@ function getCombinedCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, should
             if (shouldFilterOutPendingFeeds && value.pending) {
                 return false;
             }
-            // FIX HERE
             return !value.feed.includes(CONST.EXPENSIFY_CARD.BANK);
         }),
     );
@@ -528,7 +524,7 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CombinedFeedKey>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CombinedFeedKey | undefined {
-    const defaultFeed = Object.keys(getCombinedCompanyFeeds(cardFeeds, true)).at(0) as CombinedFeedKey | undefined;
+    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CombinedFeedKey | undefined;
     if (!lastSelectedFeed?.includes('#')) {
         return defaultFeed;
     }
@@ -795,7 +791,7 @@ export {
     getPlaidInstitutionId,
     getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
-    getCombinedCompanyFeeds,
+    getOriginalCompanyFeeds,
     getOriginalFeedName,
     getEligibleBankAccountsForUkEuCard,
 };

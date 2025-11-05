@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCombinedCompanyFeeds} from '@libs/CardUtils';
+import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -31,7 +31,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isDowngradeWarningModalOpen, setIsDowngradeWarningModalOpen] = useState(false);

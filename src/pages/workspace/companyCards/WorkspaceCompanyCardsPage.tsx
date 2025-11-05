@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
-    getCombinedCompanyFeeds,
+    getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
     getOriginalFeedName,
@@ -70,7 +70,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
 
-    const companyCards = getCombinedCompanyFeeds(cardFeeds);
+    const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;

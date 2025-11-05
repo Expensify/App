@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCombinedCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getOriginalFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getOriginalFeedName, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,7 +48,7 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(getOriginalFeedName(selectedFeed), cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;

@@ -19,7 +19,7 @@ import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
     getCardFeedIcon,
-    getCombinedCompanyFeeds,
+    getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getPlaidInstitutionIconUrl,
@@ -61,7 +61,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const companyFeeds = getCombinedCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
     const isCollect = isCollectPolicy(policy);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CombinedFeedKey, CombinedCardFeed]>).map(([key, feedSettings]) => {
