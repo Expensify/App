@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
@@ -24,7 +24,7 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
+type GetChatFSClass = (report: OnyxInputOrEntry<Report>) => FSClass;
 
 type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
 

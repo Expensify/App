@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {chatIncludesConcierge, isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
+import type {ValueOf} from 'type-fest';
+import {chatIncludesConcierge} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -16,38 +17,48 @@ Onyx.connectWithoutView({
     },
 });
 
-const getChatFSClass: GetChatFSClass = (context, report) => {
-    if (!report?.participants) {
+const allowedReportChatTypes: Array<ValueOf<typeof CONST.REPORT.CHAT_TYPE>> = [
+    CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+    CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+    CONST.REPORT.CHAT_TYPE.INVOICE,
+];
+
+const allowedReportTypes: Array<ValueOf<typeof CONST.REPORT.TYPE>> = [CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE];
+
+const getChatFSClass: GetChatFSClass = (report) => {
+    if (!report) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
-    const participantAccountIDs = Object.keys(report.participants);
+    // Self DMs should be masked.
+    if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
+        return CONST.FULLSTORY.CLASS.MASK;
+    }
 
-    if (report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE) {
+    // Workspace expense chat, #admins, #announce rooms and invoices should be unmasked.
+    if (report.chatType && allowedReportChatTypes.includes(report.chatType)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
+    // IOUs, expenses and invoices should be unmasked.
+    if (report.type && (allowedReportTypes as string[]).includes(report.type)) {
+        return CONST.FULLSTORY.CLASS.UNMASK;
+    }
+
+    // If the report doesn't meet the condition above we check if the parent report is an IOU, expense or invoice.
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    if (parentReport && (parentReport.type === CONST.REPORT.TYPE.IOU || parentReport.type === CONST.REPORT.TYPE.EXPENSE || parentReport.type === CONST.REPORT.TYPE.INVOICE)) {
+    if (parentReport?.type && (allowedReportTypes as string[]).includes(parentReport.type)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
-    // DMs / Groups / Rooms
-    if (participantAccountIDs.length >= 2) {
+    // DMs / Groups / Rooms should be unmasked only if Concierge is in the chat.
+    const participantAccountIDs = Object.keys(report.participants ?? {});
+    if (participantAccountIDs.length > 0) {
         return chatIncludesConcierge(report) ? CONST.FULLSTORY.CLASS.UNMASK : CONST.FULLSTORY.CLASS.MASK;
     }
 
     return CONST.FULLSTORY.CLASS.UNMASK;
-
-    // if (isConciergeChatReport(report)) {
-    //     return CONST.FULLSTORY.CLASS.UNMASK;
-    // }
-
-    // if (shouldUnmaskChat(context, report)) {
-    //     return CONST.FULLSTORY.CLASS.UNMASK;
-    // }
-
-    // return CONST.FULLSTORY.CLASS.MASK;
 };
 
 const shouldInitializeFullstory: ShouldInitialize = (userMetadata, envName) => {

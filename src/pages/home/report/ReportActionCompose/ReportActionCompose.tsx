@@ -472,7 +472,7 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive,
     });
 
-    const fsClass = FS.getChatFSClass(undefined, report);
+    const fsClass = FS.getChatFSClass(report);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>

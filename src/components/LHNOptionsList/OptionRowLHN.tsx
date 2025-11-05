@@ -167,7 +167,7 @@ function OptionRowLHN({
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
-    const alternateTextFSClass = FS.getChatFSClass(undefined, report);
+    const alternateTextFSClass = FS.getChatFSClass(report);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
