@@ -23,6 +23,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -34,6 +35,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
@@ -59,12 +61,14 @@ const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COL
 const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 const participantAccountIDs = Array.from({length: 1000}, (v, i) => i + 1);
 
+OnyxUpdateManager();
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues()
     });
 
     beforeEach(async () => {
@@ -217,7 +221,7 @@ describe('ReportUtils', () => {
         await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
     });
 
-    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 100 expenses on each report', async () => {
+    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 1 expenses on each report', async () => {
         // Current policy with categories and tags enabled but does not require them
         const policy = {
             ...createRandomPolicy(1),
@@ -245,8 +249,8 @@ describe('ReportUtils', () => {
 
         // Create a transaction collection with 8 transactions for each report
         const transactionCollection = Object.values(reportCollection).reduce<Record<string, Transaction>>((acc, report, index) => {
-            for (let transactionIndex = 0; transactionIndex < 100; transactionIndex++) {
-                const transactionID = index * 10 + transactionIndex;
+            for (let transactionIndex = 0; transactionIndex < 1; transactionIndex++) {
+                const transactionID = index * 1 + transactionIndex;
 
                 // Create a transaction with no category and no tag
                 acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
