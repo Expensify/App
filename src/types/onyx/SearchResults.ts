@@ -116,12 +116,6 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The main action that can be performed for the report */
-    action?: SearchTransactionAction;
-
-    /** The available actions that can be performed for the report */
-    allActions?: SearchTransactionAction[];
-
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -365,9 +359,6 @@ type SearchTransaction = {
 
     /** The type of report the transaction is associated with */
     reportType: string;
-
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
