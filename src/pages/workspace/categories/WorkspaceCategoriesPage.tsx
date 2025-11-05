@@ -32,13 +32,14 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -75,13 +76,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID;
-    const backTo = route.params?.backTo;
-    const policy = usePolicy(policyId);
+    const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyId);
+    const {policy, categories: policyCategories} = policyData;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -152,27 +150,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
             setWorkspaceCategoryEnabled(
-                policyId,
+                policyData,
                 {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
-                policyCategories,
-                policyTagLists,
-                allTransactionViolations,
             );
         },
-        [
-            policyId,
-            isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            policyCategories,
-            policyTagLists,
-            allTransactionViolations,
-        ],
+        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -185,7 +171,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }
 
             acc.push({
-                text: value.name,
+                text: getDecodedCategoryName(value.name),
                 keyForList: value.name,
                 isDisabled,
                 pendingAction: value.pendingAction,
@@ -282,17 +268,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(
-            policyId,
-            selectedCategories,
-            isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            policyTagLists,
-            policyCategories,
-            allTransactionViolations,
-        );
+        if (policy !== undefined && selectedCategories.length >= 0) {
+            deleteWorkspaceCategories(
+                policyData,
+                selectedCategories,
+                isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
+            );
+        }
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -398,15 +383,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(
-                            policyId,
+                            policyData,
                             categoriesToDisable,
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
-                            policyCategories,
-                            policyTagLists,
-                            allTransactionViolations,
                         );
                     },
                 });
@@ -430,15 +412,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onSelected: () => {
                         setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(
-                            policyId,
+                            policyData,
                             categoriesToEnable,
                             isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
-                            policyCategories,
-                            policyTagLists,
-                            allTransactionViolations,
                         );
                     },
                 });
