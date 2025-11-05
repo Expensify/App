@@ -5,15 +5,17 @@ type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => Transac
 
 const middlewares: TelemetryBeforeSend[] = [emailDomainFilter];
 
-async function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
-    let current: TransactionEvent | null = event;
-    for (const middleware of middlewares) {
-        if (current == null) {
-            break;
-        }
-        current = await middleware(current, hint);
-    }
-    return current;
+function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
+    return middlewares.reduce(
+        async (acc, middleware) => {
+            const result = await acc;
+            if (result == null) {
+                return null;
+            }
+            return middleware(result, hint);
+        },
+        Promise.resolve(event) as Promise<TransactionEvent | null>,
+    );
 }
 
 export type {TelemetryBeforeSend};
