@@ -383,31 +383,19 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
-type DismissDuplicateTransactionViolationProps = {
-    transactionIDs: string[];
-    dismissedPersonalDetails: PersonalDetails;
-    expenseReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    isASAPSubmitBetaEnabled: boolean;
-    allTransactionsCollection: OnyxCollection<Transaction>;
-    allTransactionViolationsCollection: OnyxCollection<TransactionViolation[]>;
-};
-
 /**
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation({
-    transactionIDs,
-    dismissedPersonalDetails,
-    expenseReport,
-    policy,
-    isASAPSubmitBetaEnabled,
-    allTransactionsCollection,
-    allTransactionViolationsCollection,
-}: DismissDuplicateTransactionViolationProps) {
-    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolationsCollection?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactionsCollection?.[id]).filter((transaction): transaction is Transaction => transaction !== undefined);
+function dismissDuplicateTransactionViolation(
+    transactionIDs: string[],
+    dismissedPersonalDetails: PersonalDetails,
+    expenseReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isASAPSubmitBetaEnabled: boolean,
+) {
+    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
