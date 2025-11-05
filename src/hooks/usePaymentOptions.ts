@@ -157,7 +157,7 @@ function usePaymentOptions({
         }
 
         if (isInvoiceReport) {
-            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
+            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
