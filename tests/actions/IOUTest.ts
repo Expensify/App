@@ -6489,7 +6489,7 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 ownerAccountID: CARLOS_ACCOUNT_ID,
                 managerID: RORY_ACCOUNT_ID,
-                isWaitingOnBankAccount: false, 
+                isWaitingOnBankAccount: false,
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
 
