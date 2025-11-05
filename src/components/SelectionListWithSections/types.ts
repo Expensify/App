@@ -33,7 +33,6 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
-    SearchPolicy,
     SearchReport,
     SearchReportAction,
     SearchTask,
@@ -249,7 +248,7 @@ type TransactionListItemType = ListItem &
         report: Report | undefined;
 
         /** Policy to which the transaction belongs */
-        policy: SearchPolicy | undefined;
+        policy: Policy | undefined;
 
         /** Report IOU action to which the transaction belongs */
         reportAction: ReportAction | undefined;
