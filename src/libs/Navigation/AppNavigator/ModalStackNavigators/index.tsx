@@ -2,10 +2,9 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, receiptPaneRHPWidth, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -95,9 +94,8 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay} = useContext(WideRHPContext);
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused} = useContext(WideRHPContext);
         const route = useRoute();
-        const {windowWidth} = useWindowDimensions();
 
         const isFocused = useIsFocused();
 
@@ -130,23 +128,29 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused && !shouldRenderThirdOverlay ? (
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={receiptPaneRHPWidth}
                     />
                 ) : null}
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !isFocused ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !!isWideRhpFocused && !isFocused ? (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionLeftValue={windowWidth - variables.navigationTabBarSize - variables.sideBarWidth - variables.sideBarWithLHBWidth}
+                        positionLeftValue={modalStackOverlayWideRHPWidth}
+                    />
+                ) : null}
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !isWideRhpFocused && !isFocused ? (
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        positionLeftValue={modalStackOverlaySuperWideRHPWidth}
                     />
                 ) : null}
                 {!isSmallScreenWidth && shouldRenderThirdOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
                     <Overlay
                         progress={thirdOverlayProgress}
-                        positionLeftValue={windowWidth - variables.navigationTabBarSize - variables.sideBarWidth - variables.sideBarWithLHBWidth}
+                        positionLeftValue={modalStackOverlaySuperWideRHPWidth}
                     />
                 ) : null}
             </View>

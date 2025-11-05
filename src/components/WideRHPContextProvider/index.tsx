@@ -25,7 +25,9 @@ import type {WideRHPContextType} from './types';
 const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
-const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + variables.sideBarWidth;
+const singleRHPWidth = variables.sideBarWidth;
+const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
+const sidebarWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 /**
  * Utility function that extracts all unique navigation keys from a React Navigation state.
@@ -72,7 +74,21 @@ function extractNavigationKeys(state: NavigationState | PartialState<NavigationS
 const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
     const calculatedWidth = windowWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - windowWidth) : variables.receiptPaneRHPMaxWidth;
 
-    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - variables.sideBarWidth);
+    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - singleRHPWidth);
+};
+
+/**
+ * Calculates the optimal width for the super wide RHP based on window width.
+ * Ensures the RHP doesn't exceed maximum width and maintains minimum responsive width.
+ *
+ * @param windowWidth - Current window width in pixels
+ * @returns Calculated super wide RHP width with constraints applied
+ */
+const calculateSuperWideRHPWidth = (windowWidth: number) => {
+    const SuperWideRHPWidth = windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
+    const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
+
+    return Math.max(Math.min(SuperWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
 };
 
 /**
@@ -92,6 +108,10 @@ const calculateSuperWideRHPWidth = (windowWidth: number) => {
 // This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
 const superWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width));
+
+const wideRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width) + singleRHPWidth);
+const modalStackOverlayWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - calculateReceiptPaneRHPWidth(Dimensions.get('window').width - singleRHPWidth));
+const modalStackOverlaySuperWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - singleRHPWidth);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -385,10 +405,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useEffect(() => {
         const handleDimensionChange = () => {
             const windowWidth = Dimensions.get('window').width;
-            const newWidth = calculateReceiptPaneRHPWidth(windowWidth);
+            const newReceiptPaneRHPWidth = calculateReceiptPaneRHPWidth(windowWidth);
             const newSuperWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
-
-            receiptPaneRHPWidth.setValue(newWidth);
+            const newWideRHPWidth = newReceiptPaneRHPWidth + singleRHPWidth;
+            receiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
+            wideRHPWidth.setValue(newWideRHPWidth);
+            modalStackOverlayWideRHPWidth.setValue(windowWidth - newWideRHPWidth - sidebarWidth);
+            modalStackOverlaySuperWideRHPWidth.setValue(windowWidth - sidebarWidth - singleRHPWidth);
             superWideRHPWidth.setValue(newSuperWideRHPWidth);
         };
 
@@ -517,13 +540,24 @@ WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 export default WideRHPContextProvider;
 
 export {
+    
     calculateReceiptPaneRHPWidth,
     calculateSuperWideRHPWidth,
+   
     extractNavigationKeys,
+   
     receiptPaneRHPWidth,
     superWideRHPWidth,
+   
+    wideRHPWidth,
+    modalStackOverlayWideRHPWidth,
+    modalStackOverlaySuperWideRHPWidth,
     secondOverlayProgress,
+   
     useShowSuperWideRHPVersion,
+   
     useShowWideRHPVersion,
+   
     WideRHPContext,
+,
 };
