@@ -893,7 +893,6 @@ function PureReportActionItem({
                             reportActionReportID,
                             action,
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            formatPhoneNumber,
                             isOriginalReportArchived,
                         ),
                     isPrimary: true,
