@@ -877,6 +877,71 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
+    it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const SELF_DM_ID = '555';
+        const CHILD_REPORT_ID = '9999';
+        const TXN_ID = 'txn_123';
+
+        // Sign in and set personal details
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+        // Seed a self-DM report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_ID}`, {
+            reportID: SELF_DM_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as OnyxTypes.Report);
+
+        // Seed an existing action in self DM to ensure MERGE does not overwrite
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}`, {
+            123: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{type: 'COMMENT', html: 'Existing', text: 'Existing'}],
+                reportActionID: '123',
+                created: DateUtils.getDBTime(),
+            },
+        } as unknown as OnyxTypes.ReportActions);
+
+        // Seed a legacy transaction (no parentReportActionID)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}`, {
+            transactionID: TXN_ID,
+            amount: -101,
+            currency: CONST.CURRENCY.USD,
+            comment: {comment: 'Legacy expense'},
+        } as unknown as OnyxTypes.Transaction);
+
+        // Call openReport with transactionID to trigger the legacy preview flow
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, TXN_ID);
+        await waitForBatchedUpdates();
+
+        // Validate the correct Onyx key received the new action and existing one is preserved
+        const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}` as const);
+        expect(selfDMActions).toBeTruthy();
+        // Existing action still present
+        expect(selfDMActions?.['123']).toBeTruthy();
+
+        // Derive the created parentReportActionID from the self DM actions by finding the one that links to the child report
+        const createdEntry = Object.entries(selfDMActions ?? {}).find(([, a]) => (a as any)?.childReportID === CHILD_REPORT_ID);
+        expect(createdEntry).toBeTruthy();
+        const [parentReportActionID, createdAction] = createdEntry as [string, OnyxTypes.ReportAction];
+        expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
+
+        // Ensure we did not create a stray concatenated key like reportActions_<selfDMID><generatedActionID>
+        const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
+        expect(wrongKeyValue).toBeUndefined();
+
+        // The API call should include moneyRequestPreviewReportActionID matching the created action
+        const openReportCalls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT);
+        expect(openReportCalls.length).toBeGreaterThan(0);
+        const body = (openReportCalls.at(0)?.at(1) as RequestInit)?.body as any;
+        const params = body ? Object.fromEntries(body) : {};
+        expect(params.moneyRequestPreviewReportActionID).toBe(parentReportActionID);
+    });
+
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
