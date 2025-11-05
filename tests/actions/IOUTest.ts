@@ -7428,6 +7428,67 @@ describe('actions/IOU', () => {
             expect(amounts).toEqual([33366, 33366, 33368]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(100100);
         });
+
+        it('preserves negative sign and evenly distributes with remainder on last for 3-way split', async () => {
+            const originalTransactionID = 'orig-neg-3';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-3',
+                amount: -100, // in cents = -$1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'n1', amount: 0, description: 'N1', created: DateUtils.getDBTime()},
+                        {transactionID: 'n2', amount: 0, description: 'N2', created: DateUtils.getDBTime()},
+                        {transactionID: 'n3', amount: 0, description: 'N3', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-3',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-34, -34, -32]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-100);
+        });
+
+        it('preserves negative sign for 2-way odd-cent split -> [-$0.51, -$0.50]', async () => {
+            const originalTransactionID = 'orig-neg-2';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-2',
+                amount: -101, // in cents = -$1.01
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test 2-way',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'nA', amount: 0, description: 'NA', created: DateUtils.getDBTime()},
+                        {transactionID: 'nB', amount: 0, description: 'NB', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-2',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-51, -50]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
+        });
     });
 
     describe('updateSplitExpenseAmountField', () => {

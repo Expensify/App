@@ -13650,7 +13650,8 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const currency = getCurrency(draftTransaction);
-    const total = getAmount(draftTransaction);
+    // Use allowNegative=true and disableOppositeConversion=true to preserve original amount sign
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
 
     if (!originalTransactionID || splitExpenses.length === 0) {
         return;
