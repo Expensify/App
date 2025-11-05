@@ -130,11 +130,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 <View style={styles.mb5}>
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
-                    <Text style={[styles.textNormal, styles.textSupporting]}>
-                        {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                        {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
-                    </Text>
+                    <View style={[styles.renderHTML]}>
+                        <RenderHTML html={translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, {formattedPrice, hasTeam2025Pricing})} />
+                    </View>
                 </View>
                 <Button
                     isLoading={loading}

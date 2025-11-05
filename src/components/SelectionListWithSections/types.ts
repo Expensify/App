@@ -1,5 +1,6 @@
 import type {ForwardedRef, JSXElementConstructor, ReactElement, ReactNode, RefObject} from 'react';
 import type {
+    BlurEvent,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -10,7 +11,6 @@ import type {
     StyleProp,
     TargetedEvent,
     TextInput,
-    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
@@ -38,6 +38,7 @@ import type {
     SearchReportAction,
     SearchTask,
     SearchTransaction,
+    SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -112,6 +113,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -370,6 +374,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
+
+        /** The available actions that can be performed for the report */
+        allActions?: SearchTransactionAction[];
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
@@ -425,7 +432,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     onInputFocus?: (index: number) => void;
 
     /** Callback when the input inside the item is blurred (if input exists) */
-    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onInputBlur?: (e: BlurEvent) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
@@ -949,6 +956,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

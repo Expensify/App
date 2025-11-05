@@ -28,7 +28,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -169,7 +169,23 @@ function MoneyRequestView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
-    const allowNegativeAmount = shouldEnableNegative(report, policy);
+    const moneyRequestReport = parentReport;
+    const isApproved = isReportApproved({report: moneyRequestReport});
+    const isInvoice = isInvoiceReport(moneyRequestReport);
+    const isTrackExpense = isTrackExpenseReport(report);
+
+    const iouType = useMemo(() => {
+        if (isTrackExpense) {
+            return CONST.IOU.TYPE.TRACK;
+        }
+        if (isInvoice) {
+            return CONST.IOU.TYPE.INVOICE;
+        }
+
+        return CONST.IOU.TYPE.SUBMIT;
+    }, [isTrackExpense, isInvoice]);
+
+    const allowNegativeAmount = shouldEnableNegative(parentReport, policy, iouType);
 
     const {
         created: transactionDate,
@@ -209,10 +225,6 @@ function MoneyRequestView({
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
     const shouldShowCard = isCardTransaction && cardProgramName;
 
-    const moneyRequestReport = parentReport;
-    const isApproved = isReportApproved({report: moneyRequestReport});
-    const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReport(report);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = updatedTransaction?.taxAmount
         ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
@@ -254,17 +266,6 @@ function MoneyRequestView({
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
 
-    const iouType = useMemo(() => {
-        if (isTrackExpense) {
-            return CONST.IOU.TYPE.TRACK;
-        }
-        if (isInvoice) {
-            return CONST.IOU.TYPE.INVOICE;
-        }
-
-        return CONST.IOU.TYPE.SUBMIT;
-    }, [isTrackExpense, isInvoice]);
-
     const category = transactionCategory ?? '';
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
@@ -272,7 +273,8 @@ function MoneyRequestView({
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory =
-        (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || (isExpenseUnreported && (!policyForMovingExpenses || policy?.areCategoriesEnabled));
+        (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
+        (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
@@ -412,11 +414,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                const firstViolation = violations.at(0);
-
-                if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                }
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit)).join('. ')}.`;
             }
 
             return '';
@@ -459,7 +457,8 @@ function MoneyRequestView({
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
-    const categoryCopyValue = !canEdit ? categoryValue : undefined;
+    const decodedCategoryName = getDecodedCategoryName(categoryValue);
+    const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
@@ -547,7 +546,7 @@ function MoneyRequestView({
 
     const getAttendeesTitle = useMemo(() => {
         return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [transactionAttendees]);
+    }, [actualAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
@@ -753,7 +752,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={categoryValue}
+                            title={decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
