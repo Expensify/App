@@ -154,7 +154,7 @@ const useSearchTypeMenuSections = () => {
     return {
         typeMenuSections,
         CreateReportConfirmationModal,
-        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
     };
 };
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useNetwork from '@hooks/useNetwork';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -102,6 +103,15 @@ describe('useSearchTypeMenuSections', () => {
             },
         };
 
+        const {result} = renderHook(() => useSearchTypeMenuSections());
+
+        expect(result.current.shouldShowSuggestedSearchSkeleton).toBe(false);
+    });
+
+    it('does not show suggested search skeleton when offline', () => {
+        (useNetwork as jest.Mock).mockReturnValue({
+            isOffline: true,
+        });
         const {result} = renderHook(() => useSearchTypeMenuSections());
 
         expect(result.current.shouldShowSuggestedSearchSkeleton).toBe(false);
