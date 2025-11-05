@@ -7,6 +7,7 @@ import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -97,12 +98,17 @@ function HeaderWithBackButton({
         }
         if (shouldShowReportAvatarWithDisplay) {
             return (
-                <AvatarWithDisplayName
-                    report={report}
-                    shouldDisplayStatus={shouldDisplayStatus}
-                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
-                />
+                <OfflineWithFeedback
+                    style={styles.flexGrow1}
+                    pendingAction={report?.pendingFields?.reportName}
+                >
+                    <AvatarWithDisplayName
+                        report={report}
+                        shouldDisplayStatus={shouldDisplayStatus}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                        openParentReportInCurrentTab={openParentReportInCurrentTab}
+                    />
+                </OfflineWithFeedback>
             );
         }
 
