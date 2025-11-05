@@ -205,6 +205,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the IOU is reimbursable */
     iouIsReimbursable: boolean;
+
+    /** Flag indicating if the description is required */
+    isDescriptionRequired: boolean;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -258,6 +261,7 @@ function MoneyRequestConfirmationListFooter({
     iouIsReimbursable,
     onToggleReimbursable,
     isReceiptEditable = false,
+    isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
@@ -459,6 +463,7 @@ function MoneyRequestConfirmationListFooter({
                                 disabled={didConfirm}
                                 interactive={!isReadOnly}
                                 numberOfLinesTitle={2}
+                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                             />
                         </MentionReportContext.Provider>
                     </ShowContextMenuContext.Provider>
