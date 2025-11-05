@@ -704,7 +704,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -3314,7 +3313,6 @@ const CONST = {
             CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
-            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         TRANSACTION_START_DATE_OPTIONS: {
             FROM_BEGINNING: 'fromBeginning',
@@ -3360,7 +3358,6 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
-            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
@@ -7029,6 +7026,14 @@ const CONST = {
                 title: 'workspace.upgrade.distanceRates.title' as const,
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
+            },
+            auditor: {
+                id: 'auditor' as const,
+                alias: 'auditor',
+                name: 'Auditor',
+                title: 'workspace.upgrade.auditor.title' as const,
+                description: 'workspace.upgrade.auditor.description' as const,
+                icon: 'BlueShield',
             },
             reports: {
                 id: 'reports' as const,

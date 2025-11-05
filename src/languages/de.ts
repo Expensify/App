@@ -5149,7 +5149,6 @@ ${amount} für ${merchant} - ${date}`,
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
-                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
@@ -5703,6 +5702,12 @@ ${amount} für ${merchant} - ${date}`,
                 description: 'Erstellen und verwalten Sie Ihre eigenen Tarife, verfolgen Sie in Meilen oder Kilometern und legen Sie Standardkategorien für Entfernungsausgaben fest.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Prüfer',
+                description: 'Prüfer erhalten schreibgeschützten Zugriff auf alle Berichte für volle Transparenz und Überwachung der Compliance.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Prüfer sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
