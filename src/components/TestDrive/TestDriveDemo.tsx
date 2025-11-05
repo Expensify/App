@@ -43,9 +43,10 @@ function TestDriveDemo() {
     });
 
     useEffect(() => {
-        if (hasSeenTour) {
+        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
             return;
         }
+
         completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
     }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID]);
 
@@ -54,10 +55,6 @@ function TestDriveDemo() {
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
         });
-
-        // This should fire only during mount.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const closeModal = useCallback(() => {
