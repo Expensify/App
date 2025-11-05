@@ -3,7 +3,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport} from '@libs/ReportUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
