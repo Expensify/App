@@ -922,17 +922,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button to send an invoice.`,
+            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button.`,
+            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button to ${additionalText} an expense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
         askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
@@ -1118,6 +1118,7 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
@@ -2430,7 +2431,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     `4. Add your boss's email or phone number.\n` +
@@ -2443,7 +2444,7 @@ const translations = {
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Confirm details.\n' +
@@ -2456,7 +2457,7 @@ const translations = {
                 description:
                     '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
                     '4. Choose your *personal* space.\n' +
@@ -2554,7 +2555,7 @@ const translations = {
                 description:
                     '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter an email or phone number.\n' +
                     '\n' +
@@ -2568,7 +2569,7 @@ const translations = {
                 description:
                     '*Split expenses* with one or more people.\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Start chat*.\n' +
                     '3. Enter emails or phone numbers.\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
@@ -2591,7 +2592,7 @@ const translations = {
                 description:
                     'Here’s how to create a report:\n' +
                     '\n' +
-                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    `1. Click the + button.\n` +
                     '2. Choose *Create report*.\n' +
                     '3. Click *Add expense*.\n' +
                     '4. Add your first expense.\n' +
@@ -4599,6 +4600,7 @@ const translations = {
                 monthly: 'Monthly',
             },
             cardDetails: 'Card details',
+            cardPending: ({name}: {name: string}) => `Card is currently pending and will be issued once ${name}'s account is validated.`,
             virtual: 'Virtual',
             physical: 'Physical',
             deactivate: 'Deactivate card',
@@ -4781,9 +4783,7 @@ const translations = {
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
                 downgradeTitle: `Can't downgrade workspace`,
-                downgradeSubTitleFirstPart: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please`,
-                downgradeSubTitleMiddlePart: `keep only one card feed`,
-                downgradeSubTitleLastPart: 'to proceed.',
+                downgradeSubTitle: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please <a href="#">keep only one card feed</a> to proceed.`,
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again`,
                 expensifyCardBannerTitle: 'Get the Expensify Card',
                 expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
@@ -5606,7 +5606,7 @@ const translations = {
                 title: 'Categories',
                 description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `Categories are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Categories are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             glCodes: {
                 title: 'GL codes',
@@ -6174,7 +6174,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: `Try adjusting your search criteria or creating something with the green ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.`,
+                subtitle: `Try adjusting your search criteria or creating something with the + button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -6823,6 +6823,7 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
+        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {

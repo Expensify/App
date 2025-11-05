@@ -420,7 +420,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID: currentUserPersonalDetails.accountID});
+                    const targetAccountPersonalDetails = {
+                        ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                        accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    };
+
+                    navigateToQuickAction({
+                        isValidReport,
+                        quickAction,
+                        selectOption,
+                        lastDistanceExpenseType,
+                        targetAccountPersonalDetails,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                    });
                 });
             };
             return [
@@ -481,6 +493,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         isValidReport,
         selectOption,
         lastDistanceExpenseType,
+        personalDetails,
         currentUserPersonalDetails.accountID,
         showDelegateNoAccessModal,
         reportID,

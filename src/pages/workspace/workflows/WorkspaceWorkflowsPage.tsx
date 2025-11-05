@@ -316,7 +316,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <MenuItem
                                 title={shouldShowBankAccount ? bankTitle : translate('bankAccount.addBankAccount')}
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
-                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData)}
+                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         showLockedAccountModal();
