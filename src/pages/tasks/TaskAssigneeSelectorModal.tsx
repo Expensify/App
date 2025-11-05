@@ -153,7 +153,7 @@ function TaskAssigneeSelectorModal() {
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = setAssigneeValue(
+                    const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
                         currentUserPersonalDetails.accountID,
                         assigneePersonalDetails,
                         report.reportID,
@@ -168,6 +168,7 @@ function TaskAssigneeSelectorModal() {
                         currentUserPersonalDetails.accountID,
                         option?.accountID,
                         assigneeChatReport,
+                        isOptimisticReport,
                     );
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
