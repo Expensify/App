@@ -26,7 +26,7 @@ type FullScreenLoadingIndicatorProps = {
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
-    extraLoadingContext?: ExtraLoadingContext;   
+    extraLoadingContext?: ExtraLoadingContext;
 };
 
 function FullScreenLoadingIndicator({
