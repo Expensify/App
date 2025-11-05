@@ -116,9 +116,6 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The main action that can be performed for the report */
-    action?: SearchTransactionAction;
-
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
