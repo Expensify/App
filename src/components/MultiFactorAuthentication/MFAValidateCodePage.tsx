@@ -1,5 +1,6 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -201,44 +202,46 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                {
-                    // @ts-expect-error translation can have parameters
-                    translate(description, {contactMethod})
-                }
-            </Text>
-            <View style={[styles.mh5]}>
-                <MagicCodeInput
-                    isDisableKeyboard
-                    autoComplete={autoComplete}
-                    name="mfaValidateCode"
-                    value={inputCode}
-                    onChangeText={onCodeInput}
-                    onFulfill={validateAndSubmitForm}
-                    errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
-                    hasError={hasError}
-                    ref={inputRef}
-                    maxLength={CONST.MAGIC_CODE_LENGTH}
+            <FullPageOfflineBlockingView>
+                <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                    {
+                        // @ts-expect-error translation can have parameters
+                        translate(description, {contactMethod})
+                    }
+                </Text>
+                <View style={[styles.mh5]}>
+                    <MagicCodeInput
+                        isDisableKeyboard
+                        autoComplete={autoComplete}
+                        name="mfaValidateCode"
+                        value={inputCode}
+                        onChangeText={onCodeInput}
+                        onFulfill={validateAndSubmitForm}
+                        errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
+                        hasError={hasError}
+                        ref={inputRef}
+                        maxLength={CONST.MAGIC_CODE_LENGTH}
+                    />
+                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                    <MFAValidateCodeResendButton
+                        shouldShowTimer={shouldShowTimer}
+                        timeRemaining={timeRemaining}
+                        shouldDisableResendCode={shouldDisableResendCode}
+                        hasError={hasError}
+                        resendButtonText={resendButtonText}
+                        onResendValidationCode={resendValidationCode}
+                    />
+                </View>
+                <Button
+                    success
+                    large
+                    style={[styles.w100, styles.p5, styles.mtAuto]}
+                    onPress={validateAndSubmitForm}
+                    text={translate('common.verify')}
+                    isLoading={isValidateCodeFormSubmitting || isVerifying}
+                    isDisabled={isOffline}
                 />
-                {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                <MFAValidateCodeResendButton
-                    shouldShowTimer={shouldShowTimer}
-                    timeRemaining={timeRemaining}
-                    shouldDisableResendCode={shouldDisableResendCode}
-                    hasError={hasError}
-                    resendButtonText={resendButtonText}
-                    onResendValidationCode={resendValidationCode}
-                />
-            </View>
-            <Button
-                success
-                large
-                style={[styles.w100, styles.p5, styles.mtAuto]}
-                onPress={validateAndSubmitForm}
-                text={translate('common.verify')}
-                isLoading={isValidateCodeFormSubmitting || isVerifying}
-                isDisabled={isOffline}
-            />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

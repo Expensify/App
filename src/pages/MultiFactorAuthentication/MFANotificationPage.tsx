@@ -13,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 // TODO: dodac co configa scenario: success i failure screen i tam zdefiniowac to nizej a runoutoftime do constow
 type NotificationType = 'authentication-successful' | 'authentication-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time';
@@ -91,14 +91,13 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
     }
 
     return (
-        // No FullPageOfflineBlockingView here as there is no more communication through network at this point
         <ScreenWrapper testID={MFANotificationPage.displayName}>
             <HeaderWithBackButton
                 title={headerTitle}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1]}>
+            <View style={styles.flex1}>
                 <BlockingView
                     icon={data.illustration}
                     contentFitImage="fill"
@@ -107,14 +106,14 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
                     title={title}
                     subtitle={content}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={styles.p1} // "sometimes maybe good sometimes maybe bad" - we have to decide on one padding for all those screens
+                    containerStyle={styles.p1}
                     testID={MFANotificationPage.displayName}
                 />
             </View>
             <View style={[styles.flexRow, styles.m5]}>
                 <Button
                     success
-                    style={[styles.flex1]}
+                    style={styles.flex1}
                     onPress={onGoBackPress}
                     text={translate('common.buttonConfirm')}
                 />

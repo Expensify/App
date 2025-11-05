@@ -3,6 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
 import MFAPromptActions from '@components/MultiFactorAuthentication/MFAPromptActions';
 import MFAPromptContent from '@components/MultiFactorAuthentication/MFAPromptContent';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
@@ -10,10 +11,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
@@ -50,7 +50,6 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const {translate} = useLocalize();
     const {update} = useMultifactorAuthenticationContext();
 
-    // Memoize to avoid recalculating on every render
     const contentData = useMemo(() => getPromptContentData(route.params.promptType), [route.params.promptType]);
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
@@ -62,7 +61,6 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const onGoBackPress = useCallback(() => {
         update({softPromptDecision: false});
     }, [update]);
-
 
     const showConfirmModal = useCallback(() => {
         setConfirmModalVisibility(true);
