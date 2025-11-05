@@ -11548,10 +11548,9 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>): Participant[] {
+function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const currentUserAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     let participants: Participant[] = [];
 
@@ -11582,8 +11581,8 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
  * @param report attached to the transaction
  * @param participantsAutoAssigned whether participants were auto assigned
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, participantsAutoAssigned = true) {
-    const participants = getMoneyRequestParticipantsFromReport(report);
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
+    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         participantsAutoAssigned,
@@ -12398,8 +12397,8 @@ function updateLastLocationPermissionPrompt() {
     Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
 }
 
-function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>) {
-    const participants = getMoneyRequestParticipantsFromReport(reportValue);
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>, currentUserAccountID: number) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
     const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<OnyxTypes.Transaction>> = {};
     transactionIDs.forEach((transactionID) => {
         updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
@@ -13764,7 +13763,7 @@ function updateSplitTransactions({
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
 
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
-    const participants = getMoneyRequestParticipantsFromReport(expenseReport);
+    const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
