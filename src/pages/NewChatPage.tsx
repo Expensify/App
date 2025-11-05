@@ -27,17 +27,8 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {
-    Option,
-    Section} from '@libs/OptionsListUtils';
-import {
-    filterAndOrderOptions,
-    formatSectionsFromSearchTerm,
-    getFirstKeyForList,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
