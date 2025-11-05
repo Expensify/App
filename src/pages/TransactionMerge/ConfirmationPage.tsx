@@ -70,7 +70,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModalWithReport({reportID});
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, policy, policyTags, policyCategories]);
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, policy, policyTags, policyCategories, hash]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionParentReport?.reportID) {
         return <FullScreenLoadingIndicator />;
