@@ -6,6 +6,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
+    SetPersonalDetailsAndRevealExpensifyCardParams,
     SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
@@ -545,7 +546,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
     cardID: number,
 ): Promise<{pan: string; expiration: string; cvv: string}> {
     return new Promise((resolve, reject) => {
-        const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+        const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
             legalFirstName: values.legalFirstName?.trim() ?? '',
             legalLastName: values.legalLastName?.trim() ?? '',
             phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),

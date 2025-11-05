@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';

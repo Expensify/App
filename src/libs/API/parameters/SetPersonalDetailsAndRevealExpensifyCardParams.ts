@@ -1,4 +1,4 @@
-type SetPersonalDetailsAndShipExpensifyCardsParams = {
+type SetPersonalDetailsAndRevealExpensifyCardParams = {
     legalFirstName: string;
     legalLastName: string;
     phoneNumber: string;
@@ -10,6 +10,7 @@ type SetPersonalDetailsAndShipExpensifyCardsParams = {
     addressState: string;
     dob: string;
     validateCode: string;
+    cardID: number;
 };
 
-export default SetPersonalDetailsAndShipExpensifyCardsParams;
+export default SetPersonalDetailsAndRevealExpensifyCardParams;
