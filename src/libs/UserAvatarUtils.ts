@@ -237,7 +237,14 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  * @returns The avatar URL string
  */
 function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
-    return isCustomAvatar(avatarSource) ? getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource}) : avatarSource;
+    if (isDefaultAvatar(avatarSource)) {
+        return getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource});
+    }
+    const maybeCustomAvatarName = getCustomAvatarNameFromURL(avatarSource);
+    if (maybeCustomAvatarName) {
+        return CustomAvatarCatalog.getAvatarLocal(maybeCustomAvatarName);
+    }
+    return avatarSource;
 }
 
 /**
