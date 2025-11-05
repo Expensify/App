@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -66,18 +67,21 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
 
-        changeTransactionsReport(
-            selectedTransactionIDs,
-            isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            newReport,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-            reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-        );
-        turnOffMobileSelectionMode();
-        clearSelectedTransactions(true);
+        setNavigationActionToMicrotaskQueue(() => {
+            changeTransactionsReport(
+                selectedTransactionIDs,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                newReport,
+                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                reportNextStep,
+                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+            );
+            turnOffMobileSelectionMode();
+            clearSelectedTransactions(true);
+        });
+
         Navigation.dismissModal();
     };
 
