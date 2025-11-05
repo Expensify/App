@@ -1,5 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import usePolicyData from '@hooks/usePolicyData';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -14,16 +16,19 @@ import {
     getTransactionDetails,
     getWorkspaceChats,
     getWorkspaceIcon,
+    pushTransactionViolationsOnyxData,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -33,7 +38,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -98,7 +103,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const currentLoginAccountID = 1;
 
         await waitForBatchedUpdates();
@@ -113,7 +118,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getIcons on 1k participants', async () => {
-        const report = {...createRandomReport(1), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
+        const report = {...createRandomReport(1, undefined), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
         const policy = createRandomPolicy(1);
         const defaultIcon = null;
         const defaultName = '';
@@ -133,7 +138,7 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
         const reportAction = createRandomReportAction(1);
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
         const shouldConsiderReceiptBeingScanned = true;
         const isPreviewMessageForParentChatReport = true;
@@ -143,7 +148,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
-        const report = {...createRandomReport(1), chatType: undefined, participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
@@ -151,7 +156,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs};
         const accountID = 1;
 
         await waitForBatchedUpdates();
@@ -159,7 +164,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
-        const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
+        const report = {...createRandomReport(1, undefined), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
         const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -181,7 +186,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
@@ -189,7 +194,7 @@ describe('ReportUtils', () => {
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
-        const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, isOwnPolicyExpenseChat: true};
+        const report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), isOwnPolicyExpenseChat: true};
         const policy = createRandomPolicy(1);
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
@@ -210,6 +215,82 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+    });
+
+    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 100 expenses on each report', async () => {
+        // Current policy with categories and tags enabled but does not require them
+        const policy = {
+            ...createRandomPolicy(1),
+            areCategoriesEnabled: true,
+            areTagsEnabled: true,
+
+            requiresCategory: false,
+            requiresTag: false,
+        };
+
+        // Simulate a policy optimistic data when requires categories and tags is updated eg (setRequiresCategory)
+        const policyOptimisticData = {
+            requiresCategory: true,
+            requiresTag: true,
+        };
+
+        // Create a report collection with 1000 reports linked to the policy
+        const reportCollection = Object.values(getMockedReports(10000)).reduce<Record<string, Report>>((acc, report) => {
+            acc[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {
+                ...report,
+                policyID: policy.id,
+            };
+            return acc;
+        }, {});
+
+        // Create a transaction collection with 8 transactions for each report
+        const transactionCollection = Object.values(reportCollection).reduce<Record<string, Transaction>>((acc, report, index) => {
+            for (let transactionIndex = 0; transactionIndex < 100; transactionIndex++) {
+                const transactionID = index * 10 + transactionIndex;
+
+                // Create a transaction with no category and no tag
+                acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+                    ...createRandomTransaction(transactionID),
+                    reportID: report.reportID,
+                    category: undefined,
+                    tag: undefined,
+                };
+            }
+            return acc;
+        }, {});
+
+        const reportActionsCollection = Object.values(transactionCollection).reduce<Record<string, Record<string, ReportAction>>>((acc, transaction, index) => {
+            acc[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] = {
+                [index.toString()]: {
+                    ...createRandomReportAction(index + 1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUReportID: transaction.reportID,
+                        IOUTransactionID: transaction.transactionID,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                    },
+                },
+            };
+            return acc;
+        }, {});
+
+        const policyTags = createRandomPolicyTags('Tags', 8);
+        const policyCategories = createRandomPolicyCategories(8);
+        await Onyx.multiSet({
+            ...reportCollection,
+            ...transactionCollection,
+            ...reportActionsCollection,
+            [ONYXKEYS.COLLECTION.POLICY]: {[policy.id]: policy},
+            [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[policy.id]: policyTags},
+            [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[policy.id]: policyCategories},
+        });
+        await waitForBatchedUpdates();
+        const {
+            result: {current: policyData},
+        } = renderHook(() => usePolicyData(policy.id));
+        const onyxData = {optimisticData: [], failureData: []};
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {

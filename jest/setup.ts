@@ -107,6 +107,15 @@ jest.mock('@src/libs/actions/Timing', () => ({
     clearData: jest.fn(),
 }));
 
+jest.mock('@src/setup/telemetry', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+    navigationIntegration: {
+        registerNavigationContainer: jest.fn(),
+    },
+}));
+
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
     defineTask: jest.fn(),
     onBackgroundTaskExecution: jest.fn(),

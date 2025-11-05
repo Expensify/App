@@ -121,6 +121,9 @@ describe('CustomFormula', () => {
                 if (currency === 'USD') {
                     return '$';
                 }
+                if (currency === 'EUR') {
+                    return '€';
+                }
                 return currency;
             });
 
@@ -247,6 +250,80 @@ describe('CustomFormula', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
+
+        describe('Reimbursable Amount', () => {
+            const reimbursableContext: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    reportName: '',
+                    type: 'expense',
+                    policyID: 'policy1',
+                },
+                policy: {
+                    name: 'Test Policy',
+                } as Policy,
+            };
+
+            const calculateExpectedReimbursable = (total: number, nonReimbursableTotal: number) => {
+                const reimbursableAmount = total - nonReimbursableTotal;
+                return Math.abs(reimbursableAmount) / 100;
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            test('should compute reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = -10000; // -$100.00
+                reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
+
+                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
+            });
+
+            test('should compute reimbursable amount with different currency', () => {
+                reimbursableContext.report.currency = 'EUR';
+                reimbursableContext.report.total = -8000; // -€80.00
+                reimbursableContext.report.nonReimbursableTotal = -3000; // -€30.00
+
+                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+                const result = compute('{report:reimbursable}', reimbursableContext);
+
+                expect(result).toBe(`€${expectedReimbursable.toFixed(2)}`);
+            });
+
+            test('should handle zero reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = -10000; // -$100.00
+                reimbursableContext.report.nonReimbursableTotal = -10000; // -$100.00 (all non-reimbursable)
+
+                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
+            });
+
+            test('should handle undefined reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = undefined;
+                reimbursableContext.report.nonReimbursableTotal = undefined;
+
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('$0.00');
+            });
+
+            test('should handle missing currency gracefully', () => {
+                reimbursableContext.report.currency = undefined;
+                reimbursableContext.report.total = -10000; // -100.00
+                reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
+
+                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+                mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
+            });
+        });
     });
 
     describe('Function Modifiers', () => {
@@ -340,6 +417,92 @@ describe('CustomFormula', () => {
                 const result = compute('{report:policyname|substr:0:abc}', mockContext);
                 expect(result).toBe(''); // Invalid length, returns empty
             });
+        });
+    });
+
+    describe('Auto-reporting Frequency', () => {
+        const mockReport = {reportID: '123'} as Report;
+        const createMockContext = (policy: Policy): FormulaContext => ({report: mockReport, policy});
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-19T14:23:45Z'));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('should compute weekly frequency dates', () => {
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should compute semi-monthly frequency dates', () => {
+            jest.setSystemTime(new Date('2025-01-10T12:00:00Z'));
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY} as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-15');
+
+            jest.setSystemTime(new Date('2025-01-20T12:00:00Z'));
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-16');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-31');
+        });
+
+        test('should compute monthly frequency with specific offset', () => {
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: 25,
+            } as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2024-12-26');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-25');
+        });
+
+        test('should compute monthly frequency with last business day', () => {
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
+            } as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-31');
+        });
+
+        test('should compute trip frequency dates', () => {
+            const mockTransactions = [
+                {transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+                {transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
+            ];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should apply custom date formats', () => {
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start:MMMM dd, yyyy}', context)).toBe('January 13, 2025');
+            expect(compute('{report:autoreporting:end:MM/dd/yyyy}', context)).toBe('01/19/2025');
+        });
+
+        test('should return formula definition when policy or frequency is missing', () => {
+            expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
+            expect(compute('{report:autoreporting:end}', createMockContext({} as Policy))).toBe('{report:autoreporting:end}');
         });
     });
 
