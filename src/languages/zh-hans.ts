@@ -1122,7 +1122,6 @@ const translations = {
         splitExpense: '拆分费用',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自${merchant}的${amount}`,
         addSplit: '添加分账',
-        makeSplitsEven: '使拆分均等',
         editSplits: '编辑拆分',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用多${amount}。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
