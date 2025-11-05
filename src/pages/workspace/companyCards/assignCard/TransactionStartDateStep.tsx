@@ -17,11 +17,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CombinedFeedKey} from '@src/types/onyx';
 
 type TransactionStartDateStepProps = {
     policyID: string | undefined;
-    feed: CompanyCardFeed;
+    feed: CombinedFeedKey;
     backTo?: Route;
 };
 
