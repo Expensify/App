@@ -505,12 +505,6 @@ function SettlementButton({
                 return;
             }
 
-            if (bankAccountToDisplay?.accountData?.accountNumber) {
-                return translate('paymentMethodList.bankAccountLastFour', {
-                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
-                });
-            }
-
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
         }
 
