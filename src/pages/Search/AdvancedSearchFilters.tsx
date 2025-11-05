@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -246,6 +246,11 @@ const baseFilterConfig = {
         description: 'common.action' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
     },
+    reportField: {
+        getTitle: getFilterDisplayTitle,
+        description: 'workspace.common.reportField' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD),
+    },
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
@@ -365,6 +370,50 @@ function getFilterDisplayTitle(
     }
 
     key = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | SearchAmountFilterKeys>;
+
+    if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        const values: string[] = [];
+
+        Object.entries(filters).forEach(([fieldKey, fieldValue]) => {
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                return;
+            }
+
+            const fieldName = fieldKey
+                .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+                .split('-')
+                .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+                .join(' ');
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+                const dateString = isSearchDatePreset(fieldValue as string)
+                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
+                    : translate('search.filters.date.on', {date: fieldValue as string});
+
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
+                values.push(valueString);
+            }
+        });
+
+        return values.length ? values.join(', ') : undefined;
+    }
 
     if ((key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) && filters[key]) {
         const filterArray = filters[key] ?? [];

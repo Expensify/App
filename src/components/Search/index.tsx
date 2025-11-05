@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -475,6 +476,7 @@ function Search({
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
+                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                     };
                 });
             });
@@ -511,6 +513,7 @@ function Search({
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
+                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
                 };
             });
         }
@@ -669,7 +672,6 @@ function Search({
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -702,11 +704,7 @@ function Search({
                 return;
             }
 
-            const isInvoice = item?.report?.type === CONST.REPORT.TYPE.INVOICE;
-
-            if (!isTask && !isInvoice) {
-                markReportIDAsExpense(reportID);
-            }
+            markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
@@ -714,7 +712,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -920,20 +918,22 @@ function Search({
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columnsToShow}
-                                type={type}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
-                            />
+                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYear}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting={shouldShowSorting}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
@@ -979,4 +979,6 @@ function Search({
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+WrappedSearch.displayName = 'Search';
+export default WrappedSearch;
