@@ -19,7 +19,6 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
-import InviteNewMemberStep from './InviteNewMemberStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
@@ -83,13 +82,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-            return (
-                <TransactionStartDateStep
-                    policyID={policyID}
-                    feed={feed}
-                    backTo={backTo}
-                />
-            );
+            return <TransactionStartDateStep />;
         case CONST.COMPANY_CARD.STEP.CARD_NAME:
             return <CardNameStep policyID={policyID} />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
@@ -98,13 +91,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                     policyID={policyID}
                     feed={feed}
                     backTo={shouldUseBackToParam ? backTo : undefined}
-                />
-            );
-        case CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER:
-            return (
-                <InviteNewMemberStep
-                    route={route}
-                    feed={feed}
                 />
             );
         default:

@@ -744,9 +744,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
-                        },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -1119,11 +1116,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: {
-                    screens: {
-                        [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: ROUTES.SET_DEFAULT_WORKSPACE.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
                     screens: {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
@@ -1392,6 +1384,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
+                        [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: ROUTES.MONEY_REQUEST_STEP_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
@@ -1432,6 +1425,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,
                         },
+                        [SCREENS.SET_DEFAULT_WORKSPACE]: ROUTES.SET_DEFAULT_WORKSPACE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
@@ -1530,6 +1524,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT]: {
+                    screens: {
+                        [SCREENS.REPORT_VERIFY_ACCOUNT]: ROUTES.REPORT_VERIFY_ACCOUNT.route,
+                        [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
@@ -1552,7 +1552,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
+                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
+                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
