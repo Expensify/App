@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -33,25 +33,31 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                data: {
+                    ...assignCard?.data,
+                    invitingMemberEmail: undefined,
+                },
+            });
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 data: {
                     ...assignCard?.data,
-                    assigneeAccountID: undefined,
-                    email: undefined,
+                    invitingMemberEmail: undefined,
                 },
                 isEditing: false,
             });
         }
     };
 
-    const goToNextStep = () => {
+    const goToNextStep = useCallback(() => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const data: Partial<AssignCardData> = {
             email: assignCard?.data?.email,
             cardName: getDefaultCardName(assignCard?.data?.email),
+            invitingMemberEmail: '',
         };
 
         if (hasOnlyOneCardToAssign(filteredCardList)) {
@@ -65,7 +71,16 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
             data,
             isEditing: false,
         });
-    };
+    }, [isEditing, assignCard?.data, filteredCardList]);
+
+    // If the currently inviting member is already a member of the policy then we should just call goToNextStep
+    // See https://github.com/Expensify/App/issues/74256 for more details
+    useEffect(() => {
+        if (!policy?.employeeList?.[assignCard?.data?.invitingMemberEmail ?? '']) {
+            return;
+        }
+        goToNextStep();
+    }, [assignCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep]);
 
     return (
         <InteractiveStepWrapper

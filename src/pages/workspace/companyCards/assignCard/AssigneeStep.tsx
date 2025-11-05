@@ -93,8 +93,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
-                    email: assignee?.login ?? '',
-                    assigneeAccountID: assignee?.accountID ?? undefined,
+                    invitingMemberEmail: assignee?.login ?? '',
                 },
             });
             setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policy?.id);
@@ -267,6 +266,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
                 shouldUpdateFocusedIndex
+                initiallyFocusedOptionKey={assignCard?.data?.email}
                 addBottomSafeAreaPadding
                 showLoadingPlaceholder={!areOptionsInitialized}
                 isLoadingNewOptions={!!isSearchingForReports}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -21,25 +21,48 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
     const isEditing = issueNewCard?.isEditing;
     const handleBackButtonPress = () => {
         if (isEditing) {
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE,
+                policyID,
+                data: {...issueNewCard?.data, invitingMemberEmail: undefined},
+            });
             return;
         }
 
         setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE,
-            data: {...issueNewCard?.data, assigneeAccountID: undefined, assigneeEmail: undefined},
+            data: {...issueNewCard?.data, invitingMemberEmail: undefined},
             isEditing: false,
             policyID,
         });
     };
 
-    const goToNextStep = () => {
+    const goToNextStep = useCallback(() => {
         if (isEditing) {
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                isEditing: false,
+                policyID,
+                data: {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined},
+            });
         } else {
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, isEditing: false, policyID});
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
+                isEditing: false,
+                policyID,
+                data: {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined},
+            });
         }
-    };
+    }, [isEditing, issueNewCard?.data, policyID]);
+
+    // If the currently inviting member is already a member of the policy then we should just call goToNextStep
+    // See https://github.com/Expensify/App/issues/74256 for more details
+    useEffect(() => {
+        if (!policy?.employeeList?.[issueNewCard?.data?.invitingMemberEmail ?? '']) {
+            return;
+        }
+        goToNextStep();
+    }, [issueNewCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep]);
 
     return (
         <InteractiveStepWrapper
