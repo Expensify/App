@@ -83,7 +83,10 @@ type SearchPersonalDetails = {
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
-/** Model of report search result */
+/** Model of report search result
+ *
+ * @deprecated - Use Report instead
+ */
 type SearchReport = {
     /** The ID of the report */
     reportID: string;
@@ -106,20 +109,11 @@ type SearchReport = {
     /** The accountID of the report manager */
     managerID?: number;
 
-    /** The accountID of the user who created the report  */
-    accountID?: number;
-
     /** The policyID of the report */
     policyID?: string;
 
     /** The date the report was created */
     created?: string;
-
-    /** The main action that can be performed for the report */
-    action?: SearchTransactionAction;
-
-    /** The available actions that can be performed for the report */
-    allActions?: SearchTransactionAction[];
 
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -291,9 +285,6 @@ type SearchTransaction = {
 
     /** The type of report the transaction is associated with */
     reportType: string;
-
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
@@ -484,6 +475,7 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
@@ -508,6 +500,7 @@ export type {
     SearchTransactionAction,
     SearchPersonalDetails,
     SearchDataTypes,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
     SearchReportAction,
     SearchResultsInfo,

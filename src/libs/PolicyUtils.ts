@@ -1406,9 +1406,13 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
     }
 }
 
-function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
+function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string): boolean {
     return (
-        !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        !isEmptyObject(policy) &&
+        (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) &&
+        !!policy?.id &&
+        policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        !!getPolicyRole(policy, currentUserLogin)
     );
 }
 
