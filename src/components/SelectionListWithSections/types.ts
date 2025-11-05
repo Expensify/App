@@ -35,7 +35,6 @@ import type {
     SearchMemberGroup,
     SearchPersonalDetails,
     SearchPolicy,
-    SearchReport,
     SearchReportAction,
     SearchTask,
     SearchTransaction,
@@ -372,7 +371,7 @@ type TransactionGroupListItemType = ListItem & {
     transactionsQueryJSON?: SearchQueryJSON;
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
