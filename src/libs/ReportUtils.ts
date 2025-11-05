@@ -62,6 +62,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -294,7 +295,6 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
-import { ReportTransactionsAndViolations } from '@src/types/onyx/DerivedValues';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
