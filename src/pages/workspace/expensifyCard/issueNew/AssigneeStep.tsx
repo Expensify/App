@@ -247,7 +247,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
-                sections={areOptionsInitialized ? sections : []}
+                sections={sections}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
                 shouldUpdateFocusedIndex
