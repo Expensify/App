@@ -1114,6 +1114,7 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy>) {
     if (brokenConnectionViolations.length === 0) {
         return false;
@@ -1133,6 +1134,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
 /**
  * Check if user should see broken connection violation warning based on violations list.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[]): boolean {
     const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
 
@@ -1144,6 +1146,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchR
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactionIDs: string[],
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,

@@ -54,6 +54,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, transactionItem.reportID]);
 

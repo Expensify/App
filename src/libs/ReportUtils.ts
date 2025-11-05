@@ -908,6 +908,7 @@ type GetPolicyNameParams = {
     returnEmptyIfNotFound?: boolean;
     policy?: OnyxInputOrEntry<Policy>;
     policies?: Policy[];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
 };
 
@@ -918,6 +919,7 @@ type GetReportNameParams = {
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactions?: SearchTransaction[];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
     policies?: Policy[];
     isReportArchived?: boolean;
@@ -1201,6 +1203,7 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[], fallbackReport?: Report): OnyxEntry<Report> | SearchReport {
     const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1235,6 +1238,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 /**
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isSearchReportArray(object: SearchReport[] | OnyxCollection<Report>): object is SearchReport[] {
     if (!Array.isArray(object)) {
         return false;
@@ -1247,6 +1251,7 @@ function isSearchReportArray(object: SearchReport[] | OnyxCollection<Report>): o
  * @private
  * Returns the report
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Report>): OnyxEntry<Report> | SearchReport {
     if (isSearchReportArray(reports)) {
         reports?.find((report) => report.reportID === reportID);
@@ -1276,6 +1281,7 @@ function getRootParentReport({
     visitedReportIDs = new Set<string>(),
 }: {
     report: OnyxEntry<Report>;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
     visitedReportIDs?: Set<string>;
 }): OnyxEntry<Report> {
@@ -1364,6 +1370,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isInvoiceReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.INVOICE;
@@ -1398,6 +1405,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
@@ -1406,6 +1414,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | s
 /**
  * Checks if a report is an IOU report using report or reportID
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
@@ -1515,6 +1524,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 /**
  * Whether the Money Request report is settled
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
     if (!reportOrID) {
         return false;
@@ -2161,6 +2171,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived = false): boolean {
     return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
@@ -2186,6 +2197,7 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 /**
  * Whether the provided report is a closed report
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
@@ -2371,6 +2383,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? allReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
@@ -3729,8 +3742,10 @@ function getReimbursementQueuedActionMessage({
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportOrID: OnyxEntry<Report> | string | SearchReport;
     shouldUseShortDisplayName?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
@@ -3752,6 +3767,7 @@ function getReimbursementQueuedActionMessage({
  */
 function getReimbursementDeQueuedOrCanceledActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportOrID: OnyxEntry<Report> | string | SearchReport,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
@@ -4049,6 +4065,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined, reports
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: SearchReport[]): SpendBreakdown {
     const reports = searchReports ?? allReports;
     let moneyRequestReport: OnyxEntry<Report>;
@@ -4349,6 +4366,7 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
 function canEditMoneyRequest(
     reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     isChatReportArchived = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     report?: OnyxInputOrEntry<Report> | SearchReport,
     policy?: OnyxEntry<Policy>,
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
@@ -4494,6 +4512,7 @@ function canEditFieldOfMoneyRequest(
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     report?: OnyxInputOrEntry<Report> | SearchReport,
     policy?: OnyxEntry<Policy>,
 ): boolean {
@@ -4863,6 +4882,7 @@ function getTransactionReportName({
 }: {
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     transactions?: SearchTransaction[];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
 }): string {
     if (isReversedTransaction(reportAction)) {
@@ -5367,6 +5387,7 @@ function getReportActionMessage({
     reportAction: OnyxEntry<ReportAction>;
     reportID?: string;
     childReportID?: string;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[];
     personalDetails?: Partial<PersonalDetailsList>;
 }) {
@@ -5497,6 +5518,7 @@ function getReportName(
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
     isReportArchived?: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reports?: SearchReport[],
     policies?: Policy[],
 ): string {
@@ -9216,11 +9238,13 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function chatIncludesChronos(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function chatIncludesChronosWithID(reportOrID?: string | SearchReport): boolean {
     if (!reportOrID) {
         return false;
@@ -12041,6 +12065,7 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
