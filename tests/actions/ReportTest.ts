@@ -34,7 +34,7 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch, FormData as TestFormData} from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -926,9 +926,13 @@ describe('actions/Report', () => {
 
         // Derive the created parentReportActionID from the self DM actions by finding the one that links to the child report
         const entries = Object.entries(selfDMActions ?? {}) as Array<[string, OnyxTypes.ReportAction]>;
-        const createdEntry = entries.find(([, action]) => action?.childReportID === CHILD_REPORT_ID);
+        const createdEntry = entries.find((tuple): tuple is [string, OnyxTypes.ReportAction] => tuple?.[1]?.childReportID === CHILD_REPORT_ID);
         expect(createdEntry).toBeDefined();
-        const [parentReportActionID, createdAction] = createdEntry!;
+        // Type guard for TS; the expect above will fail the test if undefined
+        if (!createdEntry) {
+            return; 
+        }
+        const [parentReportActionID, createdAction] = createdEntry;
         expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
 
         // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
@@ -936,15 +940,10 @@ describe('actions/Report', () => {
         expect(wrongKeyValue).toBeUndefined();
 
         // The API call should include moneyRequestPreviewReportActionID matching the created action
-        const openReportCalls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT);
-        expect(openReportCalls.length).toBeGreaterThan(0);
-        const call = openReportCalls.at(0);
-        expect(call).toBeTruthy();
-        const body = (call?.[1] as RequestInit)?.body as TestFormData | undefined;
-        const paramsEntries = body?.entries() ?? [];
-        const params = Object.fromEntries(paramsEntries) as Record<string, string | Blob>;
-        expect(typeof params.moneyRequestPreviewReportActionID).toBe('string');
-        expect(params.moneyRequestPreviewReportActionID).toBe(parentReportActionID);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+            reportID: CHILD_REPORT_ID,
+            moneyRequestPreviewReportActionID: parentReportActionID
+        });
     });
 
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
