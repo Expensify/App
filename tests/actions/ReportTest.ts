@@ -930,7 +930,7 @@ describe('actions/Report', () => {
         expect(createdEntry).toBeDefined();
         // Type guard for TS; the expect above will fail the test if undefined
         if (!createdEntry) {
-            return; 
+            return;
         }
         const [parentReportActionID, createdAction] = createdEntry;
         expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
@@ -942,7 +942,7 @@ describe('actions/Report', () => {
         // The API call should include moneyRequestPreviewReportActionID matching the created action
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
             reportID: CHILD_REPORT_ID,
-            moneyRequestPreviewReportActionID: parentReportActionID
+            moneyRequestPreviewReportActionID: parentReportActionID,
         });
     });
 
