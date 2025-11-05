@@ -9,7 +9,7 @@ const emailDomainFilter: TelemetryBeforeSend = (event: TransactionEvent): Transa
     if (lowerEmail.endsWith(CONST.EMAIL.QA_DOMAIN) || lowerEmail.endsWith('applauseauto.com')) {
         return null;
     }
-    
+
     return event;
 };
 

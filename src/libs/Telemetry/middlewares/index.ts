@@ -1,4 +1,4 @@
-import type {TransactionEvent, EventHint} from '@sentry/core';
+import type {EventHint, TransactionEvent} from '@sentry/core';
 import emailDomainFilter from './emailDomainFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
@@ -20,4 +20,3 @@ function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint)
 
 export type {TelemetryBeforeSend};
 export default processBeforeSendTransactions;
-

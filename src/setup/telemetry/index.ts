@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
-import CONFIG from '@src/CONFIG';
 import processBeforeSendTransactions from '@libs/Telemetry/middlewares';
+import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
