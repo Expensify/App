@@ -332,6 +332,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             }
         }
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
+
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
     const isCurrentPaymentMethodDefault = () => {
         const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate).length > 1;
