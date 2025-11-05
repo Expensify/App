@@ -87,7 +87,7 @@ describe('bulkDeleteReports', () => {
                 },
                 transaction_789: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
@@ -102,7 +102,7 @@ describe('bulkDeleteReports', () => {
                 },
                 transaction_101: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
@@ -129,7 +129,7 @@ describe('bulkDeleteReports', () => {
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 transaction_789: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
@@ -144,7 +144,7 @@ describe('bulkDeleteReports', () => {
                 },
                 transaction_101: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
@@ -225,7 +225,7 @@ describe('bulkDeleteReports', () => {
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 transaction_789: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
@@ -240,7 +240,7 @@ describe('bulkDeleteReports', () => {
                 },
                 transaction_101: {
                     reportID: 'report_456',
-                    action: CONST.SEARCH.ACTION_TYPES.REVIEW,
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
                     canDelete: true,
                     canHold: true,
