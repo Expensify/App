@@ -133,7 +133,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isChatReportArchived: isChatIOUReportArchived,
-                    isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     transactionViolations,
@@ -172,7 +171,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
         },
         [
             reportActions,
-            isBetaEnabled,
             allTransactions,
             allReports,
             report,
