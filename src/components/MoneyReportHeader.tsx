@@ -1168,7 +1168,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
             onSelected: async () => {
-                if (!isExported) {
+                if (isExported) {
                     const result = await showConfirmModal({
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
