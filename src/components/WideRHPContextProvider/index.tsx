@@ -75,8 +75,23 @@ const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
     return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - variables.sideBarWidth);
 };
 
+/**
+ * Calculates the optimal width for the super wide RHP based on window width.
+ * Ensures the RHP doesn't exceed maximum width and maintains minimum responsive width.
+ *
+ * @param windowWidth - Current window width in pixels
+ * @returns Calculated super wide RHP width with constraints applied
+ */
+const calculateSuperWideRHPWidth = (windowWidth: number) => {
+    const SuperWideRHPWidth = windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
+    const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
+
+    return Math.max(Math.min(SuperWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
+};
+
 // This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
+const superWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width));
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -371,8 +386,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const handleDimensionChange = () => {
             const windowWidth = Dimensions.get('window').width;
             const newWidth = calculateReceiptPaneRHPWidth(windowWidth);
+            const newSuperWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
 
             receiptPaneRHPWidth.setValue(newWidth);
+            superWideRHPWidth.setValue(newSuperWideRHPWidth);
         };
 
         // Set initial value
@@ -499,4 +516,14 @@ WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
 
-export {calculateReceiptPaneRHPWidth, extractNavigationKeys, receiptPaneRHPWidth, secondOverlayProgress, useShowSuperWideRHPVersion, useShowWideRHPVersion, WideRHPContext};
+export {
+    calculateReceiptPaneRHPWidth,
+    calculateSuperWideRHPWidth,
+    extractNavigationKeys,
+    receiptPaneRHPWidth,
+    superWideRHPWidth,
+    secondOverlayProgress,
+    useShowSuperWideRHPVersion,
+    useShowWideRHPVersion,
+    WideRHPContext,
+};

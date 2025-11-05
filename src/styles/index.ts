@@ -13,7 +13,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {calculateReceiptPaneRHPWidth, receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, receiptPaneRHPWidth, superWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -5354,7 +5354,7 @@ const staticStyles = (theme: ThemeColors) =>
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: Animated.subtract(windowWidth, variables.navigationTabBarSize + variables.sideBarWithLHBWidth),
+            width: superWideRHPWidth,
         }),
 
         flexibleHeight: {

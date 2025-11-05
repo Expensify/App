@@ -6,7 +6,7 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {InteractionManager, Animated as RNAnimated} from 'react-native';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {calculateReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -45,7 +45,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         const width = interpolate(
             expandedRHPProgress.get(),
             [0, 1, 2],
-            [variables.sideBarWidth, variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth), windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth],
+            [variables.sideBarWidth, variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
         );
 
         return {
