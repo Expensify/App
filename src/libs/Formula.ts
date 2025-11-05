@@ -278,7 +278,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'status':
             return formatStatus(report.statusNum);
         case 'expensescount':
-            return String(getExpensesCount(report, allTransactions));
+            return String(getExpensesCount(report.reportID, allTransactions));
         case 'type':
             return formatType(report.type);
         case 'startdate':
@@ -314,20 +314,16 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
  * @param reportID - The report ID to get expenses for
  * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
  */
-function getExpensesCount(report: Report, allTransactions?: Record<string, Transaction>): number {
-    if (!report.reportID) {
+function getExpensesCount(reportID: string, allTransactions?: Record<string, Transaction>): number {
+    if (!reportID) {
         return 0;
     }
 
     let transactions: Transaction[];
     if (allTransactions) {
-        transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === report.reportID);
+        transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
     } else {
-        transactions = getReportTransactions(report.reportID);
-    }
-
-    if (report.total !== 0 && !transactions?.length) {
-        return 1;
+        transactions = getReportTransactions(reportID);
     }
 
     return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
