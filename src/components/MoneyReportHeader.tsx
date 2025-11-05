@@ -483,15 +483,6 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
-            if (currentSearchQueryJSON) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isOffline,
-                });
-            }
         }
     };
 
