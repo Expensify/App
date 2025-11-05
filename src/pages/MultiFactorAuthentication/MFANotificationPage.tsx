@@ -104,13 +104,14 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
                     iconWidth={data.iconWidth}
                     iconHeight={data.iconHeight}
                     title={title}
+                    titleStyles={styles.mb2}
                     subtitle={content}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={styles.p1}
+                    containerStyle={styles.ph5}
                     testID={MFANotificationPage.displayName}
                 />
             </View>
-            <View style={[styles.flexRow, styles.m5]}>
+            <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                 <Button
                     success
                     style={styles.flex1}

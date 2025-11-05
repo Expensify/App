@@ -23,9 +23,10 @@ function MFAPromptContent({animation, title, subtitle}: MFAPromptContentProps) {
                 animationStyles={styles.emptyLHNAnimation}
                 animationWebStyle={styles.emptyLHNAnimation}
                 title={translate(title)}
+                titleStyles={styles.mb2}
                 subtitle={translate(subtitle)}
                 subtitleStyle={styles.textSupporting}
-                containerStyle={styles.p0}
+                containerStyle={styles.ph5}
                 testID="MFAPromptContent"
             />
         </View>

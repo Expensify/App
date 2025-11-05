@@ -203,7 +203,7 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>
                     {
                         // @ts-expect-error translation can have parameters
                         translate(description, {contactMethod})
