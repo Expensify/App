@@ -360,9 +360,6 @@ type SearchTransaction = {
     /** The type of report the transaction is associated with */
     reportType: string;
 
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
-
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 
