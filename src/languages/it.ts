@@ -5160,7 +5160,6 @@ ${amount} per ${merchant} - ${date}`,
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
-                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
@@ -5712,6 +5711,12 @@ ${amount} per ${merchant} - ${date}`,
                 description: 'Crea e gestisci le tue tariffe, traccia in miglia o chilometri e imposta categorie predefinite per le spese di distanza.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le tariffe a distanza sono disponibili con il piano Collect, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Revisore',
+                description: 'I revisori hanno accesso in sola lettura a tutti i report per piena visibilità e monitoraggio della conformità.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>I revisori sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',

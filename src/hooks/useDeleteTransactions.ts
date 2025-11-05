@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -31,7 +30,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -124,7 +122,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policyRecentlyUsedCategories,
                     iouReport,
                     firstIOU: originalTransactionIouActions.at(0),
-                    isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                 });
             });
 
@@ -157,7 +154,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, isBetaEnabled, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet],
+        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet],
     );
 
     return {
