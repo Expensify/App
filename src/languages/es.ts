@@ -4729,7 +4729,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 bookOrManageYourTrip: {
                     title: 'Reserva o gestiona tu viaje',
-                    subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos empresariales en un solo lugar.',
+                    subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de empresa en un solo lugar.',
                     ctaText: 'Reservar o gestionar',
                 },
             },            
