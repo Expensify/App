@@ -932,17 +932,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>に関することなら何でもどうぞ。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> ボタンを使用してください。`,
+            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、+ ボタンを使用してください。`,
         beginningOfChatHistory: 'このチャットは',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>ボタンをクリックしてください。`,
+            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。+ボタンをクリックしてください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！セットアップを始めましょう。',
         chatWithAccountManager: 'こちらでアカウントマネージャーとチャットしてください',
         sayHello: 'こんにちは！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName}へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンを使用して経費を${additionalText}します。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` + ボタンを使用して経費を${additionalText}します。`,
         askConcierge: '質問をして、24時間365日リアルタイムサポートを受けましょう。',
         conciergeSupport: '24時間年中無休サポート',
         create: '作成する',
@@ -1134,6 +1134,7 @@ const translations = {
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant}から${amount}`,
         addSplit: '分割を追加',
+        makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}多いです。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
@@ -2620,10 +2621,8 @@ ${date} - ${merchant}に${amount}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。'
-                    : '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。チームの領収書や経費を管理するために、すでにワークスペースを作成しました。30日間の無料トライアルを最大限利用するために、下記の残りの手順に従ってください。',
+            onboardingManageTeamMessage:
+                '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。',
             onboardingTrackWorkspaceMessage:
                 '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
@@ -4597,6 +4596,7 @@ ${date} - ${merchant}に${amount}`,
                 monthly: '毎月',
             },
             cardDetails: 'カードの詳細',
+            cardPending: ({name}: {name: string}) => `${name}のアカウントが確認され次第、カードが発行されます。現在は保留中です。`,
             virtual: 'バーチャル',
             physical: '物理的',
             deactivate: 'カードを無効化する',
@@ -4780,9 +4780,8 @@ ${date} - ${merchant}に${amount}`,
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
-                downgradeSubTitleFirstPart: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ`,
-                downgradeSubTitleMiddlePart: `カードフィードを1つだけ保持`,
-                downgradeSubTitleLastPart: '続行する。',
+                downgradeSubTitle: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ <a href="#">カードフィードを1つだけ保持</a> 続行する。`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `${connection}にアカウントを追加し、再度接続を同期してください。`,
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
@@ -5118,6 +5117,7 @@ ${date} - ${merchant}に${amount}`,
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
@@ -6158,7 +6158,7 @@ ${date} - ${merchant}に${amount}`,
         searchResults: {
             emptyResults: {
                 title: '表示するものがありません',
-                subtitle: `検索条件を調整するか、緑色の${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}ボタンで何かを作成してみてください。`,
+                subtitle: `検索条件を調整するか、+ボタンで何かを作成してみてください。`,
             },
             emptyExpenseResults: {
                 title: 'まだ経費が作成されていません。',
@@ -6808,6 +6808,7 @@ ${date} - ${merchant}に${amount}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,
+        reportContainsExpensesWithViolations: 'レポートに違反がある経費が含まれています。',
     },
     violationDismissal: {
         rter: {
