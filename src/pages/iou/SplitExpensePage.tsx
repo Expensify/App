@@ -238,7 +238,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
-            const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
+            const currentReport = getReportOrDraftReport(currentTransaction?.reportID);
             const isApproved = isReportApproved({report: currentReport});
             const isSettled = isSettledReportUtils(currentReport?.reportID);
             const isCancelled = currentReport && currentReport?.isCancelledIOU;
