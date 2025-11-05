@@ -736,9 +736,7 @@ type UpdateSplitTransactionsParams = {
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    chatReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
-    isChatReportArchived?: boolean;
     isNewDotRevertSplitsEnabled: boolean;
 };
 
@@ -13758,9 +13756,7 @@ function updateSplitTransactions({
     policy,
     policyRecentlyUsedCategories,
     iouReport,
-    chatReport,
     firstIOU,
-    isChatReportArchived,
     isNewDotRevertSplitsEnabled,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);

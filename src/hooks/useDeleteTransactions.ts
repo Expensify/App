@@ -105,9 +105,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-                const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`];
-                const isChatIOUReportArchived = isArchivedReport(reportNameValuePairs);
-                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
@@ -126,9 +123,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policy,
                     policyRecentlyUsedCategories,
                     iouReport,
-                    chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
-                    isChatReportArchived: isChatIOUReportArchived,
                     isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                 });
             });

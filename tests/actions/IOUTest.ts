@@ -2907,7 +2907,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: iouAction,
                 isNewDotRevertSplitsEnabled: true,
             });
@@ -3010,7 +3009,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: undefined,
                 isNewDotRevertSplitsEnabled: true,
             });
@@ -3126,7 +3124,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport,
                 firstIOU: undefined,
                 isNewDotRevertSplitsEnabled: true,
             });
@@ -7858,7 +7855,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
                 });
@@ -8001,7 +7997,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
                 });
@@ -8158,7 +8153,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isNewDotRevertSplitsEnabled: true,
                 });
