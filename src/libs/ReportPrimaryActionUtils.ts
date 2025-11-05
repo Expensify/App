@@ -38,6 +38,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
+    getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -304,6 +305,16 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
     return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
+function isPrimaryMarkAsResolvedAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    if (!reportTransactions || reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations);
+
+    return isExpenseReportUtils(report) && isMarkAsResolvedAction(report, transactionViolations, policy);
+}
+
 function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
         return [];
@@ -359,7 +370,15 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
+<<<<<<< HEAD
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+=======
+    if (isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
+    }
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+>>>>>>> main
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
@@ -435,4 +454,5 @@ export {
     isMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    isPrimaryMarkAsResolvedAction,
 };

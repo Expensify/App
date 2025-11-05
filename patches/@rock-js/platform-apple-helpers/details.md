@@ -1,6 +1,6 @@
 # `@rock-js/platform-apple-helpers` patches
 
-### [@rock-js+platform-apple-helpers+0.11.6+001+fix-ios-remote-builds.patch](@rock-js+platform-apple-helpers+0.11.6+001+fix-ios-remote-builds.patch)
+### [@rock-js+platform-apple-helpers+0.11.7+001+fix-ios-remote-builds.patch](@rock-js+platform-apple-helpers+0.11.7+001+fix-ios-remote-builds.patch)
 
 - Reason:
 

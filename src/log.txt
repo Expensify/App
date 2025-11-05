@@ -1,0 +1,419 @@
+● Subscription/AddPaymentCard › AddPaymentCardPage Expiration Date Formatting › formats "0" as "0"
+
+    Unable to find an element with testID: addPaymentCardPage.expiration
+
+    <View>
+      <View>
+        <View
+          pointerEvents="box-none"
+        >
+          <View
+            aria-hidden={false}
+            pointerEvents="box-none"
+          >
+            <View
+              pointerEvents="box-none"
+            >
+              <View
+                pointerEvents="box-none"
+              >
+                <View
+                  pointerEvents="auto"
+                />
+              </View>
+              <View
+                pointerEvents="none"
+              />
+              <View
+                pointerEvents="box-none"
+              >
+                <View
+                  pointerEvents="box-none"
+                />
+                <View
+                  pointerEvents="box-none"
+                >
+                  <Text
+                    role="heading"
+                  >
+                    Settings_Subscription_Add_Payment_Card
+                  </Text>
+                </View>
+                <View
+                  pointerEvents="box-none"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <RNSScreenContainer>
+          <RNSScreen
+            pointerEvents="box-none"
+          >
+            <View />
+            <View
+              aria-hidden={false}
+              pointerEvents="box-none"
+            >
+              <View
+                pointerEvents="box-none"
+              >
+                <View>
+                  <View
+                    pointerEvents="box-none"
+                  >
+                    <View>
+                      <View>
+                        <View
+                          testID="AddPaymentCard"
+                        >
+                          <View>
+                            <View>
+                              <View>
+                                <View>
+                                  <View>
+                                    <View
+                                      accessibilityHint="Back"
+                                      accessibilityLabel="Back"
+                                      accessibilityState={
+                                        {
+                                          "disabled": false,
+                                        }
+                                      }
+                                      accessible={true}
+                                      role="button"
+                                    >
+                                      <View
+                                        testID=""
+                                      />
+                                    </View>
+                                    <View>
+                                      <View>
+                                        <Text>
+                                          Add payment card
+                                        </Text>
+                                      </View>
+                                    </View>
+                                    <View>
+                                      <View />
+                                    </View>
+                                  </View>
+                                </View>
+                                <View>
+                                  <Text>
+                                    Enter your payment card details
+                                  </Text>
+                                  <View
+                                    nativeID="__FS_NATIVEID"
+                                  >
+                                    <RCTScrollView>
+                                      <View>
+                                        <View>
+                                          <View>
+                                            <View
+                                              accessibilityHint="Card number"
+                                              accessibilityLabel="Card number"
+                                              accessibilityState={
+                                                {
+                                                  "disabled": false,
+                                                }
+                                              }
+                                              accessible={true}
+                                              role="presentation"
+                                            >
+                                              <View>
+                                                <View>
+                                                  <Text>
+                                                    Card number
+                                                  </Text>
+                                                </View>
+                                                <View>
+                                                  <TextInput
+                                                    aria-label="Card number"
+                                                    role="presentation"
+                                                    value=""
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View
+                                              accessibilityHint="Name on card"
+                                              accessibilityLabel="Name on card"
+                                              accessibilityState={
+                                                {
+                                                  "disabled": false,
+                                                }
+                                              }
+                                              accessible={true}
+                                              role="presentation"
+                                            >
+                                              <View>
+                                                <View>
+                                                  <Text>
+                                                    Name on card
+                                                  </Text>
+                                                </View>
+                                                <View>
+                                                  <TextInput
+                                                    aria-label="Name on card"
+                                                    role="presentation"
+                                                    value=""
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View>
+                                              <View>
+                                                <View
+                                                  accessibilityHint="Expiration date"
+                                                  accessibilityLabel="Expiration date"
+                                                  accessibilityState={
+                                                    {
+                                                      "disabled": false,
+                                                    }
+                                                  }
+                                                  accessible={true}
+                                                  role="presentation"
+                                                >
+                                                  <View>
+                                                    <View>
+                                                      <Text>
+                                                        Expiration date
+                                                      </Text>
+                                                    </View>
+                                                    <View>
+                                                      <TextInput
+                                                        aria-label="Expiration date"
+                                                        role="presentation"
+                                                        testID="addPaymentCardPage.expiration"
+                                                        value=""
+                                                      />
+                                                    </View>
+                                                  </View>
+                                                </View>
+                                              </View>
+                                            </View>
+                                            <View>
+                                              <View>
+                                                <View
+                                                  accessibilityHint="CVV"
+                                                  accessibilityLabel="CVV"
+                                                  accessibilityState={
+                                                    {
+                                                      "disabled": false,
+                                                    }
+                                                  }
+                                                  accessible={true}
+                                                  role="presentation"
+                                                >
+                                                  <View>
+                                                    <View>
+                                                      <Text>
+                                                        CVV
+                                                      </Text>
+                                                    </View>
+                                                    <View>
+                                                      <TextInput
+                                                        aria-label="CVV"
+                                                        role="presentation"
+                                                        value=""
+                                                      />
+                                                    </View>
+                                                  </View>
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View
+                                              accessibilityHint="Zip / Postcode"
+                                              accessibilityLabel="Zip / Postcode"
+                                              accessibilityState={
+                                                {
+                                                  "disabled": false,
+                                                }
+                                              }
+                                              accessible={true}
+                                              role="presentation"
+                                            >
+                                              <View>
+                                                <View>
+                                                  <Text>
+                                                    Zip / Postcode
+                                                  </Text>
+                                                </View>
+                                                <View>
+                                                  <TextInput
+                                                    aria-label="Zip / Postcode"
+                                                    role="presentation"
+                                                    value=""
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View>
+                                              <View>
+                                                <View>
+                                                  <View>
+                                                    <View
+                                                      accessibilityHint="USD"
+                                                      accessibilityLabel="USD"
+                                                      accessibilityState={
+                                                        {
+                                                          "disabled": false,
+                                                        }
+                                                      }
+                                                      accessible={true}
+                                                      role="menuitem"
+                                                    >
+                                                      <View>
+                                                        <View>
+                                                          <View>
+                                                            <View>
+                                                              <View>
+                                                                <Text>
+                                                                  Currency
+                                                                </Text>
+                                                                <View>
+                                                                  <Text>
+                                                                    USD
+                                                                  </Text>
+                                                                </View>
+                                                              </View>
+                                                            </View>
+                                                          </View>
+                                                          <View>
+                                                            <View>
+                                                              <View
+                                                                testID=""
+                                                              />
+                                                            </View>
+                                                          </View>
+                                                        </View>
+                                                      </View>
+                                                    </View>
+                                                  </View>
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View>
+                                              <View>
+                                                <View>
+                                                  <View
+                                                    accessibilityHint="I accept the  Expensify Terms of Service and Privacy Policy"
+                                                    accessibilityLabel="I accept the  Expensify Terms of Service and Privacy Policy"
+                                                    accessibilityState={
+                                                      {
+                                                        "checked": false,
+                                                        "disabled": false,
+                                                      }
+                                                    }
+                                                    accessible={true}
+                                                    role="checkbox"
+                                                  >
+                                                    <View />
+                                                  </View>
+                                                </View>
+                                                <View>
+                                                  <View
+                                                    accessibilityState={
+                                                      {
+                                                        "disabled": false,
+                                                      }
+                                                    }
+                                                    accessible={false}
+                                                  >
+                                                    <Text>
+                                                      I accept the Expensify Terms of Service and Privacy Policy
+                                                    </Text>
+                                                  </View>
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                          <View>
+                                            <View>
+                                              <View>
+                                                <View>
+                                                  <View
+                                                    testID=""
+                                                  >
+                                                    <svg />
+                                                  </View>
+                                                </View>
+                                                <View>
+                                                  <Text>
+                                                    Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.
+                                                     
+                                                    <Text
+                                                      role="link"
+                                                    >
+                                                      Learn more about our security.
+                                                    </Text>
+                                                  </Text>
+                                                </View>
+                                              </View>
+                                              <View />
+                                              <View />
+                                            </View>
+                                          </View>
+                                          <Text>
+                                            From $0/active member with the Expensify Card, $0/active member without the Expensify Card.
+                                          </Text>
+                                          <View>
+                                            <View>
+                                              <View>
+                                                <View
+                                                  accessibilityHint=""
+                                                  accessibilityLabel=""
+                                                  accessibilityState={
+                                                    {
+                                                      "disabled": false,
+                                                    }
+                                                  }
+                                                  accessible={true}
+                                                  role="button"
+                                                >
+                                                  <Text>
+                                                    Add payment card
+                                                  </Text>
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </RCTScrollView>
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </RNSScreen>
+        </RNSScreenContainer>
+      </View>
+    </View>
+
+      69 |         const runFormatTest = async (input: string, formattedAs: string) => {
+      70 |             renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+    > 71 |             const expirationDateField = await screen.findByTestId('addPaymentCardPage.expiration');
+         |                                                      ^
+      72 |             fireEvent.changeText(expirationDateField, input);
+      73 |             expect(expirationDateField.props.value).toBe(formattedAs);
+      74 |         };
