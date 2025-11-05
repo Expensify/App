@@ -1,11 +1,12 @@
 import truncate from 'lodash/truncate';
 import {useMemo} from 'react';
-import {Bank, Building, CheckCircle, User, Wallet} from '@components/Icon/Expensicons';
+import {Bank, Building, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {getSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, Policy} from '@src/types/onyx';
@@ -52,7 +53,7 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
+    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
@@ -81,23 +82,7 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
 
     const bulkPayButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = {
-            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-                icon: User,
-                key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            },
-            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusiness', {formattedAmount: ''}),
-                icon: Building,
-                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            },
-            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                icon: CheckCircle,
-                key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            },
-        };
+        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
