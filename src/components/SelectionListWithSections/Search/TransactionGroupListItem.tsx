@@ -195,7 +195,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onLongPress = useCallback(() => {
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
-    }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
+    }, [isExpenseReportType, item, onLongPressRow, transactions]);
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
@@ -280,22 +280,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
             return headers[groupBy];
         },
-        [
-            groupItem,
-            onSelectRow,
-            transactionPreviewData,
-            onCheckboxPress,
-            isDisabledOrEmpty,
-            isFocused,
-            canSelectMultiple,
-            isSelectAllChecked,
-            isIndeterminate,
-            onDEWModalOpen,
-            groupBy,
-            isExpanded,
-            onExpandIconPress,
-            searchType,
-        ],
+        [groupItem, onCheckboxPress, isDisabledOrEmpty, canSelectMultiple, isSelectAllChecked, isIndeterminate, onExpandIconPress, isExpanded, isFocused, searchType, groupBy, isDisabled, onDEWModalOpen, onSelectRow, transactionPreviewData],
     );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
