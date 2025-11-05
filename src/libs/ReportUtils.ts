@@ -72,7 +72,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -907,7 +907,7 @@ type GetPolicyNameParams = {
     returnEmptyIfNotFound?: boolean;
     policy?: OnyxInputOrEntry<Policy> | SearchPolicy;
     policies?: SearchPolicy[];
-    reports?: SearchReport[];
+    reports?: Report[];
 };
 
 type GetReportNameParams = {
@@ -917,7 +917,7 @@ type GetReportNameParams = {
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
     transactions?: SearchTransaction[];
-    reports?: SearchReport[];
+    reports?: Report[];
     policies?: SearchPolicy[];
     isReportArchived?: boolean;
 };
@@ -1200,7 +1200,7 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, searchReports?: SearchReport[], fallbackReport?: Report): OnyxEntry<Report> | SearchReport {
+function getReportOrDraftReport(reportID: string | undefined, searchReports?: Report[], fallbackReport?: Report): OnyxEntry<Report> | Report {
     const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return searchReport ?? onyxReport ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
@@ -1234,7 +1234,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 /**
  * @private
  */
-function isSearchReportArray(object: SearchReport[] | OnyxCollection<Report>): object is SearchReport[] {
+function isReportArray(object: Report[] | OnyxCollection<Report>): object is Report[] {
     if (!Array.isArray(object)) {
         return false;
     }
@@ -1246,8 +1246,8 @@ function isSearchReportArray(object: SearchReport[] | OnyxCollection<Report>): o
  * @private
  * Returns the report
  */
-function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Report>): OnyxEntry<Report> | SearchReport {
-    if (isSearchReportArray(reports)) {
+function getReport(reportID: string, reports: Report[] | OnyxCollection<Report>): OnyxEntry<Report> | Report {
+    if (isReportArray(reports)) {
         reports?.find((report) => report.reportID === reportID);
     } else {
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1269,15 +1269,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * Uses recursion to iterate any depth of nested reports.
  */
 
-function getRootParentReport({
-    report,
-    reports,
-    visitedReportIDs = new Set<string>(),
-}: {
-    report: OnyxEntry<Report>;
-    reports?: SearchReport[];
-    visitedReportIDs?: Set<string>;
-}): OnyxEntry<Report> {
+function getRootParentReport({report, reports, visitedReportIDs = new Set<string>()}: {report: OnyxEntry<Report>; reports?: Report[]; visitedReportIDs?: Set<string>}): OnyxEntry<Report> {
     if (!report) {
         return undefined;
     }
@@ -1363,7 +1355,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
+function isInvoiceReport(reportOrID: OnyxInputOrEntry<Report> | Report | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
@@ -1397,7 +1389,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
+function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | Report | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -1405,7 +1397,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | s
 /**
  * Checks if a report is an IOU report using report or reportID
  */
-function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
+function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | Report | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
@@ -1514,7 +1506,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
+function isSettled(reportOrID: OnyxInputOrEntry<Report> | Report | string | undefined, reports?: Report[] | OnyxCollection<Report>): boolean {
     if (!reportOrID) {
         return false;
     }
@@ -2160,7 +2152,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived = false): boolean {
+function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | Report, isReportArchived = false): boolean {
     return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
 
@@ -2185,7 +2177,7 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 /**
  * Whether the provided report is a closed report
  */
-function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
+function isClosedReport(report: OnyxInputOrEntry<Report> | Report): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
 
@@ -2370,7 +2362,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
+function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | Report | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? allReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -3728,9 +3720,9 @@ function getReimbursementQueuedActionMessage({
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
-    reportOrID: OnyxEntry<Report> | string | SearchReport;
+    reportOrID: OnyxEntry<Report> | string | Report;
     shouldUseShortDisplayName?: boolean;
-    reports?: SearchReport[];
+    reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, reports ?? allReports) : reportOrID;
@@ -3751,7 +3743,7 @@ function getReimbursementQueuedActionMessage({
  */
 function getReimbursementDeQueuedOrCanceledActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
-    reportOrID: OnyxEntry<Report> | string | SearchReport,
+    reportOrID: OnyxEntry<Report> | string | Report,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const originalMessage = getOriginalMessage(reportAction);
@@ -4048,7 +4040,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined, reports
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: SearchReport[]): SpendBreakdown {
+function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: Report[]): SpendBreakdown {
     const reports = searchReports ?? allReports;
     let moneyRequestReport: OnyxEntry<Report>;
     if (report && (isMoneyRequestReport(report, searchReports) || isInvoiceReport(report))) {
@@ -4356,7 +4348,7 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
 function canEditMoneyRequest(
     reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     isChatReportArchived = false,
-    report?: OnyxInputOrEntry<Report> | SearchReport,
+    report?: OnyxInputOrEntry<Report> | Report,
     policy?: OnyxEntry<Policy> | SearchPolicy,
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
 ): boolean {
@@ -4491,7 +4483,7 @@ function canEditFieldOfMoneyRequest(
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
-    report?: OnyxInputOrEntry<Report> | SearchReport,
+    report?: OnyxInputOrEntry<Report> | Report,
     policy?: OnyxEntry<Policy> | SearchPolicy,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
@@ -4860,7 +4852,7 @@ function getTransactionReportName({
 }: {
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     transactions?: SearchTransaction[];
-    reports?: SearchReport[];
+    reports?: Report[];
 }): string {
     if (isReversedTransaction(reportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5364,7 +5356,7 @@ function getReportActionMessage({
     reportAction: OnyxEntry<ReportAction>;
     reportID?: string;
     childReportID?: string;
-    reports?: SearchReport[];
+    reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
 }) {
     if (isEmptyObject(reportAction)) {
@@ -5494,7 +5486,7 @@ function getReportName(
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
     isReportArchived?: boolean,
-    reports?: SearchReport[],
+    reports?: Report[],
     policies?: SearchPolicy[],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
@@ -9213,12 +9205,12 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
+function chatIncludesChronos(report: OnyxInputOrEntry<Report> | Report): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
 
-function chatIncludesChronosWithID(reportOrID?: string | SearchReport): boolean {
+function chatIncludesChronosWithID(reportOrID?: string | Report): boolean {
     if (!reportOrID) {
         return false;
     }
@@ -10550,7 +10542,7 @@ function shouldCreateNewMoneyRequestReport(
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
-    return (getReportOrDraftReport(transactionParentReportID) as OnyxEntry<Report>)?.tripData?.tripID;
+    return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
 
 /**
@@ -12001,7 +11993,7 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;

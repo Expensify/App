@@ -1,4 +1,3 @@
-import {log} from 'console';
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';

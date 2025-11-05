@@ -1,8 +1,8 @@
-import useOnyx from '@hooks/useOnyx';
 import {getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Report, Transaction} from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 type UseMergeTransactionsProps = {
     mergeTransaction?: MergeTransaction;
@@ -12,6 +12,7 @@ type UseMergeTransactionsProps = {
 type UseMergeTransactionsReturn = {
     targetTransaction?: Transaction;
     sourceTransaction?: Transaction;
+    targetTransactionReport?: Report;
 };
 
 function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
@@ -27,6 +28,7 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
 
     let targetTransaction;
     let sourceTransaction;
+    let targetTransactionReport;
 
     // Always use transactions from the search snapshot if we're coming from the Reports page
     if (hash) {
@@ -37,9 +39,18 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
         sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction) ?? onyxSourceTransaction;
     }
 
+    const [onyxTargetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
+        canBeMissing: true,
+    });
+
+    if (hash) {
+        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`] ?? onyxTargetTransactionReport;
+    }
+
     return {
         targetTransaction,
         sourceTransaction,
+        targetTransactionReport,
     };
 }
 

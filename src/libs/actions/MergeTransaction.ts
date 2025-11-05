@@ -141,7 +141,7 @@ function getTransactionsForMerging({
                 return false;
             }
 
-            return areTransactionsEligibleForMerge(targetTransaction, transaction, isAdmin);
+            return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
