@@ -44,14 +44,14 @@ describe('UserAvatarUtils', () => {
     describe('getAvatarUrl', () => {
         it('should return default avatar URL when url is for default avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            const defaultAvatarUrl = UserAvatarUtils.getAvatarUrl({avatarSource: avatarURL, accountID: 1});
+            const defaultAvatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
 
             expect(defaultAvatarUrl).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png');
         });
 
         it('should return the same url if url is not for default avatar', () => {
             const avatarURL = 'https://test.com/images/some_avatar.png';
-            const avatarUrl = UserAvatarUtils.getAvatarUrl({avatarSource: avatarURL, accountID: 1});
+            const avatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
 
             expect(avatarUrl).toEqual('https://test.com/images/some_avatar.png');
         });

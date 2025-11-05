@@ -2,7 +2,7 @@ import {md5} from 'expensify-common';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {ALL_CUSTOM_AVATARS, DEFAULT_AVATAR_PREFIX, getAvatarLocal, getAvatarURL, getLetterAvatar} from './Avatars/CustomAvatarCatalog';
+import * as CustomAvatarCatalog from './Avatars/CustomAvatarCatalog';
 import type {CustomAvatarID, DefaultAvatarIDs} from './Avatars/CustomAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -90,7 +90,7 @@ function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, av
         return NotificationsAvatar;
     }
 
-    return getAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
+    return CustomAvatarCatalog.getAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
 }
 
 /**
@@ -104,7 +104,7 @@ function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, av
  * @returns The custom avatar name identifier (e.g., "default-avatar_5")
  */
 function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): DefaultAvatarIDs {
-    return `${DEFAULT_AVATAR_PREFIX}_${getAccountIDHashBucket({accountID, accountEmail, avatarURL})}`;
+    return `${CustomAvatarCatalog.DEFAULT_AVATAR_PREFIX}_${getAccountIDHashBucket({accountID, accountEmail, avatarURL})}`;
 }
 
 /**
@@ -124,7 +124,7 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    return getAvatarURL(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
+    return CustomAvatarCatalog.getAvatarURL(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
 }
 
 /**
@@ -141,7 +141,7 @@ function getCustomAvatarNameFromURL(avatarURL?: AvatarSource): CustomAvatarID | 
 
     // Extract avatar name from CloudFront URL and make sure it's one of defaults
     const match = (avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '') as CustomAvatarID;
-    if (ALL_CUSTOM_AVATARS[match]) {
+    if (CustomAvatarCatalog.ALL_CUSTOM_AVATARS[match]) {
         return match;
     }
 }
@@ -219,7 +219,7 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
 
     const maybeCustomAvatarName = getCustomAvatarNameFromURL(avatarSource);
     if (maybeCustomAvatarName) {
-        return getAvatarLocal(maybeCustomAvatarName);
+        return CustomAvatarCatalog.getAvatarLocal(maybeCustomAvatarName);
     }
 
     return avatarSource;
@@ -236,7 +236,7 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The avatar URL string
  */
-function getAvatarUrl({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
+function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
     return isCustomAvatar(avatarSource) ? getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource}) : avatarSource;
 }
 
@@ -290,7 +290,7 @@ function getSmallSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
 
 export {
     getAvatar,
-    getAvatarUrl,
+    getAvatarURL,
     getDefaultAvatarName,
     getDefaultAvatarURL,
     getCustomAvatarNameFromURL,
@@ -299,6 +299,5 @@ export {
     isCustomAvatar,
     isDefaultAvatar,
     isLetterAvatar,
-    getLetterAvatar,
 };
 export type {AvatarSource};
