@@ -51,7 +51,6 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
-    SearchPolicy,
     SearchReport,
     SearchTask,
     SearchTransaction,
@@ -619,7 +618,7 @@ function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
     to: SearchPersonalDetails,
-    policy: SearchPolicy,
+    policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
@@ -637,7 +636,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getTransactionMerchant(transactionItem, policy as OnyxTypes.Policy);
+    const merchant = getTransactionMerchant(transactionItem, policy);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
@@ -1114,7 +1113,7 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
+    const policy = getPolicyFromKey(data, report);
     const isExportAvailable = isExportAction(report, policy, reportActions) && !isTransaction;
 
     if (isSettled(report) && !isExportAvailable) {
@@ -1152,7 +1151,7 @@ function getActions(
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    const invoiceReceiverPolicy: SearchPolicy | undefined =
+    const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
@@ -1312,7 +1311,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: SearchPolicy | undefined =
+                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
                     !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
