@@ -402,9 +402,6 @@ type SearchTransaction = {
     /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
 
-    /** The available actions that can be performed for the transaction */
-    allActions: SearchTransactionAction[];
-
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
