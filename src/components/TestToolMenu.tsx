@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,6 @@ import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorCo
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
@@ -29,8 +29,9 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setup} = useNativeBiometrics();
 
-    const transactionID = '8306097696830615207'; // TODO: delete - here only for testing purposes
+    const transactionID = '309980146545648755'; // TODO: delete - here only for testing purposes
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -43,7 +44,7 @@ function TestToolMenu() {
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    const biometricsTitle = 'multiFactorAuthentication.biometrics.biometricsNotRegistered';
+    const biometricsTitle = translate('multifactorAuthentication.title', {registered: setup.isBiometryConfigured});
 
     return (
         <>
@@ -92,7 +93,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows to test the Biometrics flow */}
-                    <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
+                    <TestToolRow title={biometricsTitle}>
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
                                 small

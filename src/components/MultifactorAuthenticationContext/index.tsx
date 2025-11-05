@@ -12,7 +12,6 @@ import type {MultifactorAuthenticationScenarioStatus, Register, UseMultifactorAu
 import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
-import {requestValidateCodeAction} from '@libs/actions/User';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
@@ -27,6 +26,9 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+// TODO: Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
+// import {requestValidateCodeAction} from '@libs/actions/User';
+import {triggerOnyxConnect, requestValidateCodeAction} from '../../../__mocks__/ecuk_api';
 import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from './config';
 
 const MultifactorAuthenticationContext = createContext<UseMultifactorAuthentication>({
@@ -50,6 +52,9 @@ type MultifactorAuthenticationContextProviderProps = {
 };
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
+    // TODO: Remove this when mocked API is no more used
+    triggerOnyxConnect();
+
     const MultifactorAuthorizationFallback = useMultifactorAuthorizationFallback();
     const NativeBiometrics = useNativeBiometrics();
     const [mergedStatus, setMergedStatus] = useMultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>(

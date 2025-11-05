@@ -15,7 +15,7 @@ import useMultifactorAuthenticationStatus from './useMultifactorAuthenticationSt
 function useMultifactorAuthorizationFallback() {
     const [status, setStatus] = useMultifactorAuthenticationStatus<number | undefined>(undefined, CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth && false;
 
     /**
      * Authorizes a transaction using OTP and validate code when multifactorial authentication is unavailable.

@@ -1,17 +1,18 @@
-import {Buffer} from 'buffer';
+import { Buffer } from 'buffer';
 import Onyx from 'react-native-onyx';
-import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type { MFAChallenge } from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import type {OnyxValues} from '@src/ONYXKEYS';
+import type { OnyxValues } from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReadCommands, WriteCommands} from './index';
+import type { ReadCommands, WriteCommands } from './index';
 import Logger from './Logger';
-import {ed, FALLBACK_EMAIL, generateSixDigitNumber, isChallengeValid, MOCKED_AUTHENTICATOR_CODE, PHONE_NUMBER, STORAGE} from './utils';
+import {ed, FALLBACK_ACCOUNT_ID, FALLBACK_EMAIL, generateSixDigitNumber, isChallengeValid, MOCKED_AUTHENTICATOR_CODE, PHONE_NUMBER, STORAGE} from './utils';
+
 
 let sessionData: OnyxValues[typeof ONYXKEYS.SESSION] = {};
 
 // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs,rulesdir/no-onyx-connect
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         if (!val || Object.keys(val).length === 0) {
@@ -81,14 +82,15 @@ router.post['/resend_validate_code'] = ({email}: Partial<WriteCommands['ResendVa
     }
 
     const randomCode = generateSixDigitNumber();
+    const emailWithFallback = sessionData.email ?? email
 
-    STORAGE.validateCodes[email] ??= [];
-    STORAGE.validateCodes[email].push(randomCode);
-    Logger.m('Generated new validation code:', randomCode, 'for email', email);
+    STORAGE.validateCodes[emailWithFallback] ??= [];
+    STORAGE.validateCodes[emailWithFallback].push(randomCode);
+    Logger.m('Generated new validation code:', randomCode, 'for email', emailWithFallback);
 
     return {
         ...REQUEST_SUCCESSFUL,
-        message: `Validate code sent to email ${email}`,
+        message: `Validate code sent to email ${emailWithFallback}`,
     };
 };
 
@@ -134,7 +136,7 @@ router.get['/request_biometric_challenge'] = async (): Promise<ReadCommands['Req
         allowCredentials: [
             {
                 type: 'biometrics',
-                id: base64URL(`${sessionData.accountID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`),
+                id: base64URL(`${sessionData.accountID ?? FALLBACK_ACCOUNT_ID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`),
             },
         ],
         userVerification: 'required',
@@ -297,6 +299,10 @@ const callMockedAPI = (
     },
 ) => {
     const methodLowerCase = options.method === 'GET' ? 'get' : 'post';
+
+    if (path === "/trigger") {
+        return;
+    }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
     return router[methodLowerCase][path](options.body);
 };

@@ -16,6 +16,7 @@ import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
 // TODO: remove, as this will be actually defined inside the SCENARIOS file but will still be a simple string - we will have to adjust the URLs to something more general like success and failure simply to have matching URLs (or simply /notification)
 type NotificationType = 'authentication-successful' | 'authentication-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time';
@@ -83,10 +84,11 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
 
     // TODO: replace with notification which gets the actual data from SCENARIO file
     // Memoize to avoid recalculating on every render
+    const {info} = useMultifactorAuthenticationContext();
     const data = useMemo(() => getNotificationData(route.params.notificationType, styles), [route.params.notificationType, styles]);
 
     // data2  // TODO: replace with the correct data from MFAcontext
-    const {headerTitle, title, content} = {headerTitle: 'headerTitle', title: 'Title', content: 'Content'};
+    const {headerTitle, title, content} = {headerTitle: info.title, title: info.title, content: info.message};
 
     if (!data) {
         return <NotFoundPage />;

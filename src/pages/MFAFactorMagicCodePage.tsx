@@ -2,21 +2,13 @@ import React from 'react';
 import MFAValidateCodePage from '@components/MFA/MFAValidateCodePage';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
 function MFAFactorMagicCodePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const email = account?.primaryLogin ?? '';
-
-    /**
-     * Fake verify function for magic code / authenticator / sms flows.
-     * Does nothing (no-op) and resolves immediately.
-     */
-    function verifyMagicCode(code?: string) {
-        // Intentionally no-op. Keep a log to help debugging.
-        // eslint-disable-next-line no-console
-        console.log('[fakeMFA] verifyMagicCode called with:', code);
-    }
-
+    const {update} = useMultifactorAuthenticationContext();
+    
     return (
         <MFAValidateCodePage
             title="multiFactorAuthentication.biometrics.fallbackPageTitle"
@@ -30,7 +22,7 @@ function MFAFactorMagicCodePage() {
             resendButtonText="validateCodeForm.magicCodeNotReceived"
             onSubmit={(code: string) => {
                 // call async verify but keep onSubmit signature void
-                verifyMagicCode(code);
+                update({validateCode: Number(code)});
             }}
             isVerifying={false}
         />

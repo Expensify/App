@@ -14,6 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
@@ -48,17 +49,19 @@ const getPromptContentData = (promptType: PromptType): PromptContentData => {
 
 function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
-    const onGoBackPress = useCallback(() => {
-        Navigation.dismissModal();
-    }, []);
+    const {update} = useMultifactorAuthenticationContext();
 
     // Memoize to avoid recalculating on every render
     const contentData = useMemo(() => getPromptContentData(route.params.promptType), [route.params.promptType]);
 
-    // TODO: replace with MFA logic - now only for testing
     const onConfirm = useCallback(() => {
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
-    }, []);
+        update({softPromptDecision: true});
+    }, [update]);
+
+    const onGoBackPress = useCallback(() => {
+        update({softPromptDecision: false});
+    }, [update]);
+
 
     if (!contentData) {
         return <NotFoundPage />;

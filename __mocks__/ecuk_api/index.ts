@@ -2,6 +2,7 @@ import type {EmptyObject} from 'type-fest';
 import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type Response from '@src/types/onyx/Response';
 import fetch from './router';
+import {FALLBACK_EMAIL} from './utils';
 
 /* eslint-disable rulesdir/no-api-in-views */
 
@@ -151,7 +152,13 @@ const API: APIType = {
 
 const {makeRequestWithSideEffects} = API;
 
+const requestValidateCodeAction = () => API.write('ResendValidateCode', {email: FALLBACK_EMAIL});
+
+const triggerOnyxConnect = () => {
+    fetch('/trigger', {method: 'GET'});
+};
+
 // eslint-disable-next-line rulesdir/no-api-in-views
 export default API;
-export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, makeRequestWithSideEffects};
+export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, requestValidateCodeAction, makeRequestWithSideEffects, triggerOnyxConnect};
 export type {WriteCommands, ReadCommands};

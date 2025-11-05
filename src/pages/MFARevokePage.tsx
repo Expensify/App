@@ -6,11 +6,14 @@ import MFARevokeContent from '@components/MFA/MFARevokeContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
+import CONST from '@src/CONST';
 
 function MFARevokePage() {
     const {translate} = useLocalize();
+    const {trigger, info} = useMultifactorAuthenticationContext();
 
-    const isAccessRevokedOnAllDevices = false; // TODO: replace with actual logic
+    const isAccessRevokedOnAllDevices = !info.isBiometryConfigured; // TODO: replace with actual logic
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
@@ -27,7 +30,7 @@ function MFARevokePage() {
     }, []);
 
     const onConfirm = useCallback(() => {
-        // revokeMFA(); // TODO: implement the revokeMFA action
+        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.REVOKE)
         hideConfirmModal();
         onGoBackPress();
     }, [hideConfirmModal, onGoBackPress]);

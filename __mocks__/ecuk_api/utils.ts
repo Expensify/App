@@ -18,6 +18,7 @@ type Challenge = {
 const FALLBACK_EMAIL = 'user@example.com';
 const PHONE_NUMBER = '+48512332053';
 const MOCKED_AUTHENTICATOR_CODE = 777799;
+const FALLBACK_ACCOUNT_ID = 18023156;
 
 const STORAGE: {
     publicKeys: Record<string, string[]>;
@@ -103,6 +104,6 @@ const isChallengeValid = function (signedChallenge: SignedChallenge, publicKey: 
     }
 };
 
-export {isChallengeValid, generateSixDigitNumber, STORAGE, FALLBACK_EMAIL, PHONE_NUMBER, Logger, ed, MOCKED_AUTHENTICATOR_CODE};
+export {isChallengeValid, generateSixDigitNumber, STORAGE, FALLBACK_EMAIL, PHONE_NUMBER, Logger, ed, MOCKED_AUTHENTICATOR_CODE, FALLBACK_ACCOUNT_ID};
 
 export type {Challenge};

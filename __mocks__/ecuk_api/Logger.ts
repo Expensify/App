@@ -5,6 +5,8 @@ const wrapReasonWithSourceData = (reason: string, args: Record<string, unknown>)
     return `${reason}, source data:\n${JSON.stringify(args, null, 2)}\n`;
 };
 
+const HEADER = ["\x1b[41m%s\x1b[0m", "MOCKED_API"]
+
 const Logger = {
     e: (...args: unknown[]) => {
         if (!DISABLE_LOGGER) {
@@ -20,19 +22,19 @@ const Logger = {
     },
     m: (...args: unknown[]) => {
         if (!DISABLE_LOGGER) {
-            console.log(...args);
+            console.log(...HEADER, ...args);
         }
         return args.join(' ');
     },
     mw: (reason: string, args: Record<string, unknown>) => {
         if (!DISABLE_LOGGER) {
-            console.log(wrapReasonWithSourceData(reason, args));
+            console.log(...HEADER, wrapReasonWithSourceData(reason, args));
         }
         return reason;
     },
     ww: (reason: string, args: Record<string, unknown>) => {
         if (!DISABLE_LOGGER) {
-            console.warn(wrapReasonWithSourceData(reason, args));
+            console.warn(...HEADER, wrapReasonWithSourceData(reason, args));
         }
         return reason;
     },

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -10,21 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import ROUTES from '@src/ROUTES';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
+import CONST from '@src/CONST';
 
 function MFAScenarioBiometricsTestPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
-    const isBiometryAvailable = false; // TODO: remove -> BIOMETRY WRAPPER WILL HANDLE IT
-
-    // TODO: replace with the correct logic
-    const testBiometrics = useCallback(() => {
-        if (isBiometryAvailable) {
-            return;
-        }
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
-    }, [isBiometryAvailable]);
+    const {process} = useMultifactorAuthenticationContext();
 
     return (
         <ScreenWrapper testID={MFAScenarioBiometricsTestPage.displayName}>
@@ -49,7 +42,9 @@ function MFAScenarioBiometricsTestPage() {
                     <Button
                         success
                         style={[styles.flex1]}
-                        onPress={testBiometrics}
+                        onPress={() => {
+                            process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: "fake"});
+                        }}
                         text={translate('common.test')}
                     />
                 </View>

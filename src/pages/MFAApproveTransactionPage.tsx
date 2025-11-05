@@ -11,14 +11,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
+import CONST from '@src/CONST';
 
 type MFAApproveTransactionPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION>;
 
 function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {process} = useMultifactorAuthenticationContext();
 
     const transactionID = route.params.transactionID;
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
@@ -35,10 +37,9 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
         setConfirmModalVisibility(false);
     }, []);
 
-    // TODO: replace with proper logic from MFAContext - now only for testing
     const approveTransaction = useCallback(() => {
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
-    }, []);
+        process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID})
+    }, [process, transactionID]);
 
     const denyTransaction = useCallback(() => {
         if (isConfirmModalVisible) {

@@ -69,22 +69,12 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-    const hasInitiallySentCodeRef = useRef(false);
 
     // Derived state
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
-
-    // Send validation code on mount (first time)
-    useEffect(() => {
-        if (hasInitiallySentCodeRef.current || !contactMethod) {
-            return;
-        }
-        hasInitiallySentCodeRef.current = true;
-        resendValidateCode(contactMethod);
-    }, [contactMethod]);
 
     // Timer handling
     useEffect(() => {
