@@ -386,7 +386,7 @@ function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFee
     const selectedCards = selectedFeeds.flatMap((cardFeedKey) => {
         const workspaceCardFeed = workspaceCardFeeds[getWorkspaceCardFeedKey(cardFeedKey)];
         if (!workspaceCardFeed) {
-            if (!cards || Object.keys(domainFeedCards).length === 0) {
+            if (!cards || Object.keys(domainFeedCards).length === 0 || !domainFeedCards[cardFeedKey]) {
                 return [];
             }
 
