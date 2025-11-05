@@ -23,6 +23,7 @@ function RadioListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    shouldHighlightSelectedItem = true,
     isHoverStyleDisabled,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -46,6 +47,7 @@ function RadioListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             isHoverStyleDisabled={isHoverStyleDisabled}
         >
             <>

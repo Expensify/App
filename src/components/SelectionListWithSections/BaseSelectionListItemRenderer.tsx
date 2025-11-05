@@ -58,6 +58,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     personalDetails,
     userBillingFundID,
     shouldShowRightCaret,
+    shouldHighlightSelectedItem = true,
     isHoverStyleDisabled,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -116,6 +117,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 userBillingFundID={userBillingFundID}
                 index={index}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 sectionIndex={sectionIndex}
                 isHoverStyleDisabled={isHoverStyleDisabled}
             />
