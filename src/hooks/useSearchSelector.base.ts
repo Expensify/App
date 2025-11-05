@@ -44,6 +44,9 @@ type UseSearchSelectorConfig = {
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
+    /** Whether to include self DM */
+    includeSelfDM?: boolean;
+
     /** Additional configuration for getValidOptions function */
     getValidOptionsConfig?: Partial<GetOptionsConfig>;
 
@@ -121,6 +124,14 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
+const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
+    return (
+        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.login && option1.login === option2.login)
+    );
+};
+
 /**
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
@@ -140,6 +151,8 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
+    includeCurrentUser = false,
+    includeSelfDM = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -199,6 +212,8 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    includeCurrentUser,
+                    includeSelfDM,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, draftComments, {
@@ -209,6 +224,9 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    loginsToExclude: excludeLogins,
+                    includeCurrentUser,
+                    includeSelfDM,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -278,19 +296,15 @@ function useSearchSelectorBase({
         countryCode,
         excludeLogins,
         includeRecentReports,
+        includeCurrentUser,
         maxRecentReportsToShow,
         getValidOptionsConfig,
+        includeSelfDM,
         selectedOptions,
     ]);
 
     const isOptionSelected = useMemo(() => {
-        return (option: OptionData) =>
-            selectedOptions.some(
-                (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.login && selected.login === option.login),
-            );
+        return (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
     }, [selectedOptions]);
 
     const searchOptions = useMemo(() => {
@@ -338,26 +352,11 @@ function useSearchSelectorBase({
                 return;
             }
 
-            const isSelected = selectedOptions.some(
-                (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.login && selected.login === option.login),
-            );
+            const isSelected = selectedOptions.some((selected) => doOptionsMatch(selected, option));
+            const newlySelected = isSelected ? selectedOptions.filter((selected) => !doOptionsMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
 
-            const newSelected = isSelected
-                ? selectedOptions.filter(
-                      (selected) =>
-                          !(
-                              (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.login && selected.login === option.login)
-                          ),
-                  )
-                : [...selectedOptions, {...option, isSelected: true}];
-
-            setSelectedOptions(newSelected);
-            onSelectionChange?.(newSelected);
+            setSelectedOptions(newlySelected);
+            onSelectionChange?.(newlySelected);
         },
         [selectedOptions, selectionMode, onSelectionChange, onSingleSelect],
     );
