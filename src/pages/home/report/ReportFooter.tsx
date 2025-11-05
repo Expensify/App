@@ -175,7 +175,7 @@ function ReportFooter({
             });
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
