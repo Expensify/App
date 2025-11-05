@@ -957,7 +957,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitReceipts}
+                        submit={() => submitReceipts(receiptFiles)}
                     />
                 )}
 
