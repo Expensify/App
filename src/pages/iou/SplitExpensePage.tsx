@@ -48,6 +48,7 @@ import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
@@ -237,7 +238,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
-            const currentReport = getReportOrDraftReport(currentTransaction?.reportID);
+            const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
             const isApproved = isReportApproved({report: currentReport});
             const isSettled = isSettledReportUtils(currentReport?.reportID);
             const isCancelled = currentReport && currentReport?.isCancelledIOU;
