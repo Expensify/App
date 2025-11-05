@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 type UseDeleteTransactionsParams = {
@@ -32,6 +33,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     /**
      * Delete transactions by IDs
@@ -127,6 +129,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isChatReportArchived: isChatIOUReportArchived,
+                    currentUserPersonalDetails,
                 });
             });
 

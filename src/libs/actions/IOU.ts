@@ -741,6 +741,7 @@ type UpdateSplitTransactionsParams = {
     chatReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
     isChatReportArchived?: boolean;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type ReplaceReceipt = {
@@ -13752,6 +13753,7 @@ function updateSplitTransactions({
     chatReport,
     firstIOU,
     isChatReportArchived,
+    currentUserPersonalDetails,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -13837,8 +13839,8 @@ function updateSplitTransactions({
         const requestMoneyInformation = {
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
-                payeeEmail: deprecatedCurrentUserPersonalDetails?.login ?? '',
-                payeeAccountID: deprecatedCurrentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                payeeEmail: currentUserPersonalDetails?.login ?? '',
+                payeeAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             },
             policyParams: {
                 policy,

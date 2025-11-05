@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -98,6 +99,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -186,6 +189,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             chatReport,
             firstIOU: iouActions.at(0),
             isChatReportArchived: isChatIOUReportArchived,
+            currentUserPersonalDetails,
         });
     }, [
         splitExpenses,
@@ -210,6 +214,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         chatReport,
         iouActions,
         isChatIOUReportArchived,
+        currentUserPersonalDetails,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
