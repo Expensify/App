@@ -114,7 +114,6 @@ function MoneyRequestParticipantsSelector({
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
-    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -274,6 +273,12 @@ function MoneyRequestParticipantsSelector({
             countryCode,
         ],
     );
+    const showImportContacts =
+        isNative &&
+        !isCategorizeOrShareAction &&
+        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        inputHelperText === translate('common.noResultsFound');
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
