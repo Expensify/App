@@ -23,7 +23,6 @@ import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -192,11 +191,6 @@ function EmptySearchViewContent({
     });
 
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const {
-        taskReport: viewTourTaskReport,
-        taskParentReport: viewTourTaskParentReport,
-        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -339,16 +333,7 @@ function EmptySearchViewContent({
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(
-                introSelected,
-                false,
-                tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                isUserPaidPolicyMember,
-                viewTourTaskReport,
-                viewTourTaskParentReport,
-                isViewTourTaskParentReportArchived,
-                currentUserPersonalDetails.accountID,
-            );
+            startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we didn't match a specific search hash, show a specific message based on the type of the data
@@ -509,9 +494,6 @@ function EmptySearchViewContent({
         introSelected,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
-        viewTourTaskReport,
-        viewTourTaskParentReport,
-        isViewTourTaskParentReportArchived,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -522,7 +504,6 @@ function EmptySearchViewContent({
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
-        currentUserPersonalDetails.accountID,
     ]);
 
     return (
