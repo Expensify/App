@@ -280,10 +280,13 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
+        if (isMovingTransactionFromTrackExpense) {
+            return;
+        }
         transactionIDs.forEach((transactionID) => {
             setMoneyRequestBillable(transactionID, defaultBillable);
         });
-    }, [transactionIDs, defaultBillable]);
+    }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
