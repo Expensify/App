@@ -143,6 +143,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type TextInputOptions = {

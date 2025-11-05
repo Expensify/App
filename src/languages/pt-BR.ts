@@ -933,17 +933,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de bate-papo é para qualquer coisa relacionada ao <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar uma fatura.`,
+            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
         beginningOfChatHistory: 'Este chat é com',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão +.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo! Vamos configurá-lo.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) ao ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use o botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} uma despesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use o botão + para ${additionalText} uma despesa.`,
         askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
         conciergeSupport: 'Suporte 24/7',
         create: 'criar',
@@ -1131,6 +1131,7 @@ const translations = {
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Adicionar divisão',
+        makeSplitsEven: 'Tornar as divisões iguais',
         editSplits: 'Editar divisões',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} maior que a despesa original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} a menos que a despesa original.`,
@@ -2450,7 +2451,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
@@ -2463,7 +2464,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Confirme os detalhes.\n' +
@@ -2476,7 +2477,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Criar despesa*.\n' +
                     '3. Insira um valor ou digitalize um recibo.\n' +
                     '4. Escolha seu espaço *pessoal*.\n' +
@@ -2570,7 +2571,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira um e-mail ou número de telefone.\n' +
                     '\n' +
@@ -2583,7 +2584,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     '*Divida despesas* com uma ou mais pessoas.\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Iniciar bate-papo*.\n' +
                     '3. Insira e-mails ou números de telefone.\n' +
                     '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
@@ -2605,7 +2606,7 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Veja como criar um relatório:\n' +
                     '\n' +
-                    `1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.\n` +
+                    `1. Clique no botão +.\n` +
                     '2. Escolha *Criar relatório*.\n' +
                     '3. Clique em *Adicionar despesa*.\n' +
                     '4. Adicione sua primeira despesa.\n' +
@@ -4620,6 +4621,7 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensalmente',
             },
             cardDetails: 'Detalhes do cartão',
+            cardPending: ({name}: {name: string}) => `O cartão está pendente e será emitido assim que a conta de ${name} for validada.`,
             virtual: 'Virtual',
             physical: 'Físico',
             deactivate: 'Desativar cartão',
@@ -4805,9 +4807,8 @@ ${amount} para ${merchant} - ${date}`,
                 noAccountsFound: 'Nenhuma conta encontrada',
                 defaultCard: 'Cartão padrão',
                 downgradeTitle: `Não é possível rebaixar o espaço de trabalho`,
-                downgradeSubTitleFirstPart: `Este espaço de trabalho não pode ser rebaixado porque vários feeds de cartão estão conectados (excluindo os Cartões Expensify). Por favor,`,
-                downgradeSubTitleMiddlePart: `manter apenas um feed de cartão`,
-                downgradeSubTitleLastPart: 'para prosseguir.',
+                downgradeSubTitle: `Este espaço de trabalho não pode ser rebaixado porque vários feeds de cartão estão conectados (excluindo os Cartões Expensify). Por favor, <a href="#">manter apenas um feed de cartão</a> para prosseguir.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Por favor, adicione a conta em ${connection} e sincronize a conexão novamente.`,
                 expensifyCardBannerTitle: 'Obtenha o Cartão Expensify',
                 expensifyCardBannerSubtitle: 'Aproveite o cashback em todas as compras nos EUA, até 50% de desconto na sua fatura do Expensify, cartões virtuais ilimitados e muito mais.',
@@ -6202,7 +6203,7 @@ ${amount} para ${merchant} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão +.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',
@@ -6856,6 +6857,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
+        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
