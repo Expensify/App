@@ -31,7 +31,6 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
-const getSuperWideRHPWidth = (windowWidth: number) => windowWidth - variables.sideBarWithLHBWidth - variables.navigationTabBarSize;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -41,7 +40,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {windowWidth} = useWindowDimensions();
 
     const animatedStyle = useAnimatedStyle(() => {
-        const width = interpolate(expandedRHPProgress.get(), [0, 1, 2], [singleRHPWidth, getWideRHPWidth(windowWidth), getSuperWideRHPWidth(windowWidth)]);
+        const width = interpolate(expandedRHPProgress.get(), [0, 1, 2], [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)]);
 
         return {
             height: '100%',
