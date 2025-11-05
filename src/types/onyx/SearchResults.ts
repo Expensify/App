@@ -337,9 +337,6 @@ type SearchTransaction = {
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
 

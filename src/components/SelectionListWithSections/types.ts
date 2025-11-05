@@ -243,6 +243,7 @@ type ListItem<K extends string | number = string> = {
 };
 
 type TransactionListItemType = ListItem &
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
@@ -309,6 +310,9 @@ type TransactionListItemType = ListItem &
 
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
+
+        /** Whether the action is loading */
+        isActionLoading?: boolean;
     };
 
 type ReportActionListItemType = ListItem &
