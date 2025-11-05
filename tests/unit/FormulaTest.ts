@@ -312,7 +312,6 @@ describe('CustomFormula', () => {
                 reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
 
                 const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-                mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
                 const result = compute('{report:reimbursable}', reimbursableContext);
                 expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
             });
