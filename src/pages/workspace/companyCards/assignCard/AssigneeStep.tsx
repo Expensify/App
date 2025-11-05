@@ -94,6 +94,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
                     invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
             });
             setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policy?.id);

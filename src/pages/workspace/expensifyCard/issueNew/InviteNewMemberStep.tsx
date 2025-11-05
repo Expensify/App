@@ -4,7 +4,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -58,11 +58,12 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
     useEffect(() => {
+        setDraftInviteAccountID(issueNewCard?.data?.invitingMemberEmail ?? '', issueNewCard?.data?.invitingMemberAccountID ?? undefined, policyID);
         if (!policy?.employeeList?.[issueNewCard?.data?.invitingMemberEmail ?? '']) {
             return;
         }
         goToNextStep();
-    }, [issueNewCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep]);
+    }, [issueNewCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep, policyID, currentUserPersonalDetails.accountID, issueNewCard?.data?.invitingMemberAccountID]);
 
     return (
         <InteractiveStepWrapper

@@ -43,6 +43,9 @@ type AssignCardData = {
 
     /** The email address of the inviting member */
     invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 };
 
 /** Model of assign card flow */
