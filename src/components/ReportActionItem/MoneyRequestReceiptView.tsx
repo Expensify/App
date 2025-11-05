@@ -324,6 +324,8 @@ function MoneyRequestReceiptView({
                             />
                         </View>
                     )}
+                    {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.
+                        Otherwise (when fillSpace is false), we use a fixed size, so there's no need to wait for the image to load. */}
                     {!!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
