@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MFAApproveTransactionActions from '@components/MultiFactorAuthentication/MFAApproveTransactionActions';
-import MFAApproveTransactionConfirmModal from '@components/MultiFactorAuthentication/MFAApproveTransactionConfirmModal';
+import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
 import MFAApproveTransactionContent from '@components/MultiFactorAuthentication/MFAApproveTransactionContent';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -63,7 +63,7 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
                         onApprove={approveTransaction}
                         onDeny={showConfirmModal}
                     />
-                    <MFAApproveTransactionConfirmModal
+                    <MFADenyTransactionConfirmModal
                         isVisible={isConfirmModalVisible}
                         onConfirm={denyTransaction}
                         onCancel={hideConfirmModal}

@@ -2,13 +2,13 @@ import React, {memo} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
-type MFAApproveTransactionConfirmModalProps = {
+type MFADenyTransactionConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
 };
 
-function MFAApproveTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFAApproveTransactionConfirmModalProps) {
+function MFADenyTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFADenyTransactionConfirmModalProps) {
     const {translate} = useLocalize();
 
     return (
@@ -26,6 +26,6 @@ function MFAApproveTransactionConfirmModal({isVisible, onConfirm, onCancel}: MFA
     );
 }
 
-MFAApproveTransactionConfirmModal.displayName = 'MFAApproveTransactionConfirmModal';
+MFADenyTransactionConfirmModal.displayName = 'MFADenyTransactionConfirmModal';
 
-export default memo(MFAApproveTransactionConfirmModal);
+export default memo(MFADenyTransactionConfirmModal);

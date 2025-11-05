@@ -16,7 +16,7 @@ import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
-import NotFoundPage from '../ErrorPage/NotFoundPage';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 // TODO: dodac co configa scenario: success i failure screen i tam zdefiniowac to nizej a runoutoftime do constow
 type NotificationType = 'authentication-successful' | 'authentication-failed' | 'transaction-approved' | 'transaction-denied' | 'you-ran-out-of-time';

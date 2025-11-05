@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
@@ -12,7 +12,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import NotFoundPage from '../ErrorPage/NotFoundPage';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
 
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
@@ -52,6 +53,8 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     // Memoize to avoid recalculating on every render
     const contentData = useMemo(() => getPromptContentData(route.params.promptType), [route.params.promptType]);
 
+    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+
     const onConfirm = useCallback(() => {
         update({softPromptDecision: true});
     }, [update]);
@@ -59,6 +62,23 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
     const onGoBackPress = useCallback(() => {
         update({softPromptDecision: false});
     }, [update]);
+
+
+    const showConfirmModal = useCallback(() => {
+        setConfirmModalVisibility(true);
+    }, []);
+
+    const hideConfirmModal = useCallback(() => {
+        setConfirmModalVisibility(false);
+    }, []);
+
+    const denyTransaction = useCallback(() => {
+        if (isConfirmModalVisible) {
+            hideConfirmModal();
+        }
+        // MFAdenyTransaction(); // TODO: trigger(cancel) do transaction denied page
+        onGoBackPress();
+    }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
 
     if (!contentData) {
         return <NotFoundPage />;
@@ -68,7 +88,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         <ScreenWrapper testID={MultiFactorAuthenticationPromptPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
-                onBackButtonPress={onGoBackPress}
+                onBackButtonPress={showConfirmModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -80,6 +100,11 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                 <MFAPromptActions
                     onGoBackPress={onGoBackPress}
                     onConfirm={onConfirm}
+                />
+                <MFADenyTransactionConfirmModal
+                    isVisible={isConfirmModalVisible}
+                    onConfirm={denyTransaction}
+                    onCancel={hideConfirmModal}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
