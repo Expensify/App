@@ -23,6 +23,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
@@ -640,11 +641,22 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     useEffect(() => {
-        if (typeof document === 'undefined') {
+        if (!canUseTouchScreen() && typeof document === 'undefined') {
             return;
         }
 
-        const handler = () => {
+        let lastClientX = 0;
+        let lastClientY = 0;
+        const handler = (event: MouseEvent) => {
+            // On Safari, scrolling can also trigger a mousemove event,
+            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
+            if (event.clientX === lastClientX && event.clientY === lastClientY) {
+                return;
+            }
+
+            lastClientX = event.clientX;
+            lastClientY = event.clientY;
+
             setShouldDisableHoverStyle(false);
         };
         document.addEventListener('mousemove', handler, true);
