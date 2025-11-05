@@ -369,7 +369,7 @@ function Search({
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -712,7 +712,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -762,14 +762,14 @@ function Search({
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-                const isBaseKeyMatch = baseKey === newSearchResultKey;
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return transactionKey === newSearchResultKey;
+                        return !!newSearchResultKeys?.has(transactionKey);
                     });
 
                 // Determine if either the base key or any transaction key matches
@@ -777,7 +777,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     useEffect(() => {
@@ -891,6 +891,7 @@ function Search({
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
@@ -918,20 +919,22 @@ function Search({
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columnsToShow}
-                                type={type}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
-                            />
+                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYear}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting={shouldShowSorting}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
