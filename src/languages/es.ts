@@ -5379,7 +5379,6 @@ ${amount} para ${merchant} - ${date}`,
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
-                inviteNewMember: 'Invitar nuevo miembro',
                 findMember: 'Buscar miembro',
                 chooseCardType: 'Elegir un tipo de tarjeta',
                 physicalCard: 'Tarjeta física',
