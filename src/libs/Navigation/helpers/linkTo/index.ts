@@ -75,7 +75,6 @@ function areFullScreenRoutesEqual(matchingFullScreenRoute: NavigationPartialRout
     return isEqualFullScreenRoute && isEqualLastRouteInFullScreenRoute;
 }
 
-/** Check whether the route has been preloaded */
 function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
 
