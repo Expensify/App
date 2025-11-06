@@ -1688,7 +1688,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as OnyxTypes.Report)}
+                            {getChatListItemReportName(action, report)}
                         </TextLink>
                     </View>
                     {children}
