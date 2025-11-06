@@ -24,8 +24,7 @@ function extractCoverageDeltaTable(body: string): string | null {
     const tableLines = [];
     let emptyLineCount = 0;
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+    for (const line of lines) {
         const trimmedLine = line.trim();
 
         // Stop at the "New features" section
@@ -106,11 +105,11 @@ async function run() {
             return;
         }
 
-        const commentId = context.payload.comment?.id;
-        const commentBody = context.payload.comment?.body;
-        const commentAuthor = context.payload.comment?.user?.login;
+        const commentId = context.payload.comment?.id as number | undefined;
+        const commentBody = context.payload.comment?.body as string | undefined;
+        const commentAuthor = context.payload.comment?.user?.login as string | undefined;
 
-        if (!commentBody || !commentId) {
+        if (!commentBody || !commentId || typeof commentBody !== 'string') {
             console.log('No comment body or ID found');
             return;
         }
@@ -141,6 +140,7 @@ async function run() {
         await GithubUtils.octokit.issues.updateComment({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             comment_id: commentId,
             body: formattedBody,
         });
