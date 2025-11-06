@@ -11,7 +11,7 @@ permissions:
 jobs:
   format-codecov-comment:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && (github.event.comment.user.login == 'codecov[bot]' || github.event.comment.user.login == 'codecov-commenter')
+    if: github.event.issue.pull_request
     steps:
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4

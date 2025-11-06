@@ -58,27 +58,89 @@ function extractCoverageDeltaTable(body: string): string | null {
         tableLines.push(line);
     }
 
-    return tableLines.join('\n').trim();
+    // Filter out any empty or whitespace-only lines to ensure proper table formatting
+    const cleanedLines = tableLines.filter((line) => line.trim() !== '');
+    const result = cleanedLines.join('\n').trim();
+    
+    // Return null if no valid table content was found
+    return result.length > 0 ? result : null;
 }
 
 /**
  * Checks if the comment contains any downward arrows (decreased coverage)
  */
 function hasDecreasedCoverage(body: string): boolean {
-    return body.includes('⬇️');
+    // Check for both emoji and markdown syntax
+    return body.includes('⬇️') || body.includes(':arrow_down:');
+}
+
+/**
+ * Extracts the header from a CodeCov comment (preserves the markdown link)
+ */
+function extractCodeCovHeader(body: string): string {
+    // Extract the header line (## [Codecov](url) Report)
+    const headerMatch = body.match(/^##\s*\[Codecov\]\([^)]*\)\s*Report/m);
+    if (headerMatch) {
+        return headerMatch[0];
+    }
+    // Fallback to plain header
+    return '## Codecov Report';
+}
+
+/**
+ * Formats a CodeCov comment for the "all lines covered" case (no table)
+ */
+function formatAllLinesCoveredComment(originalBody: string): string {
+    // Extract the original header
+    const header = extractCodeCovHeader(originalBody);
+
+    // Extract everything between the header and the "New features" section
+    const lines = originalBody.split('\n');
+    const contentLines = [];
+    let foundHeader = false;
+
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        // Skip until we find content after the header
+        if (!foundHeader) {
+            if (trimmedLine.startsWith('##') && trimmedLine.includes('Codecov')) {
+                foundHeader = true;
+            }
+            continue;
+        }
+
+        // Stop at "New features" section
+        if (trimmedLine.includes(':rocket:') || trimmedLine.includes('🚀') || trimmedLine.startsWith('<details>')) {
+            break;
+        }
+
+        // Skip empty lines at the start
+        if (contentLines.length === 0 && trimmedLine === '') {
+            continue;
+        }
+
+        contentLines.push(line);
+    }
+
+    // Clean up content and build the formatted comment
+    const content = contentLines.join('\n').trim();
+    return `${header}\n${content}`;
 }
 
 /**
  * Formats a CodeCov comment according to specifications
  */
 function formatCodeCovComment(originalBody: string): string | null {
-    // Check if this is a comment that should remain unchanged
-    // "All modified and coverable lines are covered by tests" without a table
-    if (originalBody.includes('✅ All modified and coverable lines are covered by tests')) {
+    // Extract the original header to preserve the link
+    const header = extractCodeCovHeader(originalBody);
+
+    // Check if this is the "all lines covered" case (no table)
+    if (originalBody.includes('All modified and coverable lines are covered by tests')) {
         const hasCoverageTable = originalBody.includes('Coverage Δ');
         if (!hasCoverageTable) {
-            // Leave it unchanged
-            return null;
+            // Format it by removing "New features" section but keeping the rest
+            return formatAllLinesCoveredComment(originalBody);
         }
     }
 
@@ -98,8 +160,8 @@ function formatCodeCovComment(originalBody: string): string | null {
         message = '✅ Changes either increased or maintained existing code coverage, great job!';
     }
 
-    // Build the new comment body
-    const newBody = `Codecov Report
+    // Build the new comment body with the original header
+    const newBody = `${header}
 
 ${message}
 
@@ -121,19 +183,23 @@ async function run() {
         const commentUser = context.payload.comment?.user as {login?: string} | undefined;
         const commentAuthor = commentUser?.login;
 
-        if (!commentBody || !commentId || typeof commentBody !== 'string') {
-            console.log('No comment body or ID found');
+        // Validate required fields
+        if (!commentBody || !commentId || typeof commentBody !== 'string' || typeof commentId !== 'number') {
+            console.log('Missing or invalid comment data');
             return;
         }
 
-        // Check if the comment is from CodeCov
-        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter') {
-            console.log(`Comment is not from CodeCov (author: ${commentAuthor})`);
-            return;
-        }
+        // TEMPORARY: Allow any user for testing (removed username check)
+        // In production, this should check: commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter'
+        console.log(`Processing comment from user: ${commentAuthor}`);
 
-        // Check if the comment starts with "Codecov Report"
-        if (!commentBody.includes('Codecov Report')) {
+        // Check if the comment is a CodeCov report
+        // CodeCov header format: ## [Codecov](url) Report or ## Codecov Report
+        const isCodeCovReport = commentBody.includes('Codecov') && 
+                                commentBody.includes('Report') && 
+                                (commentBody.includes('Coverage Δ') || commentBody.includes('All modified and coverable lines are covered by tests'));
+        
+        if (!isCodeCovReport) {
             console.log('Comment does not appear to be a CodeCov report');
             return;
         }
@@ -143,8 +209,14 @@ async function run() {
         // Format the comment
         const formattedBody = formatCodeCovComment(commentBody);
 
-        if (!formattedBody) {
+        if (!formattedBody || formattedBody.trim() === '') {
             console.log('Comment should remain unchanged or formatting failed');
+            return;
+        }
+
+        // Safety check: Don't update if formatted body is identical to original
+        if (formattedBody === commentBody) {
+            console.log('Formatted body is identical to original, no update needed');
             return;
         }
 
