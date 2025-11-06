@@ -1341,8 +1341,7 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Por favor, tente novamente mais tarde.',
             genericUnholdExpenseFailureMessage: 'Erro inesperado ao remover esta despesa da retenção. Por favor, tente novamente mais tarde.',
             receiptDeleteFailureError: 'Erro inesperado ao excluir este recibo. Por favor, tente novamente mais tarde.',
-            receiptFailureMessage:
-                '<rbr>Houve um erro ao enviar seu recibo. Por favor, <a href="retry">tente novamente</a> ou <a href="download">salve o recibo</a> para enviar mais tarde.</rbr>',
+            receiptFailureMessage: '<rbr>Houve um erro ao enviar seu recibo. Por favor, <a href="download">salve o recibo</a> e <a href="retry">tente novamente</a> mais tarde.</rbr>',
             receiptFailureMessageShort: 'Houve um erro ao enviar seu recibo.',
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Por favor, tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Por favor, tente novamente mais tarde.',
