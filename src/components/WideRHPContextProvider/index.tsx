@@ -27,7 +27,6 @@ const thirdOverlayProgress = new Animated.Value(0);
 
 const singleRHPWidth = variables.sideBarWidth;
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
-const sidebarWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 /**
  * Utility function that extracts all unique navigation keys from a React Navigation state.
@@ -85,10 +84,10 @@ const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
  * @returns Calculated super wide RHP width with constraints applied
  */
 const calculateSuperWideRHPWidth = (windowWidth: number) => {
-    const SuperWideRHPWidth = windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
+    const superWideRHPWidth = windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
     const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
 
-    return Math.max(Math.min(SuperWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
+    return Math.max(Math.min(superWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
 };
 
 // This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
@@ -96,8 +95,10 @@ const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dime
 const superWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width));
 
 const wideRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width) + singleRHPWidth);
-const modalStackOverlayWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - calculateReceiptPaneRHPWidth(Dimensions.get('window').width - singleRHPWidth));
-const modalStackOverlaySuperWideRHPWidth = new Animated.Value(Dimensions.get('window').width - sidebarWidth - singleRHPWidth);
+const modalStackOverlayWideRHPWidth = new Animated.Value(
+    calculateSuperWideRHPWidth(Dimensions.get('window').width) - calculateReceiptPaneRHPWidth(Dimensions.get('window').width - singleRHPWidth),
+);
+const modalStackOverlaySuperWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width) - singleRHPWidth);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -398,8 +399,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             const newWideRHPWidth = newReceiptPaneRHPWidth + singleRHPWidth;
             receiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
             wideRHPWidth.setValue(newWideRHPWidth);
-            modalStackOverlayWideRHPWidth.setValue(windowWidth - newWideRHPWidth - sidebarWidth);
-            modalStackOverlaySuperWideRHPWidth.setValue(windowWidth - sidebarWidth - singleRHPWidth);
+            modalStackOverlayWideRHPWidth.setValue(newSuperWideRHPWidth - newWideRHPWidth);
+            modalStackOverlaySuperWideRHPWidth.setValue(newSuperWideRHPWidth - singleRHPWidth);
             superWideRHPWidth.setValue(newSuperWideRHPWidth);
         };
 
