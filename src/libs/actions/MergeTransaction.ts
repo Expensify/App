@@ -358,10 +358,10 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
+
+    const successData: OnyxUpdate[] = [];
+    successData.push(...successSourceReportActionData);
+    successData.push(...(onyxTargetTransactionData.successData ?? []));
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
