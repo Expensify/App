@@ -195,6 +195,7 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getRetractedMessage,
+    getSortedReportActions,
     getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
@@ -2750,7 +2751,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
     }
 
     if (isInvoiceReport(report)) {
-        return report?.ownerAccountID === currentUserAccountID && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+        return report?.ownerAccountID === currentUserAccountID && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -4422,6 +4423,13 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID);
 
+    // If the current user took control, then they are the final approver and we don't have a next approver
+    // If someone else took control or rerouted, they are the next approver
+    const bypassApproverAccountID = getBypassApproverAccountIDIfTakenControl(report);
+    if (bypassApproverAccountID) {
+        return bypassApproverAccountID === currentUserAccountID && !isUnapproved ? undefined : bypassApproverAccountID;
+    }
+
     const approvalChain = getApprovalChain(policy, report);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -4430,16 +4438,19 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
             return currentUserAccountID;
         }
 
-        return report?.managerID;
+        return report?.managerID ?? submitToAccountID;
     }
 
     if (approvalChain.length === 0) {
         return submitToAccountID;
     }
 
-    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail ?? '') + 1);
+    const currentUserIndex = approvalChain.indexOf(currentUserEmail ?? '');
+    const nextApproverEmail = currentUserIndex === -1 ? approvalChain.at(0) : approvalChain.at(currentUserIndex + 1);
+
     if (!nextApproverEmail) {
-        return submitToAccountID;
+        // If there's no next approver in the chain, return undefined to indicate the current user is the final approver
+        return undefined;
     }
 
     return getAccountIDsByLogins([nextApproverEmail]).at(0);
@@ -10391,7 +10402,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 }
 
 /**
- * Get optimistic data of parent report action
+ * Get optimistic data of the parent report action
  * @param report The report that is updated
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
@@ -10417,6 +10428,28 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
         if (!ancestorReportAction?.reportActionID || isEmptyObject(ancestorReportAction)) {
             return null;
         }
+        const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
+
+        previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
+
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: {
+                [ancestorReportAction.reportActionID]: updatedReportAction,
+            },
+        };
+    });
+}
+/**
+ * Get optimistic data of the ancestor report actions
+ * @param ancestors The thread report ancestors
+ * @param lastVisibleActionCreated Last visible action created of the child report
+ * @param type The type of action in the child report
+ */
+function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+    let previousActionDeleted = false;
+    return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
 
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
@@ -10988,6 +11021,7 @@ function prepareOnboardingOnyxData(
                 isOptimisticPersonalDetail: !assignedGuidePersonalDetail,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
+                avatar: getDefaultAvatarURL(assignedGuideAccountID),
             },
         });
     }
@@ -11306,13 +11340,16 @@ function prepareOnboardingOnyxData(
         },
     );
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-        },
-    });
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         optimisticData.push({
@@ -11324,13 +11361,16 @@ function prepareOnboardingOnyxData(
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
 
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-        },
-    });
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+            },
+        });
+    }
 
     let failureReport: Partial<Report> = {
         lastMessageText: '',
@@ -11368,15 +11408,18 @@ function prepareOnboardingOnyxData(
             },
         },
     );
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [textCommentAction.reportActionID]: {
-                errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-            } as ReportAction,
-        },
-    });
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         failureData.push({
@@ -11427,9 +11470,12 @@ function prepareOnboardingOnyxData(
         });
     }
 
+    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
 
-    guidedSetupData.push({type: 'message', ...textMessage});
+    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
+        guidedSetupData.push({type: 'message', ...textMessage});
+    }
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
@@ -11819,6 +11865,42 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     }
 
     return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
+}
+
+/**
+ * Checks if someone took control of the report and if that take control is still valid
+ * A take control is invalidated if there's a SUBMITTED action after it
+ */
+function getBypassApproverAccountIDIfTakenControl(expenseReport: OnyxEntry<Report>): number | null {
+    if (!expenseReport?.reportID) {
+        return null;
+    }
+
+    if (!isProcessingReport(expenseReport)) {
+        return null;
+    }
+
+    const reportActions = getAllReportActions(expenseReport.reportID);
+    if (!reportActions) {
+        return null;
+    }
+
+    // Sort actions by created timestamp to get chronological order
+    const sortedActions = getSortedReportActions(Object.values(reportActions ?? {}), true);
+
+    // Look through actions in reverse chronological order (newest first)
+    // If we find a SUBMITTED action, there's no valid take control since any take control would be older
+    for (const action of sortedActions) {
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
+            return null;
+        }
+
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+            return action.actorAccountID ?? null;
+        }
+    }
+
+    return null;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -12480,6 +12562,7 @@ export {
     getMoneyRequestOptions,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
+    getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getOutstandingChildRequest,

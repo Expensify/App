@@ -273,7 +273,7 @@ function AvatarWithDisplayName({
                         )}
                     </View>
 
-                    <View style={[styles.flex1, styles.flexColumn, styles.mnw0]}>
+                    <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
                             report,
