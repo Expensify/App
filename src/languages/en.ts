@@ -1117,7 +1117,6 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
-        makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
@@ -5467,8 +5466,8 @@ const translations = {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
-            changePromptMessage: ' to make that change.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -5665,6 +5664,12 @@ const translations = {
                 description: 'Create and manage your own rates, track in miles or kilometers, and set default categories for distance expenses.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Distance rates are available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Auditor',
+                description: 'Auditors get read-only access to all reports for full visibility and compliance monitoring.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Auditors are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Multiple approval levels',
@@ -6819,7 +6824,6 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
-        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -7334,6 +7338,27 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
+    domain: {
+        notVerified: 'Not verified',
+        retry: 'Retry',
+        verifyDomain: {
+            title: 'Verify domain',
+            beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Access your DNS provider and open DNS settings for <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Add the following TXT record:',
+            saveChanges: 'Save changes and return here to verify your domain.',
+            youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
+            warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+            codeFetchError: 'Couldn’t fetch verification code',
+            genericError: "We couldn't verify your domain. Please try again and reach out to Concierge if the problem persists.",
+        },
+        domainVerified: {
+            title: 'Domain verified',
+            header: 'Wooo! Your domain has been verified',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
+        },
     },
 };
 
