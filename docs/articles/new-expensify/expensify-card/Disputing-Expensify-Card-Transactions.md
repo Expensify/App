@@ -57,11 +57,11 @@ If you haven't already, strengthen your account's security by [enabling 2FA](htt
 
 ## Contact the merchant
 
-Most service-related issues can be resolved directly with the account. This is the quickest way to address disputes.
+Most service-related issues can be resolved directly with the merchant. This is the quickest way to address disputes.
 
 ## Contact Expensify
 
-**If the issue isn't resolved with the Merchant, contact Expensify Concierge to start the dispute process:**
+**If the issue isn't resolved with the merchant, contact Expensify Concierge to start the dispute process:**
 
 - **Expensify Chat:** Open your Expensify Chat inbox and message Concierge
 - **Email:** Send your dispute details to concierge@expensify.com
