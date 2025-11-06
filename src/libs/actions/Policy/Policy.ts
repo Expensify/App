@@ -106,6 +106,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -378,6 +379,7 @@ function deleteWorkspace(
     reportsToArchive: Report[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     reimbursementAccountError: Errors | undefined,
+    bankAccountList: OnyxEntry<BankAccountList>,
     lastUsedPaymentMethods?: LastPaymentMethod,
 ) {
     if (!allPolicies) {
@@ -389,6 +391,17 @@ function deleteWorkspace(
     const policy = getPolicy(policyID);
     const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
+
+    // Filter out bank accounts associated with the policy being deleted
+    const filteredBankAccountList = bankAccountList
+        ? Object.entries(bankAccountList).reduce<BankAccountList>((acc, [key, bankAccount]) => {
+              if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
+                  acc[key] = bankAccount;
+              }
+              return acc;
+          }, {})
+        : bankAccountList;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -404,6 +417,15 @@ function deleteWorkspace(
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: null,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: filteredBankAccountList,
+                  },
+              ]
+            : []),
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
@@ -439,6 +461,15 @@ function deleteWorkspace(
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: bankAccountList,
+                  },
+              ]
+            : []),
     ];
 
     if (policyID === activePolicyID) {

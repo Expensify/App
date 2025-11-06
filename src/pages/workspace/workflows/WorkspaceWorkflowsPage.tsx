@@ -116,8 +116,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
-        getPaymentMethods(true);
-    }, [route.params.policyID]);
+        const shouldGetPartiallySetupAccounts = policy?.achAccount?.reimburser === currentUserLogin;
+        getPaymentMethods(shouldGetPartiallySetupAccounts);
+    }, [currentUserLogin, policy?.achAccount?.reimburser, route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
