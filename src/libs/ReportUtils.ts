@@ -1193,6 +1193,7 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getReportOrDraftReport(
     reportID: string | undefined,
     searchReports?: SearchReport[],
