@@ -109,6 +109,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
+    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -775,6 +776,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getChangedApproverActionMessage(lastReportAction));
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(lastReportAction, report));
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage());
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
