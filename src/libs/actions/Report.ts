@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -84,7 +84,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import NetworkConnection from '@libs/NetworkConnection';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -215,7 +215,7 @@ import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
-import {addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
 import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
@@ -2466,7 +2466,7 @@ function updateReportField(
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report,
         predictedNextStatus,
         shouldFixViolations,
@@ -2833,7 +2833,7 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -2887,6 +2887,17 @@ function buildNewReportOptimisticData(
     ];
 
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
+            },
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -4564,36 +4575,10 @@ function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean | undefined,
-    translate: LocalizedTranslate,
-    policy?: OnyxEntry<Policy>,
 ) {
     if (!reportAction || !reportID) {
         return;
-    }
-
-    if (ReportActionsUtils.isActionableMentionWhisper(reportAction) && resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE) {
-        const actionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-
-        const policyID = policy?.id;
-
-        if (actionOriginalMessage && policyID) {
-            const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
-            const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
-            const welcomeNote = translate('workspace.common.welcomeNote');
-            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
-
-            const invitees: Record<string, number> = {};
-            actionOriginalMessage.inviteeEmails?.forEach((email, index) => {
-                if (!email) {
-                    return;
-                }
-                invitees[email] = actionOriginalMessage.inviteeAccountIDs?.at(index) ?? CONST.DEFAULT_NUMBER_ID;
-            });
-
-            addMembersToWorkspace(invitees, `${welcomeNoteSubject}\n\n${welcomeNote}`, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
-        }
     }
 
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
@@ -4675,11 +4660,9 @@ function resolveActionableMentionConfirmWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived: boolean,
-    translate: LocalizedTranslate,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, isReportArchived, translate, undefined);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, isReportArchived);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -5759,7 +5742,7 @@ function buildOptimisticChangePolicyData(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStepNew({
+            value: buildNextStep({
                 report: {...report, policyID: policy.id},
                 predictedNextStatus: newStatusNum,
                 policy,
