@@ -3914,11 +3914,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        enabled,
-                        pendingFields: {
-                            enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
+                    receiptPartners: {enabled},
+                    pendingFields: {
+                        receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -3928,10 +3926,8 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        pendingFields: {
-                            enabled: null,
-                        },
+                    pendingFields: {
+                        receiptPartners: null,
                     },
                 },
             },
@@ -3941,11 +3937,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        enabled: !enabled,
-                        pendingFields: {
-                            enabled: null,
-                        },
+                    receiptPartners: {enabled: !enabled},
+                    pendingFields: {
+                        receiptPartners: null,
                     },
                 },
             },
