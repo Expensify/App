@@ -349,7 +349,10 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(originalSourceTransaction) || getOriginalTransactionWithSplitInfo(originalSourceTransaction).isExpenseSplit) {
+    if (
+        isManagedCardTransaction(originalSourceTransaction) ||
+        (getOriginalTransactionWithSplitInfo(originalSourceTransaction).isExpenseSplit && !isManagedCardTransaction(originalTargetTransaction))
+    ) {
         return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
 
