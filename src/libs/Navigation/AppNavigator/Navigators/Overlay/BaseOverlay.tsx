@@ -4,26 +4,41 @@ import React from 'react';
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OverlayStylesParams} from '@styles/index';
 import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
     /* Callback to close the modal */
     onPress?: () => void;
 
-    /* Returns whether a modal is displayed on the left side of the screen. By default, the modal is displayed on the right */
-    isModalOnTheLeft?: boolean;
+    /* Whether there should be a gap on the right side. Necessary for the overlay that covers wider part of RHP. */
+    hasMarginRight?: boolean;
+
+    /* Whether there should be a gap on the left. Necessary for the overlay in modal stack navigator. */
+    hasMarginLeft?: boolean;
+
+    /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
+    progress?: OverlayStylesParams;
 };
 
-function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
+function BaseOverlay({onPress, hasMarginRight = false, progress, hasMarginLeft = false}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
+    const {sidePanelTranslateX} = useSidePanel();
 
     return (
         <Animated.View
             id="BaseOverlay"
-            style={styles.overlayStyles(current, isModalOnTheLeft)}
+            style={[
+                styles.pFixed,
+                styles.t0,
+                styles.b0,
+                styles.overlayBackground,
+                styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft, sidePanelTranslateX}),
+            ]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

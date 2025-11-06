@@ -9,7 +9,6 @@ import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -17,21 +16,11 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-const ACCOUNT_DEFAULT: AccountOnyx = {
-    shouldUseStagingServer: undefined,
-    isSubscribedToNewsletter: false,
-    validated: false,
-    isFromPublicDomain: false,
-    isUsingExpensifyCard: false,
-    isDebugModeEnabled: false,
-};
-
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
-    const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
-    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

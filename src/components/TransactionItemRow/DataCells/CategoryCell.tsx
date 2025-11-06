@@ -1,15 +1,15 @@
 import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
+import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
 
-    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
 
     return shouldUseNarrowLayout ? (
         <TextWithIconCell

@@ -1,9 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import BasePicker from './BasePicker';
-import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
+import type {AdditionalPickerEvents, BasePickerProps, OnChange, OnMouseDown} from './types';
 
-function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
+function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>): AdditionalPickerEvents => ({
         onMouseDown,
         onChange: (e) => {
@@ -32,4 +31,4 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
     );
 }
 
-export default forwardRef(Picker);
+export default Picker;

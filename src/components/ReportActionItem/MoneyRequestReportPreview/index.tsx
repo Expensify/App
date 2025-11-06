@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -46,7 +47,7 @@ function MoneyRequestReportPreview({
     const invoiceReceiverPolicy =
         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -105,7 +106,7 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
@@ -131,6 +132,8 @@ function MoneyRequestReportPreview({
         />
     );
 
+    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
+
     return (
         <MoneyRequestReportPreviewContent
             iouReportID={iouReportID}
@@ -146,7 +149,6 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
@@ -160,6 +162,7 @@ function MoneyRequestReportPreview({
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
+            forwardedFSClass={fsClass}
         />
     );
 }

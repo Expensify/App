@@ -16,17 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
-let onboardingValues: Onboarding;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        onboardingValues = value;
-    },
-});
-
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
@@ -37,6 +26,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
+    onboardingValues: OnyxEntry<Onboarding>;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -44,6 +34,7 @@ type OnboardingTaskLinks = Partial<{
     integrationName: string;
     workspaceSettingsLink: string;
     workspaceCategoriesLink: string;
+    workspaceTagsLink: string;
     workspaceMoreFeaturesLink: string;
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
@@ -84,10 +75,13 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
+    const rootState = navigationRef.getRootState();
+    const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
     navigationRef.resetRoot({
-        ...navigationRef.getRootState(),
+        ...rootState,
         ...adaptedState,
         stale: true,
+        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
     } as PartialState<NavigationState>);
 }
 
@@ -99,6 +93,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
+        onboardingValues,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -106,6 +101,10 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+
+    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
+    }
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -137,11 +136,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !currentOnboardingCompanySize)) {
+    if (
+        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
+    ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
@@ -160,6 +162,13 @@ const getOnboardingMessages = (locale?: Locale) => {
             DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
+        autoCompleted: false,
+        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+        mediaAttributes: {},
     };
     const createReportTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
@@ -267,15 +276,14 @@ const getOnboardingMessages = (locale?: Locale) => {
         type: CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS,
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) =>
-            translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceMoreFeaturesLink}),
+        title: ({workspaceCategoriesLink, workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceTagsLink}),
         description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
             translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.description', {workspaceCategoriesLink, workspaceAccountingLink}),
     };
     const setupTagsTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS,
         autoCompleted: false,
-        title: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceMoreFeaturesLink}),
+        title: ({workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceTagsLink}),
         description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
         mediaAttributes: {
             [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
@@ -333,9 +341,19 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
-    const onboardingMangeTeamMessage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+    const onboardingManageTeamMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
+        tasks: [
+            createWorkspaceTask,
+            testDriveAdminTask,
+            addAccountingIntegrationTask,
+            connectCorporateCardTask,
+            inviteTeamTask,
+            setupCategoriesAndTags,
+            setupCategoriesTask,
+            setupTagsTask,
+            addExpenseApprovalsTask,
+        ],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
@@ -373,7 +391,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingMangeTeamMessage,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
@@ -390,5 +408,5 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 };
 
-export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize};
+export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

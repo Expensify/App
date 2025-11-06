@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
@@ -31,22 +31,39 @@ function Container({
             return;
         }
         isInitiated.set(true);
-        initProgress.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
+        initProgress.set(
+            withTiming(
+                1,
+                {
+                    duration: animationInTiming,
+                    easing,
+                    // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+                    // we enable the animations to make sure they are called
+                    reduceMotion: ReduceMotion.Never,
+                },
+                onOpenCallBack,
+            ),
+        );
     }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
 
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
     const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
 
-    const Exiting = useMemo(() => {
-        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
-
-        // eslint-disable-next-line react-compiler/react-compiler
-        return AnimationOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
-    }, [animationOutTiming, animationOut]);
+    const Exiting = useMemo(
+        () =>
+            new Keyframe(getModalOutAnimation(animationOut))
+                .duration(animationOutTiming)
+                // eslint-disable-next-line react-compiler/react-compiler
+                .withCallback(() => onCloseCallbackRef.current())
+                // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+                // we enable the animations to make sure they are called
+                .reduceMotion(ReduceMotion.Never),
+        [animationOutTiming, animationOut],
+    );
 
     return (
         <Animated.View
-            style={[style, styles.modalContainer, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
+            style={[style, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && type !== CONST.MODAL.MODAL_TYPE.POPOVER && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
             exiting={Exiting}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}

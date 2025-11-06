@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -31,10 +33,25 @@ type SelectedTransactionInfo = {
     reportID: string;
 
     /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
+    policyID: string | undefined;
 
     /** The transaction amount */
     amount: number;
+
+    /** The converted transaction amount into either group currency, or the active policy currency */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
+
+    /** The transaction currency */
+    currency: string;
+
+    /** Whether it is the only expense of the parent expense report */
+    isFromOneTransactionReport?: boolean;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
 };
 
 /** Model of selected transactions */
@@ -45,7 +62,9 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -53,33 +72,50 @@ type PaymentData = {
     reportID: string;
     amount: number;
     paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    fundID?: number;
+    policyID?: string;
+    adminsChatReportID?: string;
+    adminsCreatedReportActionID?: number;
+    expenseChatReportID?: string;
+    expenseCreatedReportActionID?: number;
+    customUnitRateID?: string;
+    customUnitID?: string;
+    ownerEmail?: string;
+    policyName?: string;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
+type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
+type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
 
 type SearchContextData = {
     currentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
+    currentSearchQueryJSON: SearchQueryJSON | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+    shouldResetSearchQuery: boolean;
 };
 
-type SearchContext = SearchContextData & {
+type SearchContextProps = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -99,6 +135,7 @@ type SearchContext = SearchContextData & {
     shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     areAllMatchingItemsSelected: boolean;
     selectAllMatchingItems: (on: boolean) => void;
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
 type ASTNode = {
@@ -112,7 +149,24 @@ type QueryFilter = {
     value: string | number;
 };
 
+// Report fields are dynamic keys, that policies can configure. They match:
+// reportField-<key> : Normal report field
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
+type ReportFieldTextKey = `${typeof CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${string}`;
+type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${string}`;
+type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
+
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+
+type SearchTextFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -121,7 +175,15 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN
+    | ReportFieldTextKey;
+
+type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+
+type SearchCurrencyFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -130,6 +192,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
     key: SearchFilterKey;
@@ -153,6 +216,8 @@ type SearchQueryJSON = {
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
     recentSearchHash: number;
+    /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
+    similarSearchHash: number;
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
@@ -172,7 +237,16 @@ type SearchParams = {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset: number;
+    prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+};
+
+type BankAccountMenuItem = {
+    text: string;
+    description: string;
+    icon: IconAsset;
+    methodID: number | undefined;
+    value: PaymentMethod;
 };
 
 export type {
@@ -181,11 +255,16 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
+    ReportFieldKey,
+    ReportFieldTextKey,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
     SortOrder,
-    SearchContext,
+    SearchContextProps,
     SearchContextData,
     ASTNode,
     QueryFilter,
@@ -195,7 +274,6 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
-    ChatSearchStatus,
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
@@ -205,4 +283,11 @@ export type {
     SearchGroupBy,
     SingularSearchStatus,
     SearchDatePreset,
+    SearchWithdrawalType,
+    SearchAction,
+    SearchCurrencyFilterKeys,
+    UserFriendlyValue,
+    SelectedReports,
+    SearchTextFilterKeys,
+    BankAccountMenuItem,
 };

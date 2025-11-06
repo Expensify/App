@@ -23,7 +23,7 @@ const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
         // add status and state to every 5th report to mock non-archived reports
@@ -68,7 +68,7 @@ describe('SidebarUtils', () => {
     });
 
     test('[SidebarUtils] getOptionData', async () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -85,18 +85,21 @@ describe('SidebarUtils', () => {
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                lastAction: undefined,
                 localeCompare,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
             }),
         );
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations));
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, {}, transactionViolations));
     });
 });

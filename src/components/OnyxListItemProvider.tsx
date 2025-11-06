@@ -11,12 +11,14 @@ import createOnyxContext from './createOnyxContext';
 const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
+const [BetaConfigurationProvider, BetaConfigurationContext, useBetaConfiguration] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
 const [ReportTransactionsAndViolationsProvider, , useAllReportsTransactionsAndViolations] = createOnyxContext(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 const [CardListProvider, , useCardList] = createOnyxContext(ONYXKEYS.CARD_LIST);
 const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+const [OnboardingValuesProvider, , useOnboardingValues] = createOnyxContext(ONYXKEYS.NVP_ONBOARDING);
 
 type OnyxListItemProviderProps = {
     /** Rendered child component */
@@ -30,12 +32,14 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 PersonalDetailsProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
+                BetaConfigurationProvider,
                 SessionProvider,
                 PolicyCategoriesProvider,
                 PolicyTagsProvider,
                 ReportTransactionsAndViolationsProvider,
                 CardListProvider,
                 WorkspaceCardListProvider,
+                OnboardingValuesProvider,
             ]}
         >
             {props.children}
@@ -50,7 +54,9 @@ export default OnyxListItemProvider;
 export {
     usePersonalDetails,
     BetasContext,
+    BetaConfigurationContext,
     useBetas,
+    useBetaConfiguration,
     PersonalDetailsContext,
     useBlockedFromConcierge,
     useSession,
@@ -59,4 +65,5 @@ export {
     useAllReportsTransactionsAndViolations,
     useCardList,
     useWorkspaceCardList,
+    useOnboardingValues,
 };

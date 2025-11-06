@@ -5,7 +5,6 @@ keywords: [New Expensify, NetSuite configuration, import settings, export settin
 order: 2
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify’s integration with NetSuite streamlines expense management by automatically syncing reports. This reduces manual work, improves visibility, and supports accurate compliance and budgeting.
 
@@ -23,7 +22,7 @@ Each Expensify Workspace has its own configuration with NetSuite.
 
 To access:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **NetSuite > Configure**
 
 ---
@@ -40,11 +39,11 @@ To control what data is imported from NetSuite:
   - Tags (per expense)
   - Report Fields (per report)
   - Employee Defaults
-- **Customers and Projects** – Import as Tags or Report Fields  
+- **Customers and Projects** – Import as Tags or Report Fields
   - To support **cross-subsidiary data**, enable **Intercompany Time and Expense** under **Setup > Company > Enable Features > Advanced Features**
 - **Tax** – Imports NetSuite Tax Groups into the **Taxes** tab
-- **Custom Segments and Records** – Import as Tags or Report Fields  
-  - Use Field IDs from NetSuite’s **Transactions** tab  
+- **Custom Segments and Records** – Import as Tags or Report Fields
+  - Use Field IDs from NetSuite’s **Transactions** tab
   - Do not use the “Filtered by” feature in NetSuite Custom Segments
 - **Custom Lists** – Import as Tags or Report Fields
 
@@ -71,7 +70,7 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Export Company Card Expenses As**:
   - Expense Reports
   - Vendor Bills
-  - Journal Entries  
+  - Journal Entries
   - *Expensify Card expenses always export as Journal Entries*
 - **Export Invoices To** – Choose the Accounts Receivable account
 - **Invoice Item** – Select or create the item line for invoices
@@ -160,4 +159,3 @@ No. Auto-Sync only applies to newly approved reports. Export older reports manua
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
 
-</div>

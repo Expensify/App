@@ -1,9 +1,10 @@
 import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
+import {Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
@@ -339,13 +340,10 @@ function AddressSearch(
     const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size="small"
-                />
+                <ActivityIndicator />
             </View>
         ),
-        [styles.pv4, theme.spinner],
+        [styles.pv4],
     );
 
     return (

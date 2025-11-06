@@ -42,7 +42,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION],
         },
         {
-            title: qboConfig?.nonReimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qboConfig?.nonReimbursableExpensesAccount?.name,
             description: getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT],

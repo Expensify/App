@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
 import {isValidPersonName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
@@ -26,13 +28,35 @@ function IntroSchoolPrincipalPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM, {canBeMissing: true});
+    const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
+    const optimisticReportID = useRef(generateReportID());
+    const hasSubmittedRef = useRef(false);
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (hasSubmittedRef.current && formState && !formState.isLoading && !formState.errors) {
+            Navigation.dismissModalWithReport({reportID: optimisticReportID.current});
+            hasSubmittedRef.current = false;
+        }
+    }, [formState, isProduction]);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        hasSubmittedRef.current = true;
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
+        TeachersUnite.addSchoolPrincipal(
+            values.firstName.trim(),
+            values.partnerUserID.trim(),
+            values.lastName.trim(),
+            policyID,
+            localCurrencyCode,
+            login ?? '',
+            accountID,
+            optimisticReportID.current,
+        );
     };
 
     /**

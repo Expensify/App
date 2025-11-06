@@ -4,12 +4,12 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isDM} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isDM, isIOUReport} from '@libs/ReportUtils';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -27,10 +27,20 @@ function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<ty
     return splitAction.actorAccountID;
 }
 
+const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => {
+    return Object.values(actions ?? {}).filter(isMoneyRequestAction);
+};
+
+const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
+    return Object.values(actions ?? {})
+        .filter(isMoneyRequestAction)
+        .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+};
+
 function useReportPreviewSenderID({iouReport, action, chatReport}: {action: OnyxEntry<ReportAction>; chatReport: OnyxEntry<Report>; iouReport: OnyxEntry<Report>}) {
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`, {
         canBeMissing: true,
-        selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
+        selector: getIOUActionsSelector,
     });
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(action?.childReportID);
@@ -38,17 +48,14 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {
         canBeMissing: true,
-        selector: (actions) =>
-            Object.values(actions ?? {})
-                .filter(isMoneyRequestAction)
-                .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT),
+        selector: getSplitsSelector,
     });
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {
         canBeMissing: true,
     });
 
-    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport)) {
         return getCurrentUserAccountID();
     }
 
@@ -71,8 +78,15 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
-    const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
+    const isSendMoneyFlowBasedOnActions = !!iouActions && iouActions.every(isSentMoneyReportAction);
+    // This is used only if there are no IOU actions in the Onyx
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const isSendMoneyFlowBasedOnTransactions =
+        !!action && action.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
+
+    const isSendMoneyFlow = !!iouActions && iouActions?.length > 0 ? isSendMoneyFlowBasedOnActions : isSendMoneyFlowBasedOnTransactions;
+
+    const singleAvatarAccountID = isSendMoneyFlow ? action?.childManagerAccountID : action?.childOwnerAccountID;
 
     return areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
 }

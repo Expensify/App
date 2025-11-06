@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -79,6 +79,9 @@ type MagicCodeInputProps = {
     /** Function to call when the input is changed  */
     onChangeText?: (value: string) => void;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     /** Function to call when the input is submitted or fully complete */
     onFulfill?: (value: string) => void;
 
@@ -137,6 +140,7 @@ function MagicCodeInput(
         errorText = '',
         shouldSubmitOnComplete = true,
         onChangeText: onChangeTextProp = () => {},
+        onFocus: onFocusProps,
         maxLength = CONST.MAGIC_CODE_LENGTH,
         onFulfill = () => {},
         isDisableKeyboard = false,
@@ -252,12 +256,13 @@ function MagicCodeInput(
     /**
      * Focuses on the input when it is pressed.
      */
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (e: FocusEvent) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
-        event.preventDefault();
+        onFocusProps?.();
+        e.preventDefault();
     };
 
     /**
@@ -328,7 +333,7 @@ function MagicCodeInput(
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
@@ -444,7 +449,10 @@ function MagicCodeInput(
 
     return (
         <>
-            <View style={[styles.magicCodeInputContainer]}>
+            <View
+                style={[styles.magicCodeInputContainer]}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
@@ -480,7 +488,7 @@ function MagicCodeInput(
                             inputStyle={[styles.inputTransparent]}
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
-                            textInputContainerStyles={[styles.borderNone, styles.bgTransparent]}
+                            textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
                         />
                     </View>

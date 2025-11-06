@@ -5,7 +5,6 @@ keywords: [New Expensify, Sage Intacct settings, import configuration, export pr
 order: 3
 ---
 
-<div id="new-expensify" markdown="1">
 
 Set up and fine-tune how data flows between Expensify and Sage Intacct using import, export, and advanced configuration settings.
 
@@ -17,7 +16,7 @@ If your Sage Intacct account supports multiple entities, you can connect each Wo
 
 To change the entity connection:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Under the Sage Intacct connection, select **Entity**
 
 ---
@@ -26,7 +25,7 @@ To change the entity connection:
 
 To configure how data is imported from Sage Intacct:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Import** under the Sage Intacct section
 
 ## Expense Types vs. Chart of Accounts
@@ -181,4 +180,3 @@ Choose how to sync reimbursement status:
 
 No. Auto-sync only affects newly approved reports. Older approved or reimbursed reports must be exported manually if they weren’t synced before enabling auto-sync.
 
-</div>

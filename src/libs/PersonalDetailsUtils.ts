@@ -8,6 +8,7 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -35,33 +36,6 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        hiddenTranslation = translateLocal('common.hidden');
-        youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
-let defaultCountry = '';
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        defaultCountry = value;
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -69,7 +43,8 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    youAfterTranslation = translateLocal('common.you').toLowerCase(),
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
@@ -109,8 +84,8 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return shouldFallbackToHidden ? translateLocal('common.hidden') : '';
 }
 
 /**
@@ -139,6 +114,7 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
@@ -390,17 +366,6 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-/**
- * Whether personal details is empty
- */
-function isPersonalDetailsEmpty() {
-    return !personalDetails.length;
-}
-
-function getPersonalDetailsLength() {
-    return personalDetails.length;
-}
-
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
@@ -425,10 +390,6 @@ const getShortMentionIfFound = (displayText: string, userAccountID: string, curr
     return displayText.split('@').at(0);
 };
 
-function getDefaultCountry() {
-    return defaultCountry;
-}
-
 /**
  * Gets the phone number to display for SMS logins
  */
@@ -446,7 +407,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 export {
-    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getPersonalDetailByEmail,
@@ -461,10 +421,8 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getPersonalDetailsLength,
     getUserNameByEmail,
     getShortMentionIfFound,
-    getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
 };

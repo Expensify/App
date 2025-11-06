@@ -4,7 +4,6 @@ description: Learn how to configure and optimize your QuickBooks Online connecti
 keywords: [Expensify Classic, QuickBooks Online, configure QuickBooks, QBO integration]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 A QuickBooks Online connection lets you sync Expensify expenses with your accounting system. Follow these steps to configure your connection for smooth exports and accurate financial reporting.
 
@@ -183,4 +182,3 @@ QuickBooks Online does not automatically apply conversion rates during export.
 
 Expensify Card expenses always export as Credit Card charges, even if configured otherwise for non-reimbursable expenses.
 
-</div>

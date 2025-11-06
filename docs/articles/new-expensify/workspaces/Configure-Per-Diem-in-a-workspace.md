@@ -4,7 +4,6 @@ description: Learn how to set up and manage per diem rates within a workspace in
 keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
@@ -14,7 +13,7 @@ Per Diem allows workspace admins to assign fixed daily rates for travel or other
 
 To enable the Per Diem feature:
 
-1. In the **left-hand navigation bar**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name** to open settings.
 3. Click **More Features** in the left menu.
 4. Under the **Spend** section, toggle on **Per Diem**.
@@ -24,7 +23,7 @@ Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu
 ![Enable Per Diem under the Spend section of the workspace settings]({{site.url}}/assets/images/perdiem_01.png){:width="100%"}
 
 ---
-  
+
 # Upload or Export Per Diem Rates
 
 Admins can manage rates by uploading a spreadsheet or exporting existing ones.
@@ -35,7 +34,18 @@ Admins can manage rates by uploading a spreadsheet or exporting existing ones.
 Both options are found in the **three-dot menu** at the top-right corner of the Per Diem page.
 
 ![Use the three dot menu to upload or export per diem rates]({{site.url}}/assets/images/perdiem_02.png){:width="100%"}
-  
+
+---
+
+# Per Diem Rate Templates
+
+Below are some example templates to reference:
+
+- [Germany rates]({{site.url}}/assets/Files/Germany-per-diem.csv)
+- [Sweden rates]({{site.url}}/assets/Files/Sweden-per-diem.csv)
+- [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
+- [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
+
 ---
 
 # Edit or Delete Per Diem Rates
@@ -72,4 +82,3 @@ Per Diem is only available when submitting expenses within a workspace where the
 
 Yes. You can select multiple rates at once and apply bulk actions, such as editing or deleting them from the list view.
 
-</div>

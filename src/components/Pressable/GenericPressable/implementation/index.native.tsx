@@ -1,9 +1,8 @@
-import React, {forwardRef} from 'react';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
+import React from 'react';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import GenericPressable from './BaseGenericPressable';
 
-function NativeGenericPressable(props: PressableProps, ref: PressableRef) {
+function NativeGenericPressable({ref, ...props}: PressableProps) {
     return (
         <GenericPressable
             focusable
@@ -18,4 +17,4 @@ function NativeGenericPressable(props: PressableProps, ref: PressableRef) {
 
 NativeGenericPressable.displayName = 'NativeGenericPressable';
 
-export default forwardRef(NativeGenericPressable);
+export default NativeGenericPressable;

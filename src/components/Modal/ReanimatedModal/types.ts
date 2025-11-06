@@ -1,6 +1,5 @@
 import type {ReactNode} from 'react';
 import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
-import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {FocusTrapOptions} from '@components/Modal/types';
@@ -27,10 +26,8 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
-
-type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &
@@ -60,18 +57,14 @@ type ReanimatedModalProps = ViewProps &
         /** The presentation style of the modal */
         presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
-        /** Default ModalProps Provided */
-        /** Whether to use the native driver for the backdrop animation */
-        useNativeDriverForBackdrop?: boolean;
-
         /** Enum for animation type when modal appears */
-        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>> | AnimationInType;
+        animationIn?: AnimationIn;
 
         /** Duration of the animation when modal appears */
         animationInTiming?: number;
 
         /** Enum for animation type when modal disappears */
-        animationOut?: AnimationOut | AnimationOutType;
+        animationOut?: AnimationOut;
 
         /** Duration of the animation when modal disappears */
         animationOutTiming?: number;
@@ -143,6 +136,15 @@ type ReanimatedModalProps = ViewProps &
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         initialFocus?: FocusTrapOptions['initialFocus'];
+
+        /**
+         * Whether the modal should enable the new focus manager.
+         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+         * */
+        shouldEnableNewFocusManagement?: boolean;
+
+        /** Whether to ignore the back handler during transition */
+        shouldIgnoreBackHandlerDuringTransition?: boolean;
     };
 
 type BackdropProps = {
@@ -182,11 +184,11 @@ type ContainerProps = {
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
 
     /** Animation played when modal shows */
-    animationIn: AnimationInType;
+    animationIn: AnimationIn;
 
     /** Animation played when modal disappears */
-    animationOut: AnimationOutType;
+    animationOut: AnimationOut;
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationOut, AnimationInType, AnimationOutType, SwipeDirection};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationIn, AnimationOut, SwipeDirection};

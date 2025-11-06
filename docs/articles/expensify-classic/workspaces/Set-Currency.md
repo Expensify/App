@@ -3,7 +3,6 @@ title: Setting Up Report Currency
 description: Define a currency in your workspace's settings.
 keywords: [Expensify Classic, workspace currency, expense conversion, report output currency]
 ---
-<div id="expensify-classic" markdown="1">
   
 As a workspace admin, you can choose a default currency for your employees' expense reports, and Expensify will automatically convert any expenses into that currency.  
 
@@ -65,4 +64,3 @@ Each expense is recorded in its original currency. Expensify automatically conve
 ## How does currency affect the conversion rate?
 Foreign currency expenses are converted using the **daily average trading rate** from [Open Exchange Rates](https://openexchangerates.org/). If needed, you can manually enter expenses in your default currency to bypass automatic conversion.
 
-</div>

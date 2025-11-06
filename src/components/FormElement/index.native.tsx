@@ -1,9 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {ViewProps} from 'react-native';
+import React from 'react';
 import {View} from 'react-native';
+import type {FormElementProps} from './index';
 
-function FormElement(props: ViewProps, ref: ForwardedRef<View>) {
+function FormElement({ref, ...props}: FormElementProps) {
     return (
         <View
             ref={ref}
@@ -15,4 +14,4 @@ function FormElement(props: ViewProps, ref: ForwardedRef<View>) {
 
 FormElement.displayName = 'FormElement';
 
-export default forwardRef(FormElement);
+export default FormElement;

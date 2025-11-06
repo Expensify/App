@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +52,7 @@ function SearchFiltersTypePage() {
             }),
         };
         updateAdvancedFilters(updatedFilters);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [searchAdvancedFiltersForm?.type, selectedItem]);
 
     return (
@@ -65,13 +65,13 @@ function SearchFiltersTypePage() {
             <HeaderWithBackButton
                 title={translate('common.type')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />

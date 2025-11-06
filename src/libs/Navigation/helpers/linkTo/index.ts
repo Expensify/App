@@ -5,6 +5,7 @@ import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/hel
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
@@ -49,7 +50,7 @@ function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): acti
 }
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
-    return focusedRouteName === SCREENS.ATTACHMENTS;
+    return focusedRouteName === SCREENS.REPORT_ATTACHMENTS;
 }
 
 function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
@@ -61,6 +62,33 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
     return currentParams?.reportID === newParams?.reportID;
+}
+
+function areFullScreenRoutesEqual(matchingFullScreenRoute: NavigationPartialRoute, lastFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+    const lastRouteInLastFullScreenRoute = lastFullScreenRoute.state?.routes?.at(-1);
+
+    const isEqualFullScreenRoute = matchingFullScreenRoute.name === lastFullScreenRoute.name;
+    const isEqualLastRouteInFullScreenRoute =
+        !lastRouteInMatchingFullScreen?.name || !lastRouteInLastFullScreenRoute?.name || lastRouteInMatchingFullScreen.name === lastRouteInLastFullScreenRoute.name;
+
+    return isEqualFullScreenRoute && isEqualLastRouteInFullScreenRoute;
+}
+
+function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+
+    const preloadedRoutes = currentState.preloadedRoutes;
+
+    return preloadedRoutes.some((preloadedRoute) => {
+        const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
+
+        // Compare the last route of the preloadedRoute and the last route of the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
+        const isMatchingLastRoute =
+            !lastRouteInMatchingFullScreen?.name || (preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen?.name);
+
+        return isMatchingFullScreenRoute && isMatchingLastRoute;
+    });
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
@@ -78,7 +106,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
-    const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
+    const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -125,13 +153,18 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                    screen: lastRouteInMatchingFullScreen?.name,
-                    params: lastRouteInMatchingFullScreen?.params,
-                });
-                navigation.dispatch(additionalAction);
+
+            if (matchingFullScreenRoute && lastFullScreenRoute && !areFullScreenRoutesEqual(matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
+                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                } else {
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                        screen: lastRouteInMatchingFullScreen?.name,
+                        params: lastRouteInMatchingFullScreen?.params,
+                    });
+                    navigation.dispatch(additionalAction);
+                }
             }
         }
     }

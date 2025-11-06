@@ -122,7 +122,7 @@ function ReportActionItemContentCreated({
                         <MoneyRequestView
                             allReports={allReports}
                             report={report}
-                            policy={policy}
+                            expensePolicy={policy}
                             shouldShowAnimatedBackground
                         />
                         {renderThreadDivider}
@@ -184,7 +184,7 @@ function ReportActionItemContentCreated({
                                 <MoneyRequestView
                                     allReports={allReports}
                                     report={transactionThreadReport}
-                                    policy={policy}
+                                    expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
                                 />
                                 {renderThreadDivider}

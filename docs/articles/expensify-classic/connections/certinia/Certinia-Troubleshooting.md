@@ -4,7 +4,6 @@ description: Troubleshoot common Certinia sync and export errors, including Sale
 keywords: [Certinia, Expensify Classic, sync errors]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 If your reports fail to export or your connection does not sync, it may be due to discrepancies in settings, missing data, or configuration issues within Certinia, Expensify, or Salesforce.  
 
@@ -174,4 +173,3 @@ Salesforce enforces a rule where a **Closed** project status **always** prevents
 ## Does assignment status affect expense exports?  
 No, **Assignment Status** (Closed, Active, or Completed) does not impact expense entry or export.  
 
-</div>

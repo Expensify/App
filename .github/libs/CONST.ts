@@ -4,6 +4,7 @@ const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 } as const;
 
 const CONST = {
@@ -13,6 +14,7 @@ const CONST = {
     LABELS: {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
+        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
@@ -54,6 +56,7 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',

@@ -18,7 +18,6 @@ import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -67,7 +66,6 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -84,6 +82,7 @@ function IOURequestStepWaypoint({
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
+    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -126,7 +125,9 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const save = (waypoint: FormOnyxValues<'waypointForm'>) => saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+    const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
+    };
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
@@ -168,7 +169,7 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
         goBack();
     };
 
@@ -204,7 +205,6 @@ function IOURequestStepWaypoint({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,

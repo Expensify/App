@@ -41,9 +41,11 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
-    const policy = usePolicy(getIOURequestPolicyID(transaction, report));
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
+    const policyID = getIOURequestPolicyID(transaction, report);
+    const policy = usePolicy(policyID);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -72,7 +74,18 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        sendInvoice(currentUserPersonalDetails.accountID, transaction, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
+        sendInvoice(
+            currentUserPersonalDetails.accountID,
+            transaction,
+            report,
+            undefined,
+            policy,
+            policyTags,
+            policyCategories,
+            values.companyName,
+            companyWebsite,
+            policyRecentlyUsedCategories,
+        );
     };
 
     return (

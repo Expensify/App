@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
@@ -81,7 +80,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         [reimbursementAccount, values, getBankAccountFields, policyID],
     );
 
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const {

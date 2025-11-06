@@ -21,15 +21,18 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -56,6 +59,7 @@ import {
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
     isInvoiceRoom,
+    isOneTransactionThread,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -101,12 +105,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
+    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
+    const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -130,16 +137,21 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
+    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
+    const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
+    const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
-    const subtitle = getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
+    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
+    const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
+    const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
+    const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -162,7 +174,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         account?.guideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         !!account?.guideDetails?.calendarLink &&
         isAdminRoom(report) &&
-        !!canUserPerformWriteAction(report) &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
@@ -193,7 +205,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan) && !isReportArchived,
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial) && !isReportArchived,
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
@@ -277,7 +289,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 >
                                     {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
-                                        fsClass="fs-unmask"
+                                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                                         style={[styles.flex1, styles.flexColumn]}
                                     >
                                         <CaretWrapper>
@@ -290,13 +302,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isReportArchived}
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
+                                                forwardedFSClass={displayNamesFSClass}
                                             />
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                                parentReportID={reportHeaderData?.parentReportID}
-                                                parentReportActionID={reportHeaderData?.parentReportActionID}
+                                                parentReportID={parentNavigationReport?.parentReportID}
+                                                parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
@@ -356,7 +369,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

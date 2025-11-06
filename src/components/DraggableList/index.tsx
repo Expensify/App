@@ -16,17 +16,15 @@ const minimumActivationDistance = 5; // pointer must move at least this much bef
  * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
  *
  */
-function DraggableList<T>(
-    {
-        data = [],
-        renderItem,
-        keyExtractor,
-        onDragEnd: onDragEndCallback,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        ListFooterComponent,
-    }: DraggableListProps<T>,
-    ref: React.ForwardedRef<RNScrollView>,
-) {
+function DraggableList<T>({
+    data = [],
+    renderItem,
+    keyExtractor,
+    onDragEnd: onDragEndCallback,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    ListFooterComponent,
+    ref,
+}: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
 
     const items = data.map((item, index) => {
@@ -103,4 +101,4 @@ function DraggableList<T>(
 
 DraggableList.displayName = 'DraggableList';
 
-export default React.forwardRef(DraggableList);
+export default DraggableList;

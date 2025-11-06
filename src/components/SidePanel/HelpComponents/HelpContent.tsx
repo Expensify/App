@@ -1,11 +1,9 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
-// https://github.com/react-native-modal/react-native-modal/issues/236
 import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +19,8 @@ import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
@@ -34,6 +34,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
 
     const {params, routeName, currentState} = useRootNavigationState((rootState) => {
+        // Safe handling when navigation is not yet initialized
+        if (!rootState) {
+            return {
+                routeName: '' as Screen,
+                params: {} as Record<string, string>,
+                currentState: undefined,
+            };
+        }
+
         const focusedRoute = findFocusedRoute(rootState);
         setExpandedIndex(0);
         return {
@@ -46,14 +55,25 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [parentIOUReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canBeMissing: true,
-        selector: (actions) =>
-            Object.values(actions ?? {})
+
+    const getParentIOUReportActionSelector = useCallback(
+        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
+            return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
                 .filter(isMoneyRequestAction)
-                .at(0),
-    });
+                .at(0);
+        },
+        [report?.parentReportActionID],
+    );
+
+    const [parentIOUReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        {
+            canBeMissing: true,
+            selector: getParentIOUReportActionSelector,
+        },
+        [getParentIOUReportActionSelector],
+    );
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
@@ -100,20 +120,18 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     return (
         <>
             <HeaderGap />
-            <HeaderWithBackButton
+            <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
-                shouldDisplayHelpButton={false}
             />
             {currentState === undefined ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
-                    userSelect="auto"
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}
                 >
                     {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}

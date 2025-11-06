@@ -35,7 +35,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const currencySymbol = getCurrencySymbol(currency);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-    const defaultValue = convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency);
+    const defaultValue = convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency);
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};

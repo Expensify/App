@@ -27,7 +27,7 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
 
     return (
         <>
-            <View style={[styles.getSearchBarStyle(shouldUseNarrowLayout), style]}>
+            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout), style]}>
                 <TextInput
                     label={label}
                     accessibilityLabel={label}

@@ -9,10 +9,6 @@ Learn how URLs are constructed and used to route users through all parts of the 
 - Object Route - A route pointing to a specific object (eg. report, transaction, workspace, etc.)
 - Page Route - A route for a specific page (eg. settings, add bank account, etc.)
 
-This guide is based on [[PSR-1]] and [[PSR-2]].
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in [[RFC 2119]].
-
 ## Rules
 When adding new routes, or refactoring existing routes, follow these rules:
 
@@ -24,6 +20,14 @@ Aim for the shortest possible URL that is also still human readable.
 
 Exceptions:
 - When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) for strategic purposes
+
+### - SHOULD use human readable names before using IDs
+Example:
+1. `domain/expensify.com/settings` - It's better to use the domain name "expensify.com" rather than an ID because it is readable, won't ever change, and is not a privacy or security concern
+
+Exceptions:
+- When there would be PII (personally identifiable information) that would leak in the URL like email addresses, use an ID instead
+- When the name can be updated but the path remains the same (eg. a workspace name), use an ID instead
 
 ### - MUST use kebab-case for all parts of a URL (eg. words separated by hyphens)
 ### - MUST use all lower case words
@@ -47,7 +51,7 @@ Internet routers and third-party-services can see and store any information in t
 
 ### - SHOULD NOT use query parameters
 Exceptions:
-- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`)
+- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`) - **Note: `backTo` parameter is deprecated and should not be used in new implementations**
 - When complex data needs to be part of the path (eg. `/search?q=QUERY`)
 
 ### - SHOULD NOT use optional parameters

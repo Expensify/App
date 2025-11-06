@@ -1,38 +1,24 @@
-import {Str} from 'expensify-common';
+import {md5, Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PrivatePersonalDetails, Session, VacationDelegate} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {ALL_CUSTOM_AVATARS, getAvatarLocal} from './Avatars/CustomAvatarCatalog';
+import type {CustomAvatarID} from './Avatars/CustomAvatarCatalog.types';
 import hashCode from './hashCode';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
 type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
-let account: OnyxEntry<Account>;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value ?? {};
-    },
-});
-
-let session: OnyxEntry<Session>;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        session = value ?? {};
-    },
-});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -64,30 +50,30 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
-    return Object.values(loginList ?? {}).some((login) => session?.email !== login.partnerUserID && !login.validatedDate);
+function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
+    return Object.values(loginList ?? {}).some((login) => login.partnerUserID && email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**
  * Checks if the current user has a validated the primary contact method
  */
-function isCurrentUserValidated(loginList: OnyxEntry<LoginList>): boolean {
-    if (!loginList || !session?.email) {
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
+    if (!loginList || !email) {
         return false;
     }
 
-    return !!loginList?.[session.email]?.validatedDate;
+    return !!loginList?.[email]?.validatedDate;
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email: string | undefined): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList)) {
+    if (hasLoginListInfo(loginList, email)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -102,12 +88,13 @@ function getProfilePageBrickRoadIndicator(
     loginList: OnyxEntry<LoginList>,
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
+    email: string | undefined,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList)) {
+    if (hasLoginListInfo(loginList, email)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -128,17 +115,7 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
-/**
- * Helper method to return the default avatar associated with the given accountID
- */
-function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return ConciergeAvatar;
-    }
-    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        return NotificationsAvatar;
-    }
-
+function getAccountIDHashBucket(accountID = -1, accountEmail?: string, avatarURL?: string) {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
@@ -149,10 +126,27 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
         const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
+    } else if (accountEmail) {
+        const intVal = Number.parseInt(md5(accountEmail).substring(0, 4), 16);
+        accountIDHashBucket = ((intVal % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
+    return accountIDHashBucket;
+}
 
+/**
+ * Helper method to return the default avatar associated with the given accountID
+ */
+function getDefaultAvatar(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): IconAsset | undefined {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return ConciergeAvatar;
+    }
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return NotificationsAvatar;
+    }
+
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, accountEmail, avatarURL);
     if (!accountIDHashBucket) {
         return;
     }
@@ -161,18 +155,41 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 }
 
 /**
+ * Helper method to return default avatar name associated with the accountID
+ */
+function getDefaultAvatarName(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, accountEmail, avatarURL);
+    const avatarPrefix = `default-avatar`;
+
+    return `${avatarPrefix}_${accountIDHashBucket}`;
+}
+
+/**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID: string | number = ''): string {
+function getDefaultAvatarURL(accountID: number = CONST.DEFAULT_NUMBER_ID, accountEmail?: string, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = (Number(accountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
-    const avatarPrefix = `default-avatar`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${getDefaultAvatarName(accountID, accountEmail, avatarURL)}.png`;
+}
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
+/**
+ * Helper method to extract the avatar name from a default avatar URL
+ * @param avatarURL - the URL returned by getDefaultAvatarURL
+ * @returns the avatar name (e.g., 'default-avatar_5', 'concierge') or undefined if not a valid default avatar URL
+ */
+function getDefaultAvatarNameFromURL(avatarURL?: AvatarSource): CustomAvatarID | undefined {
+    if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
+        return undefined;
+    }
+
+    // Extract avatar name from CloudFront URL and make sure it's one of defaults
+    const match = (avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '') as CustomAvatarID;
+    if (ALL_CUSTOM_AVATARS[match]) {
+        return match;
+    }
 }
 
 /**
@@ -195,14 +212,34 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
 }
 
 /**
+ * * Given a user's avatar path and originalFileName, returns true if URL points to a default avatar, false otherwise
+ * @param avatarSource - the avatar source from user's personalDetails
+ * @param originalFileName - the avatar original file name from user's personalDetails
+ */
+function isDefaultOrCustomDefaultAvatar(avatarSource?: AvatarSource, originalFileName?: string): boolean {
+    if (
+        (typeof avatarSource === 'string' && avatarSource.includes('images/avatars/custom-avatars')) || // F1 avatars
+        (originalFileName && /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/.test(originalFileName)) // Letter avatars
+    ) {
+        return true;
+    }
+    if (isDefaultAvatar(avatarSource)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Provided an avatar source, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL or SVG pointing to the user-uploaded avatar.
  *
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
+ * @param accountEmail - the email of the user, for consistency with BE logic
  */
-function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
+function getAvatar(avatarSource?: AvatarSource, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, accountEmail, avatarSource) : avatarSource;
 }
 
 /**
@@ -212,16 +249,16 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID) : avatarSource;
+function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number, accountEmail?: string): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID, accountEmail, avatarSource) : avatarSource;
 }
 
 /**
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource | undefined {
-    const source = getAvatar(avatarSource, accountID);
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    const source = getAvatar(avatarSource, accountID, accountEmail);
     if (typeof source !== 'string') {
         return source;
     }
@@ -232,10 +269,14 @@ function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: n
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
-    const source = getAvatar(avatarSource, accountID);
+function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    const source = getAvatar(avatarSource, accountID, accountEmail);
     if (typeof source !== 'string') {
         return source;
+    }
+    const maybeDefaultAvatarName = getDefaultAvatarNameFromURL(avatarSource);
+    if (maybeDefaultAvatarName) {
+        return getAvatarLocal(maybeDefaultAvatarName);
     }
 
     // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
@@ -262,14 +303,68 @@ function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined
 /**
  * Gets the contact method
  */
-function getContactMethod(): string {
-    return account?.primaryLogin ?? session?.email ?? '';
+function getContactMethod(primaryLogin: string | undefined, email: string | undefined): string {
+    return primaryLogin ?? email ?? '';
+}
+
+/**
+ * Gets details about contact methods to be displayed as MenuItems
+ */
+function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
+    if (!loginList) {
+        return [];
+    }
+
+    // Sort the login list by placing the one corresponding to the default contact method as the first item.
+    // The default contact method is determined by checking against the session email (the current login).
+    const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
+
+    return sortedLoginList.map(([loginName, login]) => {
+        const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
+        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
+        if (!login?.partnerUserID && !pendingAction) {
+            return null;
+        }
+
+        let description = '';
+        if (defaultEmail === login?.partnerUserID) {
+            description = translate('contacts.getInTouch');
+        } else if (login?.errorFields?.addedLogin) {
+            description = translate('contacts.failedNewContact');
+        } else if (!login?.validatedDate) {
+            description = translate('contacts.pleaseVerify');
+        }
+        let indicator;
+        if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (!login?.validatedDate && !isDefaultContactMethod) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        } else if (!login?.validatedDate && isDefaultContactMethod && sortedLoginList.length > 1) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+
+        // Default to using login key if we deleted login.partnerUserID optimistically
+        // but still need to show the pending login being deleted while offline.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const partnerUserID = login?.partnerUserID || loginName;
+        const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
+
+        return {
+            partnerUserID,
+            menuItemTitle,
+            description,
+            indicator,
+            pendingAction,
+        };
+    });
 }
 
 export {
     generateAccountID,
     getAvatar,
     getAvatarUrl,
+    getDefaultAvatarName,
+    getDefaultAvatarNameFromURL,
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
@@ -279,8 +374,10 @@ export {
     hasLoginListError,
     hasLoginListInfo,
     hashText,
+    isDefaultOrCustomDefaultAvatar,
     isDefaultAvatar,
     getContactMethod,
     isCurrentUserValidated,
+    getContactMethodsOptions,
 };
 export type {AvatarSource};
