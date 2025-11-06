@@ -124,9 +124,6 @@ type SearchReport = {
     /** Whether the report has a single transaction */
     isOneTransactionReport?: boolean;
 
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
-
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 
