@@ -525,10 +525,14 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CombinedFeedKey>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CombinedFeedKey | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CombinedFeedKey | undefined;
-    if (!lastSelectedFeed?.includes('#')) {
+    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
         return defaultFeed;
     }
     return lastSelectedFeed;
+}
+
+function getCombinedFeedKey(feedName: CompanyCardFeed, domainID: number | string): CombinedFeedKey {
+    return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
@@ -627,7 +631,7 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
             .filter((str) => str.includes(feedKey))
-            .map((str) => str.split('#').at(0))
+            .map((str) => str.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR).at(0))
             .filter((str): str is string => !!str);
 
         const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
@@ -737,7 +741,7 @@ function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined
 
 /** Extract original feed name */
 function getOriginalFeedName(feedName: CombinedFeedKey): CompanyCardFeed {
-    const [feed] = feedName.split('#');
+    const [feed] = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
     return feed as CompanyCardFeed;
 }
 
@@ -796,5 +800,6 @@ export {
     getCorrectStepForPlaidSelectedBank,
     getOriginalCompanyFeeds,
     getOriginalFeedName,
+    getCombinedFeedKey,
     getEligibleBankAccountsForUkEuCard,
 };

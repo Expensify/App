@@ -41,7 +41,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const illustrations = useThemeIllustrations();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);

@@ -8,7 +8,7 @@ import useCardsList from './useCardsList';
 import usePolicy from './usePolicy';
 
 export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CombinedFeedKey}) {
-    const [cardsList] = useCardsList(policyID, feed);
+    const [cardsList] = useCardsList(feed);
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);

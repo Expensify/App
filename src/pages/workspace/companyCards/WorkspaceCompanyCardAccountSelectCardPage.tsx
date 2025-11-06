@@ -39,7 +39,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
 
-    const [allBankCards] = useCardsList(policyID, bank);
+    const [allBankCards] = useCardsList(bank);
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages

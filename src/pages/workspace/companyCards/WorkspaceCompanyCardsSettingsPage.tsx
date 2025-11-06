@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
 
-    const [cardsList] = useCardsList(policyID, selectedFeed);
+    const [cardsList] = useCardsList(selectedFeed);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(getOriginalFeedName(selectedFeed), cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;

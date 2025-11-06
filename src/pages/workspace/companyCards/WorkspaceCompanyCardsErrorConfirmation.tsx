@@ -26,7 +26,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
-    const [cardsList] = useCardsList(policyID, newFeed);
+    const [cardsList] = useCardsList(newFeed);
     const [cardFeeds] = useCardFeeds(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const companyFeeds = getCompanyFeeds(cardFeeds);

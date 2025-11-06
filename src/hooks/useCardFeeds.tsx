@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
+import {getCombinedFeedKey} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CombinedFeedKey, CompanyCardFeed} from '@src/types/onyx';
 import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
@@ -18,13 +19,11 @@ type CombinedCardFeed = CustomCardFeedData &
 type CombinedCardFeeds = Record<CombinedFeedKey, CombinedCardFeed>;
 
 /**
- * UPDATE
  * This is a custom hook that combines workspace and domain card feeds for a given policy.
  *
  * This hook:
  * - Gets all available feeds (ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER) from Onyx.
  * - Extracts and compiles card feeds data including only feeds where the `preferredPolicy` matches the `policyID`.
- * - Merges a workspace feed with relevant domain feeds.
  *
  * @param policyID - The workspace policyID to filter and construct card feeds for.
  * @returns -
@@ -55,11 +54,12 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
                 const domainID = onyxKey.split('_').at(-1);
-                const combinedFeedKey: CombinedFeedKey = `${feedName}#${domainID}`;
 
-                if (feedSettings.preferredPolicy !== policyID) {
+                if (feedSettings.preferredPolicy !== policyID || !domainID) {
                     return;
                 }
+
+                const combinedFeedKey = getCombinedFeedKey(feedName, domainID);
 
                 acc[combinedFeedKey] = {
                     ...feedSettings,

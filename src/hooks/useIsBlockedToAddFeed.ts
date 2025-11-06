@@ -18,7 +18,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useCardsList(policyID, selectedFeed);
+    const [cardsList] = useCardsList(selectedFeed);
     const [prevCardFeeds, setPrevCardFeeds] = useState(cardFeeds);
     const [isNewFeedConnected, setIsNewFeedConnected] = useState(false);
 

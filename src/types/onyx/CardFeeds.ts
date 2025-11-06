@@ -8,7 +8,7 @@ import type * as OnyxCommon from './OnyxCommon';
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
 /** Combined feed key */
-type CombinedFeedKey = `${CompanyCardFeed}#${string}`;
+type CombinedFeedKey = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
 /** Custom card feed with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CombinedFeedKey;
