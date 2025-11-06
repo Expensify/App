@@ -218,9 +218,6 @@ type IssueNewCardData = {
     /** The email address of the cardholder */
     assigneeEmail: string;
 
-    /** The account ID of the cardholder */
-    assigneeAccountID?: number;
-
     /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
