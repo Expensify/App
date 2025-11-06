@@ -68,10 +68,18 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
-    // New optional mode: floor for everyone and add the full remainder to the default user.
+    // New optional mode
     if (roundingMode === 'floorToLast') {
-        const baseShareSubunit = Math.floor(totalInCurrencySubunit / totalParticipants);
-        const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+        let baseShareSubunit, remainderSubunit;
+        // For positive totals, floor for everyone and add the full remainder to the default user
+        if (totalInCurrencySubunit >= 0) {
+            baseShareSubunit = Math.floor(totalInCurrencySubunit / totalParticipants);
+            remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+        } else {
+            // For negative totals, use ceil to move toward zero instead of further down
+            baseShareSubunit = Math.ceil(totalInCurrencySubunit / totalParticipants);
+            remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+        }
         const subunitAmount = baseShareSubunit + (isDefaultUser ? remainderSubunit : 0);
         return Math.round((subunitAmount * 100) / currencyUnit);
     }

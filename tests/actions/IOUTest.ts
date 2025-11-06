@@ -7461,7 +7461,7 @@ describe('actions/IOU', () => {
 
             const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
             const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-            expect(amounts).toEqual([-34, -34, -32]);
+            expect(amounts).toEqual([-33, -33, -34]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(-100);
         });
 
@@ -7491,7 +7491,7 @@ describe('actions/IOU', () => {
 
             const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
             const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-            expect(amounts).toEqual([-51, -50]);
+            expect(amounts).toEqual([-50, -51]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
         });
     });
