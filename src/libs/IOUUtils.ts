@@ -70,7 +70,8 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 
     // New optional mode
     if (roundingMode === 'floorToLast') {
-        let baseShareSubunit, remainderSubunit;
+        let baseShareSubunit: number;
+        let remainderSubunit: number;
         // For positive totals, floor for everyone and add the full remainder to the default user
         if (totalInCurrencySubunit >= 0) {
             baseShareSubunit = Math.floor(totalInCurrencySubunit / totalParticipants);
