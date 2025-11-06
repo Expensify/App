@@ -76,11 +76,12 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
     const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
-    const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[selectedFeed as CombinedFeedKey]);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[selectedFeed as CombinedFeedKey]);
+    const currentFeed = selectedFeed ? cardFeeds?.[selectedFeed as CombinedFeedKey] : undefined;
+    const isFeedExpired = isSelectedFeedExpired(currentFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeed);
 
     const [list] = useCardsList(selectedFeed as CombinedFeedKey);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[selectedFeed as CombinedFeedKey]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, currentFeed?.accountList, workspaceCardFeeds);
 
     const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
 
