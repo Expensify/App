@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Exclamation} from '@components/Icon/Expensicons';
@@ -46,7 +47,7 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const {translate} = useLocalize();
 
     const accountID = route.params.accountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
 
@@ -72,6 +73,10 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         }
         resetDomainValidationError(accountID);
     }, [accountID, doesDomainExist]);
+
+    if (domainMetadata.status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (!domain) {
         return <NotFoundPage />;

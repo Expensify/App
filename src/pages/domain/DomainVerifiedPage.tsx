@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -24,7 +25,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const styles = useThemeStyles();
 
     const accountID = route.params.accountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
 
     const doesDomainExist = !!domain;
 
@@ -34,6 +35,10 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID), {forceReplace: true}));
     }, [accountID, domain?.validated, doesDomainExist]);
+
+    if (domainMetadata.status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (!domain) {
         return <NotFoundPage />;
