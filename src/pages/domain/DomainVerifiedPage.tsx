@@ -41,7 +41,7 @@ function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     }
 
     if (!domain) {
-        return <NotFoundPage />;
+        return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
     return (
