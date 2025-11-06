@@ -2445,7 +2445,6 @@ describe('SearchUIUtils', () => {
                     parentReportActionID: '5568426544518647396',
                     parentReportID: '4128157185472356',
                     policyID: '137DA25D273F2423',
-                    private_isArchived: '',
                     reportID: '6523565988285061',
                     reportName: 'Expense Report #6523565988285061',
                     stateNum: 1,
