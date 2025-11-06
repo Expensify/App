@@ -1,6 +1,5 @@
 import {describe, expect} from '@jest/globals';
-import {render} from '@testing-library/react-native';
-import {cleanup} from '@testing-library/react-native';
+import {cleanup, render} from '@testing-library/react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
@@ -25,8 +24,8 @@ afterEach(() => {
 
     // Clear the navigation ref so listeners/hooks attached to it don't keep the worker alive.
     // This is intentionally type-unsafe to forcibly drop the ref between tests.
-    if ((navigationRef as any).current) {
-        (navigationRef as any).current = undefined;
+    if (navigationRef.current) {
+        navigationRef.current = null;
     }
 });
 
