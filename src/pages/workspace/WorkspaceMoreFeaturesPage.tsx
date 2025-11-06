@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Hoverable from '@components/Hoverable';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -68,7 +67,6 @@ type Item = {
     pendingAction: PendingAction | undefined;
     errors?: Errors;
     onCloseError?: () => void;
-    onPress?: () => void;
 };
 
 type SectionObject = {
@@ -149,12 +147,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
             },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
-            },
         },
         {
             icon: illustrations.HandCard,
@@ -171,12 +163,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
             },
         },
     ];
@@ -197,12 +183,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         disabledAction: () => {
             setIsDisableCompanyCardsWarningModalOpen(true);
         },
-        onPress: () => {
-            if (!policyID) {
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        },
     });
 
     spendItems.push({
@@ -221,12 +201,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             }
             enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
         },
-        onPress: () => {
-            if (!policyID) {
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
-        },
     });
 
     const manageItems: Item[] = [
@@ -244,12 +218,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabled: isSmartLimitEnabled,
             disabledAction: onDisabledWorkflowPress,
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
-            },
         },
         {
             icon: illustrations.Rules,
@@ -268,12 +236,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyRules(policyID, isEnabled);
             },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            },
         },
     ];
 
@@ -289,12 +251,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 enablePolicyInvoicing(policyID, isEnabled);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             },
         },
     ];
@@ -314,12 +270,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyCategories(policyID, isEnabled, policyTagLists, policyCategories, allTransactionViolations, true);
             },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-            },
         },
         {
             icon: illustrations.Tag,
@@ -335,12 +285,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyTags({policyID, enabled: isEnabled, policyTags: policyTagLists});
             },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-            },
         },
         {
             icon: illustrations.Coins,
@@ -355,12 +299,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 enablePolicyTaxes(policyID, isEnabled);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
             },
         },
     ];
@@ -392,12 +330,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-            },
         },
     ];
 
@@ -427,12 +359,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
             },
         });
     }
@@ -467,36 +393,26 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const renderItem = useCallback(
         (item: Item) => (
-            <Hoverable>
-                {(hovered) => (
-                    <View
-                        key={item.titleTranslationKey}
-                        style={[
-                            styles.workspaceSectionMoreFeaturesItem,
-                            shouldUseNarrowLayout && styles.flexBasis100,
-                            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
-                            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
-                        ]}
-                    >
-                        <ToggleSettingOptionRow
-                            icon={item.icon}
-                            disabled={item.disabled}
-                            disabledAction={item.disabledAction}
-                            title={translate(item.titleTranslationKey)}
-                            titleStyle={styles.textStrong}
-                            subtitle={translate(item.subtitleTranslationKey)}
-                            switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
-                            isActive={item.isActive}
-                            pendingAction={item.pendingAction}
-                            onToggle={item.action}
-                            showLockIcon={item.disabled}
-                            errors={item.errors}
-                            onCloseError={item.onCloseError}
-                            onPress={item.onPress}
-                        />
-                    </View>
-                )}
-            </Hoverable>
+            <View
+                key={item.titleTranslationKey}
+                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0)]}
+            >
+                <ToggleSettingOptionRow
+                    icon={item.icon}
+                    disabled={item.disabled}
+                    disabledAction={item.disabledAction}
+                    title={translate(item.titleTranslationKey)}
+                    titleStyle={styles.textStrong}
+                    subtitle={translate(item.subtitleTranslationKey)}
+                    switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
+                    isActive={item.isActive}
+                    pendingAction={item.pendingAction}
+                    onToggle={item.action}
+                    showLockIcon={item.disabled}
+                    errors={item.errors}
+                    onCloseError={item.onCloseError}
+                />
+            </View>
         ),
         [styles, StyleUtils, shouldUseNarrowLayout, translate],
     );
