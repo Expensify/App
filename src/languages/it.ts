@@ -1412,7 +1412,7 @@ const translations = {
         holdEducationalTitle: 'Devi sospendere questa spesa?',
         whatIsHoldExplain: 'Sospendere significa mettere in "pausa" una spesa fino a quando non sei pronto per inviarla.',
         holdIsLeftBehind: "Le spese sospese rimangono in sospeso anche se invii l'intero rapporto.",
-        unholdWhenReady: "Rimuovi la sospensione dalle spese quando sei pronto per inviarle.",
+        unholdWhenReady: 'Rimuovi la sospensione dalle spese quando sei pronto per inviarle.',
         changePolicyEducational: {
             title: 'Hai spostato questo report!',
             description: 'Ricontrolla questi elementi, che tendono a cambiare quando si spostano i report in un nuovo spazio di lavoro.',
