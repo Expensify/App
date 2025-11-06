@@ -40,6 +40,7 @@ import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} fro
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -895,7 +896,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (transactionTag && policyTags && !policyTags[transactionTag]) {
+            if (transactionTag && policyTags && !hasMatchingTag(policyTags, transactionTag)) {
                 setFormError('violations.tagOutOfPolicy');
                 return;
             }

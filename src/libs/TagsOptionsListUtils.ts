@@ -9,7 +9,7 @@ import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getTagForDisplay} from './TransactionUtils';
+import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -223,5 +223,30 @@ function getTagVisibility({
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility};
+/**
+ * Checks if any tag from policy tag lists exists in the transaction tag string.
+ *
+ * @param policyTagLists - The policy tag lists object containing tag list records
+ * @param transactionTag - The transaction tag string, potentially multi-level
+ * @returns true if at least one tag from policyTagLists is found in the transaction tag string
+ */
+function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag: string): boolean {
+    if (!policyTagLists || !transactionTag) {
+        return false;
+    }
+
+    const transactionTagArray = getTagArrayFromName(transactionTag);
+
+    return transactionTagArray.some((tag) => {
+        const tagName = tag.trim();
+        return Object.values(policyTagLists).some((tagList) => {
+            if (!tagList?.tags) {
+                return false;
+            }
+            return Object.values(tagList.tags).some((policyTag) => policyTag.name === tagName);
+        });
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
 export type {SelectedTagOption, TagVisibility};
