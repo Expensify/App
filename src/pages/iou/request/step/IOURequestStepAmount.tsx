@@ -378,7 +378,7 @@ IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 /**
  * Determines if user has manually selected a participant different from the default workspace
  */
-export function hasManuallySelectedParticipant(
+function hasManuallySelectedParticipant(
     firstParticipant: {reportID?: string; accountID?: number; isPolicyExpenseChat?: boolean} | undefined,
     activePolicyExpenseChatReportID: string | undefined,
 ): {hasDifferentWorkspace: boolean; isP2PChat: boolean; hasManualSelection: boolean} {
@@ -396,3 +396,4 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
+export {hasManuallySelectedParticipant};
