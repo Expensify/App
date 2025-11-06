@@ -269,15 +269,12 @@ function IOURequestStepAmount({
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-
             const firstParticipant = transaction?.participants?.at(0);
 
             // Check if user manually selected a recipient different from default workspace
-            const hasDifferentWorkspace = !!(firstParticipant?.reportID && firstParticipant.reportID !== activePolicyExpenseChat?.reportID);
-            const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
-            const hasManuallySelectedParticipant = hasDifferentWorkspace || isP2PChat;
+            const {hasManualSelection} = hasManuallySelectedParticipant(firstParticipant, activePolicyExpenseChat?.reportID);
 
-            if (hasManuallySelectedParticipant) {
+            if (hasManualSelection) {
                 const targetReportID = transaction?.reportID;
                 const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -377,6 +374,20 @@ function IOURequestStepAmount({
 }
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
+
+/**
+ * Determines if user has manually selected a participant different from the default workspace
+ */
+export function hasManuallySelectedParticipant(
+    firstParticipant: {reportID?: string; accountID?: number; isPolicyExpenseChat?: boolean} | undefined,
+    activePolicyExpenseChatReportID: string | undefined,
+): {hasDifferentWorkspace: boolean; isP2PChat: boolean; hasManualSelection: boolean} {
+    const hasDifferentWorkspace = !!(firstParticipant?.reportID && firstParticipant.reportID !== activePolicyExpenseChatReportID);
+    const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
+    const hasManualSelection = hasDifferentWorkspace || isP2PChat;
+
+    return {hasDifferentWorkspace, isP2PChat, hasManualSelection};
+}
 
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
