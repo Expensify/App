@@ -6470,24 +6470,30 @@ describe('actions/IOU', () => {
     });
 
     describe('canIOUBePaid', () => {
-        it('should return false if the report has negative total', () => {
-            const policyChat = createRandomReport(1, undefined);
+        it('should return false if the report has negative total and onlyShowPayElsewhere is false', () => {
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number('AA')),
+                id: 'AA',
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                role: CONST.POLICY.ROLE.ADMIN,
             };
 
             const fakeReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: 'AA',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
                 managerID: RORY_ACCOUNT_ID,
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy)).toBeFalsy();
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false, undefined, undefined, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true, undefined, undefined, false)).toBeTruthy();
         });
     });
 
