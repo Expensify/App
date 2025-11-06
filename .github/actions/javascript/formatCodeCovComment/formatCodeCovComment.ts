@@ -105,9 +105,10 @@ async function run() {
             return;
         }
 
-        const commentId = context.payload.comment?.id as number | undefined;
+        const commentId = context.payload.comment?.id;
         const commentBody = context.payload.comment?.body as string | undefined;
-        const commentAuthor = context.payload.comment?.user?.login as string | undefined;
+        const commentUser = context.payload.comment?.user as {login?: string} | undefined;
+        const commentAuthor = commentUser?.login;
 
         if (!commentBody || !commentId || typeof commentBody !== 'string') {
             console.log('No comment body or ID found');

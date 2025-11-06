@@ -11672,7 +11672,8 @@ async function run() {
         }
         const commentId = github_1.context.payload.comment?.id;
         const commentBody = github_1.context.payload.comment?.body;
-        const commentAuthor = github_1.context.payload.comment?.user?.login;
+        const commentUser = github_1.context.payload.comment?.user;
+        const commentAuthor = commentUser?.login;
         if (!commentBody || !commentId || typeof commentBody !== 'string') {
             console.log('No comment body or ID found');
             return;
