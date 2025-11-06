@@ -160,5 +160,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     );
 }
 
+PaymentMethodListItem.displayName = 'PaymentMethodListItem';
+
 export type {PaymentMethodItem};
 export default PaymentMethodListItem;

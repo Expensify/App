@@ -131,7 +131,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD, true).length > 0;
             if (hasValidExistingUSDAccounts) {
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
             } else {
@@ -202,7 +202,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
-        const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
+        const state = accountData.state ?? '';
         const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
         const isAccountInSetupState = bankAccountID ? isBankAccountPartiallySetup(state) && policy?.achAccount?.reimburser === currentUserLogin : isBankAccountPartiallySetup(state);
