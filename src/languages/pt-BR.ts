@@ -1131,7 +1131,6 @@ const translations = {
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Adicionar divisão',
-        makeSplitsEven: 'Tornar as divisões iguais',
         editSplits: 'Editar divisões',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} maior que a despesa original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} a menos que a despesa original.`,
@@ -5495,8 +5494,8 @@ ${amount} para ${merchant} - ${date}`,
             enableRate: 'Habilitar taxa',
             status: 'Status',
             unit: 'Unidade',
-            taxFeatureNotEnabledMessage: 'Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para',
-            changePromptMessage: 'para fazer essa alteração.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para <a href="#">Mais funcionalidades</a> para fazer essa alteração.</muted-text>',
             deleteDistanceRate: 'Excluir taxa de distância',
             areYouSureDelete: () => ({
                 one: 'Tem certeza de que deseja excluir esta taxa?',
@@ -6862,7 +6861,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
-        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
@@ -7394,6 +7392,28 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Algo deu errado...',
         subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
         refreshAndTryAgain: 'Atualize e tente novamente',
+    },
+    domain: {
+        notVerified: 'Não verificado',
+        retry: 'Tentar novamente',
+        verifyDomain: {
+            title: 'Verificar domínio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Antes de prosseguir, verifique se você é o proprietário de <strong>${domainName}</strong> atualizando as configurações de DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Acesse seu provedor de DNS e abra as configurações de DNS para <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Adicione o seguinte registro TXT:',
+            saveChanges: 'Salve as alterações e volte aqui para verificar seu domínio.',
+            youMayNeedToConsult: `Talvez seja necessário consultar o departamento de TI da sua organização para concluir a verificação. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Saiba mais</a>.`,
+            warning: 'Após a verificação, todos os membros do Expensify no seu domínio receberão um e-mail informando que suas contas serão gerenciadas sob seu domínio.',
+            codeFetchError: 'Não foi possível obter o código de verificação',
+            genericError: 'Não conseguimos verificar seu domínio. Tente novamente e entre em contato com o Concierge se o problema persistir.',
+        },
+        domainVerified: {
+            title: 'Domínio verificado',
+            header: 'Uhul! Seu domínio foi verificado',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>O domínio <strong>${domainName}</strong> foi verificado com sucesso e agora você pode configurar SAML e outros recursos de segurança.</centered-text></muted-text>`,
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

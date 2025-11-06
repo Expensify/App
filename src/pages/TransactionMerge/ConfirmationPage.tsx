@@ -11,8 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
@@ -43,6 +45,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const targetTransactionThreadReportIDSelector = useCallback(
         (reportActionsList: OnyxEntry<ReportActions>) => {
             const reportActions = Object.values(reportActionsList ?? {});
@@ -86,7 +91,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
-        mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
+        mergeTransactionRequest({
+            mergeTransactionID: transactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy,
+            policyTags,
+            policyCategories,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+            isASAPSubmitBetaEnabled,
+        });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
         if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
@@ -94,7 +110,19 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModal();
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
+    }, [
+        targetTransaction,
+        mergeTransaction,
+        sourceTransaction,
+        transactionID,
+        targetTransactionThreadReportID,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+    ]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;
