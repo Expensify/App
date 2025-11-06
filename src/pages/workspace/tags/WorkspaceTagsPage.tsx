@@ -29,7 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyData from '@hooks/usePolicyData';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -88,9 +88,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
-    const {backTo, policyID} = route.params;
-    const policyData = usePolicyData(policyID);
-    const {policy, tags: policyTags} = policyData;
+    const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
+    const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -99,7 +100,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
@@ -203,16 +203,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled({policyID, tagsToUpdate: {[tagName]: {name: tagName, enabled: value}}, tagListIndex: 0, policyTags});
         },
-        [policyData],
+        [policyID, policyTags],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyData, value, orderWeight);
+            setPolicyTagsRequired({policyID, requiresTag: value, tagListIndex: orderWeight, policyTags});
         },
-        [policyData],
+        [policyID, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -368,7 +368,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -521,9 +521,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-
-                    // Disable the selected tags
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToDisable, tagListIndex: 0, policyTags});
                 },
             });
         }
@@ -535,7 +533,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToEnable, tagListIndex: 0, policyTags});
                 },
             });
         }
@@ -567,7 +565,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkOptional, false);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
                 },
             });
         }
@@ -579,7 +577,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkRequired, true);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags);
                 },
             });
         }
