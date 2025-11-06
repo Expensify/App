@@ -70,7 +70,7 @@ function areMultifactorAuthenticationFactorsSufficient(
             isRequestFulfilled: false,
         };
 
-        if (!(parameter in factors)) {
+        if (!(parameter in factors) || factors[parameter] === undefined) {
             return {
                 value: `Missing required factor: ${name} (${parameter})`,
                 step: unsuccessfulStep,

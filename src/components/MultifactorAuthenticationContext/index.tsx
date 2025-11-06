@@ -261,7 +261,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             scenario: T,
             params?: MultifactorAuthenticationScenarioParams<T>,
         ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
-            if (!NativeBiometrics.setup.isBiometryConfigured && softPromptStore.current.accepted === undefined) {
+            const shouldNavigateToSoftPrompt =
+                !NativeBiometrics.setup.isBiometryConfigured &&
+                softPromptStore.current.accepted === undefined &&
+                NativeBiometrics.setup.deviceSupportBiometrics &&
+                allowedMethods(scenario).biometrics;
+
+            if (shouldNavigateToSoftPrompt) {
                 const {validateCode} = params ?? softPromptStore.current;
                 softPromptStore.current.validateCode = validateCode;
 
