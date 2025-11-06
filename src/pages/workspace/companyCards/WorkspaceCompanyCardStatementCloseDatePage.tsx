@@ -29,7 +29,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const originalFeedName = getOriginalFeed(selectedFeed);
+    const originalFeed = getOriginalFeed(selectedFeed);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;

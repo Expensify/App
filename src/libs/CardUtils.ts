@@ -735,8 +735,8 @@ function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined
 }
 
 /** Extract original feed */
-function getOriginalFeed(feedName: CombinedFeedKey): CompanyCardFeed {
-    const [feed] = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+function getOriginalFeed(feedKey: CombinedFeedKey): CompanyCardFeed {
+    const [feed] = feedKey.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
     return feed as CompanyCardFeed;
 }
 

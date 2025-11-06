@@ -48,7 +48,7 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank) as CombinedFeedKey;
-    const originalFeedName = getOriginalFeed(bank);
+    const originalFeed = getOriginalFeed(bank);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
@@ -81,13 +81,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
-            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, originalFeedName, card);
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, originalFeed, card);
         }
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, originalFeedName, card?.lastScrapeResult);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, originalFeed, card?.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     <MenuItemWithTopDescription
                         numberOfLinesTitle={3}
                         description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', originalFeedName, true)}
+                        title={maskCardNumber(card?.cardName ?? '', originalFeed, true)}
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
@@ -163,7 +163,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeedName, 'cardTitle')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, 'cardTitle')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -182,7 +182,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 if (!exportMenuItem.exportType) {
                                     return;
                                 }
-                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeedName, exportMenuItem.exportType);
+                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, exportMenuItem.exportType);
                             }}
                         >
                             <MenuItemWithTopDescription
@@ -221,7 +221,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.pendingFields?.lastScrape}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeedName, 'lastScrape', true)}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, 'lastScrape', true)}
                     >
                         <MenuItem
                             icon={Expensicons.Sync}

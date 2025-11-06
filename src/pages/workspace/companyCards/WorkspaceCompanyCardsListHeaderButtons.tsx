@@ -68,13 +68,13 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const originalFeedName = getOriginalFeed(selectedFeed);
-    const formattedFeedName = getCustomOrFormattedFeedName(originalFeedName, cardFeeds?.[selectedFeed]?.customFeedName);
+    const originalFeed = getOriginalFeed(selectedFeed);
+    const formattedFeedName = getCustomOrFormattedFeedName(originalFeed, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
     const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
-    const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(originalFeedName);
+    const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(originalFeed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
@@ -83,7 +83,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
         const data: Partial<AssignCardData> = {
-            bankName: originalFeedName,
+            bankName: originalFeed,
         };
         if (institutionId) {
             const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
@@ -122,7 +122,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 <FeedSelector
                     plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    cardIcon={getCardFeedIcon(originalFeedName, illustrations)}
+                    cardIcon={getCardFeedIcon(originalFeed, illustrations)}
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}
