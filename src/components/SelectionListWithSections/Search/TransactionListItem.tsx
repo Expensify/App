@@ -120,18 +120,7 @@ function TransactionListItem<TItem extends ListItem>({
             currentSearchKey,
             onDEWModalOpen,
         );
-    }, [
-        currentSearchHash,
-        transactionItem,
-        transactionPreviewData,
-        snapshotReport,
-        snapshotPolicy,
-        lastPaymentMethod,
-        currentSearchKey,
-        onSelectRow,
-        item,
-        onDEWModalOpen,
-    ]);
+    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
