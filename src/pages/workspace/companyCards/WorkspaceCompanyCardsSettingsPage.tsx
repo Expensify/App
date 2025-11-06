@@ -45,9 +45,10 @@ function WorkspaceCompanyCardsSettingsPage({
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+    const originalFeed = selectedFeed ? getOriginalFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(getOriginalFeed(selectedFeed), cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(originalFeed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const liabilityType = selectedFeedData?.liabilityType;
@@ -77,7 +78,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const deleteCompanyCardFeed = () => {
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.goBack();
-        if (selectedFeed) {
+        if (originalFeed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
             const feedToOpen = (Object.keys(companyFeeds) as CombinedFeedKey[])
@@ -85,19 +86,19 @@ function WorkspaceCompanyCardsSettingsPage({
                 .at(0);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getOriginalFeed(selectedFeed), cardIDs, feedToOpen);
+                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, originalFeed, cardIDs, feedToOpen);
             });
         }
     };
 
     const onToggleLiability = (isOn: boolean) => {
-        if (!selectedFeed) {
+        if (!originalFeed) {
             return;
         }
         setWorkspaceCompanyCardTransactionLiability(
             domainOrWorkspaceAccountID,
             policyID,
-            getOriginalFeed(selectedFeed),
+            originalFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
         );
     };

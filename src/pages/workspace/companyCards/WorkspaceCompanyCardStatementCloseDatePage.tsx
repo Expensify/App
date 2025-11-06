@@ -29,7 +29,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const originalFeed = getOriginalFeed(selectedFeed);
+    const originalFeed = selectedFeed ? getOriginalFeed(selectedFeed) : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -51,13 +51,13 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const submit = useCallback(
         (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
             const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
-            if (selectedFeed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, getOriginalFeed(selectedFeed), domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
+            if (originalFeed && isChangedValue) {
+                setFeedStatementPeriodEndDay(policyID, originalFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
+        [policyID, originalFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
@@ -65,12 +65,12 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     }, [policyID]);
 
     const clearError = useCallback(() => {
-        if (!selectedFeed) {
+        if (!originalFeed) {
             return;
         }
 
-        clearErrorField(getOriginalFeed(selectedFeed), domainOrWorkspaceAccountID, 'statementPeriodEndDay');
-    }, [selectedFeed, domainOrWorkspaceAccountID]);
+        clearErrorField(originalFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+    }, [originalFeed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;
