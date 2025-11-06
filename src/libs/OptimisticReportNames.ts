@@ -300,6 +300,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
 
+                // Handle both existing and new reports with the same function
                 const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
