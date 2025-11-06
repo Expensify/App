@@ -536,11 +536,7 @@ function getCombinedFeedKey(feedName: CompanyCardFeed, domainID: number | string
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
-    if (!cardFeed || !cardFeed.expiration) {
-        return false;
-    }
-
-    return isBefore(fromUnixTime(cardFeed.expiration), new Date());
+    return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
 /** Returns list of cards which can be assigned */
@@ -563,7 +559,7 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
         });
     });
 
-    if (accountList?.length) {
+    if (accountList) {
         const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
@@ -631,8 +627,7 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
             .filter((str) => str.includes(feedKey))
-            .map((str) => str.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR).at(0))
-            .filter((str): str is string => !!str);
+            .map((str) => getOriginalFeedName(str as CombinedFeedKey));
 
         const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
         feedNumbers.sort((a, b) => a - b);
