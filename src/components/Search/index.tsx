@@ -113,7 +113,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             action: item.action,
             convertedCurrency: item.convertedCurrency,
             reportID: item.reportID,
-            policyID: item.policyID,
+            policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
             currency: item.currency,
@@ -471,7 +471,7 @@ function Search({
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
-                        policyID: transactionItem.policyID,
+                        policyID: transactionItem.report?.policyID,
                         amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
@@ -508,7 +508,7 @@ function Search({
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canDelete: transactionItem.canDelete,
                     reportID: transactionItem.reportID,
-                    policyID: transactionItem.policyID,
+                    policyID: transactionItem.report?.policyID,
                     amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
@@ -891,6 +891,7 @@ function Search({
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
