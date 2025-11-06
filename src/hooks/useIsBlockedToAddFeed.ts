@@ -34,7 +34,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
     }, [cardFeeds?.settings?.oAuthAccountDetails, addNewCard?.data?.plaidConnectedFeed, prevOAuthDetails]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && Object.entries(companyFeeds)?.length >= 1 && !isNewFeedConnected,
+        isBlockedToAddNewFeeds: isCollect && Object.entries(companyFeeds)?.length >= 1 && !isNewFeedConnected && !isLoading,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
