@@ -34,7 +34,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
             expect(result).toEqual({
                 imageWidth: 1920,
                 imageHeight: 1080,
-                isRotated: false,
                 aspectRatioWidth: 16,
                 aspectRatioHeight: 9,
             });
@@ -54,7 +53,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: true,
                     aspectRatioWidth: 9,
                     aspectRatioHeight: 16,
                 });
@@ -71,7 +69,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: true,
                     aspectRatioWidth: 3,
                     aspectRatioHeight: 4,
                 });
@@ -90,7 +87,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: false,
                     aspectRatioWidth: 16,
                     aspectRatioHeight: 9,
                 });
@@ -107,7 +103,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: false,
                     aspectRatioWidth: 21,
                     aspectRatioHeight: 9,
                 });
@@ -127,7 +122,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: false,
                     aspectRatioWidth: 9,
                     aspectRatioHeight: 16,
                 });
@@ -143,7 +137,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1920,
                     imageHeight: 1080,
-                    isRotated: false,
                     aspectRatioWidth: 3,
                     aspectRatioHeight: 4,
                 });
@@ -161,7 +154,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1080,
                     imageHeight: 1920,
-                    isRotated: true,
                     aspectRatioWidth: 16,
                     aspectRatioHeight: 9,
                 });
@@ -177,7 +169,6 @@ describe('getDeviceOrientationAwareImageSize', () => {
                 expect(result).toEqual({
                     imageWidth: 1080,
                     imageHeight: 1920,
-                    isRotated: true,
                     aspectRatioWidth: 21,
                     aspectRatioHeight: 9,
                 });

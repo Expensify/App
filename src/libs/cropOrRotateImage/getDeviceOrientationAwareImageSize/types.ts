@@ -4,7 +4,6 @@ import type {Orientation} from 'react-native-vision-camera';
 type DeviceOrientationAwareImageSize = {
     imageWidth: number;
     imageHeight: number;
-    isRotated: boolean;
     aspectRatioWidth?: number;
     aspectRatioHeight?: number;
 };
