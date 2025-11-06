@@ -11,7 +11,7 @@ import useAncestors from '@hooks/useAncestors';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -39,7 +39,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStepNew: jest.fn(),
+    buildNextStep: jest.fn(),
 }));
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
@@ -2531,7 +2531,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
-            expect(buildNextStepNew).toHaveBeenCalledWith({
+            expect(buildNextStep).toHaveBeenCalledWith({
                 report,
                 policy,
                 currentUserAccountIDParam: 1,
