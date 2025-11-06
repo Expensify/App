@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -83,9 +83,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={styles.shortTermsHorizontalRule} />
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
-                        <Text>
-                            {translate('termsStep.shortTermsForm.atmBalanceInquiry')} {translate('termsStep.shortTermsForm.inOrOutOfNetwork')}
-                        </Text>
+                        <Text>{translate('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
                     </View>
                     <View style={styles.flex1}>
                         <Text>{translate('common.na')}</Text>
@@ -95,9 +93,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={styles.shortTermsHorizontalRule} />
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
-                        <Text>
-                            {translate('termsStep.shortTermsForm.customerService')} {translate('termsStep.shortTermsForm.automatedOrLive')}
-                        </Text>
+                        <Text>{translate('termsStep.shortTermsForm.customerService')}</Text>
                     </View>
                     <View style={styles.flex1}>
                         <Text>{convertToDisplayString(0, 'USD')}</Text>
@@ -107,9 +103,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={styles.shortTermsHorizontalRule} />
                 <View style={[styles.shortTermsRow, styles.mb4]}>
                     <View style={[styles.flex3, styles.pr4]}>
-                        <Text>
-                            {translate('termsStep.inactivity')} {translate('termsStep.shortTermsForm.afterTwelveMonths')}
-                        </Text>
+                        <Text>{translate('termsStep.shortTermsForm.inactivityAfterTwelveMonths')}</Text>
                     </View>
                     <View style={styles.flex1}>
                         <Text>{convertToDisplayString(0, 'USD')}</Text>
@@ -124,9 +118,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={styles.shortTermsHorizontalRule} />
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
-                        <Text>
-                            {translate('termsStep.electronicFundsWithdrawal')} {translate('termsStep.shortTermsForm.instant')}
-                        </Text>
+                        <Text>{translate('termsStep.shortTermsForm.electronicFundsWithdrawalInstant')}</Text>
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
                         <Text style={styles.label}>{numberFormat(1.5)}%</Text>
@@ -136,13 +128,12 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>
                     <Text style={[styles.textStrong, styles.mb3]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
                     <Text style={styles.mb3}>{translate('termsStep.shortTermsForm.fdicInsurance')}</Text>
-                    <Text style={styles.mb3}>
-                        {translate('termsStep.shortTermsForm.generalInfo')} <TextLink href={CONST.CFPB_PREPAID_URL}>{CONST.TERMS.CFPB_PREPAID}</TextLink>.
-                    </Text>
-                    <Text>
-                        {translate('termsStep.shortTermsForm.conditionsDetails')} <TextLink href={CONST.FEES_URL}>{CONST.FEES_URL}</TextLink>{' '}
-                        {translate('termsStep.shortTermsForm.conditionsPhone')}
-                    </Text>
+                    <View style={[styles.renderHTML, styles.mb3]}>
+                        <RenderHTML html={translate('termsStep.shortTermsForm.generalInfo')} />
+                    </View>
+                    <View style={[styles.renderHTML]}>
+                        <RenderHTML html={translate('termsStep.shortTermsForm.conditionsDetails')} />
+                    </View>
                 </View>
             </View>
         </>

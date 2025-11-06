@@ -18,8 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const webViewRef = useRef<WebView>(null);
@@ -68,7 +68,7 @@ function SAMLSignInPage() {
             const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, true);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page

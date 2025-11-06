@@ -76,7 +76,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted) && (containsOnlyEmojis || !containsCustomEmoji(text))) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
-        const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
+        // We need to replace the space at the beginning of each line with &nbsp;
+        const escapedHtml = html.replace(/(^|<br \/>)[ ]+/gm, (match: string, p1: string) => p1 + '&nbsp;'.repeat(match.length - p1.length));
+        const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {
@@ -118,7 +120,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     style={[
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
@@ -129,7 +131,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                         containsOnlyCustomEmoji && styles.customEmojiFont,
@@ -144,7 +146,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>

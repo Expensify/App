@@ -1,14 +1,38 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
-function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>) {
+function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, shouldResetLocally: boolean) {
     if (!policyID) {
         throw new Error('Missing policy when attempting to reset');
+    }
+
+    if (shouldResetLocally) {
+        const updateData = [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    achAccount: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+            },
+        ];
+        Onyx.update(updateData as OnyxUpdate[]);
+        return;
     }
 
     API.write(

@@ -3424,6 +3424,7 @@ async function run() {
         }
         const newVersion = await (0, bumpVersion_1.default)(semverLevel);
         core.setOutput('NEW_VERSION', newVersion);
+        core.notice(`New version is ${newVersion}`);
     }
     catch (e) {
         if (e instanceof Error) {

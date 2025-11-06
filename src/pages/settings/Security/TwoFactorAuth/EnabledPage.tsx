@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -23,7 +24,7 @@ function EnabledPage() {
     const styles = useThemeStyles();
 
     const [isVisible, setIsVisible] = useState(false);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {

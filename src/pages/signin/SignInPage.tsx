@@ -4,6 +4,7 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
@@ -365,7 +366,9 @@ function WithTheme(Component: React.ComponentType<SignInPageProps>) {
     return ({ref}: SignInPageProps) => (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
-                <Component ref={ref} />
+                <HTMLEngineProvider>
+                    <Component ref={ref} />
+                </HTMLEngineProvider>
             </ThemeStylesProvider>
         </ThemeProvider>
     );

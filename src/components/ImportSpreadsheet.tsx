@@ -10,10 +10,10 @@ import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Pol
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route as Routes} from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
@@ -214,7 +214,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             }}
                         />
 
-                        <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
+                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
                             {!(isDraggingOver ?? isDraggingOver) && desktopView}
 
                             <DragAndDropConsumer
@@ -226,7 +226,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 }}
                             >
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                    <View style={styles.fileUploadImageWrapper(fileTopPosition)}>
+                                    <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
                                         <ImageSVG
                                             src={Expensicons.SpreadsheetComputer}
                                             contentFit="contain"

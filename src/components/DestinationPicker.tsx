@@ -9,9 +9,9 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type DestinationPickerProps = {
     policyID: string;
@@ -54,6 +54,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
             recentlyUsedDestinations: policyRecentlyUsedDestinations,
+            translate,
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
@@ -63,7 +64,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         const showInput = !isDestinationsCountBelowThreshold;
 
         return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
+    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
     const selectedOptionKey = useMemo(
         () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,

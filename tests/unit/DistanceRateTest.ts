@@ -1,6 +1,7 @@
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {deletePolicyDistanceRates, enablePolicyDistanceRates} from '@libs/actions/Policy/DistanceRate';
+import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -139,6 +140,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             if (policy.customUnits) {
+                pause();
                 enablePolicyDistanceRates(policy.id, false, policy.customUnits[customUnitID]);
             }
             await waitForBatchedUpdates();
@@ -180,6 +182,8 @@ describe('DistanceRate', () => {
                     },
                 },
             });
+
+            resetQueue();
         });
     });
 });

@@ -92,6 +92,9 @@ type Account = {
     /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
     needsTwoFactorAuthSetup?: boolean;
 
+    /** Whether the account 2FA setup is in progress, driven by the frontend */
+    twoFactorAuthSetupInProgress?: boolean;
+
     /** Whether the account is validated */
     validated?: boolean;
 
@@ -202,12 +205,6 @@ type Account = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
-    /** Whether we should use the staging version of the secure API server */
-    shouldUseStagingServer?: boolean;
-
-    /** Whether we should block the transaction thread report creation */
-    shouldBlockTransactionThreadReportCreation?: boolean;
-
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
@@ -225,9 +222,6 @@ type Account = {
 
     /** Whether the user is an Expensify Guide */
     isGuide?: boolean;
-
-    /** Whether the debug mode is currently enabled */
-    isDebugModeEnabled?: boolean;
 
     /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;

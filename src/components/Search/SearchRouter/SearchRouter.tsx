@@ -1,6 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -15,10 +15,11 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
-import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +31,8 @@ import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
+import {createOptionFromReport} from '@libs/OptionsListUtils';
+import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -55,6 +58,9 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
         return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
     }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameByID(item.policyID) : ''}`;
+    }
 }
 
 function getContextualSearchQuery(item: SearchQueryItem) {
@@ -63,9 +69,11 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameByID(item.policyID) : '')}`;
+            break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
-            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+            if (item.autocompleteID) {
                 additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
@@ -81,9 +89,10 @@ type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
+    ref?: React.Ref<View>;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchContext();
@@ -110,6 +119,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const contextualReportID = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
+
         const focusedRoute = findFocusedRoute(state);
         if (focusedRoute?.name === SCREENS.REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
@@ -131,10 +145,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (!isSearchRouterDisplayed) {
                 return undefined;
             }
+            let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
 
-            const reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
             if (!reportForContextualSearch) {
-                return undefined;
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`];
+                if (!report) {
+                    return undefined;
+                }
+
+                const option = createOptionFromReport(report, personalDetails);
+                reportForContextualSearch = option;
             }
 
             const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
@@ -178,7 +198,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails],
     );
 
     const searchQueryItem = textInputValue
@@ -307,6 +327,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             const setFocusAndScrollToRight = () => {
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         if (!textInputRef.current) {
                             Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
@@ -369,7 +390,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
 
                             if (keyIndex !== -1) {
-                                trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                                const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
+                                const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+                                if (lastCommaIndex !== -1) {
+                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+                                } else {
+                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                                }
                             } else {
                                 trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                             }
@@ -459,8 +487,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+    const autoFocus = useFocusAfterNav(textInputRef);
 
     return (
         <View
@@ -499,6 +529,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
+                    autoFocus={autoFocus}
                 />
             </View>
             {shouldShowList && (
@@ -510,7 +541,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onListItemPress={onListItemPress}
                     setTextQuery={setTextAndUpdateSelection}
                     updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    onHighlightFirstItem={updateAndScrollToFocusedIndex}
                     ref={listRef}
                     textInputRef={textInputRef}
                     personalDetails={personalDetails}
@@ -532,4 +563,4 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
 SearchRouter.displayName = 'SearchRouter';
 
-export default forwardRef(SearchRouter);
+export default SearchRouter;

@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -52,9 +52,9 @@ jobs:
           git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
           echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
 
-      - name: RNEF Remote Build - iOS
-        # rnef v2
-        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
+      - name: Rock Remote Build - iOS
+        # rock v3
+        uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}

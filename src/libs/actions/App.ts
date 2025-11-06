@@ -1,4 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {getPathFromState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
@@ -11,14 +12,15 @@ import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -33,13 +35,19 @@ type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
 
-let currentUserAccountID: number | undefined;
-let currentUserEmail: string;
-Onyx.connect({
+// `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
+let currentSessionData: {accountID?: number; email: string} = {
+    accountID: undefined,
+    email: '',
+};
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID;
-        currentUserEmail = val?.email ?? '';
+        currentSessionData = {
+            accountID: val?.accountID,
+            email: val?.email ?? '',
+        };
     },
 });
 
@@ -62,14 +70,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let preservedShouldUseStagingServer: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        preservedShouldUseStagingServer = value?.shouldUseStagingServer;
-    },
-});
-
 // hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
 // so retrieving it using Onyx.connectWithoutView is correct.
 let resolveHasLoadedAppPromise: () => void;
@@ -89,8 +89,11 @@ Onyx.connectWithoutView({
     },
 });
 
+// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -123,6 +126,8 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.HYBRID_APP,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 ];
 
 /*
@@ -170,7 +175,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // If user is not signed in, change just locally.
-    if (!currentUserAccountID) {
+    if (!currentSessionData.accountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
         return;
     }
@@ -204,10 +209,36 @@ function setAppLoading(isLoading: boolean) {
     Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
+/**
+ * Saves the current navigation path to lastVisitedPath before app goes to background
+ */
+function saveCurrentPathBeforeBackground() {
+    try {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+
+        const currentState = navigationRef.getRootState();
+        if (!currentState) {
+            return;
+        }
+
+        const currentPath = getPathFromState(currentState, linkingConfig.config);
+
+        if (currentPath) {
+            Log.info('Saving current path before background', false, {currentPath});
+            updateLastVisitedPath(currentPath);
+        }
+    } catch (error) {
+        Log.warn('Failed to save current path before background', {error});
+    }
+}
+
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        saveCurrentPathBeforeBackground();
     }
     appState = nextAppState;
 });
@@ -218,7 +249,10 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connection = Onyx.connect({
+            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
+            // and each time the getPolicyParamsForOpenOrReconnect function is called,
+            // connectWithoutView will fetch the latest data from Onyx.
+            const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
@@ -411,33 +445,40 @@ function endSignOnTransition() {
     return resolveSignOnTransitionToFinishPromise();
 }
 
+type CreateWorkspaceWithPolicyDraftParams = {
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    policyOwnerEmail?: string;
+    policyName?: string;
+    transitionFromOldDot?: boolean;
+    makeMeAdmin?: boolean;
+    backTo?: string;
+    policyID?: string;
+    currency?: string;
+    file?: File;
+    routeToNavigateAfterCreate?: Route;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+};
+
 /**
  * Create a new draft workspace and navigate to it
- *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [policyID] Optional, Policy id.
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
- * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(
-    policyOwnerEmail = '',
-    policyName = '',
-    transitionFromOldDot = false,
-    makeMeAdmin = false,
-    backTo = '',
-    policyID = '',
-    currency?: string,
-    file?: File,
-    routeToNavigateAfterCreate?: Route,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        transitionFromOldDot = false,
+        makeMeAdmin = false,
+        backTo = '',
+        policyID = '',
+        currency,
+        file,
+        routeToNavigateAfterCreate,
+        lastUsedPaymentMethod,
+    } = params;
+
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
@@ -496,12 +537,8 @@ function savePolicyDraftByNewWorkspace(
 
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
- *
- * We subscribe to the session using withOnyx in the AuthScreens and
- * pass it in as a parameter. withOnyx guarantees that the value has been read
- * from Onyx because it will not render the AuthScreens until that point.
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         endSignOnTransition();
@@ -523,7 +560,13 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
+            introSelected,
+            policyOwnerEmail,
+            policyName,
+            transitionFromOldDot: true,
+            makeMeAdmin,
+        });
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -563,7 +606,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
 
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
     // to prevent signing into the wrong account
-    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
+    if (!currentSessionData.accountID || !shouldAuthenticateWithCurrentAccount) {
         Browser.openRouteInDesktopApp();
         return;
     }
@@ -575,13 +618,13 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
         if (!response) {
             Log.alert(
                 'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
-                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID},
+                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID: currentSessionData.accountID},
                 true,
             );
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, isMagicLink ? '/r' : initialRoute);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentSessionData.email, isMagicLink ? '/r' : initialRoute);
     });
 }
 
@@ -617,7 +660,6 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
-    const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
@@ -637,10 +679,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
                 Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
                 Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
             }
-
-            if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
-            }
         })
         .then(() => {
             // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
@@ -657,6 +695,22 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             });
         });
     clearSoundAssetsCache();
+}
+
+/**
+ * Clears a top-level Onyx value key by setting it to null.
+ * This is used for ephemeral flags so they do not persist across reloads.
+ */
+function clearSupportalPermissionDenied() {
+    // We intentionally set to null to keep key present but empty
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+}
+
+/**
+ * Shows a top-level modal informing that a supportal-auth user attempted an unauthorized command.
+ */
+function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDenied) {
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
 }
 
 export {
@@ -679,6 +733,8 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    clearSupportalPermissionDenied,
+    showSupportalPermissionDenied,
     setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };

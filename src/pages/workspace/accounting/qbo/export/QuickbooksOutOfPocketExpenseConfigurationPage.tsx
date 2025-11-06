@@ -59,6 +59,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 description = translate('workspace.qbo.accountsPayable');
                 break;
             default:
+                description = translate('workspace.qbo.account');
                 break;
         }
 
@@ -81,7 +82,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             brickRoadIndicator: areSettingsInErrorFields(accountOrExportDestination, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
-            title: qboConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qboConfig?.reimbursableExpensesAccount?.name,
             description: accountDescription,
             onPress: () => {
                 if (!policyID) {

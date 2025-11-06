@@ -1,6 +1,4 @@
 import Log from './Log';
-import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
-import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
@@ -10,7 +8,7 @@ export default function () {
 
     return new Promise<void>((resolve) => {
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [RenameCardIsVirtual, RenameReceiptFilename, MoveIsOptimisticReportToMetadata, PendingMembersToMetadata];
+        const migrationPromises = [RenameCardIsVirtual, RenameReceiptFilename];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.

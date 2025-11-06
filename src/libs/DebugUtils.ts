@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
+import SafeString from '@src/utils/SafeString';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -108,7 +109,7 @@ function onyxDataToString(data: OnyxEntry<unknown>) {
         return stringifyJSON(data as Record<string, unknown>);
     }
 
-    return String(data);
+    return SafeString(data);
 }
 
 type OnyxDataType = 'number' | 'object' | 'string' | 'boolean' | 'undefined';
@@ -166,7 +167,7 @@ function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
         return text === stringifyJSON(data as Record<string, unknown>);
     }
 
-    return text === String(data);
+    return text === SafeString(data);
 }
 
 /**
@@ -414,6 +415,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     }
     switch (key) {
         case 'avatarUrl':
+        case 'created':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -624,6 +626,28 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        case 'expensify_text_title':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
+                fieldID: 'string',
+                type: 'string',
+                name: 'string',
+                keys: 'array',
+                values: 'array',
+                defaultValue: 'string',
+                orderWeight: 'number',
+                deletable: 'boolean',
+                value: 'string',
+                target: 'string',
+                externalIDs: 'array',
+                disabledOptions: 'array',
+                isTax: 'boolean',
+                externalID: 'string',
+                origin: 'string',
+                defaultExternalID: 'string',
             });
     }
 }
@@ -1041,7 +1065,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1056,6 +1079,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
@@ -1096,6 +1120,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
+                splitExpensesTotal: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1156,8 +1181,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'number',
             );
-        case 'splitPayerAccountIDs':
-            return validateArray(value, 'number');
         case 'linkedTrackedExpenseReportAction':
             return validateObject<ReportAction>(value, {
                 accountID: 'number',
@@ -1253,6 +1276,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 message: 'string',
                 field: 'string',
                 prohibitedExpenseRule: 'string',
+                comment: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1311,17 +1335,19 @@ function getReasonForShowingRowInLHN({
     chatReport,
     doesReportHaveViolations,
     hasRBR = false,
-    isReportArchived = false,
+    isReportArchived,
     isInFocusMode = false,
     betas = undefined,
+    draftComment,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     doesReportHaveViolations: boolean;
     hasRBR?: boolean;
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
+    draftComment: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1338,6 +1364,7 @@ function getReasonForShowingRowInLHN({
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
+        draftComment,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

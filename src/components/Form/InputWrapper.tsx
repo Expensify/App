@@ -6,6 +6,7 @@ import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
@@ -59,7 +60,8 @@ function computeComponentSpecificRegistrationParams({
 }
 
 type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
-    InputComponentValueProps<TValue> & {
+    InputComponentValueProps<TValue> &
+    ForwardedFSClassProps & {
         InputComponent: TInput;
         inputID: string;
         isFocused?: boolean;

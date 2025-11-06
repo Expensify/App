@@ -18,6 +18,7 @@ jobs:
 
   test:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
