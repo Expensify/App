@@ -21,7 +21,7 @@ export default function ViolationMessages({violations, isLast, containerStyle, t
     const {translate} = useLocalize();
     const violationMessages = useMemo(
         () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
-        [canEdit, translate, violations],
+        [canEdit, translate, violations, companyCardPageURL],
     );
 
     return (
