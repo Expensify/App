@@ -295,9 +295,6 @@ type SearchTransaction = {
     /** The transaction sender ID */
     accountID: number;
 
-    /** The transaction recipient ID */
-    managerID: number;
-
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
 
