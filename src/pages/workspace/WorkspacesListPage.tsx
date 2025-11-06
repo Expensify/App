@@ -40,6 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {openOldDotLink} from '@libs/actions/Link';
+import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -51,7 +52,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {
-    getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
@@ -167,8 +167,10 @@ function WorkspacesListPage() {
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
+    const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
+
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
@@ -177,9 +179,6 @@ function WorkspacesListPage() {
     const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyToDelete = getPolicy(policyIDToDelete);
     const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -204,21 +203,16 @@ function WorkspacesListPage() {
             return;
         }
 
-        setIsDeleteModalOpen(false);
-
-        setTimeout(() => {
-            deleteWorkspace(
-                policyIDToDelete,
-                policyNameToDelete,
-                lastAccessedWorkspacePolicyID,
-                defaultCardFeeds,
-                reportsToArchive,
-                transactionViolations,
-                reimbursementAccountError,
-                lastPaymentMethod,
-            );
-        }, CONST.ANIMATED_TRANSITION);
-
+        deleteWorkspace(
+            policyIDToDelete,
+            policyNameToDelete,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastPaymentMethod,
+        );
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
@@ -351,16 +345,18 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
-                        const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
+                        close(() => {
+                            const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
 
-                        setPolicyIDToLeave(item.policyID);
+                            setPolicyIDToLeave(item.policyID);
 
-                        if (isReimburser) {
-                            setIsCannotLeaveWorkspaceModalOpen(true);
-                            return;
-                        }
+                            if (isReimburser) {
+                                setIsCannotLeaveWorkspaceModalOpen(true);
+                                return;
+                            }
 
-                        setIsLeaveModalOpen(true);
+                            setIsLeaveModalOpen(true);
+                        });
                     }),
                 });
             }
@@ -734,7 +730,14 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={
+                    shouldUseNarrowLayout && (
+                        <NavigationTabBar
+                            selectedTab={NAVIGATION_TABS.WORKSPACES}
+                            shouldShowFloatingCameraButton={false}
+                        />
+                    )
+                }
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <View style={styles.topBarWrapper}>
@@ -760,7 +763,14 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                shouldUseNarrowLayout && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
