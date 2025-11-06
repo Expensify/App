@@ -340,6 +340,7 @@ const translations = {
         noThanks: 'Nein danke',
         learnMore: 'Mehr erfahren',
         buttonConfirm: 'Verstanden',
+        confirmSwitch: 'Wechsel bestätigen',
         name: 'Name',
         attachment: 'Anhang',
         attachments: 'Anhänge',
@@ -4192,8 +4193,9 @@ ${amount} für ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
-                expenseReportDestinationWarningMessage:
-                    'Wenn Sie die Exporteinstellung für Firmenkarten auf Spesenabrechnungen umstellen, werden NetSuite-Lieferanten und Buchungskonten für einzelne Karten deaktiviert. Keine Sorge, wir speichern Ihre vorherigen Auswahlen trotzdem, falls Sie später wieder wechseln möchten.',
+                expenseReportDestinationConfirmTitle: 'Sind Sie sicher, dass Sie die Exporteinstellung wechseln möchten?',
+                expenseReportDestinationConfirmDescription:
+                    'Wenn Sie die Exporteinstellung für Firmenkarten auf Spesenabrechnungen umstellen, werden NetSuite-Lieferanten und Buchungskonten für einzelne Karten deaktiviert.\n\nKeine Sorge, wir speichern Ihre vorherigen Auswahlen trotzdem, falls Sie später wieder wechseln möchten.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify wird jeden Tag automatisch mit NetSuite synchronisiert.',

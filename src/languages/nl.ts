@@ -340,6 +340,7 @@ const translations = {
         noThanks: 'Nee, bedankt',
         learnMore: 'Meer informatie',
         buttonConfirm: 'Begrepen',
+        confirmSwitch: 'Wissel bevestigen',
         name: 'Naam',
         attachment: 'Bijlage',
         attachments: 'Bijlagen',
@@ -4201,8 +4202,9 @@ ${amount} voor ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
-                expenseReportDestinationWarningMessage:
-                    'Als je de exportinstelling voor bedrijfskaarten wijzigt naar onkostenrapporten, worden NetSuite-leveranciers en boekingsaccounts voor individuele kaarten uitgeschakeld. Geen zorgen, we bewaren je vorige selecties nog steeds voor het geval je later terug wilt schakelen.',
+                expenseReportDestinationConfirmTitle: 'Weet je zeker dat je de exportinstelling wilt wijzigen?',
+                expenseReportDestinationConfirmDescription:
+                    'Als je de exportinstelling voor bedrijfskaarten wijzigt naar onkostenrapporten, worden NetSuite-leveranciers en boekingsaccounts voor individuele kaarten uitgeschakeld.\n\nGeen zorgen, we bewaren je vorige selecties nog steeds voor het geval je later terug wilt schakelen.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify zal elke dag automatisch synchroniseren met NetSuite.',

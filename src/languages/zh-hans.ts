@@ -339,7 +339,8 @@ const translations = {
         notNow: '暂时不需要',
         noThanks: '不，谢谢',
         learnMore: '了解更多',
-        buttonConfirm: '明白了',
+        buttonConfirm: '我知道了',
+        confirmSwitch: '确认切换',
         name: '名称',
         attachment: '附件',
         attachments: '附件',
@@ -4118,8 +4119,9 @@ ${merchant}的${amount} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
-                expenseReportDestinationWarningMessage:
-                    '如果您将公司卡的导出设置更改为费用报告，NetSuite供应商和各个卡的过账账户将被禁用。不用担心，我们仍然会保存您之前的选择，以防您将来想要恢复原设置。',
+                expenseReportDestinationConfirmTitle: '您确定要切换导出设置吗？',
+                expenseReportDestinationConfirmDescription:
+                    '如果您将公司卡的导出设置更改为费用报告，NetSuite供应商和各个卡的过账账户将被禁用。\n\n不用担心，我们仍然会保存您之前的选择，以防您将来想要恢复原设置。',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify将每天自动与NetSuite同步。',

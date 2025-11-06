@@ -95,14 +95,14 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
             />
             <ConfirmModal
                 isVisible={isWarningModalVisible}
-                title={translate('workspace.accounting.exportCompanyCard')}
+                title={translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmTitle')}
                 onConfirm={() => {
                     selectDestination({value: CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}, true);
                     setIsWarningModalVisible(false);
                 }}
                 onCancel={() => setIsWarningModalVisible(false)}
-                prompt={translate('workspace.netsuite.exportDestination.expenseReportDestinationWarningMessage')}
-                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription')}
+                confirmText={translate('common.confirmSwitch')}
                 cancelText={translate('common.cancel')}
             />
         </>

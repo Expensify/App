@@ -340,6 +340,7 @@ const translations = {
         noThanks: 'Não, obrigado.',
         learnMore: 'Saiba mais',
         buttonConfirm: 'Entendi',
+        confirmSwitch: 'Confirmar mudança',
         name: 'Nome',
         attachment: 'Anexo',
         attachments: 'Anexos',
@@ -4190,8 +4191,9 @@ ${amount} para ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
-                expenseReportDestinationWarningMessage:
-                    'Se você mudar a configuração de exportação de cartões corporativos para relatórios de despesas, os fornecedores do NetSuite e as contas de lançamento para cartões individuais serão desabilitados. Não se preocupe, ainda vamos salvar suas seleções anteriores caso você queira voltar às configurações anteriores mais tarde.',
+                expenseReportDestinationConfirmTitle: 'Tem certeza de que deseja alterar a configuração de exportação?',
+                expenseReportDestinationConfirmDescription:
+                    'Se você mudar a configuração de exportação de cartões corporativos para relatórios de despesas, os fornecedores do NetSuite e as contas de lançamento para cartões individuais serão desabilitados.\n\nNão se preocupe, ainda vamos salvar suas seleções anteriores caso você queira voltar às configurações anteriores mais tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'A Expensify sincronizará automaticamente com o NetSuite todos os dias.',
