@@ -11678,9 +11678,9 @@ async function run() {
             console.log('No comment body or ID found');
             return;
         }
-        // Check if the comment is from CodeCov
-        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter') {
-            console.log(`Comment is not from CodeCov (author: ${commentAuthor})`);
+        // Check if the comment is from CodeCov (or test user)
+        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter' && commentAuthor !== 'abzokhattab') {
+            console.log(`Comment is not from CodeCov or test user (author: ${commentAuthor})`);
             return;
         }
         // Check if the comment starts with "Codecov Report"
