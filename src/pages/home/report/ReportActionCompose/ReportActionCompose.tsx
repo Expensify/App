@@ -4,7 +4,8 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {runOnUI, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import {runOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
