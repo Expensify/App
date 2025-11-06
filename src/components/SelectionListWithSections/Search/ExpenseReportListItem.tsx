@@ -10,7 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy} from '@src/types/onyx';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
 function ExpenseReportListItem<TItem extends ListItem>({
@@ -38,11 +39,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
 
     const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
 
     const handleOnButtonPress = useCallback(() => {
