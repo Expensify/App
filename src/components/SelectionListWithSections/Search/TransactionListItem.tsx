@@ -124,8 +124,6 @@ function TransactionListItem<TItem extends ListItem>({
         currentSearchHash,
         transactionItem,
         transactionPreviewData,
-        shouldUseNarrowLayout,
-        canSelectMultiple,
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
