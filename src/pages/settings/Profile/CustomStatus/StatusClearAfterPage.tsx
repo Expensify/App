@@ -190,7 +190,7 @@ function StatusClearAfterPage() {
                 onConfirm={saveAndGoBack}
             />
         ),
-        [statusType, updateMode, listFooterContent, saveAndGoBack, translate],
+        [statusType, updateMode, listFooterContent, saveAndGoBack, translate, initialFocusedIndex],
     );
 
     return (
