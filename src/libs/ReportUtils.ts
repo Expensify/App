@@ -4991,17 +4991,6 @@ function getReportPreviewMessage(
         // This covers group chats where the last action is a track expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
-            const originalMessage = getOriginalMessage(iouReportAction);
-            const amount = originalMessage?.amount;
-            const currency = originalMessage?.currency;
-            const comment = originalMessage?.comment;
-
-            if (amount && currency) {
-                const formattedAmount = convertToDisplayString(amount, currency);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.trackedAmount', {formattedAmount, comment});
-            }
-
             return reportActionMessage;
         }
 
@@ -5110,10 +5099,10 @@ function getReportPreviewMessage(
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
-    // Prioritize transaction data when available, fallback to originalMessage for legacy data and SendMoney flows
+    // Prioritize transaction data when available. For Send Money (PAY) flows, use IOUDetails as there is no transaction.
     const iouDetails = originalMessage?.IOUDetails;
-    let amount = iouDetails?.amount ?? originalMessage?.amount;
-    let currency = iouDetails?.currency ?? originalMessage?.currency ?? report.currency;
+    let amount = iouDetails?.amount;
+    let currency = iouDetails?.currency ?? report.currency;
 
     if (!isEmptyObject(linkedTransaction)) {
         amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));

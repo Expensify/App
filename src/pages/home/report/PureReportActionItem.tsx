@@ -1217,7 +1217,10 @@ function PureReportActionItem({
                 );
             } else {
                 const originalMessage = getOriginalMessage(action);
-                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+                const iouDetails = originalMessage?.IOUDetails;
+                const amount = iouDetails?.amount !== undefined && iouDetails?.currency
+                    ? convertToDisplayString(Math.abs(iouDetails.amount), iouDetails.currency)
+                    : '';
                 if (originalMessage?.bankAccountID) {
                     const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
                     children = (

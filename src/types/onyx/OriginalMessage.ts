@@ -71,28 +71,16 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-} & (
-    | {
-          /** How much was transaction */
-          amount: number;
 
-          /** Currency of the transaction money */
-          currency: string;
+    /** How much was transaction (optional; deprecated for preview logic) */
+    amount?: number;
 
-          /** Only exists when we are sending money */
-          IOUDetails?: IOUDetails;
-      }
-    | {
-          /** How much was transaction */
-          amount?: number;
+    /** Currency of the transaction money (optional; deprecated for preview logic) */
+    currency?: string;
 
-          /** Currency of the transaction money */
-          currency?: string;
-
-          /** Only exists when we are sending money */
-          IOUDetails: IOUDetails;
-      }
-);
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
