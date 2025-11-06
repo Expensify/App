@@ -42,7 +42,13 @@ describe('DisplayNames - shouldParseHtml prop', () => {
     });
 
     it('should NOT parse HTML by default (shouldParseHtml defaults to false)', () => {
-        render(<DisplayNames fullTitle={testTitle} numberOfLines={1} tooltipEnabled={false} />);
+        render(
+            <DisplayNames
+                fullTitle={testTitle}
+                numberOfLines={1}
+                tooltipEnabled={false}
+            />,
+        );
 
         // With shouldParseHtml = false (default), "< >" should be preserved
         expect(screen.getByText('< >')).toBeTruthy();
@@ -50,7 +56,14 @@ describe('DisplayNames - shouldParseHtml prop', () => {
 
     it('should parse HTML when shouldParseHtml is explicitly set to true', () => {
         const htmlTitle = '<b>Bold Text</b>';
-        render(<DisplayNames fullTitle={htmlTitle} numberOfLines={1} tooltipEnabled={false} shouldParseHtml />);
+        render(
+            <DisplayNames
+                fullTitle={htmlTitle}
+                numberOfLines={1}
+                tooltipEnabled={false}
+                shouldParseHtml
+            />,
+        );
 
         // With shouldParseHtml = true, HTML tags should be stripped
         expect(screen.getByText('Bold Text')).toBeTruthy();
@@ -59,21 +72,40 @@ describe('DisplayNames - shouldParseHtml prop', () => {
 
     it('should preserve special characters when shouldParseHtml is false', () => {
         const specialCharsTitle = '< > & " \' test';
-        render(<DisplayNames fullTitle={specialCharsTitle} numberOfLines={1} tooltipEnabled={false} />);
+        render(
+            <DisplayNames
+                fullTitle={specialCharsTitle}
+                numberOfLines={1}
+                tooltipEnabled={false}
+            />,
+        );
 
         // Special characters should be preserved when not parsing HTML
         expect(screen.getByText(specialCharsTitle)).toBeTruthy();
     });
 
     it('should show "hidden" when title is empty and HTML parsing is disabled', () => {
-        render(<DisplayNames fullTitle="" numberOfLines={1} tooltipEnabled={false} />);
+        render(
+            <DisplayNames
+                fullTitle=""
+                numberOfLines={1}
+                tooltipEnabled={false}
+            />,
+        );
 
         expect(screen.getByText('hidden')).toBeTruthy();
     });
 
     it('should show "hidden" when title becomes empty after HTML parsing', () => {
         const onlyTagsTitle = '<div></div>';
-        render(<DisplayNames fullTitle={onlyTagsTitle} numberOfLines={1} tooltipEnabled={false} shouldParseHtml />);
+        render(
+            <DisplayNames
+                fullTitle={onlyTagsTitle}
+                numberOfLines={1}
+                tooltipEnabled={false}
+                shouldParseHtml
+            />,
+        );
 
         // After parsing, only tags remain which get stripped to empty string
         expect(screen.getByText('hidden')).toBeTruthy();
