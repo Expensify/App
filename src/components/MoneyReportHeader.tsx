@@ -329,8 +329,8 @@ function MoneyReportHeader({
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
-    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || ((wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0) && !isSmallScreenWidth);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -1201,7 +1201,7 @@ function MoneyReportHeader({
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || (isReportInSearch && !shouldDisplayNarrowMoreButton);
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -1240,6 +1240,12 @@ function MoneyReportHeader({
                                     shouldAlwaysShowDropdownMenu
                                 />
                             </View>
+                        )}
+                        {isReportInSearch && (
+                            <MoneyRequestReportNavigation
+                                reportID={moneyRequestReport?.reportID}
+                                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                            />
                         )}
                     </View>
                 )}
@@ -1285,7 +1291,7 @@ function MoneyReportHeader({
                             />
                         )}
                     </View>
-                    {isReportInSearch && (
+                    {isReportInSearch && !shouldDisplayNarrowMoreButton && (
                         <MoneyRequestReportNavigation
                             reportID={moneyRequestReport?.reportID}
                             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
