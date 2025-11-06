@@ -154,7 +154,7 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
 
 **On Desktop:**
 1. Open the report.
-2. Click **Undo Submit**.
+2. Click **Retract**.
 
 **On Mobile:**
 1. Tap the report.
