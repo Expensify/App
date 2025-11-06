@@ -144,6 +144,8 @@
         "deburred",
         "REJECTEDTRANSACTION",
         "Deel",
+        "deapex",
+        "deapexer",
         "deeplink",
         "deeplinked",
         "deeplinking",
@@ -447,6 +449,7 @@
         "nullptr",
         "numberformat",
         "objc",
+        "objdump",
         "oblador",
         "OCBC",
         "octocat",
@@ -515,6 +518,7 @@
         "Pressable",
         "Pressables",
         "prettierrc",
+        "progname",
         "proguard",
         "Proofpoint",
         "Protip",
@@ -586,6 +590,7 @@
         "Schengen",
         "Schiffli",
         "SCIM",
+        "sdkmanager",
         "scriptname",
         "seamless",
         "Segoe",
@@ -774,7 +779,8 @@
         "mple",
         "Selec",
         "setuptools",
-        "DYNAMICEXTERNAL"
+        "DYNAMICEXTERNAL",
+        "RNCORE"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
