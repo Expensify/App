@@ -1,5 +1,5 @@
+import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
-import * as SentryBrowser from '@sentry/react';
 import {isDevelopment} from '@libs/Environment/Environment';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
@@ -18,7 +18,7 @@ export default function (): void {
         profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations: [navigationIntegration, SentryBrowser.browserProfilingIntegration(), SentryBrowser.browserTracingIntegration()],
+        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
     });
