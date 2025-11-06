@@ -132,6 +132,7 @@ function mapToTransactionItemWithAdditionalInfo(
 ) {
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
 }
+
 function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
     if (isTaskListItemType(item)) {
         return {
