@@ -387,7 +387,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -431,7 +430,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: true,
             merchant: 'Expense',
@@ -476,7 +474,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -520,7 +517,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -820,7 +816,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -889,7 +884,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '2',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -951,7 +945,6 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1020,7 +1013,6 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1140,7 +1132,6 @@ const transactionReportGroupListItems = [
                 hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1253,7 +1244,6 @@ const transactionReportGroupListItems = [
                 ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1782,7 +1772,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 57;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1810,7 +1800,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 57;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2335,7 +2325,6 @@ describe('SearchUIUtils', () => {
                         currency: 'USD',
                         hasEReceipt: false,
                         isFromOneTransactionReport: true,
-                        managerID: adminAccountID,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2472,7 +2461,6 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     hasEReceipt: false,
                     isFromOneTransactionReport: true,
-                    managerID: adminAccountID,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
