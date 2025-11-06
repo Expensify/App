@@ -1,6 +1,6 @@
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */
@@ -49,6 +49,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 
     /** TestID indicating order */
     testID?: number;
+
+    /** Whether to parse HTML in the fullTitle */
+    shouldParseHtml?: boolean;
 };
 
 export default DisplayNamesProps;
