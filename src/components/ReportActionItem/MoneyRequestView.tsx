@@ -627,16 +627,7 @@ function MoneyRequestView({
     }
 
     return (
-        <View
-            style={[
-                styles.pRelative,
-                styles.overflowAuto,
-                styles.pt4,
-                {
-                    marginTop: -16,
-                },
-            ]}
-        >
+        <View style={[styles.pRelative, styles.overflowAuto, styles.pt4, styles.mtn4]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
