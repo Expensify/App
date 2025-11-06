@@ -694,6 +694,7 @@ describe('libs/NextStepUtils', () => {
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        isUnapprove: true,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
