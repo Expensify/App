@@ -4,6 +4,7 @@ import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEvent
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -41,6 +42,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -52,10 +54,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     useEffect(() => {
         return () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                clearImportedSpreadsheetMemberData();
-            });
+            clearImportedSpreadsheetMemberData();
         };
     }, []);
 
@@ -93,9 +92,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
 
     const closeImportPageAndModal = () => {
+        setShouldShowConfirmModal(false);
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -134,8 +133,12 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         return items;
     }, [role, translate, policy]);
 
-    if (!spreadsheet || !importedSpreadsheetMemberData) {
+    if (!spreadsheet) {
         return <NotFoundPage />;
+    }
+
+    if (!importedSpreadsheetMemberData) {
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -205,8 +208,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 </PressableWithoutFeedback>
             </FixedFooter>
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
                 closeImportPageAndModal={closeImportPageAndModal}
+                onModalHide={() => {
+                    Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+                }}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
