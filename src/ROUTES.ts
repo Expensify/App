@@ -2403,13 +2403,6 @@ const ROUTES = {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
     },
-
-    PROCESS_MONEY_REQUEST_HOLD: {
-        route: 'hold-expense-educational',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
-    },
     CHANGE_POLICY_EDUCATIONAL: {
         route: 'change-workspace-educational',
 
