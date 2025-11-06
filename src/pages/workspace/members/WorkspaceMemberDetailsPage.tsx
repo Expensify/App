@@ -177,8 +177,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         });
     }, [policy, memberLogin, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
-    const roleItems: ListItemType[] = useMemo(() => {
-        const items: ListItemType[] = [
+    const roleItems: ListItemType[] = useMemo(
+        () => [
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
@@ -200,13 +200,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 isSelected: member?.role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
             },
-        ];
-
-        if (isControlPolicy(policy)) {
-            return items;
-        }
-        return member?.role === CONST.POLICY.ROLE.AUDITOR ? items : items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
-    }, [member?.role, translate, policy]);
+        ],
+        [member?.role, translate],
+    );
 
     useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {

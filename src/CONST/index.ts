@@ -7027,14 +7027,6 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            auditor: {
-                id: 'auditor' as const,
-                alias: 'auditor',
-                name: 'Auditor',
-                title: 'workspace.upgrade.auditor.title' as const,
-                description: 'workspace.upgrade.auditor.description' as const,
-                icon: 'BlueShield',
-            },
             reports: {
                 id: 'reports' as const,
                 alias: 'reports',

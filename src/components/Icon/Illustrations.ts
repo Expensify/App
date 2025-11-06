@@ -56,7 +56,6 @@ import Abacus from '@assets/images/simple-illustrations/simple-illustration__aba
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
-import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
@@ -225,5 +224,4 @@ export {
     PaperAirplane,
     CardReplacementSuccess,
     EmptyShelves,
-    BlueShield,
 };

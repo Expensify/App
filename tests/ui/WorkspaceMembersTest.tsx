@@ -64,7 +64,6 @@ describe('WorkspaceMembers', () => {
         role: CONST.POLICY.ROLE.ADMIN,
         owner: ownerEmail,
         ownerAccountID,
-        type: CONST.POLICY.TYPE.CORPORATE,
         employeeList: {
             [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
             [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
