@@ -144,10 +144,10 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         return {
             value: key,
             feed: value.feed,
-            text: getCustomOrFormattedFeedName(value.feed, cardFeeds?.[key]?.customFeedName),
+            text: getCustomOrFormattedFeedName(value.feed, value.customFeedName),
             keyForList: key,
-            isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[key]?.pendingAction,
+            isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: value.pendingAction,
             isSelected: selectedFeed === key,
 
             leftElement: plaidUrl ? (
