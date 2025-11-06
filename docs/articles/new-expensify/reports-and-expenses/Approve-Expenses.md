@@ -87,7 +87,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 ---
 
-# How held expenses work in advanced approvals
+# Held expense(s) when advanced approvals is enabled
 
 If your workspace uses **advanced approvals** (multi-level approvers), held expenses now flow through the approval process without disrupting the rest of the report.
 
@@ -103,6 +103,11 @@ When an approver clicks **Hold** on one or more expenses and chooses to **approv
   - Includes a system message linking back to the original report.
 
 **Note:** Held expenses also won’t be submitted automatically via delayed submission — they’ll remain in a draft processing report until manually approved.
+
+### Where to review and approve held expenses
+
+- **Web:** Go to the **Reports** tab on the left > open a report with held expenses.
+- **Mobile:** Tap the hamburger menu (☰) > **Reports** > select a report to approve.
 
 ### Why this matters
 
