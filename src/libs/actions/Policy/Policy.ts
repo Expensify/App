@@ -2421,7 +2421,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const {onboardingMessages} = getOnboardingMessages(true);
+        const {onboardingMessages} = getOnboardingMessages();
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(deprecatedIntroSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2639,9 +2639,10 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
-    const optimisticCategoriesData = policyCategories
-        ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories)
-        : buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+    const defaultOptimisticCategoriesData = buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+
+    const optimisticCategoriesData =
+        policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2650,7 +2651,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 ...policy,
-                areCategoriesEnabled: isCategoriesOptionSelected,
+                areCategoriesEnabled: true,
                 areTagsEnabled: isTagsOptionSelected,
                 areDistanceRatesEnabled: isCustomUnitsOptionSelected,
                 areInvoicesEnabled: isInvoicesOptionSelected,
@@ -2850,15 +2851,15 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxFailureData,
     ];
 
-    if (optimisticCategoriesData.optimisticData) {
+    if (optimisticCategoriesData?.optimisticData) {
         optimisticData.push(...optimisticCategoriesData.optimisticData);
     }
 
-    if (optimisticCategoriesData.failureData) {
+    if (optimisticCategoriesData?.failureData) {
         failureData.push(...optimisticCategoriesData.failureData);
     }
 
-    if (optimisticCategoriesData.successData) {
+    if (optimisticCategoriesData?.successData) {
         successData.push(...optimisticCategoriesData.successData);
     }
 
