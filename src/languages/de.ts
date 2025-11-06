@@ -1378,7 +1378,10 @@ const translations = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Halten',
         unhold: 'Halten entfernen',
-        holdExpense: 'Ausgabe zurückhalten',
+        holdExpense: () => ({
+            one: 'Ausgabe zurückhalten',
+            other: 'Ausgaben zurückhalten',
+        }),
         unholdExpense: 'Ausgabe freigeben',
         heldExpense: 'diese Ausgabe zurückgehalten',
         unheldExpense: 'diese Ausgabe freigegeben',
@@ -1389,7 +1392,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
         newReport: 'Neuer Bericht',
-        explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
+        explainHold: () => ({
+            one: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
+            other: 'Erklären Sie, warum Sie diese Ausgaben zurückhalten.',
+        }),
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
         reopened: 'wieder geöffnet',
