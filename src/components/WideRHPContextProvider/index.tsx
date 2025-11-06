@@ -233,6 +233,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const newKey = route.key;
 
         // If the key is in the array, don't add it.
+        // Ensure mutual exclusivity: remove key from other array if present
+        setSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
         setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
@@ -245,6 +247,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const newKey = route.key;
 
         // If the key is in the array, don't add it.
+        // Ensure mutual exclusivity: remove key from other array if present
+        setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
         setSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
