@@ -58,14 +58,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {
-    canRejectReportAction,
-    generateReportID,
-    getPolicyExpenseChat,
-    getReportOrDraftReport,
-    isExpenseReport as isExpenseReportUtil,
-    isIOUReport as isIOUReportUtil,
-} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -267,7 +260,6 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
-
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -333,7 +325,7 @@ function SearchPage({route}: SearchPageProps) {
 
             // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
@@ -411,35 +403,6 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
-
-        const areSelectedTransactionsRejectable =
-            selectedTransactionReportIDs.length > 0 &&
-            selectedTransactionReportIDs.every((id) => {
-                const report = getReportOrDraftReport(id);
-                if (!report) {
-                    return false;
-                }
-                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? undefined;
-                return canRejectReportAction(currentUserPersonalDetails?.login ?? '', report, policyForReport);
-            });
-        const shouldShowRejectOption = !isOffline && !isAnyTransactionOnHold && areSelectedTransactionsRejectable;
-        if (shouldShowRejectOption) {
-            options.push({
-                icon: Expensicons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                },
-            });
-        }
-
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
@@ -625,7 +588,6 @@ function SearchPage({route}: SearchPageProps) {
         csvExportLayouts,
         clearSelectedTransactions,
         beginExportWithTemplate,
-        currentUserPersonalDetails?.login,
         bulkPayButtonOptions,
         onBulkPaySelected,
         allReports,
@@ -679,7 +641,7 @@ function SearchPage({route}: SearchPageProps) {
                 source,
                 transactionID,
             });
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         });
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {

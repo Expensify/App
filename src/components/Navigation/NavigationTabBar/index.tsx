@@ -2,9 +2,12 @@ import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigat
 import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
+// import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -41,14 +44,16 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
+    shouldShowFloatingCameraButton?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -78,17 +83,22 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
+    const lastViewedPolicySelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
+                return undefined;
+            }
+
+            return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
+        },
+        [params?.policyID, lastWorkspacesTabNavigatorRoute],
+    );
+
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {
             canBeMissing: true,
-            selector: (val) => {
-                if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
-                    return undefined;
-                }
-
-                return val?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
-            },
+            selector: lastViewedPolicySelector,
         },
         [navigationState],
     );
@@ -121,13 +131,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
             return;
         }
 
-        if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-            return;
-        }
-
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -448,6 +453,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }
