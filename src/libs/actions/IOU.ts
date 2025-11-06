@@ -772,7 +772,6 @@ type ReplaceReceipt = {
     transactionID: string;
     file?: File;
     source: string;
-    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -849,6 +848,13 @@ Onyx.connect({
     callback: (value) => {
         allNextSteps = value ?? {};
     },
+});
+
+let allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
@@ -11549,7 +11555,7 @@ function payInvoice(
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
-function detachReceipt(transactionID: string | undefined, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
+function detachReceipt(transactionID: string | undefined) {
     if (!transactionID) {
         return;
     }
@@ -11603,6 +11609,7 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
     ];
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
+        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11610,7 +11617,7 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
             currentTransactionViolations,
             policy,
             policyTagList ?? {},
-            transactionPolicyCategories ?? {},
+            policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
@@ -11670,7 +11677,7 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt({transactionID, file, source, transactionPolicyCategories}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     if (!file) {
         return;
     }
@@ -11685,7 +11692,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicyCategories};
+    const retryParams = {transactionID, file: undefined, source};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
@@ -11731,6 +11738,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
     ];
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
+        const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11738,7 +11746,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
             currentTransactionViolations,
             policy,
             policyTagList ?? {},
-            transactionPolicyCategories ?? {},
+            policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
