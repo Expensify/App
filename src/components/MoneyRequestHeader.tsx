@@ -101,8 +101,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<'hold' | 'reject' | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
@@ -264,20 +264,27 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, policy, report);
     }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report]);
 
-    const dismissModalAndUpdateUseReject = () => {
-        setIsRejectEducationalModalVisible(false);
-        dismissRejectUseExplanation();
-        if (parentReportAction) {
-            rejectMoneyRequestReason(parentReportAction);
-        }
-    };
-
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
         if (parentReportAction) {
             changeMoneyRequestHoldStatus(parentReportAction);
         }
+    };
+
+    const dismissRejectModalBasedOnAction = () => {
+        if (rejectModalAction === 'hold') {
+            dismissRejectUseExplanation();
+            if (parentReportAction) {
+                changeMoneyRequestHoldStatus(parentReportAction);
+            }
+        } else {
+            dismissRejectUseExplanation();
+            if (parentReportAction) {
+                rejectMoneyRequestReason(parentReportAction);
+            }
+        }
+        setRejectModalAction(null);
     };
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
@@ -296,12 +303,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-                const setModalVisible = isReportSubmitter ? setIsHoldEducationalModalVisible : setIsRejectEducationalModalVisible;
 
                 if (isDismissed) {
-                    changeMoneyRequestHoldStatus(parentReportAction);
+                    if (isReportSubmitter) {
+                        changeMoneyRequestHoldStatus(parentReportAction);
+                    } else {
+                        rejectMoneyRequestReason(parentReportAction);
+                    }
                 } else {
-                    setModalVisible(true);
+                    if (isReportSubmitter) {
+                        setIsHoldEducationalModalVisible(true);
+                    } else {
+                        setRejectModalAction('hold');
+                    }
                 }
             },
         },
@@ -364,7 +378,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setIsRejectEducationalModalVisible(true);
+                    setRejectModalAction('reject');
                 }
             },
         },
@@ -481,10 +495,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 danger
                 shouldEnableNewFocusManagement
             />
-            {!!isRejectEducationalModalVisible && (
+            {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
-                    onClose={dismissModalAndUpdateUseReject}
-                    onConfirm={dismissModalAndUpdateUseReject}
+                    onClose={dismissRejectModalBasedOnAction}
+                    onConfirm={dismissRejectModalBasedOnAction}
                 />
             )}
             {!!isHoldEducationalModalVisible && (
