@@ -25,7 +25,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -54,11 +54,12 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, transactionItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as SearchPolicy;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
@@ -104,7 +105,7 @@ function TransactionListItem<TItem extends ListItem>({
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
-                shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, currentUserDetails.email ?? '', false),
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
 
@@ -188,15 +189,16 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading}
+                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? snapshotReport.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
+                    onArrowRightPress={onPress}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
