@@ -189,6 +189,7 @@ const mockReportItemWithHold = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
+            managerID: 1206,
             merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',
