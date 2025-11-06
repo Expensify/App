@@ -2106,6 +2106,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
+                created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,
