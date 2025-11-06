@@ -3,7 +3,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePolicyData from '@hooks/usePolicyData';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -11,7 +11,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
@@ -21,11 +21,12 @@ type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT>;
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
-    const {backTo, policyID, categoryName: currentCategoryName} = route.params;
-    const policyData = usePolicyData(policyID);
-    const {categories: policyCategories} = policyData;
+    const policyID = route.params.policyID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const currentCategoryName = route.params.categoryName;
+    const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT;
 
     const validate = useCallback(
@@ -41,6 +42,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 errors.categoryName = translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH});
             }
+
             return errors;
         },
         [policyCategories, currentCategoryName, translate],
@@ -51,7 +53,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
+                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName}, policyCategories);
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -64,7 +66,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 );
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, policyData, policyID, backTo],
+        [currentCategoryName, policyID, policyCategories, isQuickSettingsFlow, backTo],
     );
 
     return (

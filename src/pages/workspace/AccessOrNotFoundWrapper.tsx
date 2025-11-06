@@ -187,7 +187,7 @@ function AccessOrNotFoundWrapper({
         return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
     }, true);
 
-    const isPolicyNotAccessible = !isPolicyAccessible(policy);
+    const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
