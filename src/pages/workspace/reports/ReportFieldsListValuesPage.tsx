@@ -388,6 +388,7 @@ function ReportFieldsListValuesPage({
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
+                        addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
