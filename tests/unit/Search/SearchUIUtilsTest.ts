@@ -2434,7 +2434,6 @@ describe('SearchUIUtils', () => {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
-                    isOneTransactionReport: true,
                     isOwnPolicyExpenseChat: false,
                     isPolicyExpenseChat: false,
                     isWaitingOnBankAccount: false,
