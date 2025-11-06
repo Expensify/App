@@ -36,6 +36,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             illustrationOuterContainerStyle={styles.p0}
             onClose={onClose}
             onConfirm={onConfirm}
+            shouldCloseOnConfirm={false}
         >
             <HoldMenuSectionList />
         </FeatureTrainingModal>
