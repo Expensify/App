@@ -22,6 +22,7 @@ type FirstAndLastName = {
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
+// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -35,8 +36,16 @@ Onyx.connect({
         }, {});
     },
 });
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
+let commonYouTranslation = 'you';
+
+// eslint-disable-next-line rulesdir/no-onyx-connect
+Onyx.connect({
+    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    callback: () => {
+        commonYouTranslation = translateLocal('common.you').toLowerCase();
+    },
+});
 
 function getDisplayNameOrDefault(
     passedPersonalDetails?: Partial<PersonalDetails> | null,
@@ -44,7 +53,7 @@ function getDisplayNameOrDefault(
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    youAfterTranslation = translateLocal('common.you').toLowerCase(),
+    youAfterTranslation = commonYouTranslation,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
