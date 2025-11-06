@@ -240,7 +240,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
 
-jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
+jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function

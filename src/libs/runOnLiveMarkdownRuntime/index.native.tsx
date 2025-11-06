@@ -1,8 +1,8 @@
 import {getWorkletRuntime} from '@expensify/react-native-live-markdown';
-import {runOnRuntime} from 'react-native-reanimated';
+import {scheduleOnRuntime} from 'react-native-worklets';
 
 function runOnLiveMarkdownRuntime<Args extends unknown[], ReturnType>(worklet: (...args: Args) => ReturnType) {
-    return runOnRuntime(getWorkletRuntime(), worklet);
+    return (...args: Args) => scheduleOnRuntime(getWorkletRuntime(), worklet, ...args);
 }
 
 export default runOnLiveMarkdownRuntime;

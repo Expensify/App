@@ -3,7 +3,7 @@ import {useCallback} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import Log from '@libs/Log';
-import executeOnUIRuntimeSync from './executeOnUIRuntimeSync';
+import runOnUISync from './runOnUISync';
 
 // When you need to debug state machine change this to true
 const DEBUG_MODE = false;
@@ -151,7 +151,7 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
 
     const transition = useCallback(
         (action: ActionWithPayload<P>) => {
-            executeOnUIRuntimeSync(transitionWorklet)(action);
+            runOnUISync(transitionWorklet, action);
         },
         [transitionWorklet],
     );
