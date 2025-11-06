@@ -63,7 +63,7 @@ import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
-import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {useSearchContext} from './Search/SearchContext';
 import {WideRHPContext} from './WideRHPContextProvider';
 
@@ -496,7 +496,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 />
             )}
             {!!isHoldEducationalModalVisible && (
-                <ProcessMoneyRequestHoldMenu
+                <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
                 />

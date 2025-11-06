@@ -8,7 +8,7 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import * as Illustrations from './Icon/Illustrations';
 
-type ProcessMoneyRequestHoldMenuProps = {
+type HoldSubmitterEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
@@ -16,7 +16,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     onConfirm: () => void;
 };
 
-function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
+function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -43,6 +43,6 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     );
 }
 
-ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
+HoldSubmitterEducationalModal.displayName = 'HoldSubmitterEducationalModal';
 
-export default ProcessMoneyRequestHoldMenu;
+export default HoldSubmitterEducationalModal;
