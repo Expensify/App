@@ -102,7 +102,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<'hold' | 'reject' | null>(null);
+    const [rejectModalAction, setRejectModalAction] = useState<CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | ONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
@@ -273,7 +273,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === 'hold') {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
                 changeMoneyRequestHoldStatus(parentReportAction);
@@ -312,7 +312,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
-                    setRejectModalAction('hold');
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
                 }
             },
         },
@@ -375,7 +375,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setRejectModalAction('reject');
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
             },
         },
