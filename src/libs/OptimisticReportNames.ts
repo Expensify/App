@@ -250,16 +250,13 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
 
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
-    const updatedAllTransactions = (
-        updateType === 'transaction' ? {...context.allTransactions, [`${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction?.transactionID}`]: updatedTransaction} : context.allTransactions
-    ) as Record<string, Transaction>;
 
     // Compute the new name
     const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
-        allTransactions: updatedAllTransactions,
+        allTransactions: context.allTransactions,
     };
 
     const newName = compute(formula, formulaContext);
@@ -293,33 +290,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         updatesCount: updates.length,
     });
 
-    // Build an updated context that includes new reports and transactions from the current batch of updates
-    const updatedAllReports = {...allReports};
-    const updatedAllTransactions = {...context.allTransactions};
-
-    for (const update of updates) {
-        const objectType = determineObjectTypeByKey(update.key);
-
-        if (objectType === 'report' && update.value) {
-            const existingReport = updatedAllReports[update.key];
-            // Merge the update with existing report data if it exists
-            updatedAllReports[update.key] = existingReport ? {...existingReport, ...(update.value as Partial<Report>)} : (update.value as Report);
-        }
-
-        if (objectType === 'transaction' && update.value) {
-            const transactionUpdate = update.value as Partial<Transaction>;
-            const existingTransaction = updatedAllTransactions[update.key];
-            // Merge the update with existing transaction data if it exists
-            updatedAllTransactions[update.key] = existingTransaction ? {...existingTransaction, ...transactionUpdate} : (transactionUpdate as Transaction);
-        }
-    }
-
-    const updatedContext: UpdateContext = {
-        ...context,
-        allReports: updatedAllReports,
-        allTransactions: updatedAllTransactions,
-    };
-
     const additionalUpdates: OnyxUpdate[] = [];
 
     for (const update of updates) {
@@ -330,7 +300,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
 
-                const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
+                const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
                     additionalUpdates.push({
@@ -346,9 +316,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
-                const affectedReports = getReportsForNameComputation(policyID, updatedAllReports, updatedContext);
+                const affectedReports = getReportsForNameComputation(policyID, allReports, context);
                 for (const report of affectedReports) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
                         additionalUpdates.push({
@@ -367,13 +337,13 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 let report: Report | undefined;
                 const transactionUpdate = update.value as Partial<Transaction>;
                 if (transactionUpdate.reportID) {
-                    report = getReportByID(transactionUpdate.reportID, updatedAllReports);
+                    report = getReportByID(transactionUpdate.reportID, allReports);
                 } else {
-                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), updatedContext);
+                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
                 }
 
                 if (report) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, updatedContext);
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
                         additionalUpdates.push({
