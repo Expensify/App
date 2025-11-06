@@ -8,7 +8,8 @@ import GithubUtils from '@github/libs/GithubUtils';
  */
 function extractCoverageDeltaTable(body: string): string | null {
     // Match the table that contains "Coverage Δ" - handle both markdown tables (with |) and plain text
-    const tableHeaderRegex = /[|\s]*Files with missing lines[|\s]*Coverage Δ[|\s]*/i;
+    // The regex accounts for markdown link syntax like [Files with missing lines](url)
+    const tableHeaderRegex = /[|\s]*\[?Files with missing lines\]?(?:\([^)]*\))?[|\s]*Coverage Δ[|\s]*/i;
     const tableMatch = body.match(tableHeaderRegex);
 
     if (!tableMatch) {
