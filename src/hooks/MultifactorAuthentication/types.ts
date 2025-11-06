@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
     AllMultifactorAuthenticationFactors,
@@ -97,7 +98,10 @@ type UseMultifactorAuthentication = {
         };
     process: <T extends MultifactorAuthenticationScenario>(
         scenario: T,
-        params?: MultifactorAuthenticationScenarioParams<T>,
+        params?: MultifactorAuthenticationScenarioParams<T> & {
+            successNotification?: AllMultifactorAuthenticationNotificationType;
+            failureNotification?: AllMultifactorAuthenticationNotificationType;
+        },
     ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
     update: (
         params: Partial<AllMultifactorAuthenticationFactors> & {

@@ -2,6 +2,7 @@ import type React from 'react';
 import type {ViewStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import type {EmptyObject, ValueOf} from 'type-fest';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthenticationContext/config';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
@@ -27,7 +28,7 @@ type MultifactorAuthenticationUIConfigOptions = Record<string, MultifactorAuthen
     failure: MultifactorAuthenticationUIConfig;
 };
 
-type MultifactorAuthenticationUI = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationUIConfigOptions>;
+type MultifactorAuthenticationNotificationUI = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationUIConfigOptions>;
 
 type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep extends false
     ? {
@@ -175,6 +176,14 @@ type MultifactorAuthenticationScenarioData<T extends MultifactorAuthenticationSc
     route: Route;
 };
 
+type MultifactorAuthenticationPromptUIObject = {
+    animation: DotLottieAnimation;
+    title: TranslationPaths;
+    subtitle: TranslationPaths;
+};
+
+type MultifactorAuthenticationPromptUI = Record<string, MultifactorAuthenticationPromptUIObject>;
+
 /**
  * Maps scenarios to their handlers and configuration
  */
@@ -210,5 +219,6 @@ export type {
     MultifactorAuthenticationTrigger,
     MultifactorAuthenticationUIConfig,
     MultifactorAuthenticationUIConfigOptions,
-    MultifactorAuthenticationUI,
+    MultifactorAuthenticationPromptUI,
+    MultifactorAuthenticationNotificationUI,
 };

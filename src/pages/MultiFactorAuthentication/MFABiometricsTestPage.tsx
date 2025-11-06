@@ -43,7 +43,9 @@ function MFABiometricsTestPage() {
                         success
                         style={styles.flex1}
                         onPress={() => {
-                            process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: 'fake'});
+                            process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
+                                transactionID: 'fake',
+                            });
                         }}
                         text={translate('common.test')}
                     />

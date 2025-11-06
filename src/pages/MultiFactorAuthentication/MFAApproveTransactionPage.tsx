@@ -38,7 +38,11 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
     }, []);
 
     const approveTransaction = useCallback(() => {
-        process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID});
+        process(CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
+            transactionID,
+            successNotification: 'authorize-transaction-approved',
+            failureNotification: 'authorize-transaction-denied',
+        });
     }, [process, transactionID]);
 
     const denyTransaction = useCallback(() => {

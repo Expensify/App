@@ -13,6 +13,7 @@ import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
+import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
@@ -52,7 +53,7 @@ type MultifactorAuthenticationContextProviderProps = {
 };
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    // TODO: Remove this when mocked API is no more used
+    // TODO: Remove this when mocked API is no longer used
     triggerOnyxConnect();
 
     const MultifactorAuthorizationFallback = useMultifactorAuthorizationFallback();
@@ -76,13 +77,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const is2FAEnabled = !!account?.requiresTwoFactorAuth && false;
-    // const overridenScreens = useRef<{
-    //     success: AllMultifactorAuthenticationNotificationType | undefined;
-    //     failure: AllMultifactorAuthenticationNotificationType | undefined;
-    // }>({
-    //     success: undefined,
-    //     failure: undefined,
-    // })
+    const overriddenScreens = useRef<{
+        success: AllMultifactorAuthenticationNotificationType | undefined;
+        failure: AllMultifactorAuthenticationNotificationType | undefined;
+    }>({
+        success: undefined,
+        failure: undefined,
+    });
 
     const navigate = useCallback(
         (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean) => {
@@ -93,9 +94,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             const scenarioRoute: Route = scenario ? MULTI_FACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.NOT_FOUND;
             const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+
+            const successPath = overriddenScreens.current.success ?? (scenarioPrefix ? `${scenarioPrefix}-success` : undefined);
+            const failurePath = overriddenScreens.current.failure ?? (scenarioPrefix ? `${scenarioPrefix}-failure` : undefined);
+
             const notificationPaths = {
-                success: scenarioPrefix ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(`${scenarioPrefix}-success`) : ROUTES.NOT_FOUND,
-                failure: scenarioPrefix ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(`${scenarioPrefix}-failure`) : ROUTES.NOT_FOUND,
+                success: successPath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(successPath) : ROUTES.NOT_FOUND,
+                failure: failurePath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(failurePath) : ROUTES.NOT_FOUND,
             };
 
             if (afterRevoke.current) {
@@ -259,8 +264,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const process = useCallback(
         async <T extends MultifactorAuthenticationScenario>(
             scenario: T,
-            params?: MultifactorAuthenticationScenarioParams<T>,
+            params?: MultifactorAuthenticationScenarioParams<T> & {
+                successNotification?: AllMultifactorAuthenticationNotificationType;
+                failureNotification?: AllMultifactorAuthenticationNotificationType;
+            },
         ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
+            const {successNotification, failureNotification} = params ?? {};
+
+            overriddenScreens.current = {
+                success: successNotification,
+                failure: failureNotification,
+            };
+
             const shouldNavigateToSoftPrompt =
                 !NativeBiometrics.setup.isBiometryConfigured &&
                 softPromptStore.current.accepted === undefined &&

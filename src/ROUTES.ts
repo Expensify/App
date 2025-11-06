@@ -10,11 +10,10 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
-import type {AllMultifactorAuthenticationNotificationType} from './libs/MultifactorAuthentication/Biometrics/notifications.types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from './libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import {getUrlWithParams} from './libs/Url';
-import type {PromptType} from './pages/MultiFactorAuthentication/MFAPromptPage';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -3351,7 +3350,7 @@ const ROUTES = {
 
     MULTIFACTORAUTHENTICATION_PROMPT: {
         route: 'multifactor-authentication/prompt/:promptType',
-        getRoute: (promptType: PromptType) => `multifactor-authentication/prompt/${promptType}` as const,
+        getRoute: (promptType: MultifactorAuthenticationPromptType) => `multifactor-authentication/prompt/${promptType}` as const,
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',

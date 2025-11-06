@@ -7,7 +7,7 @@ import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthen
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import UI_CONFIG_ROUTES from '@libs/MultifactorAuthentication/Biometrics/notifications';
+import MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP from '@libs/MultifactorAuthentication/Biometrics/notifications';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
@@ -25,7 +25,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
 
     const {info} = useMultifactorAuthenticationContext();
 
-    const data = UI_CONFIG_ROUTES[route.params.notificationType];
+    const data = MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[route.params.notificationType];
 
     const {headerTitle, title, content} = {headerTitle: info.title, title: info.title, content: info.message};
 

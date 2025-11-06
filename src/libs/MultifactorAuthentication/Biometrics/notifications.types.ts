@@ -1,7 +1,7 @@
-import type MULTIFACTOR_AUTHENTICATION_UI from '@components/MultifactorAuthenticationContext/ui';
+import type {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI, MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthenticationContext/ui';
 import type {MultifactorAuthenticationScenario} from './types';
 
-type MultifactorAuthenticationScenarioConfig = typeof MULTIFACTOR_AUTHENTICATION_UI;
+type MultifactorAuthenticationScenarioConfig = typeof MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI;
 
 type FeedbackScreenConfigNames = {
     [K in MultifactorAuthenticationScenario]: keyof MultifactorAuthenticationScenarioConfig[K];
@@ -11,4 +11,6 @@ type MultifactorAuthenticationNotificationType<T extends MultifactorAuthenticati
 
 type AllMultifactorAuthenticationNotificationType = MultifactorAuthenticationNotificationType<MultifactorAuthenticationScenario>;
 
-export type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationNotificationType};
+type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
+
+export type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType};

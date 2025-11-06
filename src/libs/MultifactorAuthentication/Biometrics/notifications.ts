@@ -1,8 +1,8 @@
-import MULTIFACTOR_AUTHENTICATION_UI from '@components/MultifactorAuthenticationContext/ui';
+import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI} from '@components/MultifactorAuthenticationContext/ui';
 import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationNotificationType} from './notifications.types';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationUIConfig} from './types';
 
-const UI_CONFIG_ROUTES = Object.entries(MULTIFACTOR_AUTHENTICATION_UI).reduce(
+const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP = Object.entries(MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI).reduce(
     (configs, [key, config]) => {
         const scenario = key as MultifactorAuthenticationScenario;
         const lowerCaseScenario = scenario.toLowerCase() as Lowercase<typeof scenario>;
@@ -22,4 +22,4 @@ const UI_CONFIG_ROUTES = Object.entries(MULTIFACTOR_AUTHENTICATION_UI).reduce(
     {} as Record<AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationUIConfig>,
 );
 
-export default UI_CONFIG_ROUTES;
+export default MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP;

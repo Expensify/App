@@ -15,11 +15,10 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
-import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
-import type {PromptType} from '@pages/MultiFactorAuthentication/MFAPromptPage';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -2714,7 +2713,7 @@ type MultiFactorAuthenticationParamList = {
         transactionID: string;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
-        promptType: PromptType;
+        promptType: MultifactorAuthenticationPromptType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: undefined;
 };
