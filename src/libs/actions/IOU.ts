@@ -1781,6 +1781,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
 
         optimisticData.push(
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
@@ -4564,6 +4565,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
                 });
             }
@@ -4663,6 +4665,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: currentTransactionViolations,
         });
         if (hash) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -4672,6 +4675,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     },
                 },
             });
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -6410,6 +6414,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     });
 
     if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
@@ -8094,6 +8099,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         onyxData = moneyRequestOnyxData;
 
         if (transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || isManualDistanceRequest) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             onyxData?.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
@@ -8548,6 +8554,7 @@ function cleanUpMoneyRequest(
         value: updatedReportAction,
     });
     onyxUpdates.push(
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -8716,6 +8723,7 @@ function deleteMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: updatedReportAction,
         },
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -8863,6 +8871,7 @@ function deleteMoneyRequest(
                 },
             },
         },
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         shouldDeleteIOUReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
@@ -9326,6 +9335,7 @@ function getSendMoneyParams(
         });
     }
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const optimisticData: OnyxUpdate[] = [
         optimisticChatReportData,
         optimisticQuickActionData,
@@ -10269,6 +10279,7 @@ function approveMoneyRequest(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStep,
     };
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, ...(optimisticChatReportData ? [optimisticChatReportData] : [])];
 
     const successData: OnyxUpdate[] = [
@@ -10640,6 +10651,7 @@ function retractReport(
                 },
             },
         },
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
@@ -11504,6 +11516,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         });
     }
     if (currentSearchQueryJSON?.hash) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
@@ -11517,6 +11530,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
             },
         });
 
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
@@ -11975,6 +11989,7 @@ function unholdRequest(transactionID: string, reportID: string) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
         },
         {
@@ -12198,6 +12213,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
@@ -12446,6 +12462,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: updatedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
@@ -12663,6 +12680,7 @@ function getSearchOnyxUpdate({
             }
             return {
                 optimisticData: [
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
@@ -13070,6 +13088,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
                     value: {
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         parentReportID: report?.chatReportID,
                     },
                 },
@@ -13410,6 +13429,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -13437,6 +13457,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
     ];
 
     const failureData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -13963,6 +13984,7 @@ function updateSplitTransactions({
             },
         });
 
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
@@ -14009,6 +14031,7 @@ function updateSplitTransactions({
             },
         });
 
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
