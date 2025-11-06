@@ -242,7 +242,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
         }
     }, [
-        policy.id,
+        policy?.id,
         policyName,
         lastAccessedWorkspacePolicyID,
         defaultCardFeeds,
