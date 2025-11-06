@@ -4,7 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -264,7 +264,7 @@ const ViolationsUtils = {
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
