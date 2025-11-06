@@ -84,7 +84,7 @@ function MFAApproveTransactionContent({transactionID}: MFAApproveTransactionCont
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((tx) => (tx?.modifiedAmount || tx?.amount) < 0);
+        return transactions.some((transactionX) => (transactionX?.modifiedAmount || transactionX?.amount) < 0);
     }, [transactions, action, iouReport]);
 
     const handlePreviewPressed = () => {
