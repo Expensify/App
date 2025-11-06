@@ -303,19 +303,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
                 if (isDismissed) {
                     if (isReportSubmitter) {
                         changeMoneyRequestHoldStatus(parentReportAction);
                     } else {
                         rejectMoneyRequestReason(parentReportAction);
                     }
+                } else if (isReportSubmitter) {
+                    setIsHoldEducationalModalVisible(true);
                 } else {
-                    if (isReportSubmitter) {
-                        setIsHoldEducationalModalVisible(true);
-                    } else {
-                        setRejectModalAction('hold');
-                    }
+                    setRejectModalAction('hold');
                 }
             },
         },
