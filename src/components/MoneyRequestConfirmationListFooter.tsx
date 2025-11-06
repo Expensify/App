@@ -790,7 +790,7 @@ function MoneyRequestConfirmationListFooter({
                     return true;
                 }
 
-                return !!(policyForMovingExpensesID || shouldSelectPolicy);
+                return !!(policyForMovingExpensesID ?? shouldSelectPolicy);
             },
         },
     ];
