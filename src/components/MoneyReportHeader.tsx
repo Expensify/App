@@ -124,6 +124,7 @@ import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
@@ -139,7 +140,6 @@ import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestR
 import type {PopoverMenuItem} from './PopoverMenu';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
