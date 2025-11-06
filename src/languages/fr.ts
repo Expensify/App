@@ -1137,7 +1137,6 @@ const translations = {
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Ajouter une répartition',
-        makeSplitsEven: 'Uniformiser les répartitions',
         editSplits: 'Modifier les répartitions',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Le montant total est de ${amount} supérieur à la dépense initiale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Le montant total est de ${amount} inférieur à la dépense originale.`,
@@ -5155,7 +5154,6 @@ ${amount} pour ${merchant} - ${date}`,
             issueCard: 'Émettre une carte',
             issueNewCard: {
                 whoNeedsCard: "Qui a besoin d'une carte ?",
-                inviteNewMember: 'Inviter un nouveau membre',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',
@@ -5708,6 +5706,12 @@ ${amount} pour ${merchant} - ${date}`,
                 description: 'Créez et gérez vos propres tarifs, suivez en miles ou en kilomètres, et définissez des catégories par défaut pour les frais de distance.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les tarifs de distance sont disponibles sur le plan Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Auditeur',
+                description: 'Les auditeurs ont un accès en lecture seule à tous les rapports pour une visibilité totale et une surveillance de la conformité.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les auditeurs sont disponibles uniquement avec le plan Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre par mois.` : `par membre actif par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: "Niveaux d'approbation multiples",
