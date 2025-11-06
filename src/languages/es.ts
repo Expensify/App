@@ -1340,10 +1340,7 @@ const translations = {
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
-        holdExpense: () => ({
-            one: 'Retener gasto',
-            other: 'Retener gastos',
-        }),
+        holdExpense: 'Retener gasto',
         unholdExpense: 'Desbloquear gasto',
         moveUnreportedExpense: 'Mover gasto no reportado',
         addUnreportedExpense: 'Añadir gasto no reportado',
@@ -1354,10 +1351,7 @@ const translations = {
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         newReport: 'Nuevo informe',
-        explainHold: () => ({
-            one: 'Explica la razón para retener esta solicitud.',
-            other: 'Explica la razón para retener estas solicitudes.',
-        }),
+        explainHold: 'Explica la razón para retener esta solicitud.',
         retract: 'Retractar',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',

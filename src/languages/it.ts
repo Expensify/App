@@ -1369,10 +1369,7 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Attendere',
         unhold: 'Rimuovi blocco',
-        holdExpense: () => ({
-            one: 'Metti in sospeso la spesa',
-            other: 'Sospendi le spese',
-        }),
+        holdExpense: 'Trattieni spesa',
         unholdExpense: 'Sblocca spesa',
         heldExpense: 'trattenuto questa spesa',
         unheldExpense: 'sblocca questa spesa',
@@ -1383,7 +1380,7 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         newReport: 'Nuovo rapporto',
-        explainHold: {one: 'Spiega perché stai mettendo in sospeso questa spesa.', other: 'Spiega perché stai mettendo in attesa queste spese.'},
+        explainHold: 'Spiega perché stai trattenendo questa spesa.',
         retracted: 'retratato',
         retract: 'Ritirare',
         reopened: 'riaperto',
@@ -4826,6 +4823,7 @@ ${amount} per ${merchant} - ${date}`,
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
                 downgradeSubTitle: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore <a href="#">mantieni solo un feed di carte</a> per procedere.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Per favore, aggiungi l'account in ${connection} e sincronizza nuovamente la connessione.`,
                 expensifyCardBannerTitle: 'Ottieni la Expensify Card',
                 expensifyCardBannerSubtitle:
