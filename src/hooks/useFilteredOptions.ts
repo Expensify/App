@@ -41,7 +41,6 @@ type UseFilteredOptionsResult = {
  * - Recalculates only when dependencies change
  *
  * Usage:
- * ```typescript
  * const {options, isLoading} = useFilteredOptions({
  *   maxRecentReports: 100,
  *   enabled: didScreenTransitionEnd,
@@ -51,7 +50,6 @@ type UseFilteredOptionsResult = {
  *   sections={isLoading ? [] : sections}
  *   showLoadingPlaceholder={isLoading}
  * />
- * ```
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 100, enabled = true, includeP2P = true, batchSize = 100, enablePagination = true} = config;
