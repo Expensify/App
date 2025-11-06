@@ -44,6 +44,11 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+
+            if (!values.comment) {
+                errors.comment = translate('common.error.fieldRequired');
+            }
+
             return errors;
         },
         [translate],
@@ -58,7 +63,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         <HoldReasonFormView
             onSubmit={onSubmit}
             validate={validate}
-            backTo={backTo ?? ''}
+            backTo={backTo}
         />
     );
 }
