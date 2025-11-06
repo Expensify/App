@@ -5392,8 +5392,7 @@ ${merchant}的${amount} - ${date}`,
             enableRate: '启用费率',
             status: '状态',
             unit: '单位',
-            taxFeatureNotEnabledMessage: '要使用此功能，必须在工作区启用税费。前往',
-            changePromptMessage: '进行该更改。',
+            taxFeatureNotEnabledMessage: '<muted-text>要使用此功能，必须在工作区启用税费。前往 <a href="#">更多功能</a> 进行该更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
             areYouSureDelete: () => ({
                 one: '您确定要删除此费率吗？',
@@ -6718,7 +6717,6 @@ ${merchant}的${amount} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
-        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {
@@ -7227,6 +7225,27 @@ ${merchant}的${amount} - ${date}`,
     },
     avatarPage: {title: '编辑个人资料图片', upload: '上传', uploadPhoto: '上传照片', selectAvatar: '选择头像', chooseCustomAvatar: '或选择自定义头像'},
     openAppFailureModal: {title: '出了点问题...', subtitle: `我们未能加载您的所有数据。我们已收到通知，正在调查此问题。如果问题仍然存在，请联系`, refreshAndTryAgain: '刷新并重试'},
+    domain: {
+        notVerified: '未验证',
+        retry: '重试',
+        verifyDomain: {
+            title: '验证域名',
+            beforeProceeding: ({domainName}: {domainName: string}) => `在继续之前，请通过更新其 DNS 设置来验证您拥有 <strong>${domainName}</strong>。`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `访问您的 DNS 提供商，并打开 <strong>${domainName}</strong> 的 DNS 设置。`,
+            addTXTRecord: '添加以下 TXT 记录：',
+            saveChanges: '保存更改并返回此处以验证您的域名。',
+            youMayNeedToConsult: `您可能需要咨询您组织的 IT 部门以完成验证。<a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">了解更多</a>。`,
+            warning: '验证完成后，您的域中的所有 Expensify 成员将收到一封电子邮件，告知他们的账户将由您的域进行管理。',
+            codeFetchError: '无法获取验证码',
+            genericError: '我们无法验证您的域名。请重试，如果问题仍然存在，请联系 Concierge。',
+        },
+        domainVerified: {
+            title: '域名已验证',
+            header: '哇哦！您的域名已通过验证',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

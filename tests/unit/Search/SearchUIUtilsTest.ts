@@ -386,7 +386,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -429,7 +428,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: true,
             merchant: 'Expense',
@@ -473,7 +471,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -516,7 +513,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -815,7 +811,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -854,8 +849,8 @@ const transactionsListItems = [
         convertedCurrency: 'USD',
     },
     {
-        action: 'approve',
-        allActions: ['approve'],
+        action: 'review',
+        allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
         policy,
@@ -883,7 +878,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '2',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -944,7 +938,6 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1012,7 +1005,6 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1131,7 +1123,6 @@ const transactionReportGroupListItems = [
                 hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1174,8 +1165,8 @@ const transactionReportGroupListItems = [
     {
         groupedBy: 'expense-report',
         accountID: 18439984,
-        action: 'approve',
-        allActions: ['approve'],
+        action: 'review',
+        allActions: ['review', 'approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1206,8 +1197,8 @@ const transactionReportGroupListItems = [
         total: -5000,
         transactions: [
             {
-                action: 'approve',
-                allActions: ['approve'],
+                action: 'review',
+                allActions: ['review', 'approve'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1243,7 +1234,6 @@ const transactionReportGroupListItems = [
                 ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1589,6 +1579,30 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
+        test('Should return `Review` action for transaction with duplicate violation', async () => {
+            const duplicateViolation = {
+                [`transactionViolations_${transactionID2}`]: [
+                    {
+                        name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                        showInReview: true,
+                    },
+                ],
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
+
+            const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
         test('Should return `Paid` action for a manually settled report', () => {
             const paidReportID = 'report_paid';
             const localSearchResults = {
@@ -1667,6 +1681,20 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
+        test('Should return `Review` action if report has errors', () => {
+            const errorReportID = 'report_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${errorReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: errorReportID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
         test('Should return `View` action for non-money request reports', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -1697,6 +1725,36 @@ describe('SearchUIUtils', () => {
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+        test('Should return `Review` action if report export has failed', () => {
+            const failedExportReportID = 'report_failed_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${failedExportReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: failedExportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+                [`reportNameValuePairs_${failedExportReportID}`]: {
+                    exportFailedTime: '2024-01-01',
+                },
+            };
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+        test('Should return `Review` action if transaction has errors', () => {
+            const errorTransactionID = 'transaction_error';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`transactions_${errorTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: errorTransactionID,
+                    errors: {error: 'An error'},
+                },
+            };
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
@@ -2324,7 +2382,6 @@ describe('SearchUIUtils', () => {
                         currency: 'USD',
                         hasEReceipt: false,
                         isFromOneTransactionReport: true,
-                        managerID: adminAccountID,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2423,7 +2480,6 @@ describe('SearchUIUtils', () => {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
-                    isOneTransactionReport: true,
                     isOwnPolicyExpenseChat: false,
                     isPolicyExpenseChat: false,
                     isWaitingOnBankAccount: false,
@@ -2460,7 +2516,6 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     hasEReceipt: false,
                     isFromOneTransactionReport: true,
-                    managerID: adminAccountID,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
