@@ -1001,8 +1001,8 @@ function getTransactionsSections(
             // Use Map.get() for faster lookups with default values
             const from =
                 transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? (personalDetailsMap.get((currentAccountID ?? 0).toString()) ?? emptyPersonalDetails)
-                    : (personalDetailsMap.get((report?.ownerAccountID ?? 0).toString()) ?? emptyPersonalDetails);
+                    ? (personalDetailsMap.get((currentAccountID ?? CONST.DEFAULT_NUMBER_ID).toString()) ?? emptyPersonalDetails)
+                    : (personalDetailsMap.get((report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID).toString()) ?? emptyPersonalDetails);
             const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
@@ -1438,9 +1438,8 @@ function getReportSections(
 
             const from =
                 transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? (data.personalDetailsList?.[currentAccountID ?? 0] ?? emptyPersonalDetails)
-                    : (data.personalDetailsList?.[report?.ownerAccountID ?? 0] ?? emptyPersonalDetails);
-            report?.ownerAccountID ? (data.personalDetailsList?.[report.ownerAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+                    ? (data.personalDetailsList?.[currentAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails)
+                    : (data.personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails);
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
