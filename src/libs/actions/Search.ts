@@ -69,7 +69,6 @@ function handleActionButtonPress(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    isInMobileSelectionMode: boolean,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     snapshotReport: SearchReport,
     snapshotPolicy: Policy,
@@ -83,7 +82,7 @@ function handleActionButtonPress(
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense || isInMobileSelectionMode) {
+    if (hasHeldExpense) {
         goToItem();
         return;
     }

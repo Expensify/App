@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -50,6 +51,7 @@ type ActionCellProps = {
     hash?: number;
     amount?: number;
     extraSmall?: boolean;
+    style?: StyleProp<ViewStyle>;
 };
 
 function ActionCell({
@@ -65,6 +67,7 @@ function ActionCell({
     hash,
     amount,
     extraSmall = false,
+    style,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -136,7 +139,7 @@ function ActionCell({
                 onPress={goToItem}
                 small={!extraSmall}
                 extraSmall={extraSmall}
-                style={[styles.w100]}
+                style={[styles.w100, style]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
@@ -159,7 +162,7 @@ function ActionCell({
                     chatReportID={iouReport?.chatReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
-                    style={[styles.w100]}
+                    style={[styles.w100, style]}
                     wrapperStyle={[styles.w100]}
                     shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                     isDisabled={isOffline}
@@ -176,7 +179,7 @@ function ActionCell({
             onPress={goToItem}
             small={!extraSmall}
             extraSmall={extraSmall}
-            style={[styles.w100]}
+            style={[styles.w100, style]}
             isLoading={isLoading}
             success
             isDisabled={isOffline}

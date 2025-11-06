@@ -114,7 +114,6 @@ function TransactionListItem<TItem extends ListItem>({
             currentSearchHash,
             transactionItem,
             () => onSelectRow(item, transactionPreviewData),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
@@ -179,6 +178,7 @@ function TransactionListItem<TItem extends ListItem>({
                         item={transactionItem}
                         handleActionButtonPress={handleActionButtonPress}
                         shouldShowUserInfo={!!transactionItem?.from}
+                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                     />
                 )}
                 <TransactionItemRow
