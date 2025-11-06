@@ -19,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
