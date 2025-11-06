@@ -11552,7 +11552,14 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     let participants: Participant[] = [];
 
     if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
+        participants = [
+            {
+                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport),
+                selected: true,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},

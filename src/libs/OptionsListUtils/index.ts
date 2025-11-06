@@ -368,7 +368,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text, true, currentUserAccountID === participant.accountID));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -1962,7 +1962,7 @@ function getValidOptions(
                 return;
             }
 
-            if(option.reportID){
+            if (option.reportID) {
                 loginsToExclude[option.reportID] = true;
             }
         });
