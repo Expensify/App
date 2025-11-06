@@ -20,7 +20,6 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
-import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
 
@@ -33,7 +32,6 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 
     const STEP_INDEXES: Record<IssueNewCardStep, number> = {
         [CONST.EXPENSIFY_CARD.STEP.ASSIGNEE]: 0,
-        [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT]: 3,
@@ -111,8 +109,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
-            case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:
-                return <InviteNewMemberStep route={route} />;
             default:
                 return (
                     <AssigneeStep

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
+import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -14,21 +15,31 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
+import {
+    filterAndOrderOptions,
+    filterSelectedOptions,
+    formatSectionsFromSearchTerm,
+    getFirstKeyForList,
+    getHeaderMessage,
+    getPersonalDetailSearchTerms,
+    getUserToInviteOption,
+    getValidOptions,
+} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -39,24 +50,24 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
+type SelectedOption = ListItem &
+    Omit<OptionData, 'reportID'> & {
+        reportID?: string;
+    };
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'NewChatPage.getValidOptions'});
+
 function useOptions() {
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-
-    // Filter options which include recent reports, recent contacts, selfDM, invite option and match with the search term
-    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        shouldInitialize: didScreenTransitionEnd,
-        includeUserToInvite: true,
-        contactOptions: contacts,
-        includeSelfDM: true,
-    });
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const {
         options: listOptions,
@@ -71,15 +82,32 @@ function useOptions() {
         batchSize: 100,
         enablePagination: true,
     });
+
+    const defaultOptions = useMemo(() => {
+        return memoizedGetValidOptions(
+            {
+                reports: listOptions?.reports ?? [],
+                personalDetails: (listOptions?.personalDetails ?? []).concat(contacts),
+            },
+            draftComments,
+            {
+                betas: betas ?? [],
+                includeSelfDM: true,
+            },
+            countryCode,
+        );
+    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, countryCode]);
+
+    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+
     const areOptionsInitialized = !isLoading;
 
     const options = useMemo(() => {
-        return filterAndOrderOptions(availableOptions, debouncedSearchTerm, countryCode, {
+        return filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [debouncedSearchTerm, availableOptions, selectedOptions, countryCode]);
-
+    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -152,10 +180,10 @@ function useOptions() {
         setSearchTerm,
         areOptionsInitialized,
         selectedOptions,
+        setSelectedOptions,
         headerMessage,
         handleEndReached,
         isLoadingMore,
-        toggleSelection,
     };
 }
 
@@ -189,23 +217,31 @@ function NewChatPage({ref}: NewChatPageProps) {
         headerMessage,
         searchTerm,
         debouncedSearchTerm,
+        handleEndReached,
+        isLoadingMore,
         setSearchTerm,
         selectedOptions,
+        setSelectedOptions,
         recentReports,
         personalDetails,
         userToInvite,
         areOptionsInitialized,
-        handleEndReached,
-        isLoadingMore,
-        toggleSelection,
     } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        // Format selected options to display
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, undefined, undefined, undefined, reportAttributesDerived);
+        const formatResults = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            selectedOptions as OptionData[],
+            recentReports,
+            personalDetails,
+            undefined,
+            undefined,
+            undefined,
+            reportAttributesDerived,
+        );
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
@@ -249,7 +285,14 @@ function NewChatPage({ref}: NewChatPageProps) {
      */
     const toggleOption = useCallback(
         (option: ListItem & Partial<OptionData>) => {
-            if (!option.isSelected) {
+            const isOptionInList = !!option.isSelected;
+
+            let newSelectedOptions: SelectedOption[];
+
+            if (isOptionInList) {
+                newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            } else {
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
 
@@ -257,9 +300,9 @@ function NewChatPage({ref}: NewChatPageProps) {
             if (!canUseTouchScreen()) {
                 selectionListRef.current?.focusTextInput();
             }
-            toggleSelection(option as OptionData);
+            setSelectedOptions(newSelectedOptions);
         },
-        [toggleSelection],
+        [selectedOptions, setSelectedOptions],
     );
 
     /**
