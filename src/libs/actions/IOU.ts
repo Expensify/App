@@ -483,7 +483,7 @@ type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
-    gpsPoints?: GPSPoint;
+    gpsPoint?: GPSPoint;
     action?: IOUAction;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
@@ -607,7 +607,7 @@ type TrackExpenseTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
-    gpsPoints?: GPSPoint;
+    gpsPoint?: GPSPoint;
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
@@ -5865,7 +5865,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         participantParams,
         policyParams = {},
         transactionParams,
-        gpsPoints,
+        gpsPoint,
         action,
         shouldHandleNavigation = true,
         backToReport,
@@ -6056,7 +6056,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursable,
@@ -6300,7 +6300,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         taxAmount = 0,
         billable,
         reimbursable,
-        gpsPoints,
+        gpsPoint,
         validWaypoints,
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
@@ -6341,7 +6341,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             taxAmount,
             billable,
             validWaypoints,
-            gpsPoints,
+            gpsPoint,
             actionableWhisperReportActionID,
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
@@ -6548,7 +6548,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
