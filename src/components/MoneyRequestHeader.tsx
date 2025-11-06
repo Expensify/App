@@ -102,7 +102,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | null>(null);
+    const [rejectModalAction, setRejectModalAction] = useState<'hold' | 'reject' | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
@@ -129,7 +129,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
@@ -303,12 +303,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
                 if (isDismissed) {
-                    if (isReportSubmitter) {
-                        changeMoneyRequestHoldStatus(parentReportAction);
-                    } else {
-                        rejectMoneyRequestReason(parentReportAction);
-                    }
+                    changeMoneyRequestHoldStatus(parentReportAction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
