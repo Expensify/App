@@ -213,6 +213,33 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 }
 
 /**
+ * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
+ */
+function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData {
+    const onyxData = getVBBADataForOnyx();
+    const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
+
+    if (!lastUsedPaymentMethod) {
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+            value: {
+                [policyID]: {
+                    expense: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    },
+                    lastUsed: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    },
+                },
+            },
+        });
+    }
+
+    return onyxData;
+}
+
+/**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
@@ -1046,8 +1073,13 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
 /**
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
  * @param params - Verification step form params
+ * @param bankAccountID - ID for bank account
+ * @param policyID - ID of the policy we're setting the bank account on
+ * @param lastPaymentMethod - last payment method used in the app
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string | undefined) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+    const onyxData = getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID, lastPaymentMethod);
+
     API.write(
         WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {
@@ -1055,7 +1087,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             bankAccountID,
             policyID,
         },
-        getVBBADataForOnyx(),
+        onyxData,
     );
 }
 

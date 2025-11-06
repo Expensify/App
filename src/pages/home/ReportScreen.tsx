@@ -847,7 +847,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // When we open a report, we fetch the payment methods available for the user.
     // This is required to show existing connected bank accounts when attempting to pay with business account
     useEffect(() => {
-        getPaymentMethods();
+        getPaymentMethods(true);
     }, []);
 
     const lastRoute = usePrevious(route);
