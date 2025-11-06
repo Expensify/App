@@ -5033,6 +5033,10 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Impossibile rendere tutti i tag opzionali',
                 description: `Almeno un tag deve rimanere obbligatorio perché le impostazioni del tuo spazio di lavoro richiedono tag.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Impossibile rendere obbligatoria la lista dei tag',
+                description: 'È possibile rendere obbligatoria una lista di tag solo se la propria politica ha più livelli di tag configurati.',
+            },
             tagCount: () => ({
                 one: '1 giorno',
                 other: (count: number) => `${count} Tag`,

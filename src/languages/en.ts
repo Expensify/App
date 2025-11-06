@@ -4992,7 +4992,7 @@ const translations = {
             },
             cannotMakeTagListRequired: {
                 title: 'Cannot make tag list required',
-                description: `You can only make a tag list required if your policy has multiple tag levels configured.`,
+                description: 'You can only make a tag list required if your policy has multiple tag levels configured.',
             },
             tagCount: () => ({
                 one: '1 Tag',

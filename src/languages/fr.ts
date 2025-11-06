@@ -5028,6 +5028,10 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Impossible de rendre toutes les balises facultatives',
                 description: `Au moins une étiquette doit rester obligatoire car les paramètres de votre espace de travail exigent des étiquettes.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Impossible de rendre la liste des balises obligatoire',
+                description: 'Vous ne pouvez rendre une liste de balises obligatoire que si votre stratégie comporte plusieurs niveaux de balises configurés.',
+            },
             tagCount: () => ({
                 one: '1 jour',
                 other: (count: number) => `${count} Tags`,

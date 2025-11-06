@@ -5017,6 +5017,10 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Nie można ustawić wszystkich tagów jako opcjonalne.',
                 description: `Co najmniej jeden tag musi pozostać wymagany, ponieważ ustawienia Twojego miejsca pracy wymagają tagów.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Nie można utworzyć listy tagów wymaganych',
+                description: 'Listę tagów można ustawić jako obowiązkową tylko wtedy, gdy w polityce skonfigurowano wiele poziomów tagów.',
+            },
             tagCount: () => ({
                 one: '1 dzień',
                 other: (count: number) => `${count} tagi`,

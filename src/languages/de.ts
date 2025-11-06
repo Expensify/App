@@ -5021,6 +5021,10 @@ ${amount} für ${merchant} - ${date}`,
                 title: 'Kann nicht alle Tags optional machen',
                 description: `Mindestens ein Tag muss erforderlich bleiben, da Ihre Arbeitsbereichseinstellungen Tags erfordern.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Tag-Liste kann nicht als erforderlich festgelegt werden',
+                description: 'Sie können eine Tag-Liste nur dann als erforderlich festlegen, wenn in Ihrer Richtlinie mehrere Tag-Ebenen konfiguriert sind.',
+            },
             tagCount: () => ({
                 one: '1 Tag',
                 other: (count: number) => `${count} Tags`,

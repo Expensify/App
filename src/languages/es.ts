@@ -5006,7 +5006,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             cannotMakeTagListRequired: {
                 title: 'No se puede hacer que la lista de etiquetas sea obligatoria',
-                description: `Solo puedes hacer que una lista de etiquetas sea obligatoria si tu política tiene varios niveles de etiquetas configurados.`,
+                description: 'Solo puedes hacer que una lista de etiquetas sea obligatoria si tu política tiene varios niveles de etiquetas configurados.',
             },
             tagCount: () => ({
                 one: '1 etiqueta',
