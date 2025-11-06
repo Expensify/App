@@ -145,9 +145,6 @@ type SearchReport = {
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
-    /** Whether the report is archived */
-    private_isArchived?: string;
-
     /** Whether the action is loading */
     isActionLoading?: boolean;
 
