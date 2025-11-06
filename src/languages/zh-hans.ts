@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: '邮政编码',
         whatThis: '这是什么？',
         iAcceptThe: '我接受',
+        acceptTermsAndPrivacy: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a> 和 <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>`,
+        acceptTermsAndConditions: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">条款和条件</a>`,
+        acceptTermsOfService: `我接受 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a>`,
         remove: '移除',
         admin: '管理员',
         owner: '所有者',
@@ -924,17 +927,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` 使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` 使用 + 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -1119,6 +1122,7 @@ const translations = {
         splitExpense: '拆分费用',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自${merchant}的${amount}`,
         addSplit: '添加分账',
+        makeSplitsEven: '使拆分均等',
         editSplits: '编辑拆分',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用多${amount}。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
@@ -2591,10 +2595,8 @@ ${merchant}的${amount} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请充分利用 30 天免费试用，并按照下面的步骤操作！'
-                    : '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设绎专员。我已经创建了一个工作区，用于帮助管理您团队的收据和费用。为了充分利用 30 天免费试用，请按照下面的剩余步骤操作！',
+            onboardingManageTeamMessage:
+                '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请充分利用 30 天免费试用，并按照下面的步骤操作！',
             onboardingTrackWorkspaceMessage:
                 '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
@@ -4535,6 +4537,7 @@ ${merchant}的${amount} - ${date}`,
                 monthly: '每月',
             },
             cardDetails: '卡片详情',
+            cardPending: ({name}: {name: string}) => `卡片目前待处理，将在验证${name}的账户后发放。`,
             virtual: 'Virtual',
             physical: '物理的',
             deactivate: '停用卡片',
@@ -4714,9 +4717,8 @@ ${merchant}的${amount} - ${date}`,
                 noAccountsFound: '未找到账户',
                 defaultCard: '默认卡片',
                 downgradeTitle: `无法降级工作区`,
-                downgradeSubTitleFirstPart: `由于连接了多个卡片馈送（不包括Expensify卡），此工作区无法降级。请`,
-                downgradeSubTitleMiddlePart: `仅保留一个卡片信息流`,
-                downgradeSubTitleLastPart: '继续。',
+                downgradeSubTitle: `由于连接了多个卡片馈送（不包括Expensify卡），此工作区无法降级。请 <a href="#">仅保留一个卡片信息流</a> 继续。`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `请在${connection}中添加账户并再次同步连接。`,
                 expensifyCardBannerTitle: '获取Expensify卡',
                 expensifyCardBannerSubtitle: '享受每笔美国消费的现金返还，Expensify账单最高可享50%折扣，无限虚拟卡等更多优惠。',
@@ -6069,7 +6071,7 @@ ${merchant}的${amount} - ${date}`,
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
+                subtitle: `尝试调整您的搜索条件或使用 + 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -6711,6 +6713,7 @@ ${merchant}的${amount} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {

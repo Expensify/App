@@ -24,10 +24,11 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,12 +50,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
-
-let recentWaypoints: RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
 
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
@@ -634,10 +629,6 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-function getRecentWaypoints() {
-    return recentWaypoints;
-}
-
 /**
  * Returns a client generated 16 character hexadecimal value for the transactionID
  */
@@ -896,10 +887,11 @@ function changeTransactionsReport(
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
+        const transactionAmount = getTransactionDetails(transaction, undefined, undefined, allowNegative)?.amount ?? 0;
+        const updatedReportTotal = transactionAmount < 0 ? (oldReport?.total ?? 0 - transactionAmount) : (oldReport?.total ?? 0 + transactionAmount);
 
         if (oldReport) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
@@ -1302,7 +1294,6 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    getRecentWaypoints,
     sanitizeRecentWaypoints,
     getLastModifiedExpense,
     revert,
