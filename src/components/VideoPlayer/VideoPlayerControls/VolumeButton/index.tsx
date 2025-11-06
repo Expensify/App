@@ -11,7 +11,7 @@ import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NumberUtils from '@libs/NumberUtils';
+import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
 type VolumeButtonProps = {
     /** Style for the volume button. */
@@ -45,8 +45,8 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
 
     const changeVolumeOnPan = useCallback(
         (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-            const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
-            volume.set(NumberUtils.clamp(val, 0, 1));
+            const val = roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
+            volume.set(clamp(val, 0, 1));
         },
         [sliderHeight, volume],
     );
