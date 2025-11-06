@@ -229,6 +229,9 @@ const reportAction4 = {
 
 const policy = {
     id: 'Admin',
+    name: 'Policy',
+    outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
     approvalMode: 'ADVANCED',
     autoReimbursement: {
         limit: 0,
@@ -269,7 +272,7 @@ const policy = {
             submitsTo: adminEmail,
         },
     },
-} as const;
+} as OnyxTypes.Policy;
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -370,7 +373,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -415,7 +417,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -462,7 +463,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 1200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -507,7 +507,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 3200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -2329,7 +2328,6 @@ describe('SearchUIUtils', () => {
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         action: 'approve',
-                        allActions: ['approve'],
                         comment: {
                             comment: '',
                         },
@@ -2428,6 +2426,8 @@ describe('SearchUIUtils', () => {
                         expenseRules: [],
                     },
                     type: 'corporate',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
@@ -2465,7 +2465,6 @@ describe('SearchUIUtils', () => {
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
                     action: 'approve',
-                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
