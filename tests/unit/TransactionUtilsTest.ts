@@ -405,7 +405,7 @@ describe('TransactionUtils', () => {
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
-                merchant: '(none)'
+                merchant: '(none)',
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
         });
