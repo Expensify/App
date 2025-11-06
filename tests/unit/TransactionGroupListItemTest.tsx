@@ -40,6 +40,9 @@ const mockTransaction: TransactionListItemType = {
         type: 'team',
         role: 'admin',
         owner: 'test@test.com',
+        name: 'Policy',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',
