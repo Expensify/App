@@ -104,7 +104,7 @@ function canPay(report: Report, isReportArchived: boolean, policy?: Policy, invo
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
         return true;
     }
 
