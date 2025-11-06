@@ -2342,7 +2342,7 @@ function getColumnsToShow(
         // Handle From&To columns that are only shown in the Reports page
         // if From or To differ from current user in any transaction, show the columns
         const accountID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? currentAccountID : report?.ownerAccountID;
-        if (accountID !== currentAccountID) {
+        if (accountID && accountID !== currentAccountID) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
         }
 
