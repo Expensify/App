@@ -945,7 +945,6 @@ function PureReportActionItem({
         translate,
         resolveActionableReportMentionWhisper,
         isReportArchived,
-        formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
@@ -1656,8 +1655,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report)}
                         </TextLink>
                     </View>
                     {children}

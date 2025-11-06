@@ -12054,12 +12054,9 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: OnyxEntry<Report>): string {
     if (report && isInvoiceReport(report)) {
-        const properInvoiceReport = report;
-        properInvoiceReport.chatReportID = report.parentReportID;
-
+        const properInvoiceReport = {...report, chatReportID: report.parentReportID} as OnyxEntry<Report>;
         return getInvoiceReportName(properInvoiceReport);
     }
 
