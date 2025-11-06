@@ -897,7 +897,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (transactionTag && policyTags && !hasMatchingTag(policyTags, transactionTag)) {
+            if (transactionTag && policy?.areTagsEnabled && policyTags && !hasMatchingTag(policyTags, transactionTag)) {
                 setFormError('violations.tagOutOfPolicy');
                 return;
             }
