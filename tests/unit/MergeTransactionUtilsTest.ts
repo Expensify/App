@@ -1,4 +1,3 @@
-import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
     getDisplayValue,
@@ -6,6 +5,7 @@ import {
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
+    getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -15,6 +15,7 @@ import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
@@ -608,6 +609,30 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
+    describe('getReceiptFileName', () => {
+        it('should return filename from source when source is a string', () => {
+            const receipt = {
+                source: 'https://example.com/receipts/receipt123.jpg',
+                filename: 'backup-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt123.jpg');
+        });
+
+        it('should return filename when source is not a string', () => {
+            const receipt = {
+                source: 12345,
+                filename: 'receipt-from-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt-from-filename.jpg');
+        });
+    });
+
     describe('getDisplayValue', () => {
         it('should return empty string for empty values', () => {
             // Given a transaction with empty merchant
@@ -693,7 +718,6 @@ describe('MergeTransactionUtils', () => {
                 {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
             ];
-
             const result = getDisplayValue('attendees', transaction, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');

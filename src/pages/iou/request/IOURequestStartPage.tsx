@@ -80,6 +80,7 @@ function IOURequestStartPage({
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -192,7 +193,10 @@ function IOURequestStartPage({
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         // The test receipt image is served via our server on web so it requires internet connection
-        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
+        !getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) &&
+            isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
+            selectedTab === CONST.TAB_REQUEST.SCAN &&
+            !(isOffline && isWeb),
         {
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();

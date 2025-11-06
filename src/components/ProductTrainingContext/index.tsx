@@ -1,4 +1,5 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -13,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -290,7 +290,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop
-                            accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            accessibilityLabel={translate('common.noThanks')}
                             role={CONST.ROLE.BUTTON}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...createPressHandler(() => hideTooltip(true))}
@@ -314,7 +314,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             {...createPressHandler(config.onConfirm)}
                         />
                         <Button
-                            text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            text={translate('common.noThanks')}
                             style={[styles.flex1]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...createPressHandler(config.onDismiss)}
