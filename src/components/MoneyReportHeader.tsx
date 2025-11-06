@@ -582,7 +582,6 @@ function MoneyReportHeader({
         }
     };
 
-
     const dismissRejectModalBasedOnAction = () => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
