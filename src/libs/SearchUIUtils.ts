@@ -2345,8 +2345,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
             [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: false,
         };
     }
 
@@ -2376,7 +2374,6 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
           };
 
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
