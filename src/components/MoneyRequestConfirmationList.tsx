@@ -29,6 +29,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
+import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
@@ -277,7 +278,9 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const policy = policyReal ?? policyDraft;
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -324,7 +327,6 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
@@ -405,6 +407,11 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
+
+    const isDescriptionRequired = useMemo(
+        () => isCategoryDescriptionRequired(policyCategories, iouCategory, policy?.areRulesEnabled),
+        [iouCategory, policyCategories, policy?.areRulesEnabled],
+    );
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -1131,6 +1138,7 @@ function MoneyRequestConfirmationList({
             iouIsReimbursable={iouIsReimbursable}
             onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
+            isDescriptionRequired={isDescriptionRequired}
         />
     );
 
