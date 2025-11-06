@@ -5,7 +5,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-type UseOptionsListCacheConfig = {
+type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to process for initial load (default: 100) */
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
@@ -18,7 +18,7 @@ type UseOptionsListCacheConfig = {
     enablePagination?: boolean;
 };
 
-type UseOptionsListCacheResult = {
+type UseFilteredOptionsResult = {
     /** The computed options list (reports and personal details) */
     options: OptionList | null;
     /** Whether the options are currently being loaded (initial load) */
@@ -31,31 +31,18 @@ type UseOptionsListCacheResult = {
     isLoadingMore: boolean;
 };
 
-type CacheEntry = {
-    options: OptionList | null;
-    timestamp: number;
-    loadedBatches: number; // Track how many batches were loaded
-};
-
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 /**
- * Hook that provides an optimized, cached options list for selection screens.
+ * Hook that provides an optimized, filtered options list for selection screens.
  *
  * Benefits over OptionListContextProvider:
  * - Only computes when screen is mounted and enabled
  * - No background recalculations when screen is not visible
- * - Uses createFilteredOptionList which processes fewer reports (top N recent)
- * - Cache survives for 5 minutes to enable fast back/forth navigation
- *
- * Performance:
- * - First load: ~30-50ms (processes top 100 reports instead of all 5000)
- * - Cache hit: 0ms (instant)
- * - Updates: Only recalculates when dependencies actually change
+ * - Filters and limits reports before processing (processes top N recent only)
+ * - Recalculates only when dependencies change
  *
  * Usage:
  * ```typescript
- * const {options, isLoading} = useOptionsListCache({
+ * const {options, isLoading} = useFilteredOptions({
  *   maxRecentReports: 100,
  *   enabled: didScreenTransitionEnd,
  * });
@@ -66,7 +53,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  * />
  * ```
  */
-function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptionsListCacheResult {
+function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 100, enabled = true, includeP2P = true, batchSize = 100, enablePagination = true} = config;
 
     // Pagination state - track current batch number
@@ -75,13 +62,6 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
 
     // Track total available reports
     const totalReportsRef = useRef(0);
-
-    // Cache ref - survives re-renders and stays even after unmount (for TTL period)
-    const cacheRef = useRef<CacheEntry>({
-        options: null,
-        timestamp: 0,
-        loadedBatches: 0,
-    });
 
     // Subscribe to Onyx data
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -103,28 +83,10 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
         // Calculate how many reports to process based on pagination
         const reportsToProcess = enablePagination ? currentBatch * batchSize : maxRecentReports;
 
-        // Check if cache is still valid AND has the same number of batches loaded
-        const now = Date.now();
-        const cacheAge = now - cacheRef.current.timestamp;
-        const cacheHasSameBatches = cacheRef.current.loadedBatches === currentBatch;
-
-        if (cacheRef.current.options && cacheAge < CACHE_TTL && cacheHasSameBatches) {
-            return cacheRef.current.options;
-        }
-
-        const newOptions = createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+        return createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
             maxRecentReports: reportsToProcess,
             includeP2P,
         });
-
-        // Update cache with batch info
-        cacheRef.current = {
-            options: newOptions,
-            timestamp: now,
-            loadedBatches: currentBatch,
-        };
-
-        return newOptions;
     }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination]);
 
     // Reset loading state after options are computed
@@ -160,4 +122,4 @@ function useOptionsListCache(config: UseOptionsListCacheConfig = {}): UseOptions
     };
 }
 
-export default useOptionsListCache;
+export default useFilteredOptions;

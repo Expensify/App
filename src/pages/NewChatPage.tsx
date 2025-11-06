@@ -15,10 +15,10 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOptionsListCache from '@hooks/useOptionsListCache';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -64,7 +64,7 @@ function useOptions() {
         loadMore,
         hasMore,
         isLoadingMore,
-    } = useOptionsListCache({
+    } = useFilteredOptions({
         maxRecentReports: 100,
         enabled: didScreenTransitionEnd,
         includeP2P: true,
