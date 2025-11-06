@@ -375,17 +375,11 @@ button {
             display: block;
             margin: 20px auto;
             border-radius: 16px;
+            max-width: 100%;
+            height: auto;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
-                height: 100%;
-                max-width: auto;
-                max-height: auto;
-            }
-
-            @include breakpoint($breakpoint-tablet) {
-                max-width: -webkit-fill-available;
-                max-height: -webkit-fill-available;
             }
         }
 
@@ -436,12 +430,6 @@ button {
         thead tr th {
             font-weight: bold;
             background-color: var(--color-highlightBG);
-        }
-
-        .img-wrap {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
         }
 
         h1,
