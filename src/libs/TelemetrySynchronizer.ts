@@ -65,9 +65,18 @@ function sendPoliciesContext() {
 /**
  * This middleware will intercept all requests and send requestID to the current Span in Sentry
  */
-const sendRequestIdToTelemetry: Middleware = (requestResponse) =>
-    requestResponse.then((response) => {
-        Sentry.getActiveSpan()?.setAttribute(CONST.TELEMETRY.SPAN_ATTRIBUTE_REQUEST_ID, response?.requestID ?? 'unknown');
-        return response;
-    });
+const sendRequestIdToTelemetry: Middleware = (requestResponse, request) => {
+    return Sentry.startSpan(
+        {
+            name: request.command,
+            op: CONST.TELEMETRY.SPAN_NAME_COMMAND,
+        },
+        (span) =>
+            requestResponse.then((response) => {
+                span.setAttribute(CONST.TELEMETRY.SPAN_ATTRIBUTE_REQUEST_ID, response?.requestID ?? 'unknown');
+                span.setAttribute(CONST.TELEMETRY.SPAN_ATTRIBUTE_REQUEST_COMMAND, request.command);
+                return response;
+            }),
+    );
+};
 export default sendRequestIdToTelemetry;

@@ -1617,7 +1617,9 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        SPAN_NAME_COMMAND: 'Command',
         SPAN_ATTRIBUTE_REQUEST_ID: 'request_id',
+        SPAN_ATTRIBUTE_REQUEST_COMMAND: 'request_command',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
