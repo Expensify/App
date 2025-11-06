@@ -1116,7 +1116,7 @@ describe('actions/Policy', () => {
                     ],
                 },
                 undefined,
-                {}
+                {},
             );
 
             await waitForBatchedUpdates();
