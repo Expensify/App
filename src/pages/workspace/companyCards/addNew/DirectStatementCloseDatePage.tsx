@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeed, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const originalFeedName = selectedFeed ? getOriginalFeedName(selectedFeed) : undefined;
+    const originalFeedName = selectedFeed ? getOriginalFeed(selectedFeed) : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;

@@ -18,7 +18,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {checkIfNewFeedConnected, getBankName, getOriginalFeedName, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfNewFeedConnected, getBankName, getOriginalFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -57,7 +57,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const prevFeedsData = usePrevious(cardFeeds);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
-    const bankName = feed ? getBankName(getOriginalFeedName(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
+    const bankName = feed ? getBankName(getOriginalFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const {isNewFeedConnected, newFeed} = useMemo(
         () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],

@@ -8,7 +8,7 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
@@ -42,7 +42,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         const feedToOpen = (Object.keys(companyFeeds) as CombinedFeedKey[])
             .filter((feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .at(0);
-        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getOriginalFeedName(newFeed), cardIDs, feedToOpen);
+        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getOriginalFeed(newFeed), cardIDs, feedToOpen);
     };
 
     const onButtonPress = () => {

@@ -16,7 +16,7 @@ import {
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
-    getOriginalFeedName,
+    getOriginalFeed,
     getPlaidCountry,
     getPlaidInstitutionId,
     getSelectedFeed,
@@ -97,7 +97,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, getOriginalFeedName(selectedFeed));
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, getOriginalFeed(selectedFeed));
     }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
@@ -119,7 +119,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         const data: Partial<AssignCardData> = {
-            bankName: getOriginalFeedName(selectedFeed),
+            bankName: getOriginalFeed(selectedFeed),
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;

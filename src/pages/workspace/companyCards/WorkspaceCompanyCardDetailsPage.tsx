@@ -23,7 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getOriginalFeedName, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getOriginalFeed, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,7 +48,7 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank) as CombinedFeedKey;
-    const originalFeedName = getOriginalFeedName(bank);
+    const originalFeedName = getOriginalFeed(bank);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);

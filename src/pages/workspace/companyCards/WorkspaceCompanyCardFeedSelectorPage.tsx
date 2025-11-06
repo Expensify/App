@@ -74,11 +74,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         return {
             value: key,
             feed: feedSettings.feed,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, cardFeeds?.[key]?.customFeedName),
+            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
             keyForList: key,
             isSelected: key === selectedFeed,
-            isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[key]?.pendingAction,
+            isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
             leftElement: plaidUrl ? (

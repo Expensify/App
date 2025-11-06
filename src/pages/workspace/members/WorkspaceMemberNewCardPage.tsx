@@ -21,7 +21,7 @@ import {
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
-    getOriginalFeedName,
+    getOriginalFeed,
     getPlaidInstitutionIconUrl,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -103,7 +103,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         } else {
             const data: Partial<AssignCardData> = {
                 email: memberLogin,
-                bankName: getOriginalFeedName(selectedFeed as CombinedFeedKey),
+                bankName: getOriginalFeed(selectedFeed as CombinedFeedKey),
                 cardName: `${memberName}'s card`,
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;

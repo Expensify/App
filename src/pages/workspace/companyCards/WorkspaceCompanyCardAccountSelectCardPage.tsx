@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeed} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -81,7 +81,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             const isDefaultCardSelected = value === defaultCard;
             const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getOriginalFeedName(bank));
+            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getOriginalFeed(bank));
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },

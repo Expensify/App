@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeedName} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getOriginalFeed} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -46,7 +46,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getOriginalFeedName(bank), defaultValue);
+        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getOriginalFeed(bank), defaultValue);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank), {compareParams: false});
     };
 

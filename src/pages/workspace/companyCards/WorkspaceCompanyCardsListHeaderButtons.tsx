@@ -26,7 +26,7 @@ import {
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
-    getOriginalFeedName,
+    getOriginalFeed,
     getPlaidCountry,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -68,7 +68,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const originalFeedName = getOriginalFeedName(selectedFeed);
+    const originalFeedName = getOriginalFeed(selectedFeed);
     const formattedFeedName = getCustomOrFormattedFeedName(originalFeedName, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
     const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);

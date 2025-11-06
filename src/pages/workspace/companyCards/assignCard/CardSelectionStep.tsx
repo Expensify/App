@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getFilteredCardList, getOriginalFeedName, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getFilteredCardList, getOriginalFeed, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -66,7 +66,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(getOriginalFeedName(feed), illustrations)}
+                src={getCardFeedIcon(getOriginalFeed(feed), illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
