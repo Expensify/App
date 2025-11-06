@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import Icon from '@components/Icon';
-import {PRESET_AVATAR_CATALOG, getAvatarLocal, getAvatarURL} from '@libs/Avatars/PresetAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';
 const SAMPLE_SEASON_ID = 'car-blue100';
