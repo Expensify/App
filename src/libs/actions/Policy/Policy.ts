@@ -2767,6 +2767,13 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+            value: {
+                autoReporting: policy.autoReporting
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
