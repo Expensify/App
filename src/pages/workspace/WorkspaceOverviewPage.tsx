@@ -1,11 +1,11 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -72,7 +72,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const illustrations = useThemeIllustrations();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building'] as const);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus'] as const);
 
@@ -160,7 +159,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const readOnly = !isPolicyAdminPolicyUtils(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
-    const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -390,21 +388,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return null;
         }
 
-        if (isPolicyAdmin) {
-            secondaryActions.push({
-                value: 'invite',
-                text: translate('common.invite'),
-                icon: expensifyIcons.UserPlus,
-                onSelected: () => {
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    clearInviteDraft(route.params.policyID);
-                    Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-                },
-            });
-        }
+        // Prepare Invite button handler
+        const handleInvitePress = () => {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            clearInviteDraft(route.params.policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+        };
+
         secondaryActions.push({
             value: 'share',
             text: translate('common.share'),
@@ -441,7 +434,31 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             });
         }
 
-        return renderDropdownMenu(secondaryActions);
+        return (
+            <View style={[styles.flexRow, styles.gap2]}>
+                {isPolicyAdmin && (
+                    <Button
+                        success
+                        text={translate('common.invite')}
+                        icon={expensifyIcons.UserPlus}
+                        onPress={handleInvitePress}
+                        medium
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    />
+                )}
+                <ButtonWithDropdownMenu
+                    ref={dropdownMenuRef}
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+                />
+            </View>
+        );
     };
 
     return (
@@ -470,11 +487,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         isCentralPane
                         title=""
                     >
-                        <Image
-                            style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                            source={illustrations.WorkspaceProfile}
-                            resizeMode="cover"
-                        />
                         <AvatarWithImagePicker
                             onViewPhotoPress={() => {
                                 if (!policy?.id) {
@@ -493,7 +505,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
                             style={[
                                 (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
-                                shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,
                             ]}
