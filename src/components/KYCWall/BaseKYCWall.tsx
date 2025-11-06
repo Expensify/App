@@ -14,7 +14,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
-import {getBusinessBankAccountsThatAreBeingSetUp, getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+import {getBusinessBankAccountsThatAreBeingSetUp, getEligibleExistingBusinessBankAccounts, getValidBusinessBankAccountToConnectToPolicy} from '@libs/WorkflowUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {setKYCWallSource} from '@userActions/Wallet';
@@ -56,7 +56,6 @@ function KYCWall({
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -228,11 +227,14 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
+            const canConnectBusinessBankAccount = getValidBusinessBankAccountToConnectToPolicy(bankAccountList, policy).length > 0;
             const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
             const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
-            // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-            if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
+            // Check if the user needs to add or select a payment method before continuing.
+            // - For expense reports: Proceeds if there are eligible business bank accounts that can be connected to the policy
+            // - For other expenses: Proceeds if the user lacks a valid personal bank account or debit card
+            if ((isExpenseReport && canConnectBusinessBankAccount) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
@@ -296,7 +298,6 @@ function KYCWall({
             getAnchorPosition,
             iouReport,
             onSuccessfulKYC,
-            reimbursementAccount?.achData?.state,
             selectPaymentMethod,
             shouldIncludeDebitCard,
             shouldShowAddPaymentMenu,
