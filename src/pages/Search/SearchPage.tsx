@@ -71,7 +71,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 
@@ -424,11 +423,10 @@ function SearchPage({route}: SearchPageProps) {
                     itemList.forEach((item) => {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            const searchPolicy = policy as unknown as SearchPolicy;
                             const reportTransactionIDs = selectedReports.length
                                 ? undefined
                                 : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
-                            submitMoneyRequestOnSearch(hash, [item], [searchPolicy], reportTransactionIDs);
+                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
                         }
                     });
                     clearSelectedTransactions();
