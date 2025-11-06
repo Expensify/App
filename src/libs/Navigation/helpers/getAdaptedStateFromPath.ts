@@ -91,6 +91,8 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
+            // prepending a slash to ensure closing the RHP after refreshing the page
+            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
             path: normalizePath(ROUTES.WORKSPACES_LIST.route),
         };
     }
