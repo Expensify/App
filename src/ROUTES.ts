@@ -149,6 +149,11 @@ const ROUTES = {
     REQUIRE_TWO_FACTOR_AUTH: '2fa-required',
 
     BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        route: `bank-account/${VERIFY_ACCOUNT}`,
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
+    },
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {

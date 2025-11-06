@@ -120,6 +120,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     };
     const currentStep = getInitialCurrentStep();
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
+
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
@@ -177,11 +178,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
-        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
-        if (isStepToOpenEmpty) {
-            setBankAccountSubStep(null);
-            setPlaidEvent(null);
-        }
+        // const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
+        // debugger;
+        // if (isStepToOpenEmpty) {
+        //     setBankAccountSubStep(null);
+        //     setPlaidEvent(null);
+        // }
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
@@ -265,7 +267,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             }
 
             // Use the current page navigation object to set the param to the correct route in the stack
-            navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
+            const stepToOpen = getRouteForCurrentStep(currentStep);
+            navigation.setParams({stepToOpen});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
@@ -503,8 +506,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             onContinuePress={isNonUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-            toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
+            backTo={backTo}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
