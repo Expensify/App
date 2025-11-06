@@ -7416,6 +7416,28 @@ ${amount} per ${merchant} - ${date}`,
         subtitle: `Non siamo riusciti a caricare tutti i tuoi dati. Siamo stati avvisati e stiamo esaminando il problema. Se il problema persiste, contatta`,
         refreshAndTryAgain: 'Aggiorna e riprova',
     },
+    domain: {
+        notVerified: 'Non verificato',
+        retry: 'Riprova',
+        verifyDomain: {
+            title: 'Verifica dominio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Prima di procedere, verifica di essere il proprietario di <strong>${domainName}</strong> aggiornando le impostazioni DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Accedi al tuo provider DNS e apri le impostazioni DNS per <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Aggiungi il seguente record TXT:',
+            saveChanges: 'Salva le modifiche e torna qui per verificare il tuo dominio.',
+            youMayNeedToConsult: `Potresti dover contattare il reparto IT della tua organizzazione per completare la verifica. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Scopri di più</a>.`,
+            warning: "Dopo la verifica, tutti i membri di Expensify del tuo dominio riceveranno un'email che li informa che il loro account sarà gestito all'interno del tuo dominio.",
+            codeFetchError: 'Impossibile recuperare il codice di verifica',
+            genericError: 'Non siamo riusciti a verificare il tuo dominio. Riprova e contatta Concierge se il problema persiste.',
+        },
+        domainVerified: {
+            title: 'Dominio verificato',
+            header: 'Wooo! Il tuo dominio è stato verificato',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Il dominio <strong>${domainName}</strong> è stato verificato con successo e ora puoi configurare SAML e altre funzionalità di sicurezza.</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
