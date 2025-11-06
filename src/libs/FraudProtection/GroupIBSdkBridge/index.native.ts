@@ -71,7 +71,7 @@ function init(): Promise<void> {
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, false,(e: string) => {
+        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, false, (e: string) => {
             Log.warn(`[Fraud Protection] setAttributeTitle('user_id', [REDACTED], FPAttributeFormat.ClearText) error: ${e}`);
         });
         fp.setSessionId(sessionID, (e: string) => {
