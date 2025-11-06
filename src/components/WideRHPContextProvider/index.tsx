@@ -153,6 +153,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
+        // We want to show the second overlay only if
+        // 1. The currently focused route is not the wide report RHP
+        // 2. A wide report RHP exists on the navigation stack
         if (isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
             const searchReportRightModalRoute = state?.routes.at(-1)?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
             return !!searchReportRightModalRoute && searchReportRightModalRoute.state?.routes.find((route) => route.name === SCREENS.SEARCH.REPORT_RHP);
