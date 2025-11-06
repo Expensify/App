@@ -25,6 +25,7 @@ import TaskListItem from '@components/SelectionListWithSections/Search/TaskListI
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
+    ExpenseReportListItemType,
     ListItem,
     ReportActionListItemType,
     SearchListItem,
@@ -91,6 +92,7 @@ import {
     getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,
+    getReportStatusTranslation,
     getSearchReportName,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
@@ -120,7 +122,14 @@ import {
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
-const transactionColumnNamesToSortingProperty = {
+type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
+type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
+
+type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
+type TaskSorting = ColumnSortMapping<TaskListItemType>;
+type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
+
+const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
@@ -133,10 +142,9 @@ const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
-const taskColumnNamesToSortingProperty = {
+const taskColumnNamesToSortingProperty: TaskSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'description' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
@@ -145,13 +153,13 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
-const reportColumnNamesToSortingProperty = {
+const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'statusNum' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.TO]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'total' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
@@ -1421,14 +1429,25 @@ function getReportSections(
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
+
+                const fromDetails = transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails;
+
+                const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
+                const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
+                const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(toDetails));
+                const formattedStatus = getReportStatusTranslation(reportItem.stateNum, reportItem.statusNum);
+
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
-                    to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                    from: fromDetails,
+                    to: toDetails,
+                    formattedFrom,
+                    formattedTo,
+                    formattedStatus,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: doesDataContainAPastYearReport,
@@ -1723,7 +1742,7 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
         return data;
     }
 
-    const sortingProperty = transactionColumnNamesToSortingProperty[sortBy as keyof typeof transactionColumnNamesToSortingProperty];
+    const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
@@ -1742,15 +1761,15 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
         return data;
     }
 
-    const sortingProperty = taskColumnNamesToSortingProperty[sortBy as keyof typeof taskColumnNamesToSortingProperty];
+    const sortingProperty = taskColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty as keyof TaskListItemType];
-        const bValue = b[sortingProperty as keyof TaskListItemType];
+        const aValue = a[sortingProperty];
+        const bValue = b[sortingProperty];
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
@@ -1775,15 +1794,22 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
         });
     }
 
-    const sortingProperty = reportColumnNamesToSortingProperty[sortBy as keyof typeof reportColumnNamesToSortingProperty];
+    const sortingProperty = expenseReportColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty as keyof TransactionReportGroupListItemType];
-        const bValue = b[sortingProperty as keyof TransactionReportGroupListItemType];
+        let aValue = a[sortingProperty];
+        let bValue = b[sortingProperty];
+
+        // When sorting by total, apply the backend logic:
+        // IOU reports have positive amounts, expense reports have negative amounts
+        if (sortingProperty === 'total' && typeof aValue === 'number' && typeof bValue === 'number') {
+            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -(aValue as number);
+            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -(bValue as number);
+        }
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
@@ -2285,7 +2311,7 @@ function getColumnsToShow(
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
     type?: SearchDataTypes,
-): Record<SearchColumnType, boolean> {
+): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return {
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -2296,18 +2322,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.IN]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: false,
         };
     }
 
@@ -2336,7 +2350,7 @@ function getColumnsToShow(
         };
     }
 
-    const columns: Record<string, boolean> = isExpenseReportView
+    const columns: ColumnVisibility = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
