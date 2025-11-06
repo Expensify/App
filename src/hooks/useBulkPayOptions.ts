@@ -1,7 +1,7 @@
 import truncate from 'lodash/truncate';
 import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
-import {Bank, Building, Wallet, Cash, User} from '@components/Icon/Expensicons';
+import {Bank, Building, Cash, User, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
