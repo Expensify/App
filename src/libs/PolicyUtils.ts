@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {BankAccountShareDetails, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -187,12 +187,19 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
 }
 
 /** Return admins from active policies */
-function getActiveAllAdminsFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): MemberForList[] {
+function getActiveAllAdminsFromWorkspaces(
+    policies: OnyxCollection<Policy> | null,
+    currentUserLogin: string | undefined,
+    bankAccountID: string | undefined,
+    bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
+): MemberForList[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const adminMap = new Map<string, MemberForList>();
     Object.values(activePolicies ?? {}).forEach((policy) => {
         getAdminEmployees(policy).forEach((admin) => {
-            if (!admin?.email || adminMap.has(admin.email)) {
+            const accountID = admin.email ? getAccountIDsByLogins([admin.email]).at(0) : undefined;
+            const isBankAlreadyShared = !!(bankAccountID && accountID && bankAccountShareDetails?.[`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${accountID}`]);
+            if (!admin?.email || adminMap.has(admin.email) || isBankAlreadyShared) {
                 return;
             }
             const personalDetails = getPersonalDetailByEmail(admin.email);

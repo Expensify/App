@@ -6,6 +6,7 @@ import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
+import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
@@ -265,6 +266,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,

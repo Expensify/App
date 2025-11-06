@@ -33,6 +33,8 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: false});
+
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const isLoading = sharedBankAccountData?.isLoading ?? false;
@@ -44,7 +46,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getActiveAllAdminsFromWorkspaces(allPolicies, currentUserLogin);
+    const admins = getActiveAllAdminsFromWorkspaces(allPolicies, currentUserLogin, bankAccountID, bankAccountShareDetails);
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
@@ -86,7 +88,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             return [];
         }
 
-        let adminsToDisplay = admins;
+        let adminsToDisplay = admins.map((admin) => ({...admin, isSelected: selectedOptions.some((selectedOption) => selectedOption.login === admin.login)}));
 
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
@@ -94,27 +96,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             adminsToDisplay = tokenizedSearch(admins, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
-        // Filter to show selected admins first, then apply search filter to selected admins
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-            });
-        }
-
-        const selectedLogins = Array.from(new Set(selectedOptions.map(({login}) => login)));
-        const unselectedAdmins = adminsToDisplay.filter(({login}) => !selectedLogins.includes(login));
-
-        const allAdminsWithState: MemberForList[] = [];
-        filterSelectedOptions.forEach((member) => {
-            allAdminsWithState.push({...member, isSelected: true});
-        });
-        unselectedAdmins.forEach((member) => {
-            allAdminsWithState.push({...member, isSelected: false});
-        });
-
-        return allAdminsWithState;
+        return adminsToDisplay;
     }, [admins, countryCode, debouncedSearchTerm, selectedOptions]);
 
     const sections = useMemo(
