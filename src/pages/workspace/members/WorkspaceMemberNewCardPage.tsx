@@ -66,7 +66,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     const illustrations = useThemeIllustrations();
-    const [cardFeeds, , , isLoading] = useCardFeeds(policyID);
+    const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
@@ -215,7 +215,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseSelectOne')}
                     buttonText={translate('common.next')}
-                    isLoading={isLoading}
+                    isLoading={!!defaultFeed?.isLoading}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

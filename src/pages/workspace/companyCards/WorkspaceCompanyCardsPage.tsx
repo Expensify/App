@@ -56,8 +56,9 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [cardFeeds, , , isCardFeedsLoading] = useCardFeeds(policyID);
+    const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const originalFeed = selectedFeed ? getOriginalFeed(selectedFeed) : undefined;
     const [cardsList] = useCardsList(selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -84,7 +85,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policyID, domainOrWorkspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (isCardFeedsLoading && isEmptyObject(cardsList)));
+    const isLoading = !isOffline && (!cardFeeds || (!!defaultFeed?.isLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
@@ -93,12 +94,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [fetchCompanyCards]);
 
     useEffect(() => {
-        if (isLoading || !selectedFeed || isPending) {
+        if (isLoading || !originalFeed || isPending) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, getOriginalFeed(selectedFeed));
-    }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, originalFeed);
+    }, [originalFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
@@ -119,7 +120,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         const data: Partial<AssignCardData> = {
-            bankName: getOriginalFeed(selectedFeed),
+            bankName: originalFeed,
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;

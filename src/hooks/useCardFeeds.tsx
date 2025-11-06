@@ -32,7 +32,7 @@ type CombinedCardFeeds = Record<CombinedFeedKey, CombinedCardFeed>;
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, boolean] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
@@ -74,7 +74,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
         }, result);
     }, [allFeeds, policyID]);
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed, !!defaultFeed?.isLoading];
+    return [workspaceFeeds, allFeedsResult, defaultFeed];
 };
 
 export default useCardFeeds;
