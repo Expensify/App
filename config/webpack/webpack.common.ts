@@ -30,6 +30,7 @@ const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin') as PreloadWe
 
 const includeModules = [
     'react-native-reanimated',
+    'react-native-worklets',
     'react-native-picker-select',
     'react-native-web',
     'react-native-webview',
