@@ -73,6 +73,9 @@ const mockReportItemWithHold = {
                 id: '48D7178DE42EE9F9',
                 role: 'admin',
                 owner: 'apb@apb.com',
+                name: 'Policy',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -162,6 +165,9 @@ const mockReportItemWithHold = {
                 id: '48D7178DE42EE9F9',
                 role: 'admin',
                 owner: 'apb@apb.com',
+                name: 'Policy',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -183,7 +189,6 @@ const mockReportItemWithHold = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: 1206,
             merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',
