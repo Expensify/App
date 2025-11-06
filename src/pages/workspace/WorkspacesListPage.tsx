@@ -147,6 +147,7 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
@@ -217,6 +218,7 @@ function WorkspacesListPage() {
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
+            bankAccountList,
             lastPaymentMethod,
         );
         if (isOffline) {
@@ -781,7 +783,14 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={
+                    shouldUseNarrowLayout && (
+                        <NavigationTabBar
+                            selectedTab={NAVIGATION_TABS.WORKSPACES}
+                            shouldShowFloatingCameraButton={false}
+                        />
+                    )
+                }
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <View style={styles.topBarWrapper}>
@@ -805,7 +814,14 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                shouldUseNarrowLayout && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>

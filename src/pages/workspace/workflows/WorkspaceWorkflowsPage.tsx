@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -131,7 +130,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD, true).length > 0;
             if (hasValidExistingUSDAccounts) {
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
             } else {
@@ -153,10 +152,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useFocusEffect(() => {
-        getPaymentMethods(true);
-    });
 
     const confirmDisableApprovals = useCallback(() => {
         setIsDisableApprovalsConfirmModalOpen(false);
@@ -202,10 +197,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
-        const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
-        const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const state = accountData.state ?? '';
+        const shouldShowBankAccount =
+            (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO && policy?.achAccount?.reimburser === currentUserLogin;
 
-        const isAccountInSetupState = bankAccountID ? isBankAccountPartiallySetup(state) && policy?.achAccount?.reimburser === currentUserLogin : isBankAccountPartiallySetup(state);
+        const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;

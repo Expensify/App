@@ -87,6 +87,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -225,12 +226,33 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
+        deleteWorkspace(
+            policy.id,
+            policyName,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            bankAccountList,
+            lastPaymentMethod,
+        );
         if (isOffline) {
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
+    }, [
+        policy?.id,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        defaultCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        bankAccountList,
+        lastPaymentMethod,
+        isOffline,
+    ]);
 
     const handleLeaveWorkspace = useCallback(() => {
         if (!policy?.id) {
