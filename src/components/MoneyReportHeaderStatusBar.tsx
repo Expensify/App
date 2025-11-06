@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseMessage} from '@libs/NextStepUtils';
@@ -27,11 +28,12 @@ const iconMap: IconMap = {
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
-        return parseMessage(messageArray);
-    }, [nextStep?.message]);
+        return parseMessage(messageArray, currentUserPersonalDetails.email ?? '');
+    }, [nextStep?.message, currentUserPersonalDetails.email]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
