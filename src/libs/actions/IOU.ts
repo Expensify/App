@@ -14399,6 +14399,7 @@ export {
     initSplitExpense,
     initSplitExpenseItemData,
     addSplitExpenseField,
+    evenlyDistributeSplitExpenseAmounts,
     updateSplitExpenseAmountField,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,

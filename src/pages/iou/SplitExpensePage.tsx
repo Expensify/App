@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
@@ -22,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    evenlyDistributeSplitExpenseAmounts,
     getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
@@ -115,6 +117,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction, transactionID]);
+
+    const onMakeSplitsEven = useCallback(() => {
+        if (!draftTransaction) {
+            return;
+        }
+        evenlyDistributeSplitExpenseAmounts(draftTransaction);
+    }, [draftTransaction]);
 
     const onSaveSplitExpense = useCallback(() => {
         if (splitExpenses.length <= 1 && !childTransactions.length) {
@@ -280,20 +289,27 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    success
+    const listFooterContent = useMemo(() => {
+        const shouldShowMakeSplitsEven = childTransactions.length === 0;
+        return (
+            <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
+                <MenuItem
                     onPress={onAddSplitExpense}
+                    title={translate('iou.addSplit')}
                     icon={Expensicons.Plus}
-                    text={translate('iou.addSplit')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={[styles.ph4]}
                 />
+                {shouldShowMakeSplitsEven && (
+                    <MenuItem
+                        onPress={onMakeSplitsEven}
+                        title={translate('iou.makeSplitsEven')}
+                        icon={Expensicons.ArrowsLeftRight}
+                        style={[styles.ph4]}
+                    />
+                )}
             </View>
-        ),
-        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
-    );
+        );
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
@@ -301,10 +317,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View
-                ref={footerRef}
-                style={styles.pt3}
-            >
+            <View ref={footerRef}>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -324,7 +337,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -376,12 +389,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
-                        headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto, styles.pt1]}
+                        containerStyle={[styles.flexBasisAuto]}
                         footerContent={footerContent}
+                        listFooterContent={listFooterContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
