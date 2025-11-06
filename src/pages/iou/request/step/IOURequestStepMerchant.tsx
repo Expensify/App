@@ -70,7 +70,7 @@ function IOURequestStepMerchant({
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (isMerchantRequired && value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+            } else if (isMerchantRequired && (value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || value.moneyRequestMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT)) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', {
