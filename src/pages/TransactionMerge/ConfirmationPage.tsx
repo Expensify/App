@@ -10,12 +10,14 @@ import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getReportIDForExpense} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -35,20 +37,15 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const {transactionID, backTo, hash} = route.params;
 
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction, hash});
+    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
 
-    const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
-    let [targetTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`, {canBeMissing: true});
-    if (hash) {
-        targetTransactionParentReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionParentReportID}`];
-    }
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const policyID = targetTransactionParentReport?.policyID;
+    const policyID = targetTransactionReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -63,16 +60,39 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
-        mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
+        mergeTransactionRequest({
+            mergeTransactionID: transactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy,
+            policyTags,
+            policyCategories,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+            isASAPSubmitBetaEnabled,
+        });
 
         if (hash) {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         } else {
             Navigation.dismissModalWithReport({reportID});
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, policy, policyTags, policyCategories, hash]);
+    }, [
+        targetTransaction,
+        mergeTransaction,
+        sourceTransaction,
+        transactionID,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+        hash,
+    ]);
 
-    if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionParentReport?.reportID) {
+    if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionReport?.reportID) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -96,7 +116,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <MoneyRequestView
                         allReports={allReports}
                         expensePolicy={policy}
-                        parentReportProp={targetTransactionParentReport}
+                        parentReportProp={targetTransactionReport}
                         shouldShowAnimatedBackground={false}
                         readonly
                         updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
