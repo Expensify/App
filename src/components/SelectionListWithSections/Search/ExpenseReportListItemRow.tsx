@@ -4,7 +4,7 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import type {ReportListItemType} from '@components/SelectionListWithSections/types';
+import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,8 +17,8 @@ import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
 
-type ReportListItemRowProps = {
-    item: ReportListItemType;
+type ExpenseReportListItemRowProps = {
+    item: ExpenseReportListItemType;
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
@@ -31,7 +31,7 @@ type ReportListItemRowProps = {
     isDisabled?: boolean;
 };
 
-function ReportListItemRow({
+function ExpenseReportListItemRow({
     item,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
@@ -43,7 +43,7 @@ function ReportListItemRow({
     isSelectAllChecked,
     isIndeterminate,
     isDisabled,
-}: ReportListItemRowProps) {
+}: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -191,6 +191,6 @@ function ReportListItemRow({
     );
 }
 
-ReportListItemRow.displayName = 'ReportListItemRow';
+ExpenseReportListItemRow.displayName = 'ExpenseReportListItemRow';
 
-export default ReportListItemRow;
+export default ExpenseReportListItemRow;

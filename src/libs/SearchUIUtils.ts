@@ -20,7 +20,7 @@ import type {
     SortOrder,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ReportListItem from '@components/SelectionListWithSections/Search/ReportListItem';
+import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -1637,7 +1637,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
         return TaskListItem;
     }
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return ReportListItem;
+        return ExpenseReportListItem;
     }
     if (groupBy) {
         return TransactionGroupListItem;

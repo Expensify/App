@@ -353,7 +353,7 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
-type ReportListItemType = TransactionReportGroupListItemType;
+type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
@@ -538,7 +538,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     /** Callback to fire when DEW modal should be opened */
@@ -1008,7 +1008,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ReportListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
 export type {
     BaseListItemProps,
@@ -1035,8 +1035,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
-    ReportListItemType,
-    ReportListItemProps,
+    ExpenseReportListItemType,
+    ExpenseReportListItemProps,
     TaskListItemType,
     TaskListItemProps,
     TransactionListItemProps,

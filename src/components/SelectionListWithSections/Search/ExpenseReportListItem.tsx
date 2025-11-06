@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
-import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionListWithSections/types';
+import type {ExpenseReportListItemProps, ExpenseReportListItemType, ListItem} from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,9 +11,9 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
-import ReportListItemRow from './ReportListItemRow';
+import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
-function ReportListItem<TItem extends ListItem>({
+function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
     isFocused,
@@ -26,8 +26,8 @@ function ReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
-}: ReportListItemProps<TItem>) {
-    const reportItem = item as unknown as ReportListItemType;
+}: ExpenseReportListItemProps<TItem>) {
+    const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -102,7 +102,7 @@ function ReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             shouldShowRightCaret={isLargeScreenWidth}
         >
-            <ReportListItemRow
+            <ExpenseReportListItemRow
                 item={reportItem}
                 isActionLoading={isLoading ?? reportItem.isActionLoading}
                 showTooltip={showTooltip}
@@ -118,6 +118,6 @@ function ReportListItem<TItem extends ListItem>({
     );
 }
 
-ReportListItem.displayName = 'ReportListItem';
+ExpenseReportListItem.displayName = 'ExpenseReportListItem';
 
-export default ReportListItem;
+export default ExpenseReportListItem;
