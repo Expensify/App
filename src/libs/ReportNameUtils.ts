@@ -480,7 +480,7 @@ function computeReportName(
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
     transactions?: OnyxCollection<Transaction>,
-    reportNameValuePairsList?: ReportNameValuePairsCollectionDataSet,
+    reportNameValuePairsList?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
 ): string {
