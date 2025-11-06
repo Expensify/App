@@ -1389,9 +1389,9 @@ const translations = {
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'Should you hold this expense?',
-        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense until you\'re ready to submit it.',
+        whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
         holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
-        unholdWhenReady: 'Unhold expenses when you\'re ready to submit them.',
+        unholdWhenReady: "Unhold expenses when you're ready to submit them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
