@@ -267,6 +267,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6116,6 +6117,7 @@ ${amount} für ${merchant} - ${date}`,
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'aktiviert' : 'Deaktiviert'} Erstattungen für diesen Arbeitsbereich`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

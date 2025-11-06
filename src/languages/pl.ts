@@ -267,6 +267,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6099,6 +6100,7 @@ ${amount} dla ${merchant} - ${date}`,
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
