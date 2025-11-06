@@ -371,7 +371,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID4}`]: report4,
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
-            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -415,7 +414,6 @@ const searchResults: OnyxTypes.SearchResults = {
             convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
-            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -460,7 +458,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
-            accountID: adminAccountID,
             amount: 1200,
             action: 'view',
             canDelete: true,
@@ -504,7 +501,6 @@ const searchResults: OnyxTypes.SearchResults = {
             convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
-            accountID: adminAccountID,
             amount: 3200,
             action: 'view',
             canDelete: true,
@@ -2321,7 +2317,6 @@ describe('SearchUIUtils', () => {
                     personalDetailsList: {},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
-                        accountID: 2074551,
                         amount: 0,
                         canDelete: false,
                         canHold: true,
@@ -2456,7 +2451,6 @@ describe('SearchUIUtils', () => {
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
-                    accountID: 2074551,
                     amount: 0,
                     canDelete: false,
                     canHold: true,

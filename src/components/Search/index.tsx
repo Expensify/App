@@ -118,7 +118,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.report?.ownerAccountID,
         },
     ];
 }
@@ -198,7 +198,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.report?.ownerAccountID,
         },
     };
 }
@@ -476,7 +476,7 @@ function Search({
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
-                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                        ownerAccountID: transactionItem.report?.ownerAccountID,
                     };
                 });
             });
@@ -513,7 +513,7 @@ function Search({
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
-                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                    ownerAccountID: transactionItem.report?.ownerAccountID,
                 };
             });
         }

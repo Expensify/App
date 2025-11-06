@@ -295,9 +295,6 @@ type SearchTransaction = {
     /** The transaction description */
     description?: string;
 
-    /** The transaction sender ID */
-    accountID: number;
-
     /** The transaction recipient ID */
     managerID: number;
 
