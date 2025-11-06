@@ -628,7 +628,7 @@ const translations = {
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         leaveWorkspace: 'Salir del espacio de trabajo',
-        leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él',
+        leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él.',
         leaveWorkspaceConfirmationAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
         leaveWorkspaceConfirmationAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
