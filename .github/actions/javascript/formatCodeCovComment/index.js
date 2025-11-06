@@ -11601,10 +11601,20 @@ function extractCoverageDeltaTable(body) {
     const lines = remainingText.split('\n');
     const tableLines = [];
     let emptyLineCount = 0;
+    let foundTableStart = false;
     for (const line of lines) {
         const trimmedLine = line.trim();
-        // Stop at the "New features" section
-        if (trimmedLine.includes('🚀 New features')) {
+        // Skip lines until we find the actual table header (line starting with |)
+        if (!foundTableStart) {
+            if (trimmedLine.startsWith('|') && trimmedLine.includes('Coverage Δ')) {
+                foundTableStart = true;
+            }
+            else {
+                continue;
+            }
+        }
+        // Stop at the "New features" section (can be emoji or <details> tag)
+        if (trimmedLine.includes('🚀 New features') || trimmedLine.includes(':rocket: New features') || trimmedLine.startsWith('<details>')) {
             break;
         }
         // Track empty lines
