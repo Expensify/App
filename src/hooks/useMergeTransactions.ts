@@ -34,6 +34,7 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
     if (hash) {
         targetTransaction = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
         sourceTransaction = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
+        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
     } else {
         targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction) ?? onyxTargetTransaction;
         sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction) ?? onyxSourceTransaction;
@@ -43,14 +44,10 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
         canBeMissing: true,
     });
 
-    if (hash) {
-        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`] ?? onyxTargetTransactionReport;
-    }
-
     return {
         targetTransaction,
         sourceTransaction,
-        targetTransactionReport,
+        targetTransactionReport: targetTransactionReport ?? onyxTargetTransactionReport,
     };
 }
 
