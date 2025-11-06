@@ -7387,7 +7387,7 @@ ${amount} para ${merchant} - ${date}`,
         upload: 'Carregar',
         uploadPhoto: 'Carregar foto',
         selectAvatar: 'Selecionar avatar',
-        chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+        choosePresetAvatar: 'Ou escolha um avatar personalizado',
     },
     openAppFailureModal: {
         title: 'Algo deu errado...',

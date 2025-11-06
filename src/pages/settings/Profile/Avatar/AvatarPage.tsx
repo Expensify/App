@@ -17,12 +17,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, isPresetAvatarID as isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isCustomAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName, isPresetAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -68,7 +68,7 @@ function ProfileAvatar() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     // eslint-disable-next-line no-nested-ternary
     let avatarURL: AvatarSource = '';
-    if (selected && isCustomAvatarID(selected)) {
+    if (selected && isPresetAvatarID(selected)) {
         avatarURL = getAvatarLocal(selected);
     } else if (selected) {
         avatarURL = avatars[selected];
@@ -77,8 +77,8 @@ function ProfileAvatar() {
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-
-    const isUsingDefaultAvatar = (!imageData.uri && (isCustomAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit = (!imageData.uri && (isPresetAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -138,7 +138,7 @@ function ProfileAvatar() {
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
-        isUsingDefaultAvatar,
+        shouldHideAvatarEdit,
         accountID,
         onImageRemoved,
         showAvatarCropModal,
@@ -162,7 +162,7 @@ function ProfileAvatar() {
             return;
         }
 
-        if (selected && isCustomAvatarID(selected)) {
+        if (selected && isPresetAvatarID(selected)) {
             updateAvatar(
                 {
                     uri: getAvatarURL(selected),
@@ -269,7 +269,7 @@ function ProfileAvatar() {
             >
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
-                        label={translate('avatarPage.chooseCustomAvatar')}
+                        label={translate('avatarPage.choosePresetAvatar')}
                         name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={(id) => {
