@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -120,6 +121,7 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -200,6 +202,8 @@ function MoneyRequestParticipantsSelector({
                 canShowManagerMcTest,
                 isPerDiemRequest,
                 showRBR: false,
+                isRestrictedToPreferredPolicy,
+                preferredPolicyID,
             },
             countryCode,
         );
@@ -223,9 +227,11 @@ function MoneyRequestParticipantsSelector({
         action,
         isCategorizeOrShareAction,
         isPerDiemRequest,
-        canShowManagerMcTest,
-        countryCode,
         isCorporateCardTransaction,
+        canShowManagerMcTest,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
+        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {
