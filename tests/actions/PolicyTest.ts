@@ -1130,19 +1130,27 @@ describe('actions/Policy', () => {
             expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
 
-        it('should update active policy ID to first alphabetically-ordered group policy when deleting the active policy', async () => {
-            const firstAlphabeticallyOrderedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
-            firstAlphabeticallyOrderedGroupPolicy.name = '111 First alphabetically';
-            firstAlphabeticallyOrderedGroupPolicy.pendingAction = null;
-
+        it('should update active policy ID to most recently created group policy when deleting the active policy', async () => {
             const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
-            const randomGroupPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
-            const randomGroupPolicy2 = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${firstAlphabeticallyOrderedGroupPolicy.id}`, firstAlphabeticallyOrderedGroupPolicy);
+            const randomGroupPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            randomGroupPolicy.created = '2021-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy2 = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            randomGroupPolicy2.created = '2022-01-01 10:00:00';
+            randomGroupPolicy2.pendingAction = null;
+
+            const mostRecentlyCreatedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            mostRecentlyCreatedGroupPolicy.created = '2023-01-01 10:00:00';
+            mostRecentlyCreatedGroupPolicy.pendingAction = null;
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy.id}`, randomGroupPolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy2.id}`, randomGroupPolicy2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mostRecentlyCreatedGroupPolicy.id}`, mostRecentlyCreatedGroupPolicy);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, randomGroupPolicy.id);
             await waitForBatchedUpdates();
 
@@ -1159,7 +1167,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            expect(activePolicyID).toBe(firstAlphabeticallyOrderedGroupPolicy.id);
+            expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {

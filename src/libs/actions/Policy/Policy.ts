@@ -444,11 +444,11 @@ function deleteWorkspace(
     ];
 
     if (policyID === activePolicyID) {
-        const firstAlphabeticallyOrderedGroupPolicy = Object.values(allPolicies ?? {})
+        const mostRecentlyCreatedGroupPolicy = Object.values(allPolicies ?? {})
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .sort((policyA, policyB) => localeCompare(policyA?.name ?? '', policyB?.name ?? ''))
+            .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
-        const newActivePolicyID = firstAlphabeticallyOrderedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
+        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
