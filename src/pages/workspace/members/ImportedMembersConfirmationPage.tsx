@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -57,6 +57,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             clearImportedSpreadsheetMemberData();
         };
     }, []);
+
+    const handleModalHide = useCallback(() => {
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    }, [policyID]);
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
     const newMembers = useMemo(() => {
@@ -210,9 +214,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
                 closeImportPageAndModal={closeImportPageAndModal}
-                onModalHide={() => {
-                    Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-                }}
+                onModalHide={handleModalHide}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
