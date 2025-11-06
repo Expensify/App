@@ -22,6 +22,7 @@ export default function mockFSLibrary() {
             identify: jest.fn(),
             consentAndIdentify: jest.fn(),
             anonymize: jest.fn(),
+            getSessionId: jest.fn().mockResolvedValue(undefined),
         };
     });
 }

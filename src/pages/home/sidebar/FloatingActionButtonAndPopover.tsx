@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
@@ -15,9 +16,9 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
@@ -32,14 +33,12 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
-import {isAnonymousUser} from '@libs/actions/Session';
 import {startTestDrive} from '@libs/actions/Tour';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {
@@ -48,7 +47,6 @@ import {
     getDefaultChatEnabledPolicy,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     isPaidGroupPolicy,
-    isPolicyMember,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
@@ -175,19 +173,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
-    });
-    const reportID = useMemo(() => generateReportID(), []);
 
-    const {
-        taskReport: viewTourTaskReport,
-        taskParentReport: viewTourTaskParentReport,
-        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
-        hasOutstandingChildTask,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
-    const parentReportAction = useParentReportAction(viewTourTaskReport);
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
+    const reportID = useMemo(() => generateReportID(), []);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>);
@@ -318,7 +306,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
 
@@ -431,7 +419,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID: currentUserPersonalDetails.accountID});
+                    const targetAccountPersonalDetails = {
+                        ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                        accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    };
+
+                    navigateToQuickAction({
+                        isValidReport,
+                        quickAction,
+                        selectOption,
+                        lastDistanceExpenseType,
+                        targetAccountPersonalDetails,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                    });
                 });
             };
             return [
@@ -492,6 +492,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         isValidReport,
         selectOption,
         lastDistanceExpenseType,
+        personalDetails,
         currentUserPersonalDetails.accountID,
         showDelegateNoAccessModal,
         reportID,
@@ -609,21 +610,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () =>
-                          interceptAnonymousUser(() =>
-                              startTestDrive(
-                                  introSelected,
-                                  isAnonymousUser(),
-                                  tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                                  isUserPaidPolicyMember,
-                                  viewTourTaskReport,
-                                  viewTourTaskParentReport,
-                                  isViewTourTaskParentReportArchived,
-                                  currentUserPersonalDetails.accountID,
-                                  hasOutstandingChildTask,
-                                  parentReportAction,
-                              ),
-                          ),
+                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
                   },
               ]
             : []),
