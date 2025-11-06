@@ -786,7 +786,6 @@ const reportActionListItems = [
 
 const transactionsListItems = [
     {
-        accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
         amount: -5000,
@@ -855,7 +854,6 @@ const transactionsListItems = [
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         action: 'approve',
         allActions: ['approve'],
         amount: -5000,
@@ -929,7 +927,6 @@ const transactionsListItems = [
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         amount: 1200,
         action: 'view',
         allActions: ['view'],
@@ -998,7 +995,6 @@ const transactionsListItems = [
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         amount: 3200,
         action: 'view',
         allActions: ['view'],
@@ -1104,7 +1100,6 @@ const transactionReportGroupListItems = [
         total: -5000,
         transactions: [
             {
-                accountID: 18439984,
                 action: 'submit',
                 allActions: ['submit'],
                 report: report1,
@@ -1211,7 +1206,6 @@ const transactionReportGroupListItems = [
         total: -5000,
         transactions: [
             {
-                accountID: 18439984,
                 action: 'approve',
                 allActions: ['approve'],
                 report: report2,
@@ -1778,7 +1772,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 57;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1806,7 +1800,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 57;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
