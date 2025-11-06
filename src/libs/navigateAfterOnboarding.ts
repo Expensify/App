@@ -12,7 +12,6 @@ const navigateAfterOnboarding = (
     shouldPreventOpenAdminRoom = false,
 ) => {
     setDisableDismissOnEscape(false);
-    Navigation.dismissModal();
 
     let reportID: string | undefined;
 
@@ -57,6 +56,7 @@ const navigateAfterOnboardingWithMicrotaskQueue = (
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
+    Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });

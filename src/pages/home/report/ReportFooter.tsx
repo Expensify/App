@@ -144,8 +144,10 @@ function ReportFooter({
                 if (isValidMention) {
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
-                        const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID, personalDetail.accountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(personalDetail.accountID, {
+                            accountID: generateAccountID(mentionWithDomain),
+                            login: mentionWithDomain,
+                        });
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }

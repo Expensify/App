@@ -2,6 +2,9 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -13,7 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy} from '@src/types/onyx';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -43,6 +47,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
+
     /** Whether the item is hovered */
     isHovered?: boolean;
 
@@ -66,9 +76,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
     handleOnButtonPress?: () => void;
 
-    /** Whether the action button should be displayed */
-    shouldShowAction?: boolean;
-
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
@@ -77,6 +84,12 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -85,13 +98,16 @@ function HeaderFirstRow<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     handleOnButtonPress = () => {},
-    shouldShowAction = false,
     avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
+    onDownArrowClick,
+    isExpanded,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -133,13 +149,32 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
+            <View style={[styles.flexShrink0, styles.gap1, styles.pr3]}>
                 <TotalCell
                     total={total}
                     currency={currency}
                 />
+                {!isLargeScreenWidth && !!onDownArrowClick && (
+                    <View>
+                        <PressableWithFeedback
+                            onPress={onDownArrowClick}
+                            style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                        >
+                            {({hovered}) => (
+                                <Icon
+                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    fill={theme.icon}
+                                    additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                    small
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </View>
+                )}
             </View>
-            {shouldShowAction && (
+            {isLargeScreenWidth && (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={reportItem.action}
@@ -150,6 +185,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
+                        extraSmall={!isLargeScreenWidth}
                     />
                 </View>
             )}
@@ -166,6 +202,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
+    onDownArrowClick,
+    isExpanded,
     isHovered,
     onDEWModalOpen,
 }: ReportListItemHeaderProps<TItem>) {
@@ -179,10 +217,11 @@ function ReportListItemHeader<TItem extends ListItem>({
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, reportItem.reportID]);
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
@@ -202,7 +241,13 @@ function ReportListItemHeader<TItem extends ListItem>({
         );
     };
     return !isLargeScreenWidth ? (
-        <View>
+        <View style={[styles.pv1Half]}>
+            <UserInfoAndActionButtonRow
+                item={reportItem}
+                handleActionButtonPress={handleOnButtonPress}
+                shouldShowUserInfo={showUserInfo}
+                containerStyles={[styles.pr3, styles.mb2]}
+            />
             <HeaderFirstRow
                 report={reportItem}
                 onCheckboxPress={onCheckboxPress}
@@ -211,12 +256,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
-            />
-            <UserInfoAndActionButtonRow
-                item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
-                shouldShowUserInfo={showUserInfo}
-                containerStyles={[styles.pr0]}
+                onDownArrowClick={onDownArrowClick}
+                isExpanded={isExpanded}
             />
         </View>
     ) : (
@@ -226,11 +267,12 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
+                onDownArrowClick={onDownArrowClick}
+                isExpanded={isExpanded}
             />
         </View>
     );

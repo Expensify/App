@@ -12,7 +12,7 @@ import useOnyx from './useOnyx';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,
-    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_DESTINATION'
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_LOG' | 'SEARCH_CONTEXT_SHARE_DESTINATION'
 >];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
@@ -206,6 +206,25 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     excludeLogins,
                 });
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
+                return getValidOptions(
+                    optionsWithContacts,
+                    draftComments,
+                    {
+                        betas,
+                        includeMultipleParticipantReports: true,
+                        includeP2P: true,
+                        forcePolicyNamePreview: true,
+                        includeOwnedWorkspaceChats: true,
+                        includeSelfDM: true,
+                        includeThreads: true,
+                        includeReadOnly: false,
+                        searchString: computedSearchTerm,
+                        maxElements: maxResults,
+                        includeUserToInvite,
+                    },
+                    countryCode,
+                );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, draftComments, {
                     betas,

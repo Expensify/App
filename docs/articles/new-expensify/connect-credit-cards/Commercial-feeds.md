@@ -1,7 +1,7 @@
 ---
 title: Commercial Card Feeds
 description: Learn how to set up and manage commercial card feeds (Visa, Mastercard, Amex) in Expensify.
-keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed, company cards, corporate cards, CDF, VCF, control account]
+keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed, company cards, corporate cards, CDF, VCF, GL1025, control account]
 ---
 
 Commercial feeds are the most reliable way to import company card expenses. These feeds are not affected by login credential changes or banking UI updates, making them ideal for growing teams and finance admins. 

@@ -40,6 +40,9 @@ const mockTransaction: TransactionListItemType = {
         type: 'team',
         role: 'admin',
         owner: 'test@test.com',
+        name: 'Policy',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',
@@ -121,6 +124,7 @@ const mockReport: TransactionReportGroupListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
+    action: 'view',
     transactions: [],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',

@@ -4,6 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -263,7 +264,7 @@ const ViolationsUtils = {
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
@@ -539,7 +540,7 @@ const ViolationsUtils = {
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {formattedLimit, category});
+                return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
             case 'customRules':
                 return translate('violations.customRules', {message});
             case 'rter':

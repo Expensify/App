@@ -90,6 +90,7 @@ jest.mock('react-native-reanimated', () => ({
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
     LayoutAnimationConfig: jest.fn,
+    makeShareableCloneRecursive: jest.fn,
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
@@ -105,6 +106,15 @@ jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
     clearData: jest.fn(),
+}));
+
+jest.mock('@src/setup/telemetry', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+    navigationIntegration: {
+        registerNavigationContainer: jest.fn(),
+    },
 }));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({

@@ -61,7 +61,7 @@ function ReportFieldsValueSettingsPage({
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
 
-    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
+    if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
     const deleteListValueAndHideModal = () => {
@@ -112,7 +112,7 @@ function ReportFieldsValueSettingsPage({
                 />
                 <ConfirmModal
                     title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen}
+                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
                     onConfirm={deleteListValueAndHideModal}
                     onCancel={() => setIsDeleteTagModalOpen(false)}
                     shouldSetModalVisibility={false}
@@ -139,11 +139,13 @@ function ReportFieldsValueSettingsPage({
                         interactive={!reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteTagModalOpen(true)}
-                    />
+                    {!hasAccountingConnections && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteTagModalOpen(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

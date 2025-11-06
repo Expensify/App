@@ -204,6 +204,8 @@ const CONST = {
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
     ANIMATED_HIGHLIGHT_START_DELAY: 10,
     ANIMATED_HIGHLIGHT_START_DURATION: 300,
+    ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DELAY: 7000,
+    ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION: 3000,
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
@@ -228,6 +230,8 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+    POPOVER_MENU_MAX_HEIGHT: 496,
+    POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -425,8 +429,6 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
-    FREE_TRIAL_MARKDOWN:
-        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -702,7 +704,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -987,7 +988,7 @@ const CONST = {
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
-        'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
+        'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-do-i-enable-camera-access-for-mobile-browsers-so-i-can-take-photos-of-my-receipts',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -1148,7 +1149,6 @@ const CONST = {
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -1310,6 +1310,7 @@ const CONST = {
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
@@ -1335,6 +1336,7 @@ const CONST = {
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
+                    UPDATE_ROOM_AVATAR: 'UPDATEROOMAVATAR',
                 },
                 REJECTEDTRANSACTION_THREAD: 'REJECTEDTRANSACTION_THREAD',
                 REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
@@ -1609,6 +1611,11 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+    },
+    TELEMETRY: {
+        CONTEXT_FULLSTORY: 'Fullstory',
+        CONTEXT_POLICIES: 'Policies',
+        TAG_ACTIVE_POLICY: 'active_policy_id',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2071,6 +2078,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify',
     EMAIL,
@@ -2852,6 +2860,12 @@ const CONST = {
         },
     },
 
+    CATEGORY_SOURCE: {
+        AI: 'agentZero',
+        MCC: 'mccMapping',
+        MANUAL: 'manual',
+    } as const,
+
     GROWL: {
         SUCCESS: 'success',
         ERROR: 'error',
@@ -3248,6 +3262,7 @@ const CONST = {
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+        SMALL: 'small',
     },
 
     QR_CODE_SIZE: {
@@ -5178,6 +5193,11 @@ const CONST = {
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 
+    ACCESSIBILITY_LABELS: {
+        COLLAPSE: 'Collapse',
+        EXPAND: 'Expand',
+    },
+
     /**
      * Acceptable values for the `role` attribute on react native components.
      *
@@ -5332,6 +5352,7 @@ const CONST = {
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
         LARGE: 'large',
         MEDIUM: 'medium',
         SMALL: 'small',
@@ -5348,6 +5369,7 @@ const CONST = {
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
             POP_TO: 'POP_TO',
+            GO_BACK: 'GO_BACK',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
@@ -6496,7 +6518,6 @@ const CONST = {
         },
         ACTION_TYPES: {
             VIEW: 'view',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -6666,6 +6687,16 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'reportField',
+        },
+        REPORT_FIELD: {
+            // All report fields start with this, so use this to check if a search key is a report field
+            GLOBAL_PREFIX: 'reportField',
+            DEFAULT_PREFIX: 'reportField-',
+            NOT_PREFIX: 'reportFieldNot-',
+            ON_PREFIX: 'reportFieldOn-',
+            AFTER_PREFIX: 'reportFieldAfter-',
+            BEFORE_PREFIX: 'reportFieldBefore-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6719,6 +6750,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawal-id',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'report-field',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -6776,6 +6808,7 @@ const CONST = {
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+        SEARCH_CONTEXT_SHARE_LOG: 'shareLog',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
     },
     EXPENSE: {
@@ -6993,6 +7026,14 @@ const CONST = {
                 title: 'workspace.upgrade.distanceRates.title' as const,
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
+            },
+            auditor: {
+                id: 'auditor' as const,
+                alias: 'auditor',
+                name: 'Auditor',
+                title: 'workspace.upgrade.auditor.title' as const,
+                description: 'workspace.upgrade.auditor.description' as const,
+                icon: 'BlueShield',
             },
             reports: {
                 id: 'reports' as const,
@@ -7341,6 +7382,7 @@ const FRAUD_PROTECTION_EVENT = {
     VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
     BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
     PERSONAL_BANK_ACCOUNT_SETUP: 'PersonalBankAccountSetup',
+    NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

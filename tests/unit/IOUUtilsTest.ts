@@ -275,7 +275,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -333,7 +333,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -393,7 +393,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -411,7 +411,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const report: Report = {
-            ...createRandomReport(7),
+            ...createRandomReport(7, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,

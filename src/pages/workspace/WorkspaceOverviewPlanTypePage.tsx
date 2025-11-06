@@ -8,8 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -129,8 +129,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             </Text>
                         )}
                         <SelectionList
-                            shouldIgnoreFocus
-                            sections={[{data: workspacePlanTypes, isDisabled: isPlanTypeLocked}]}
+                            data={workspacePlanTypes}
+                            isDisabled={isPlanTypeLocked}
                             ListItem={RadioListItem}
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
@@ -138,7 +138,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             rightHandSideComponent={isPlanTypeLocked ? lockedIcon : null}
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
-                            initiallyFocusedOptionKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            shouldIgnoreFocus
+                            initiallyFocusedItemKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button

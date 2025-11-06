@@ -579,7 +579,7 @@ describe('Unread Indicators', () => {
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
                     if (lastReportAction) {
-                        deleteReportComment(REPORT_ID, lastReportAction, undefined, undefined);
+                        deleteReportComment(REPORT_ID, lastReportAction, [], undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -616,7 +616,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(REPORT_ID, firstNewReportAction, undefined, undefined);
+            deleteReportComment(REPORT_ID, firstNewReportAction, [], undefined, undefined);
 
             await waitForBatchedUpdates();
         }
@@ -660,8 +660,7 @@ describe('Unread Indicators', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 
         const selfDMReport = {
-            ...createRandomReport(2),
-            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.SELF_DM),
             type: CONST.REPORT.TYPE.CHAT,
             lastMessageText: 'test',
         };

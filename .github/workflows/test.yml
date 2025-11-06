@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
+      NODE_OPTIONS: --max_old_space_size=8192
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [ 1, 2, 3, 4 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout

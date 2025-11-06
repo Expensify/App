@@ -333,6 +333,18 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
 
+        it('should not add categoryOutOfPolicy violation when category is Uncategorized', () => {
+            transaction.category = 'Uncategorized';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should not add categoryOutOfPolicy violation when category is none', () => {
+            transaction.category = 'none';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
+        });
+
         it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
             transaction.category = 'Bananas';
             transaction.amount = 1000000;

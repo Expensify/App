@@ -20,8 +20,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -97,10 +95,11 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importTagsSuccessfulDescription',
+                        promptKeyParams: {
+                            tags: tagsLength,
+                        },
                     },
                 },
             },
@@ -112,8 +111,10 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -521,8 +522,14 @@ function clearPolicyTagListErrorField({policyID, tagListIndex, errorField, polic
     });
 }
 
-function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type ClearPolicyTagListErrorsProps = {
+    policyID: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPolicyTagListErrorsProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag) {
         return;
@@ -809,8 +816,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfulTitle'), prompt: translateLocal('spreadsheet.importMultiLevelTagsSuccessfulDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
+                    },
                 },
             },
         ],
@@ -827,8 +836,10 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],

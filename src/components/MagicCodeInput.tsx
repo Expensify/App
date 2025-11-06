@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -256,13 +256,13 @@ function MagicCodeInput(
     /**
      * Focuses on the input when it is pressed.
      */
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (e: FocusEvent) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
         onFocusProps?.();
-        event.preventDefault();
+        e.preventDefault();
     };
 
     /**
@@ -333,7 +333,7 @@ function MagicCodeInput(
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);

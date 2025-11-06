@@ -227,6 +227,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   web:
     name: Build and deploy Web
@@ -463,6 +464,8 @@ jobs:
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Configure AWS Credentials
         # v4

@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
+import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
@@ -133,7 +135,7 @@ type MoneyRequestConfirmationListProps = {
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: string | number;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -323,8 +325,13 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
+
     // A flag for showing the categories field
-    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = isTrackExpense
+        ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
+        : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
@@ -399,6 +406,11 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
+
+    const isDescriptionRequired = useMemo(
+        () => isCategoryDescriptionRequired(policyCategories, iouCategory, policy?.areRulesEnabled),
+        [iouCategory, policyCategories, policy?.areRulesEnabled],
+    );
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -1125,6 +1137,7 @@ function MoneyRequestConfirmationList({
             iouIsReimbursable={iouIsReimbursable}
             onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
+            isDescriptionRequired={isDescriptionRequired}
         />
     );
 

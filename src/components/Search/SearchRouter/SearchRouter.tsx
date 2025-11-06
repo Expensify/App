@@ -198,7 +198,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails],
     );
 
     const searchQueryItem = textInputValue
@@ -390,7 +390,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
 
                             if (keyIndex !== -1) {
-                                trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                                const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
+                                const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+                                if (lastCommaIndex !== -1) {
+                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+                                } else {
+                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                                }
                             } else {
                                 trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                             }

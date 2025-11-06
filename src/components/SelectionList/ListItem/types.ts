@@ -233,6 +233,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type ValidListItem =
@@ -263,6 +266,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -273,6 +278,13 @@ type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
+
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
+};
 
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
@@ -297,4 +309,5 @@ export type {
     TravelDomainListItemProps,
     SpendCategorySelectorListItemProps,
     UserListItemProps,
+    InviteMemberListItemProps,
 };

@@ -1,6 +1,6 @@
 # `react-native-webview` patches
 
-### [react-native-webview+13.13.1+001+fix-dataDetectorTypes.patch](react-native-webview+13.13.1+001+fix-dataDetectorTypes.patch)
+### [react-native-webview+13.16.0+001+fix-dataDetectorTypes.patch](react-native-webview+13.16.0+001+fix-dataDetectorTypes.patch)
 
 - Reason:
   

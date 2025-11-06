@@ -10,6 +10,7 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -19,20 +20,19 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
+import type {Location} from '@src/types/utils/Layout';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
-
-type Location = {
-    x: number;
-    y: number;
-};
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
@@ -94,6 +94,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         width: 0,
         height: 0,
     });
+
+    const [composerToRefocusOnClose, setComposerToRefocusOnClose] = useState<ComposerType>();
 
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
@@ -188,6 +190,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             isOverflowMenu = false,
             withoutOverlay = true,
         } = showContextMenuParams;
+        if (ReportActionComposeFocusManager.isFocused()) {
+            setComposerToRefocusOnClose('main');
+        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+            setComposerToRefocusOnClose('edit');
+        }
+
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
@@ -281,17 +289,24 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
-        if (typeof onHideActionCallback === 'function') {
-            onPopoverHideActionCallback.current = onHideActionCallback;
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
         }
+
+        selectionRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
+        setIsPopoverVisible(false);
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: Actions.CLOSE_POPOVER,
         });
-        selectionRef.current = '';
-        reportActionDraftMessageRef.current = undefined;
-        setIsPopoverVisible(false);
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
+            setComposerToRefocusOnClose(undefined);
+        });
     };
 
     const transactionIDs: string[] = [];
@@ -314,6 +329,17 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         policy,
     });
 
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+        canBeMissing: true,
+    });
+    const ancestorsRef = useRef<typeof ancestors>([]);
+    const ancestors = useAncestors(originalReport);
+    useEffect(() => {
+        if (!originalReport) {
+            return;
+        }
+        ancestorsRef.current = ancestors;
+    }, [originalReport, ancestors]);
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -341,7 +367,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
             });
         }
 
@@ -393,6 +419,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         clearActiveReportAction,
         contentRef,
         isContextMenuOpening,
+        composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
     const reportAction = reportActionRef.current;
@@ -401,7 +428,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         <>
             <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                onClose={hideContextMenu}
+                onClose={() => hideContextMenu()}
                 onModalShow={runAndResetOnPopoverShow}
                 onModalHide={runAndResetOnPopoverHide}
                 anchorPosition={popoverAnchorPosition.current}
