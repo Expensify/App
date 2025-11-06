@@ -407,7 +407,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
-            pendingAction: policy?.receiptPartners?.pendingFields?.enabled,
+            pendingAction: policy?.pendingFields?.receiptPartners,
             disabledAction: () => {
                 if (!isUberConnected) {
                     return;
