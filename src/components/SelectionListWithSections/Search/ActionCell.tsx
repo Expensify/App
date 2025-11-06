@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -80,6 +80,7 @@ function ActionCell({
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
     const {currency} = iouReport ?? {};
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
 
     const confirmPayment = useCallback(
         (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
@@ -149,7 +150,7 @@ function ActionCell({
         return (
             <SearchScopeProvider isOnSearch={false}>
                 <SettlementButton
-                    shouldUseShortForm
+                    shouldUseShortForm={reimbursableSpend > 0}
                     buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     currency={currency}
                     formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
