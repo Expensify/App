@@ -123,10 +123,15 @@ function useSearchHighlightAndScroll({
                     return;
                 }
             }
-            // We only want to highlight new items if the addition of transactions or report actions triggered the search.
+
+            // Set the flag to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            // Only set to true if there are new items, never set back to false here to avoid race condition
+            const hasNewItems = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            if (hasNewItems) {
+                hasNewItemsRef.current = true;
+            }
 
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
@@ -171,6 +176,12 @@ function useSearchHighlightAndScroll({
         if (!previousSearchResults || !searchResults?.data) {
             return;
         }
+
+        // Only process if this search was triggered by this hook and there are new items
+        if (!triggeredByHookRef.current || !hasNewItemsRef.current) {
+            return;
+        }
+
         if (isChat) {
             const previousReportActionIDs = extractReportActionIDsFromSearchResults(previousSearchResults);
             const currentReportActionIDs = extractReportActionIDsFromSearchResults(searchResults.data);
@@ -178,7 +189,7 @@ function useSearchHighlightAndScroll({
             // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
             const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasNewItemsRef.current) {
+            if (newReportActionIDs.length === 0) {
                 return;
             }
 
@@ -189,6 +200,8 @@ function useSearchHighlightAndScroll({
                 newKeys.add(newReportActionKey);
             });
             setNewSearchResultKeys(newKeys);
+            // Reset after using to prevent stale value in next render
+            hasNewItemsRef.current = false;
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
@@ -196,7 +209,7 @@ function useSearchHighlightAndScroll({
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
             const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasNewItemsRef.current) {
+            if (newTransactionIDs.length === 0) {
                 return;
             }
 
@@ -207,6 +220,8 @@ function useSearchHighlightAndScroll({
                 newKeys.add(newTransactionKey);
             });
             setNewSearchResultKeys(newKeys);
+            // Reset after using to prevent stale value in next render
+            hasNewItemsRef.current = false;
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
 
