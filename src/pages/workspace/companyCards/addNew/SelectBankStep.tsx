@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -97,33 +98,34 @@ function SelectBankStep() {
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
-            <SelectionList
-                ListItem={RadioListItem}
-                onSelectRow={({value}) => {
-                    setBankSelected(value);
-                    setHasError(false);
-                }}
-                sections={[{data}]}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
-                shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
-                confirmButtonStyles={!hasError && styles.mt5}
-                addBottomSafeAreaPadding
-            >
-                {hasError && (
-                    <View style={[styles.ph3, styles.mb3]}>
-                        <FormHelpMessage
-                            isError={hasError}
-                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
-                        />
-                    </View>
-                )}
-            </SelectionList>
+            <FullPageOfflineBlockingView>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
+                <SelectionList
+                    ListItem={RadioListItem}
+                    onSelectRow={({value}) => {
+                        setBankSelected(value);
+                        setHasError(false);
+                    }}
+                    sections={[{data}]}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
+                    shouldUpdateFocusedIndex
+                    showConfirmButton
+                    confirmButtonText={translate('common.next')}
+                    onConfirm={submit}
+                    confirmButtonStyles={!hasError && styles.mt5}
+                    addBottomSafeAreaPadding
+                >
+                    {hasError && (
+                        <View style={[styles.ph3, styles.mb3]}>
+                            <FormHelpMessage
+                                isError={hasError}
+                                message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
+                            />
+                        </View>
+                    )}
+                </SelectionList>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

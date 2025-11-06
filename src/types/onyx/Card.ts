@@ -102,6 +102,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card product under which the card is provisioned */
         feedCountry?: string;
 
+        /** Issued card country */
+        country?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
@@ -214,9 +217,6 @@ type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 type IssueNewCardData = {
     /** The email address of the cardholder */
     assigneeEmail: string;
-
-    /** The account ID of the cardholder */
-    assigneeAccountID?: number;
 
     /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
