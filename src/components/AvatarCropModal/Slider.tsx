@@ -2,8 +2,9 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,14 +42,14 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     const panGesture = Gesture.Pan()
         .minDistance(5)
         .onBegin(() => {
-            runOnJS(setTooltipIsVisible)(false);
+            scheduleOnRN(setTooltipIsVisible, false);
             gestureCallbacks.onBegin();
         })
         .onChange((event) => {
             gestureCallbacks.onChange(event);
         })
         .onFinalize(() => {
-            runOnJS(setTooltipIsVisible)(true);
+            scheduleOnRN(setTooltipIsVisible, true);
             gestureCallbacks.onFinalize();
         });
 

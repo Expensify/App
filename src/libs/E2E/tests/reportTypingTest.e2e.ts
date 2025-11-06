@@ -1,6 +1,6 @@
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import {runOnUI} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import waitForKeyboard from '@libs/E2E/actions/waitForKeyboard';
@@ -89,7 +89,7 @@ const test = (config: NativeConfig) => {
                     )
                     .then(() => E2EClient.sendNativeCommand(NativeCommands.makeBackspaceCommand()))
                     .then(() => E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand(message)))
-                    .then(() => runOnUI(onSubmitAction)())
+                    .then(() => scheduleOnUI(onSubmitAction))
                     .catch((error) => {
                         console.error('[E2E] Error while test', error);
                         E2EClient.submitTestDone();
