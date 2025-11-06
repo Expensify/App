@@ -26,7 +26,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -489,8 +488,6 @@ function EmptySearchViewContent({
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
-        hasOutstandingChildTask,
-        parentReportAction,
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,

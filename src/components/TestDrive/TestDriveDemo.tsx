@@ -59,7 +59,7 @@ function TestDriveDemo() {
             parentReportAction,
             false,
         );
-    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID]);
+    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
