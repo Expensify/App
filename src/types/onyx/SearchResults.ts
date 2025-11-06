@@ -121,9 +121,6 @@ type SearchReport = {
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
 
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
-
     /** Whether the report is policyExpenseChat */
     isPolicyExpenseChat?: boolean;
 
