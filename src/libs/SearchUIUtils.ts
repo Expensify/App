@@ -146,22 +146,22 @@ const taskColumnNamesToSortingProperty = {
 
 const expenseStatusActionMapping = {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport: SearchReport) =>
-        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: SearchReport) =>
+        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport: SearchReport) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: SearchReport) => !expenseReport,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -982,10 +982,10 @@ function getTransactionsSections(
                 const status = queryJSON.status;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
-                        return report && isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
+                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
                     });
                 } else {
-                    shouldShow = report && isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
+                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
                 }
             }
         }
@@ -999,7 +999,10 @@ function getTransactionsSections(
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
-            const from = report?.ownerAccountID ? (personalDetailsMap.get(report.ownerAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const from =
+                transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? (personalDetailsMap.get((currentAccountID ?? 0).toString()) ?? emptyPersonalDetails)
+                    : (personalDetailsMap.get((report?.ownerAccountID ?? 0).toString()) ?? emptyPersonalDetails);
             const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
@@ -1433,7 +1436,11 @@ function getReportSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
 
-            const from = report?.ownerAccountID ? (data.personalDetailsList?.[report.ownerAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const from =
+                transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? (data.personalDetailsList?.[currentAccountID ?? 0] ?? emptyPersonalDetails)
+                    : (data.personalDetailsList?.[report?.ownerAccountID ?? 0] ?? emptyPersonalDetails);
+            report?.ownerAccountID ? (data.personalDetailsList?.[report.ownerAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
@@ -2335,7 +2342,7 @@ function getColumnsToShow(
 
         // Handle From&To columns that are only shown in the Reports page
         // if From or To differ from current user in any transaction, show the columns
-        const accountID = report?.ownerAccountID;
+        const accountID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? currentAccountID : report?.ownerAccountID;
         if (accountID !== currentAccountID) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
         }
