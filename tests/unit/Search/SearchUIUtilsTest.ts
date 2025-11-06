@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
+import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
@@ -1082,6 +1082,9 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Hidden',
+        formattedStatus: 'Draft',
+        formattedTo: 'Hidden',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -1190,6 +1193,9 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Hidden',
+        formattedStatus: 'Outstanding',
+        formattedTo: 'Admin',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -1302,6 +1308,9 @@ const transactionReportGroupListItems = [
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         currency: 'VND',
+        formattedFrom: 'Hidden',
+        formattedStatus: 'Outstanding',
+        formattedTo: 'Approver',
         isOneTransactionReport: false,
         isOwnPolicyExpenseChat: false,
         isPolicyExpenseChat: false,
@@ -1345,6 +1354,9 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Hidden',
+        formattedStatus: 'Draft',
+        formattedTo: 'Hidden',
         from: {
             accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             avatar: '',
@@ -1731,8 +1743,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return ReportListItem when type is EXPENSE-REPORT', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ReportListItem);
+        it('should return ExpenseReportListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ExpenseReportListItem);
         });
 
         it('should return TransactionListItem when type is TRIP', () => {
