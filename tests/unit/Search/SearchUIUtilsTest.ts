@@ -229,6 +229,9 @@ const reportAction4 = {
 
 const policy = {
     id: 'Admin',
+    name: 'Policy',
+    outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
     approvalMode: 'ADVANCED',
     autoReimbursement: {
         limit: 0,
@@ -269,7 +272,7 @@ const policy = {
             submitsTo: adminEmail,
         },
     },
-} as const;
+} as OnyxTypes.Policy;
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -370,7 +373,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -395,7 +397,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            policyID,
             reportID,
             reportType: 'expense',
             tag: '',
@@ -416,7 +417,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -440,7 +440,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
-            policyID,
             reportID: reportID2,
             reportType: 'expense',
             tag: '',
@@ -464,7 +463,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 1200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -485,7 +483,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
@@ -510,7 +507,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 3200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -531,7 +527,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
@@ -833,7 +828,6 @@ const transactionsListItems = [
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        policyID: 'A1B2C3',
         reportID: '123456789',
         reportType: 'expense',
         shouldShowMerchant: true,
@@ -902,7 +896,6 @@ const transactionsListItems = [
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '11111',
         reportType: 'expense',
         shouldShowMerchant: true,
@@ -965,7 +958,6 @@ const transactionsListItems = [
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
         reportType: 'iou',
         tag: '',
@@ -1035,7 +1027,6 @@ const transactionsListItems = [
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
         reportType: 'iou',
         tag: '',
@@ -1157,7 +1148,6 @@ const transactionReportGroupListItems = [
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                policyID: 'A1B2C3',
                 reportID: '123456789',
                 reportType: 'expense',
                 shouldShowMerchant: true,
@@ -1270,7 +1260,6 @@ const transactionReportGroupListItems = [
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
-                policyID: 'A1B2C3',
                 reportID: '11111',
                 reportType: 'expense',
                 shouldShowMerchant: true,
@@ -1793,7 +1782,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 58;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1821,7 +1810,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 58;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2339,7 +2328,6 @@ describe('SearchUIUtils', () => {
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         action: 'approve',
-                        allActions: ['approve'],
                         comment: {
                             comment: '',
                         },
@@ -2354,7 +2342,6 @@ describe('SearchUIUtils', () => {
                         modifiedCurrency: 'USD',
                         modifiedMerchant: 'Costco Wholesale',
                         parentTransactionID: '',
-                        policyID: '137DA25D273F2423',
                         receipt: {
                             source: 'https://www.expensify.com/receipts/fake.jpg',
                             state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
@@ -2439,6 +2426,8 @@ describe('SearchUIUtils', () => {
                         expenseRules: [],
                     },
                     type: 'corporate',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
@@ -2476,7 +2465,6 @@ describe('SearchUIUtils', () => {
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
                     action: 'approve',
-                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
@@ -2491,7 +2479,6 @@ describe('SearchUIUtils', () => {
                     modifiedCurrency: 'USD',
                     modifiedMerchant: 'Costco Wholesale',
                     parentTransactionID: '',
-                    policyID: '137DA25D273F2423',
                     receipt: {
                         source: 'https://www.expensify.com/receipts/fake.jpg',
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
