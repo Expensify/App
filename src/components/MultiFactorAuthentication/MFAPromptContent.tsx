@@ -4,8 +4,8 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 // import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
+import type {TranslationPaths} from '@src/languages/types';
 
 type MFAPromptContentProps = {
     // animation: DotLottieAnimation;

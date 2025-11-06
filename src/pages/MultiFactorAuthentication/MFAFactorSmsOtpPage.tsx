@@ -4,7 +4,7 @@ import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthen
 import {PHONE_NUMBER} from '../../../__mocks__/ecuk_api/utils';
 
 function MFAFactorSmsOtpPage() {
-    // TODO: numer telefonu z sesji
+    // TODO: Phone number should be retrieved from the currently logged account
     const phoneNumber = PHONE_NUMBER;
     const {update} = useMultifactorAuthenticationContext();
 

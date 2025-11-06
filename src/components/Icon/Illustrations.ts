@@ -104,6 +104,7 @@ import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
+import SmartScanMock from '@assets/images/simple-illustrations/simple-illustration__smartscan_mock_for_testing.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
@@ -117,7 +118,6 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import SmartScanMock from '@assets/images/simple-illustrations/simple-illustration__smartscan_mock_for_testing.svg';
 
 export {
     Abracadabra,

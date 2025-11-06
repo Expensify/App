@@ -9,7 +9,7 @@ import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
 import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
-import type {Base64URL, BinaryData, ChallengeFlag, MFAChallenge, SignedChallenge} from './types';
+import type {Base64URL, BinaryData, ChallengeFlag, MFAChallenge, SignedChallenge} from './ED25519.types';
 import VALUES from './VALUES';
 
 ed.hashes.sha512 = sha512;

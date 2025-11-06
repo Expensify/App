@@ -1,7 +1,8 @@
 /* eslint-disable rulesdir/no-api-side-effects-method */
 import type {ValueOf} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import type {MultifactorAuthenticationResponseTranslationPath, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {MultifactorAuthenticationResponseTranslationPath} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 // TODO: remove this

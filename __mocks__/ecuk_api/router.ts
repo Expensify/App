@@ -1,6 +1,6 @@
 import {Buffer} from 'buffer';
 import Onyx from 'react-native-onyx';
-import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';

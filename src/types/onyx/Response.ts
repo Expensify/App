@@ -1,5 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MFAChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 
 /** Model of commands data */
 type Data = {

@@ -1,9 +1,10 @@
 import {requestBiometricChallenge} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import {signToken as signTokenED25519} from './ED25519';
+import type {MFAChallenge, SignedChallenge} from './ED25519.types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
-import type {MFAChallenge, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams, SignedChallenge} from './types';
+import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from './types';
 import VALUES from './VALUES';
 
 /**

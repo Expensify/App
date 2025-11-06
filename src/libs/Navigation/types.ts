@@ -15,10 +15,10 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
+import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
-import type {NotificationType} from '@pages/MultiFactorAuthentication/MFANotificationPage';
 import type {PromptType} from '@pages/MultiFactorAuthentication/MFAPromptPage';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -2708,7 +2708,7 @@ type MultiFactorAuthenticationParamList = {
     [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
-        notificationType: NotificationType;
+        notificationType: AllMultifactorAuthenticationNotificationType;
     };
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
         transactionID: string;

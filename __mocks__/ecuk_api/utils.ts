@@ -4,7 +4,7 @@ import {utf8ToBytes} from '@noble/hashes/utils';
 import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
 import {__doNotUseCreateBinaryData} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {MFAChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MFAChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 import Logger from './Logger';
 
 ed.hashes.sha512 = sha512;

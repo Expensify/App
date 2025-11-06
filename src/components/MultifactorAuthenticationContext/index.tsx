@@ -1,7 +1,7 @@
 import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {
-    areMultifactorAuthorizationFallbackParamsValid,
+    areMultifactorAuthorizationParamsValid,
     convertResultIntoMFAStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     MergedHooksStatus,
@@ -12,6 +12,7 @@ import type {MultifactorAuthenticationScenarioStatus, Register, UseMultifactorAu
 import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
+import useOnyx from '@hooks/useOnyx';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
@@ -19,11 +20,10 @@ import type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationTrigger,
-    MultifactorAuthorizationFallbackScenario,
-    MultifactorAuthorizationFallbackScenarioParams,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 // TODO: Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
@@ -74,64 +74,90 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         accepted: undefined,
         validateCode: undefined,
     });
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth && false;
+    // const overridenScreens = useRef<{
+    //     success: AllMultifactorAuthenticationNotificationType | undefined;
+    //     failure: AllMultifactorAuthenticationNotificationType | undefined;
+    // }>({
+    //     success: undefined,
+    //     failure: undefined,
+    // })
 
-    const navigate = useCallback((status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean) => {
-        const {
-            step,
-            value: {scenario},
-        } = status;
+    const navigate = useCallback(
+        (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean) => {
+            const {
+                step,
+                value: {scenario},
+            } = status;
 
-        const scenarioRoute: Route = scenario ? MULTI_FACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.NOT_FOUND;
+            const scenarioRoute: Route = scenario ? MULTI_FACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.NOT_FOUND;
+            const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+            const notificationPaths = {
+                success: scenarioPrefix ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(`${scenarioPrefix}-success`) : ROUTES.NOT_FOUND,
+                failure: scenarioPrefix ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(`${scenarioPrefix}-failure`) : ROUTES.NOT_FOUND,
+            };
 
-        if (afterRevoke.current) {
-            afterRevoke.current = false;
-            Navigation.navigate(scenarioRoute);
-            success.current = undefined;
-            return;
-        }
+            if (afterRevoke.current) {
+                afterRevoke.current = false;
+                Navigation.navigate(scenarioRoute);
+                success.current = undefined;
+                return;
+            }
 
-        if (softPrompt) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
-            success.current = undefined;
-            return;
-        }
+            if (softPrompt) {
+                Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+                success.current = undefined;
+                return;
+            }
 
-        if (step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_MAGIC_CODE)) {
-            requestValidateCodeAction();
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_MAGIC_CODE);
-            success.current = undefined;
-            return;
-        }
+            if (step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_MAGIC_CODE)) {
+                requestValidateCodeAction();
+                Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_MAGIC_CODE);
+                success.current = undefined;
+                return;
+            }
 
-        // TODO: zrobic nowy factor, 2FA
-        if (step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.OTP && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP)) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP);
-            success.current = undefined;
-            return;
-        }
+            if (
+                step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.OTP &&
+                is2FAEnabled &&
+                !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR)
+            ) {
+                Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_AUTHENTICATOR);
+                success.current = undefined;
+                return;
+            }
 
-        if (!step.isRequestFulfilled) {
-            return;
-        }
+            if (step.requiredFactorForNextStep === CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.OTP && !is2FAEnabled && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP)) {
+                Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_SMS_OTP);
+                success.current = undefined;
+                return;
+            }
 
-        // TODO: naviguj do success/failure screena ze scenariusza
-        if (step.wasRecentStepSuccessful && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'))) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'));
-            success.current = true;
-            return;
-        }
+            if (!step.isRequestFulfilled) {
+                return;
+            }
 
-        if (step.wasRecentStepSuccessful === false && !Navigation.isActiveRoute(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-failed'))) {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-failed'));
-            success.current = false;
-            return;
-        }
+            // TODO: powinna byc mozliwosc wyboru innego typu screena w process
+            if (step.wasRecentStepSuccessful && !Navigation.isActiveRoute(notificationPaths.success)) {
+                Navigation.navigate(notificationPaths.success);
+                success.current = true;
+                return;
+            }
 
-        if (step.wasRecentStepSuccessful === undefined && !Navigation.isActiveRoute(scenarioRoute)) {
-            Navigation.navigate(scenarioRoute);
-            success.current = undefined;
-        }
-    }, []);
+            if (step.wasRecentStepSuccessful === false && !Navigation.isActiveRoute(notificationPaths.failure)) {
+                Navigation.navigate(notificationPaths.failure);
+                success.current = false;
+                return;
+            }
+
+            if (step.wasRecentStepSuccessful === undefined && !Navigation.isActiveRoute(scenarioRoute)) {
+                Navigation.navigate(scenarioRoute);
+                success.current = undefined;
+            }
+        },
+        [is2FAEnabled],
+    );
 
     const setStatus = useCallback(
         (...args: [...Parameters<typeof setMergedStatus>, softPrompt?: boolean, revoke?: boolean]) => {
@@ -164,7 +190,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     );
 
     const register = useCallback(
-        async <T extends MultifactorAuthorizationFallbackScenario>(
+        async <T extends MultifactorAuthenticationScenario>(
             params: MultifactorAuthenticationScenarioParams<T> & {
                 chainedWithAuthorization?: boolean;
             },
@@ -190,7 +216,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     ) as Register<MultifactorAuthenticationScenarioStatus>;
 
     const authorizeFallback = useCallback(
-        async <T extends MultifactorAuthorizationFallbackScenario>(scenario: T, params: MultifactorAuthorizationFallbackScenarioParams<T>) => {
+        async <T extends MultifactorAuthenticationScenario>(scenario: T, params: MultifactorAuthenticationScenarioParams<T>) => {
             if (!allowedMethods(scenario).fallback) {
                 return setStatus(...MergedHooksStatus.createFallbackNotAllowedStatus(scenario, params));
             }
@@ -266,7 +292,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             if (!NativeBiometrics.setup.deviceSupportBiometrics || !allowedMethods(scenario).biometrics) {
-                if (!areMultifactorAuthorizationFallbackParamsValid(scenario, params)) {
+                if (!areMultifactorAuthorizationParamsValid<typeof scenario>(params)) {
                     return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
                 }
 

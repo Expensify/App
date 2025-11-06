@@ -2,16 +2,15 @@ import type {ValueOf} from 'type-fest';
 import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from '@components/MultifactorAuthenticationContext/config';
 import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
+import type {MFAChallenge, SignedChallenge} from './ED25519.types';
 import type {
     AllMultifactorAuthenticationFactors,
-    MFAChallenge,
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioMap,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioResponseWithSuccess,
-    SignedChallenge,
 } from './types';
 import VALUES from './VALUES';
 

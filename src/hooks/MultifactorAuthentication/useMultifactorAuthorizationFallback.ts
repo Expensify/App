@@ -1,7 +1,7 @@
 import {useCallback, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {areFactorsSufficient, processScenario} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import type {MultifactorAuthorizationFallbackScenario} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationScenario} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Status} from './helpers';
@@ -23,7 +23,7 @@ function useMultifactorAuthorizationFallback() {
      * Updates status to reflect the current state of authorization and any required next steps.
      */
     const authorize = useCallback(
-        async <T extends MultifactorAuthorizationFallbackScenario>(scenario: T, params: Parameters<AuthorizeUsingFallback<T>>[1]): ReturnType<AuthorizeUsingFallback<T>> => {
+        async <T extends MultifactorAuthenticationScenario>(scenario: T, params: Parameters<AuthorizeUsingFallback<T>>[1]): ReturnType<AuthorizeUsingFallback<T>> => {
             const valueToStore = CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE;
             const parameterName = CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS_REQUIREMENTS[valueToStore].parameter;
             const storedValue = params[parameterName];

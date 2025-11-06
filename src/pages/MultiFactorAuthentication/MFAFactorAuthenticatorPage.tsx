@@ -4,6 +4,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MFAFactorAuthenticatorForm from '@components/MultiFactorAuthentication/MFAFactorAuthenticatorForm';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,7 @@ function MFAFactorAuthenticatorPage() {
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     // const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    const {update} = useMultifactorAuthenticationContext();
 
     const clearAccountErrorsIfPresent = useCallback(() => {
         if (!account?.errors) {
@@ -60,10 +62,10 @@ function MFAFactorAuthenticatorPage() {
 
         setFormError({});
 
-        // TODO: update({2FA: kod})
+        update({otp: Number(sanitizedTwoFactorCode)});
         // validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData);
         // Navigation.dismissModal();
-    }, [translate, twoFactorAuthCode]);
+    }, [translate, twoFactorAuthCode, update]);
 
     useFocusEffect(
         useCallback(() => {

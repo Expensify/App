@@ -15,6 +15,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 
+// TODO: to tez gdzies do UI config?
 type PromptType = 'enable-biometrics' | 'enable-passkey';
 
 type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
@@ -91,7 +92,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
             />
             <FullPageOfflineBlockingView>
                 <MFAPromptContent
-                    animation={contentData.animation}
+                    // animation={contentData.animation}
                     title={contentData.title}
                     subtitle={contentData.subtitle}
                 />

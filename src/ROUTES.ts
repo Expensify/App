@@ -10,10 +10,10 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {AllMultifactorAuthenticationNotificationType} from './libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import {getUrlWithParams} from './libs/Url';
-import type {NotificationType} from './pages/MultiFactorAuthentication/MFANotificationPage';
 import type {PromptType} from './pages/MultiFactorAuthentication/MFAPromptPage';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
@@ -3341,7 +3341,7 @@ const ROUTES = {
 
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
         route: 'multifactor-authentication/notification/:notificationType',
-        getRoute: (notificationType: NotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
+        getRoute: (notificationType: AllMultifactorAuthenticationNotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
     },
 
     MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {

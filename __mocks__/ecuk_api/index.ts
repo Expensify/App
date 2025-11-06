@@ -1,5 +1,5 @@
 import type {EmptyObject} from 'type-fest';
-import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 import type Response from '@src/types/onyx/Response';
 import fetch from './router';
 import {FALLBACK_EMAIL} from './utils';

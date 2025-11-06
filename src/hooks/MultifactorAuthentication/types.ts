@@ -9,8 +9,6 @@ import type {
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationStep,
     MultifactorAuthenticationTrigger,
-    MultifactorAuthorizationFallbackScenario,
-    MultifactorAuthorizationFallbackScenarioParams,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 
@@ -31,9 +29,9 @@ type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
  * Uses provided factors as alternative authentication factors.
  * Returns a status containing the first verified factor.
  */
-type AuthorizeUsingFallback<T extends MultifactorAuthorizationFallbackScenario> = (
+type AuthorizeUsingFallback<T extends MultifactorAuthenticationScenario> = (
     scenario: T,
-    params: MultifactorAuthorizationFallbackScenarioParams<T>,
+    params: MultifactorAuthenticationScenarioParams<T>,
 ) => Promise<MultifactorAuthenticationStatus<number | undefined>>;
 
 /**

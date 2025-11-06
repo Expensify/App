@@ -8,8 +8,6 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
-    MultifactorAuthorizationFallbackScenario,
-    MultifactorAuthorizationFallbackScenarioParams,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import type {AuthTypeName, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
@@ -45,10 +43,7 @@ const createAuthorizeErrorStatus = (errorStatus: MultifactorAuthenticationPartia
     },
 });
 
-function areMultifactorAuthorizationFallbackParamsValid<T extends MultifactorAuthorizationFallbackScenario>(
-    scenario: T,
-    params: Record<string, unknown>,
-): params is MultifactorAuthorizationFallbackScenarioParams<T> {
+function areMultifactorAuthorizationParamsValid<T extends MultifactorAuthenticationScenario>(params: Record<string, unknown>): params is MultifactorAuthenticationScenarioParams<T> {
     return Object.keys(params).every((key) => {
         return CONST.MULTI_FACTOR_AUTHENTICATION.FACTOR_COMBINATIONS.BIOMETRICS_AUTHENTICATION.find(
             (factor) => CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS_REQUIREMENTS[factor].parameter !== key,
@@ -329,7 +324,7 @@ const MergedHooksStatus = {
 } as const;
 
 export {
-    areMultifactorAuthorizationFallbackParamsValid,
+    areMultifactorAuthorizationParamsValid,
     getAuthTypeName,
     doesDeviceSupportBiometrics,
     isBiometryConfigured,
