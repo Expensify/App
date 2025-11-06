@@ -6,6 +6,8 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -692,6 +694,42 @@ describe('actions/Policy', () => {
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
+        });
+
+        it('should pass areDistanceRatesEnabled as true when creating workspace with distance rates feature enabled', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with distance rates feature enabled
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: false,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                currency: 'USD',
+                featuresMap: [
+                    {
+                        id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                        enabled: true,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command and areDistanceRatesEnabled set to true
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    areDistanceRatesEnabled: true,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
         });
     });
 
