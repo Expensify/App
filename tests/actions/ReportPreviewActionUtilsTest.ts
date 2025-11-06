@@ -329,7 +329,7 @@ describe('getReportPreviewAction', () => {
 
         await waitForBatchedUpdatesWithAct();
         // Should not show PAY button for zero amount Expenses
-        expect(getReportPreviewAction(false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, false, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canPay should return true for submitted invoice', async () => {
