@@ -181,7 +181,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+// Replaced deprecated SearchReport with Report usage via OnyxTypes.Report
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -1218,9 +1218,7 @@ function PureReportActionItem({
             } else {
                 const originalMessage = getOriginalMessage(action);
                 const iouDetails = originalMessage?.IOUDetails;
-                const amount = iouDetails?.amount !== undefined && iouDetails?.currency
-                    ? convertToDisplayString(Math.abs(iouDetails.amount), iouDetails.currency)
-                    : '';
+                const amount = iouDetails?.amount !== undefined && iouDetails?.currency ? convertToDisplayString(Math.abs(iouDetails.amount), iouDetails.currency) : '';
                 if (originalMessage?.bankAccountID) {
                     const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
                     children = (
@@ -1690,7 +1688,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report as OnyxTypes.Report)}
                         </TextLink>
                     </View>
                     {children}

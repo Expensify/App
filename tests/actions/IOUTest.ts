@@ -2659,7 +2659,8 @@ describe('actions/IOU', () => {
                         const iouActions = Object.values(reportActions ?? {})
                             .filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU))
                             .sort((a, b) => (b.created > a.created ? 1 : -1));
-                        resolve(iouActions[0]);
+                        // Prefer using .at() per lint rules
+                        resolve(iouActions.at(0) ?? null);
                     },
                 });
             });
