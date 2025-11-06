@@ -1140,7 +1140,6 @@ const translations = {
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
         addSplit: 'Split hinzufügen',
-        makeSplitsEven: 'Aufteilungen angleichen',
         editSplits: 'Splits bearbeiten',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} höher als die ursprüngliche Ausgabe.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} weniger als die ursprüngliche Ausgabe.`,
@@ -5149,7 +5148,6 @@ ${amount} für ${merchant} - ${date}`,
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
-                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
@@ -5703,6 +5701,12 @@ ${amount} für ${merchant} - ${date}`,
                 description: 'Erstellen und verwalten Sie Ihre eigenen Tarife, verfolgen Sie in Meilen oder Kilometern und legen Sie Standardkategorien für Entfernungsausgaben fest.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Prüfer',
+                description: 'Prüfer erhalten schreibgeschützten Zugriff auf alle Berichte für volle Transparenz und Überwachung der Compliance.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Prüfer sind nur im Control-Plan verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
@@ -7404,6 +7408,28 @@ ${amount} für ${merchant} - ${date}`,
         title: 'Etwas ist schiefgelaufen...',
         subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und untersuchen das Problem. Wenn das weiterhin besteht, wenden Sie sich bitte an`,
         refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
+    },
+    domain: {
+        notVerified: 'Nicht verifiziert',
+        retry: 'Erneut versuchen',
+        verifyDomain: {
+            title: 'Domain verifizieren',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Bevor Sie fortfahren, bestätigen Sie, dass Sie <strong>${domainName}</strong> besitzen, indem Sie die DNS-Einstellungen der Domain aktualisieren.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Greifen Sie auf Ihren DNS-Anbieter zu und öffnen Sie die DNS-Einstellungen für <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Fügen Sie den folgenden TXT-Eintrag hinzu:',
+            saveChanges: 'Speichern Sie die Änderungen und kehren Sie hierher zurück, um Ihre Domain zu verifizieren.',
+            youMayNeedToConsult: `Möglicherweise müssen Sie sich an die IT-Abteilung Ihrer Organisation wenden, um die Verifizierung abzuschließen. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Weitere Informationen</a>.`,
+            warning: 'Nach der Verifizierung erhalten alle Expensify-Mitglieder in Ihrer Domain eine E-Mail, dass ihr Konto unter Ihrer Domain verwaltet wird.',
+            codeFetchError: 'Verifizierungscode konnte nicht abgerufen werden',
+            genericError: 'Wir konnten Ihre Domain nicht verifizieren. Bitte versuchen Sie es erneut und wenden Sie sich an Concierge, wenn das Problem weiterhin besteht.',
+        },
+        domainVerified: {
+            title: 'Domain verifiziert',
+            header: 'Wooo! Ihre Domain wurde verifiziert',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Die Domain <strong>${domainName}</strong> wurde erfolgreich verifiziert und Sie können jetzt SAML und andere Sicherheitsfunktionen einrichten.</centered-text></muted-text>`,
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -1131,7 +1131,6 @@ const translations = {
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Adicionar divisão',
-        makeSplitsEven: 'Tornar as divisões iguais',
         editSplits: 'Editar divisões',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} maior que a despesa original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} a menos que a despesa original.`,
@@ -5144,7 +5143,6 @@ ${amount} para ${merchant} - ${date}`,
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
-                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
@@ -5696,6 +5694,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Crie e gerencie suas próprias tarifas, acompanhe em milhas ou quilômetros e defina categorias padrão para despesas de distância.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As tarifas de distância estão disponíveis no plano Collect, começando em <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Auditor',
+                description: 'Os auditores têm acesso somente de leitura a todos os relatórios para visibilidade total e monitoramento de conformidade.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Os auditores estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Vários níveis de aprovação',
@@ -7389,6 +7393,28 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Algo deu errado...',
         subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
         refreshAndTryAgain: 'Atualize e tente novamente',
+    },
+    domain: {
+        notVerified: 'Não verificado',
+        retry: 'Tentar novamente',
+        verifyDomain: {
+            title: 'Verificar domínio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Antes de prosseguir, verifique se você é o proprietário de <strong>${domainName}</strong> atualizando as configurações de DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Acesse seu provedor de DNS e abra as configurações de DNS para <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Adicione o seguinte registro TXT:',
+            saveChanges: 'Salve as alterações e volte aqui para verificar seu domínio.',
+            youMayNeedToConsult: `Talvez seja necessário consultar o departamento de TI da sua organização para concluir a verificação. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Saiba mais</a>.`,
+            warning: 'Após a verificação, todos os membros do Expensify no seu domínio receberão um e-mail informando que suas contas serão gerenciadas sob seu domínio.',
+            codeFetchError: 'Não foi possível obter o código de verificação',
+            genericError: 'Não conseguimos verificar seu domínio. Tente novamente e entre em contato com o Concierge se o problema persistir.',
+        },
+        domainVerified: {
+            title: 'Domínio verificado',
+            header: 'Uhul! Seu domínio foi verificado',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>O domínio <strong>${domainName}</strong> foi verificado com sucesso e agora você pode configurar SAML e outros recursos de segurança.</centered-text></muted-text>`,
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

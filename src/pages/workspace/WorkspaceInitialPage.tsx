@@ -466,7 +466,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                shouldShowNavigationTabBar &&
+                !shouldDisplayLHB && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
