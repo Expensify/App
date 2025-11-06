@@ -581,7 +581,6 @@ function WorkspacesListPage() {
             }
 
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
-
             domainItems.push({
                 listItemType: 'domain',
                 accountID: domain.accountID,
