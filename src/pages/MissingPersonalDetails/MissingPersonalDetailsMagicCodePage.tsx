@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -56,9 +56,12 @@ function MissingPersonalDetailsMagicCodePage() {
 
     const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
-    const handleSubmitForm = (validateCode: string) => {
-        updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
-    };
+    const handleSubmitForm = useCallback(
+        (validateCode: string) => {
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
+        },
+        [countryCode, values],
+    );
 
     return (
         <ValidateCodeActionContent
