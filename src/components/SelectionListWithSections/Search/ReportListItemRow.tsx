@@ -2,14 +2,11 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ReportListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ActionCell from './ActionCell';
@@ -49,7 +46,6 @@ function ReportListItemRow({
 }: ReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {total, currency} = useMemo(() => {
@@ -73,7 +69,7 @@ function ReportListItemRow({
 
     if (!isLargeScreenWidth) {
         return (
-            <View style={[styles.pv1Half]}>
+            <View>
                 <UserInfoAndActionButtonRow
                     item={item}
                     handleActionButtonPress={onButtonPress}
@@ -108,12 +104,6 @@ function ReportListItemRow({
                             total={total}
                             currency={currency}
                         />
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={{opacity: 0.5}}
-                            small
-                        />
                     </View>
                 </View>
             </View>
@@ -122,7 +112,7 @@ function ReportListItemRow({
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={onCheckboxPress}

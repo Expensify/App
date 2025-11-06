@@ -100,7 +100,7 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            shouldShowRightCaret
+            shouldShowRightCaret={isLargeScreenWidth}
         >
             <ReportListItemRow
                 item={reportItem}
