@@ -4,6 +4,7 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getRateFromMerchant,
     getReceiptFileName,
