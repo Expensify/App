@@ -1144,7 +1144,7 @@ describe('actions/Policy', () => {
             randomGroupPolicy2.pendingAction = null;
 
             const mostRecentlyCreatedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
-            mostRecentlyCreatedGroupPolicy.created = '2023-01-01 10:00:00';
+            mostRecentlyCreatedGroupPolicy.created = '3000-01-01 10:00:00';
             mostRecentlyCreatedGroupPolicy.pendingAction = null;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
