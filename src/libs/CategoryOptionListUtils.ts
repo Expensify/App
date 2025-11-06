@@ -1,14 +1,13 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {getDecodedCategoryName} from './CategoryUtils';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -42,11 +41,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const decodedCategoryName = getDecodedCategoryName(option.name);
             optionCollection.set(option.name, {
-                text: option.name,
+                text: decodedCategoryName,
                 keyForList: option.name,
                 searchText: option.name,
-                tooltipText: option.name,
+                tooltipText: decodedCategoryName,
                 isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isSelected: !!option.isSelected,
                 pendingAction: option.pendingAction,
@@ -66,11 +66,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const decodedCategoryName = getDecodedCategoryName(optionName);
             optionCollection.set(searchText, {
-                text: `${indents}${optionName}`,
+                text: `${indents}${decodedCategoryName}`,
                 keyForList: searchText,
                 searchText,
-                tooltipText: optionName,
+                tooltipText: decodedCategoryName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
@@ -91,6 +92,7 @@ function getCategoryListSections({
     selectedOptions = [],
     recentlyUsedCategories = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     categories: PolicyCategories;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -98,6 +100,7 @@ function getCategoryListSections({
     searchValue?: string;
     recentlyUsedCategories?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
@@ -191,8 +194,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -202,8 +204,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
