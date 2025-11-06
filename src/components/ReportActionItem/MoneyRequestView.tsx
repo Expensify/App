@@ -257,15 +257,10 @@ function MoneyRequestView({
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
     const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
     const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
-    const canEditReport = useMemo(() => {
-        const isEditableReport = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
-
-        if (!isPerDiemRequest) {
-            return isEditableReport;
-        }
-
-        return isEditableReport && !!policyForMovingExpensesID && !shouldSelectPolicy;
-    }, [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policyForMovingExpensesID, shouldSelectPolicy]);
+    const canEditReport = useMemo(
+        () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
+        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
+    );
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat

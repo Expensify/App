@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
@@ -39,7 +41,9 @@ function IOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
@@ -87,6 +91,9 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
+                if (!(action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy))) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
@@ -97,13 +104,13 @@ function IOURequestStepUpgrade({
     }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
-        const participant = transaction?.participants?.[0];
+        const participant = transactionDraft?.participants?.[0];
         if (!isDistanceRateUpgrade || !participant?.accountID) {
             return;
         }
 
         return getParticipantsOption(participant, personalDetails);
-    }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
+    }, [isDistanceRateUpgrade, transactionDraft?.participants, personalDetails]);
 
     const onUpgrade = useCallback(() => {
         if (isCategorizing || isReporting) {

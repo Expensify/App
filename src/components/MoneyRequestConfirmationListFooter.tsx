@@ -273,7 +273,7 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest);
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
 
@@ -781,7 +781,17 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat,
+            shouldShow: () => {
+                if (!isPolicyExpenseChat) {
+                    return false;
+                }
+
+                if (action !== CONST.IOU.ACTION.EDIT) {
+                    return true;
+                }
+
+                return Boolean(policyForMovingExpensesID || shouldSelectPolicy);
+            },
         },
     ];
 
