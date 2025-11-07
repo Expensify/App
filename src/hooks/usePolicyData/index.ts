@@ -12,18 +12,18 @@ import type PolicyData from './types';
 /**
  * Selects reports associated with a specific policy and their transactions and violations.
  * @param allReports - The collection of all reports.
- * @param allReportsTransactionsAndViolations - The collection of all report transactions and violations.
+ * @param reportTransactionsAndViolations - The collection of all report transactions and violations.
  * @param policyID - The ID of the policy to filter reports by.
  * @returns An object containing the filtered reports.
  */
 
-function reportsSelector(allReports: OnyxCollection<Report>, allReportsTransactionsAndViolations: OnyxEntry<ReportTransactionsAndViolationsDerivedValue>, policyID?: string) {
-    if (!policyID || !allReports || !allReportsTransactionsAndViolations) {
+function reportsSelector(allReports: OnyxCollection<Report>, reportTransactionsAndViolations: OnyxEntry<ReportTransactionsAndViolationsDerivedValue>, policyID?: string) {
+    if (!policyID || !allReports || !reportTransactionsAndViolations) {
         return {};
     }
 
     // Filter reports to only include those that belong to the specified policy and have associated transactions
-    return Object.keys(allReportsTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
+    return Object.keys(reportTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
         const policyReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (policyReport?.policyID === policyID) {
             acc[reportID] = policyReport;
@@ -38,24 +38,22 @@ function reportsSelector(allReports: OnyxCollection<Report>, allReportsTransacti
  */
 function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
-    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
+    const reportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
+    const deps = [policyID, reportTransactionsAndViolations];
     const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true}, [policyID]);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (allReports) => reportsSelector(allReports, allReportsTransactionsAndViolations, policyID)}, [
-        policyID,
-        allReportsTransactionsAndViolations,
-    ]);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (allReports) => reportsSelector(allReports, reportTransactionsAndViolations, policyID)}, deps);
     const transactionsAndViolations = useMemo(() => {
-        if (!reports || !allReportsTransactionsAndViolations) {
+        if (!reports || !reportTransactionsAndViolations) {
             return {};
         }
         return Object.keys(reports).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, reportID) => {
-            if (allReportsTransactionsAndViolations[reportID]) {
-                acc[reportID] = allReportsTransactionsAndViolations[reportID];
+            if (reportTransactionsAndViolations[reportID]) {
+                acc[reportID] = reportTransactionsAndViolations[reportID];
             }
             return acc;
         }, {});
-    }, [reports, allReportsTransactionsAndViolations]);
+    }, [reports, reportTransactionsAndViolations]);
     return {
         transactionsAndViolations,
         tags: tags ?? {},
