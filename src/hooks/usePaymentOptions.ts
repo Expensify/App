@@ -118,8 +118,8 @@ function usePaymentOptions({
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
-                icon: Expensicons.Wallet,
+                text: translate('iou.settleBusiness', {formattedAmount}),
+                icon: Expensicons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
