@@ -134,8 +134,6 @@ function IOURequestStepScan({
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -418,25 +416,11 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
-                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        transactionViolations,
-                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [
-            backToReport,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            iouType,
-            report,
-            transactions,
-            shouldGenerateTransactionThreadReport,
-            transactionViolations,
-            isASAPSubmitBetaEnabled,
-        ],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
     );
 
     const navigateToConfirmationStep = useCallback(
