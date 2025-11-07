@@ -14069,9 +14069,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
+    // Reset selected transactions in search after saving split expenses
     const clearSelectedTransactions = params?.searchContext?.clearSelectedTransactions;
     if (clearSelectedTransactions) {
-        // Reset selected transactions in search after saving split expenses
         if (params?.searchContext?.lastSearchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             clearSelectedTransactions(true);
         } else {
