@@ -104,6 +104,7 @@ function getCategoryListSections({
 }): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledCategoriesNames = enabledCategories.map((category) => category.name);
     const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
@@ -162,6 +163,7 @@ function getCategoryListSections({
         });
     }
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
