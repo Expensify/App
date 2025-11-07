@@ -1,5 +1,5 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -24,8 +25,10 @@ import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils'
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -47,63 +50,12 @@ function TransactionDuplicateReview() {
         [transactionViolations],
     );
     const transactionIDs = useMemo(() => (transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs), [transactionID, duplicateTransactionIDs]);
-
-    const allTransactionsSelector = useCallback(
-        (allTransactions: OnyxCollection<Transaction>): OnyxCollection<Transaction> => {
-            if (!allTransactions) {
-                return {};
-            }
-
-            const filteredTransactions: OnyxCollection<Transaction> = {};
-            transactionIDs.forEach((id) => {
-                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
-                if (allTransactions[key]) {
-                    filteredTransactions[key] = allTransactions[key];
-                }
-            });
-            return filteredTransactions;
-        },
-        [transactionIDs],
-    );
-
-    const [allTransactions] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: allTransactionsSelector,
-            canBeMissing: false,
-        },
-        [allTransactionsSelector],
-    );
-
-    const allTransactionViolationsSelector = useCallback(
-        (allViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> => {
-            if (!allViolations) {
-                return {};
-            }
-            const filteredViolations: OnyxCollection<TransactionViolations> = {};
-            transactionIDs.forEach((id) => {
-                const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`;
-                if (allViolations[key]) {
-                    filteredViolations[key] = allViolations[key];
-                }
-            });
-            return filteredViolations;
-        },
-        [transactionIDs],
-    );
-
-    const [allTransactionViolation] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            selector: allTransactionViolationsSelector,
-            canBeMissing: false,
-        },
-        [allTransactionViolationsSelector],
-    );
-
     const transactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) =>
-            transactionIDs.map((id) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+        (allTransactions: OnyxCollection<Transaction>) =>
+            transactionIDs
+                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                .filter((transaction) => !!transaction)
+                .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
         [transactionIDs],
     );
 
@@ -115,17 +67,37 @@ function TransactionDuplicateReview() {
         },
         [transactionIDs],
     );
+    const originalTransactionIDsListRef = useRef<string[] | null>(null);
+    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
+        canBeMissing: true,
+    });
+
+    const onPreviewPressed = useCallback(
+        (reportID: string) => {
+            const siblingTransactionIDsList = transactions?.map((transaction) => transaction.transactionID) ?? [];
+            setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+            });
+            // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
+            // to ensure that transactionIDsList reflects its original value when this component is mounted
+            if (!originalTransactionIDsListRef.current) {
+                originalTransactionIDsListRef.current = transactionIDsList;
+            }
+        },
+        [transactionIDsList, transactions],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!originalTransactionIDsListRef.current) {
+                return;
+            }
+            setActiveTransactionIDs(originalTransactionIDsListRef.current);
+        }, []),
+    );
 
     const keepAll = () => {
-        dismissDuplicateTransactionViolation({
-            transactionIDs,
-            dismissedPersonalDetails: currentPersonalDetails,
-            expenseReport,
-            policy,
-            isASAPSubmitBetaEnabled,
-            allTransactionsCollection: allTransactions,
-            allTransactionViolationsCollection: allTransactionViolation,
-        });
+        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails, expenseReport, policy, isASAPSubmitBetaEnabled);
         Navigation.goBack();
     };
 
@@ -170,7 +142,10 @@ function TransactionDuplicateReview() {
                     />
                     {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
-                <DuplicateTransactionsList transactions={transactions ?? []} />
+                <DuplicateTransactionsList
+                    transactions={transactions ?? []}
+                    onPreviewPressed={onPreviewPressed}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

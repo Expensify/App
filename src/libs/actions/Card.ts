@@ -422,15 +422,6 @@ function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAs
     });
 }
 
-function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAccountID: number | undefined, policyID: string | undefined) {
-    if (!policyID) {
-        return;
-    }
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {
-        [assigneeEmail ?? '']: assigneeAccountID,
-    });
-}
-
 function clearIssueNewCardFlow(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
@@ -1080,7 +1071,6 @@ export {
     getCardDefaultName,
     queueExpensifyCardForBilling,
     clearIssueNewCardFormData,
-    setDraftInviteAccountID,
     resolveFraudAlert,
 };
 export type {ReplacementReason};
