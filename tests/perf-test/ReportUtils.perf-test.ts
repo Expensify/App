@@ -1,9 +1,7 @@
-import {rand} from '@ngneat/falso';
 import {randomInt} from 'crypto';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import PolicyData from '@hooks/usePolicyData/types';
-import {rand64} from '@libs/NumberUtils';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -24,8 +22,8 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue, Transaction} from '@src/types/onyx';
-import {OnyxData} from '@src/types/onyx/Request';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -222,11 +220,15 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with random expenses on each report', async () => {
         const policyID = '1';
-
-        const reports = Object.values(getMockedReports(1000));
+       
+        // Link report to the policy
+        const reports = Object.values(getMockedReports(1000)).map((report) => ({
+            ...report,
+            policyID,
+        }));
 
         const policyData: PolicyData = {
-            reports: reports,
+            reports,
             tags: createRandomPolicyTags('Tags', 8),
             categories: createRandomPolicyCategories(8),
             // Current policy with categories and tags enabled but does not require them
@@ -238,9 +240,7 @@ describe('ReportUtils', () => {
                 requiresTag: false,
             },
             transactionsAndViolations: reports.reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report, reportIndex) => {
-                // Link report to the policy
-                report.policyID = policyID;
-
+                
                 // Random number of transactions between 2 and 8
                 const numOfTransactionsInReport = randomInt(2, 8);
 
