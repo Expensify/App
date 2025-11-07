@@ -21,15 +21,15 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
-import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
 import Terms from '@pages/signin/Terms';
+import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';
 import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { ValidateCodeCountdownHandle } from '@pages/signin/ValidateCodeCountdown/types';
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
