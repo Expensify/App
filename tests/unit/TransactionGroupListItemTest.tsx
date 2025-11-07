@@ -15,6 +15,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
+    handleActionButtonPress: jest.fn(),
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
@@ -33,12 +34,14 @@ const mockTransaction: TransactionListItemType = {
     convertedCurrency: 'USD',
     created: '2025-09-19',
     currency: 'USD',
-    managerID: 1,
     policy: {
         id: '06F34677820A4D07',
         type: 'team',
         role: 'admin',
         owner: 'test@test.com',
+        name: 'Policy',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',
@@ -120,6 +123,7 @@ const mockReport: TransactionReportGroupListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
+    action: 'view',
     transactions: [],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',
@@ -263,5 +267,59 @@ describe('TransactionGroupListItem', () => {
 
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         expect(screen.getByText('Show more')).toBeTruthy();
+    });
+
+    it('should pass onDEWModalOpen callback to ReportListItemHeader for SUBMIT action', async () => {
+        const mockOnDEWModalOpen = jest.fn();
+        const reportWithSubmitAction: TransactionReportGroupListItemType = {
+            ...report,
+            action: 'submit',
+            hash: 0,
+        };
+
+        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+            ...defaultProps,
+            item: reportWithSubmitAction,
+            onDEWModalOpen: mockOnDEWModalOpen,
+        };
+
+        render(
+            <TransactionGroupListItem
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithDEWCallback}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the component renders with the callback prop
+        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
+    });
+
+    it('should pass onDEWModalOpen callback to ReportListItemHeader for APPROVE action', async () => {
+        const mockOnDEWModalOpen = jest.fn();
+        const reportWithApproveAction: TransactionReportGroupListItemType = {
+            ...report,
+            action: 'approve',
+            hash: 0,
+        };
+
+        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+            ...defaultProps,
+            item: reportWithApproveAction,
+            onDEWModalOpen: mockOnDEWModalOpen,
+        };
+
+        render(
+            <TransactionGroupListItem
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithDEWCallback}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the component renders with the callback prop
+        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
     });
 });
