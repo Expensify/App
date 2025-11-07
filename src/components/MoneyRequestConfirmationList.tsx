@@ -896,6 +896,7 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidTagLength');
                 return;
             }
+
             if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
                 setFormError('violations.tagOutOfPolicy');
                 return;

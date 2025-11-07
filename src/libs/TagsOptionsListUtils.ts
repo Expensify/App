@@ -243,7 +243,7 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
             if (!tagList?.tags) {
                 return false;
             }
-            return Object.values(tagList.tags).some((policyTag) => policyTag.name === tagName);
+            return Object.values(tagList.tags).some((policyTag) => policyTag.name === tagName && policyTag.enabled);
         });
     });
 }
