@@ -3,13 +3,7 @@ import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionReportGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
