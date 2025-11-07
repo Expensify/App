@@ -353,7 +353,20 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, policyForMovingExpensesID, introSelected, backTo]);
+    }, [
+        action,
+        participants,
+        iouType,
+        initialTransaction,
+        transactions,
+        initialTransactionID,
+        reportID,
+        waitForKeyboardDismiss,
+        isMovingTransactionFromTrackExpense,
+        policyForMovingExpensesID,
+        introSelected,
+        backTo,
+    ]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {

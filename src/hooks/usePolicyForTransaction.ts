@@ -1,10 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import useOnyx from './useOnyx';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
 type UsePolicyForTransactionParams = {
     /** The transaction to determine the policy for */

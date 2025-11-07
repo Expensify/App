@@ -680,7 +680,6 @@ function MoneyRequestConfirmationListFooter({
                     interactive={canModifyTaxFields}
                     brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayTaxRateError ? translate(formError) : ''}
-
                 />
             ),
             shouldShow: shouldShowTax,
