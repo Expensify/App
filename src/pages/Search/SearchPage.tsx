@@ -38,7 +38,7 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
-    bulkDeleteReports,
+    deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
     getLastPolicyPaymentMethod,
@@ -589,16 +589,16 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
-        integrationsExportTemplates,
-        csvExportLayouts,
         clearSelectedTransactions,
-        beginExportWithTemplate,
-        policies,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        beginExportWithTemplate,
+        integrationsExportTemplates,
+        csvExportLayouts,
+        policies,
         bulkPayButtonOptions,
         onBulkPaySelected,
         selectedPolicyIDs,
@@ -618,7 +618,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            bulkDeleteReports(hash, selectedTransactions);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
