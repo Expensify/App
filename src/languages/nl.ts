@@ -4943,6 +4943,7 @@ ${amount} voor ${merchant} - ${date}`,
             existingReportFieldNameError: 'Er bestaat al een rapportveld met deze naam',
             reportFieldNameRequiredError: 'Voer een rapportveldnaam in alstublieft',
             reportFieldTypeRequiredError: 'Kies een rapportveldtype aub',
+            circularReferenceError: 'Dit veld kan niet naar zichzelf verwijzen. Werk het bij.',
             reportFieldInitialValueRequiredError: 'Kies een initiële waarde voor een rapportveld alstublieft.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },
@@ -5501,8 +5502,8 @@ ${amount} voor ${merchant} - ${date}`,
             enableRate: 'Tarief inschakelen',
             status: 'Status',
             unit: 'Eenheid',
-            taxFeatureNotEnabledMessage: 'Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar',
-            changePromptMessage: 'om die wijziging door te voeren.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om die wijziging door te voeren.</muted-text>',
             deleteDistanceRate: 'Verwijder afstandstarief',
             areYouSureDelete: () => ({
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',
@@ -6865,7 +6866,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,
-        reportContainsExpensesWithViolations: 'Het rapport bevat uitgaven met overtredingen.',
     },
     violationDismissal: {
         rter: {

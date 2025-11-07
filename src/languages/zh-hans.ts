@@ -4841,8 +4841,9 @@ ${merchant}的${amount} - ${date}`,
             existingReportFieldNameError: '具有此名称的报表字段已存在',
             reportFieldNameRequiredError: '请输入报告字段名称',
             reportFieldTypeRequiredError: '请选择报告字段类型',
+            circularReferenceError: '该字段不能引用自身。请更新。',
             reportFieldInitialValueRequiredError: '请选择报告字段的初始值',
-            genericFailureMessage: '更新报告字段时发生错误。请再试一次。',
+            genericFailureMessage: '更新报告字段时发 生错误。请再试一次。',
         },
         tags: {
             tagName: '标签名称',
@@ -5392,8 +5393,7 @@ ${merchant}的${amount} - ${date}`,
             enableRate: '启用费率',
             status: '状态',
             unit: '单位',
-            taxFeatureNotEnabledMessage: '要使用此功能，必须在工作区启用税费。前往',
-            changePromptMessage: '进行该更改。',
+            taxFeatureNotEnabledMessage: '<muted-text>要使用此功能，必须在工作区启用税费。前往 <a href="#">更多功能</a> 进行该更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
             areYouSureDelete: () => ({
                 one: '您确定要删除此费率吗？',
@@ -6718,7 +6718,6 @@ ${merchant}的${amount} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
-        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {

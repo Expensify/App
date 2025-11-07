@@ -4933,6 +4933,7 @@ ${amount} para ${merchant} - ${date}`,
             existingReportFieldNameError: 'Um campo de relatório com este nome já existe',
             reportFieldNameRequiredError: 'Por favor, insira um nome de campo de relatório',
             reportFieldTypeRequiredError: 'Por favor, escolha um tipo de campo de relatório',
+            circularReferenceError: 'Este campo não pode se referir a si mesmo. Atualize.',
             reportFieldInitialValueRequiredError: 'Por favor, escolha um valor inicial para o campo do relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Por favor, tente novamente.',
         },
@@ -5494,8 +5495,8 @@ ${amount} para ${merchant} - ${date}`,
             enableRate: 'Habilitar taxa',
             status: 'Status',
             unit: 'Unidade',
-            taxFeatureNotEnabledMessage: 'Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para',
-            changePromptMessage: 'para fazer essa alteração.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para <a href="#">Mais funcionalidades</a> para fazer essa alteração.</muted-text>',
             deleteDistanceRate: 'Excluir taxa de distância',
             areYouSureDelete: () => ({
                 one: 'Tem certeza de que deseja excluir esta taxa?',
@@ -6861,7 +6862,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
-        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {

@@ -69,8 +69,10 @@ function getTagListSections({
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
