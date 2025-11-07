@@ -524,6 +524,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // If there is one transaction thread that has not yet been created, we should create it.
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
+            openReport(reportIDFromRoute, reportActionIDFromRoute);
             return;
         }
 
