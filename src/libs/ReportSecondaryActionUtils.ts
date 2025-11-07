@@ -3,7 +3,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -547,7 +546,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: SearchPolicy[] | Policy[]) {
+function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: Policy[]) {
     if (transactions.length > 2 || reports.length > 2 || policies.length > 2) {
         return false;
     }

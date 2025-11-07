@@ -583,6 +583,7 @@ function SearchPage({route}: SearchPageProps) {
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
+        searchResults?.data,
         queryJSON,
         integrationsExportTemplates,
         csvExportLayouts,
