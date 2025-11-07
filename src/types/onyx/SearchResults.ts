@@ -289,9 +289,6 @@ type SearchTransaction = {
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
 
-    /** If the transaction has violations */
-    hasViolation?: boolean;
-
     /** The transaction tax amount */
     taxAmount?: number;
 
