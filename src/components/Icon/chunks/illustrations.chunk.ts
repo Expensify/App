@@ -12,7 +12,9 @@ import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
@@ -21,6 +23,7 @@ import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
@@ -65,7 +68,9 @@ const Illustrations = {
     Tag,
     CompanyCard,
     Workflows,
-
+    CarIce,
+    BlueShield,
+    Pencil,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
 };
@@ -121,6 +126,12 @@ function getIllustration(illustrationName: string): unknown {
             return CompanyCardsEmptyState;
         case 'Car': // Legacy fallback
             return CompanyCard;
+        case 'CarIce':
+            return CarIce;
+        case 'BlueShield':
+            return BlueShield;
+        case 'Pencil':
+            return Pencil;
         default:
             // Fallback to object lookup for any other cases
             return (Illustrations as Record<string, unknown>)[illustrationName];

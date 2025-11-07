@@ -33,7 +33,7 @@ type SelectedTransactionInfo = {
     reportID: string;
 
     /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
+    policyID: string | undefined;
 
     /** The transaction amount */
     amount: number;
@@ -44,8 +44,14 @@ type SelectedTransactionInfo = {
     /** The currency that the converted amount is in */
     convertedCurrency: string;
 
+    /** The transaction currency */
+    currency: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
 };
 
 /** Model of selected transactions */
@@ -58,6 +64,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -69,9 +76,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;
@@ -82,10 +89,11 @@ type PaymentData = {
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -141,6 +149,14 @@ type QueryFilter = {
     value: string | number;
 };
 
+// Report fields are dynamic keys, that policies can configure. They match:
+// reportField-<key> : Normal report field
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
+type ReportFieldTextKey = `${typeof CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${string}`;
+type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${string}`;
+type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
+
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
 type SearchTextFilterKeys =
@@ -149,7 +165,8 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -158,7 +175,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN
+    | ReportFieldTextKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 
@@ -241,6 +259,10 @@ export type {
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
+    ReportFieldKey,
+    ReportFieldTextKey,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
     SortOrder,
     SearchContextProps,
     SearchContextData,

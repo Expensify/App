@@ -5,9 +5,11 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -56,6 +58,9 @@ function IOURequestStepDate({
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
@@ -75,7 +80,7 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, {created: newCreated});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
             navigateBack();
             return;
         }
@@ -85,7 +90,19 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, duplicateTransactions, duplicateTransactionViolations, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReportID: reportID,
+                transactions: duplicateTransactions,
+                transactionViolations: duplicateTransactionViolations,
+                value: newCreated,
+                policy,
+                policyTags,
+                policyCategories,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                isASAPSubmitBetaEnabled,
+            });
         }
 
         navigateBack();

@@ -1,14 +1,15 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
@@ -19,9 +20,11 @@ import Text from './Text';
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
     report: Report;
+    policy: OnyxEntry<Policy>;
+    participants: number[];
 };
 
-function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -35,7 +38,8 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isPolicyRoom = isUserCreatedPolicyRoom(report);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
         return null;
@@ -48,10 +52,10 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom) {
+        if (canEditRoomAvatar) {
             return (
                 <AvatarWithImagePicker
-                    source={report.avatarUrl ?? icon.source}
+                    source={icon.source || report.avatarUrl}
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
                     size={CONST.AVATAR_SIZE.X_LARGE}
@@ -68,6 +72,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
                     editorMaskImage={Expensicons.ImageCropSquareMask}
+                    name={icon.name}
                 />
             );
         }
