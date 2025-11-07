@@ -57,13 +57,13 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad-sm)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --android)
         npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server
