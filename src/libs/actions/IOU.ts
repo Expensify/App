@@ -8653,8 +8653,6 @@ function deleteMoneyRequest(
         reportPreviewAction,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false, transactionIDsPendingDeletion, selectedTransactionIDs);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
-
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
     const optimisticData: OnyxUpdate[] = [
@@ -8917,8 +8915,6 @@ function deleteMoneyRequest(
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     clearPdfByOnyxKey(transactionID);
-
-    return urlToNavigateBack;
 }
 
 function deleteTrackExpense({
@@ -8938,21 +8934,9 @@ function deleteTrackExpense({
         return;
     }
 
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-        chatReportID,
-        chatReport,
-        transactionID,
-        reportAction,
-        iouReport,
-        chatIOUReport,
-        isSingleTransactionView,
-        isChatIOUReportArchived,
-    );
-
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
         deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView);
-        return urlToNavigateBack;
     }
 
     const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
@@ -8972,9 +8956,6 @@ function deleteTrackExpense({
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     clearPdfByOnyxKey(transactionID);
-
-    // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
-    return urlToNavigateBack;
 }
 
 /**
