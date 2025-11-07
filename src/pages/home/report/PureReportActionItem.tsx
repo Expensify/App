@@ -180,7 +180,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+// Replaced deprecated SearchReport with Report usage via OnyxTypes.Report
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -945,7 +945,6 @@ function PureReportActionItem({
         translate,
         resolveActionableReportMentionWhisper,
         isReportArchived,
-        formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
@@ -1185,7 +1184,8 @@ function PureReportActionItem({
                 );
             } else {
                 const originalMessage = getOriginalMessage(action);
-                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+                const iouDetails = originalMessage?.IOUDetails;
+                const amount = iouDetails?.amount !== undefined && iouDetails?.currency ? convertToDisplayString(Math.abs(iouDetails.amount), iouDetails.currency) : '';
                 if (originalMessage?.bankAccountID) {
                     const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
                     children = (
@@ -1655,8 +1655,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report)}
                         </TextLink>
                     </View>
                     {children}

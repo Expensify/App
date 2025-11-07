@@ -940,9 +940,6 @@ describe('actions/IOU', () => {
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
 
-                                    // The amount in the IOU action should be correct
-                                    expect(originalMessage?.amount).toBe(amount);
-
                                     // The IOU type should be correct
                                     expect(originalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 
@@ -1162,9 +1159,6 @@ describe('actions/IOU', () => {
 
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
-
-                                    // The amount in the IOU action should be correct
-                                    expect(originalMessage?.amount).toBe(amount);
 
                                     // The IOU action type should be correct
                                     expect(originalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
@@ -1554,9 +1548,6 @@ describe('actions/IOU', () => {
 
                                         // The comment should be included in the IOU action
                                         expect(originalMessage?.comment).toBe(comment);
-
-                                        // The amount in the IOU action should be correct
-                                        expect(originalMessage?.amount).toBe(amount);
 
                                         // The type should be correct
                                         expect(originalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
@@ -2704,7 +2695,12 @@ describe('actions/IOU', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
-                        resolve(Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.amount === 200));
+                        // Find the most recent IOU action (which should be the second one with amount 200)
+                        const iouActions = Object.values(reportActions ?? {})
+                            .filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU))
+                            .sort((a, b) => (b.created > a.created ? 1 : -1));
+                        // Prefer using .at() per lint rules
+                        resolve(iouActions.at(0) ?? null);
                     },
                 });
             });

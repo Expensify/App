@@ -4998,17 +4998,6 @@ function getReportPreviewMessage(
         // This covers group chats where the last action is a track expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
-            const originalMessage = getOriginalMessage(iouReportAction);
-            const amount = originalMessage?.amount;
-            const currency = originalMessage?.currency;
-            const comment = originalMessage?.comment;
-
-            if (amount && currency) {
-                const formattedAmount = convertToDisplayString(amount, currency);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.trackedAmount', {formattedAmount, comment});
-            }
-
             return reportActionMessage;
         }
 
@@ -5117,8 +5106,10 @@ function getReportPreviewMessage(
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
-    let amount = originalMessage?.amount;
-    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+    // Prioritize transaction data when available. For Send Money (PAY) flows, use IOUDetails as there is no transaction.
+    const iouDetails = originalMessage?.IOUDetails;
+    let amount = iouDetails?.amount;
+    let currency = iouDetails?.currency ?? report.currency;
 
     if (!isEmptyObject(linkedTransaction)) {
         amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
@@ -6893,9 +6884,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
-        amount,
         comment,
-        currency,
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
@@ -12072,12 +12061,9 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: OnyxEntry<Report>): string {
     if (report && isInvoiceReport(report)) {
-        const properInvoiceReport = report;
-        properInvoiceReport.chatReportID = report.parentReportID;
-
+        const properInvoiceReport = {...report, chatReportID: report.parentReportID} as OnyxEntry<Report>;
         return getInvoiceReportName(properInvoiceReport);
     }
 
