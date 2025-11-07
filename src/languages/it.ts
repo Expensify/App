@@ -7410,7 +7410,7 @@ ${amount} per ${merchant} - ${date}`,
         upload: 'Carica',
         uploadPhoto: 'Carica foto',
         selectAvatar: 'Seleziona un avatar',
-        chooseCustomAvatar: 'Oppure scegli un avatar personalizzato',
+        choosePresetAvatar: 'Oppure scegli un avatar personalizzato',
     },
     openAppFailureModal: {
         title: 'Qualcosa è andato storto...',

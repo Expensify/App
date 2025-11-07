@@ -1535,7 +1535,7 @@ const translations = {
         upload: 'Subir',
         uploadPhoto: 'Subir foto',
         selectAvatar: 'Seleccionar avatar',
-        chooseCustomAvatar: 'O elige un avatar personalizado',
+        choosePresetAvatar: 'O elige un avatar personalizado',
     },
     modal: {
         backdropLabel: 'Fondo del Modal',

@@ -7402,7 +7402,7 @@ ${amount} für ${merchant} - ${date}`,
         upload: 'Hochladen',
         uploadPhoto: 'Foto hochladen',
         selectAvatar: 'Avatar auswählen',
-        chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
+        choosePresetAvatar: 'Oder wählen Sie einen eigenen Avatar',
     },
     openAppFailureModal: {
         title: 'Etwas ist schiefgelaufen...',

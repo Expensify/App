@@ -7334,7 +7334,7 @@ ${date} - ${merchant}に${amount}`,
         upload: 'アップロード',
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
-        chooseCustomAvatar: 'またはカスタムアバターを選択',
+        choosePresetAvatar: 'またはカスタムアバターを選択',
     },
     openAppFailureModal: {
         title: '問題が発生しました...',
