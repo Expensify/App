@@ -598,16 +598,23 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         }];
         const failureData: OnyxUpdate[] = [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null}},
-                },
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null}},
+            },
         }];
+        const finallyData: OnyxUpdate[] = [{
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: false}},
+            },
+        }]
         API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
     });
 }
