@@ -53,6 +53,7 @@ import {
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
+    getMoneyRequestReportPendingAction,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
     getParticipantsList,
@@ -8270,6 +8271,53 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+    });
+
+    describe('getMoneyRequestReportPendingAction', () => {
+        beforeEach(() => {
+            return Onyx.clear();
+        });
+
+        it('should return undefined when report is not a money request report', async () => {
+            const chatReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                reportID: '123',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestReportPendingAction(chatReport);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return the pending action when money request report has a parent report action with pending action', async () => {
+            const parentReportID = '100';
+            const parentReportActionID = 'action123';
+            const iouReport: Report = {
+                ...createRandomReport(2),
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: '200',
+                parentReportID,
+                parentReportActionID,
+            };
+
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+                reportActionID: parentReportActionID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentReportActionID]: parentReportAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestReportPendingAction(iouReport);
+            expect(result).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         });
     });
 
