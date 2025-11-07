@@ -160,6 +160,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
+    const ancestors = useAncestors(parentReport);
+
     const parentReportAction = useParentReportAction(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
@@ -805,8 +807,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             </View>
         </OfflineWithFeedback>
     );
-
-    const ancestors = useAncestors(parentReport);
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
