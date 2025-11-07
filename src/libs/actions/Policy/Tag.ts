@@ -740,7 +740,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            value: defaultTagList,
+            value: CONST.POLICY.DEFAULT_TAG_LIST,
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,

@@ -14,8 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -438,19 +436,22 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): string | undefined {
+function getFreeTrialText(
+    translate: LocalizedTranslate,
+    policies: OnyxCollection<Policy> | null,
+    introSelected: OnyxEntry<IntroSelected>,
+    firstDayFreeTrial: string | undefined,
+): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
     if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.preTrial.title');
+        return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
 
     return undefined;
@@ -607,7 +608,6 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit2'),
             translate('subscription.yourPlan.control.benefit3'),
             translate('subscription.yourPlan.control.benefit4'),
-            translate('subscription.yourPlan.control.benefit5'),
             translate('subscription.yourPlan.control.benefit5'),
             translate('subscription.yourPlan.control.benefit6'),
             translate('subscription.yourPlan.control.benefit7'),

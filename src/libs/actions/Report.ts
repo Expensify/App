@@ -1083,7 +1083,7 @@ function openReport(
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
     if (transactionID && !parentReportActionID) {
-        const transaction = allTransactions?.[transactionID];
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction) {
             const selfDMReportID = findSelfDMReportID();
@@ -1109,13 +1109,22 @@ function openReport(
                     },
                 });
 
+                // Log how often the legacy transaction fallback path is taken
+                Log.info('[Report] Legacy transaction fallback: creating money request preview in self DM', false, {
+                    selfDMReportID,
+                    transactionID,
+                    reportID,
+                });
+
                 optimisticData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${generatedReportActionID}`,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                     value: {
-                        ...optimisticParentAction,
-                        reportActionID: generatedReportActionID,
-                        childReportID: reportID,
+                        [generatedReportActionID]: {
+                            ...optimisticParentAction,
+                            reportActionID: generatedReportActionID,
+                            childReportID: reportID,
+                        },
                     },
                 });
 
