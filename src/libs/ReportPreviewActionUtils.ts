@@ -122,7 +122,7 @@ function canPay(
 
     const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations);
 
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend > 0) {
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend !== 0) {
         return true;
     }
 
