@@ -6,10 +6,10 @@ import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
-import type Worklets from 'react-native-worklets';
 import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -94,7 +94,7 @@ jest.mock('react-native-reanimated', () => ({
     makeShareableCloneRecursive: jest.fn,
 }));
 
-jest.mock('react-native-worklets', () => require<typeof Worklets>('react-native-worklets/src/mock'));
+setupMockReactNativeWorklets();
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
