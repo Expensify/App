@@ -820,6 +820,7 @@ function IOURequestStepConfirmation({
 
             // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+                // eslint-disable-next-line unicorn/prefer-set-has
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
