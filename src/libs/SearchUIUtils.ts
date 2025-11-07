@@ -83,6 +83,7 @@ import {
     isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
+import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
@@ -91,6 +92,7 @@ import {
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
+    hasAnyViolations,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -115,9 +117,11 @@ import {
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
     isScanning,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -999,7 +1003,7 @@ function getTransactionsSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
             const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
-            const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = report?.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(report?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
             const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
@@ -1083,6 +1087,26 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
+ * @private
+ * Determines the permission flags for a user reviewing a report.
+ */
+function getReviewerPermissionFlags(
+    report: OnyxTypes.Report,
+    policy: OnyxTypes.Policy,
+    currentAccountID: number | undefined,
+): {
+    isSubmitter: boolean;
+    isAdmin: boolean;
+    isApprover: boolean;
+} {
+    return {
+        isSubmitter: report.ownerAccountID === currentAccountID,
+        isAdmin: policy.role === CONST.POLICY.ROLE.ADMIN,
+        isApprover: report.managerID === currentAccountID,
+    };
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -1108,6 +1132,9 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
+    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1123,7 +1150,7 @@ function getActions(
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
-        return [CONST.SEARCH.ACTION_TYPES.VIEW];
+        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
@@ -1139,12 +1166,25 @@ function getActions(
         allReportTransactions = transaction ? [transaction] : [];
     }
 
+    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, currentAccountID);
+
     const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
+    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, allReportTransactions);
+    const hasVisibleViolationsForReport = hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, currentUserEmail, policy, allReportTransactions);
+
+    // Only check for violations if we need to (when user has permission to review)
+    if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail, policy, allReportTransactions)) {
+            allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
+        } else {
+            allActions.push(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        }
+    }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
     if (isTransaction && !transaction?.isFromOneTransactionReport) {
@@ -1190,7 +1230,7 @@ function getActions(
     }
 
     if (reportNVP?.exportFailedTime) {
-        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.REVIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1432,7 +1472,7 @@ function getReportSections(
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = report?.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
@@ -2335,9 +2375,9 @@ function getColumnsToShow(
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
         }
 
-        const managerID = (transaction as SearchTransaction).managerID;
+        const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const managerID = report?.managerID;
         if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
-            const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
         }
     };

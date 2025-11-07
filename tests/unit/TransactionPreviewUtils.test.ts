@@ -138,7 +138,12 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined, merchant: 'Expense'};
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
+                merchant: 'Expense',
+            };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
