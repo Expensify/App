@@ -3339,6 +3339,31 @@ function excludeParticipantsForDisplay(
     });
 }
 
+function getParticipantsAccountIDs(participants: Participants) {
+    let participantsEntries = Object.entries(participants);
+
+    // We should not show participants that have an optimistic entry with the same login in the personal details
+    const nonOptimisticLoginMap: Record<string, boolean | undefined> = {};
+
+    for (const entry of participantsEntries) {
+        const [accountID] = entry;
+        const personalDetail = allPersonalDetails?.[accountID];
+        if (personalDetail?.login && !personalDetail.isOptimisticPersonalDetail) {
+            nonOptimisticLoginMap[personalDetail.login] = true;
+        }
+    }
+
+    participantsEntries = participantsEntries.filter(([accountID]) => {
+        const personalDetail = allPersonalDetails?.[accountID];
+        if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
+            return !nonOptimisticLoginMap[personalDetail.login];
+        }
+        return true;
+    });
+
+    return participantsEntries.map(([accountID]) => Number(accountID));
+}
+
 function getParticipantsAccountIDsForDisplay(
     report: OnyxEntry<Report>,
     shouldExcludeHidden = false,
@@ -13416,6 +13441,7 @@ export {
     isOneTransactionReport,
     isTrackExpenseReportNew,
     shouldHideSingleReportField,
+    getParticipantsAccountIDs,
 };
 
 export type {
