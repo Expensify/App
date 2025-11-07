@@ -113,7 +113,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -156,6 +156,7 @@ import {
     getDisplayedReportID,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
+    getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
     getParsedComment,
@@ -11936,7 +11937,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[], searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11959,7 +11960,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     }
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
-    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11992,6 +11992,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 lastVisibleActionCreated: createdReportActionComment.created,
             },
         },
+        ...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
     ];
 
     if (iouReport && iouReport.currency === transaction?.currency) {
@@ -12007,13 +12008,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             },
         });
     }
-
-    parentReportActionOptimistic.forEach((parentActionData) => {
-        if (!parentActionData) {
-            return;
-        }
-        optimisticData.push(parentActionData);
-    });
 
     const successData: OnyxUpdate[] = [
         {
@@ -12174,10 +12168,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Record<string, Ancestor[]>) {
     transactionsID.forEach((transactionID) => {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID);
+        putOnHold(transactionID, comment, childReportID, ancestors[transactionID]);
     });
 }
 

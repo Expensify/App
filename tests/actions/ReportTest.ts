@@ -7,7 +7,7 @@ import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import useAncestors from '@hooks/useAncestors';
+import {useAncestors} from '@hooks/useAncestors';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
