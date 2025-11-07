@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -22,6 +23,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {clearShareBankAccount, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +34,7 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: false});
 
@@ -65,6 +68,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         },
         [selectedOptions],
     );
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        getPaymentMethods();
+    }, [isOffline]);
 
     useEffect(() => {
         if (!sharedBankAccountData?.admins) {
