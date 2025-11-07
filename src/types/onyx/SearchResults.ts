@@ -121,9 +121,6 @@ type SearchReport = {
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
 
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
-
     /** Whether the report is policyExpenseChat */
     isPolicyExpenseChat?: boolean;
 
@@ -294,9 +291,6 @@ type SearchTransaction = {
 
     /** The transaction sender ID */
     accountID: number;
-
-    /** The transaction recipient ID */
-    managerID: number;
 
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
