@@ -11,31 +11,37 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import DomainsListRow from './DomainsListRow';
 
-type DomainMenuItemProps = {item: DomainItem; index: number};
+type DomainMenuItemProps = {
+    /** Domain menu item data */
+    item: DomainItem;
+
+    /** Row index in the menu */
+    index: number;
+};
 
 type DomainItem = {
+    /** Type of menu item row in the list of workspaces and domains  */
     listItemType: 'domain';
 
-    /** main text to show in the row  */
+    /** Main text to show in the row */
     title: string;
 
-    /** function to run when clicking on the row  */
+    /** Function to run after clicking on the row */
     action: () => void;
 
-    /** id of the row's domain */
+    /** ID of the row's domain */
     accountID: number;
 
-    /** whether the user is an admin of the row's domain */
+    /** Whether the user is an admin of the row's domain */
     isAdmin: boolean;
 
-    /** whether the row's domain is validated (aka verified) */
+    /** Whether the row's domain is validated (aka verified) */
     isValidated: boolean;
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {isAdmin, isValidated} = item;
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined =

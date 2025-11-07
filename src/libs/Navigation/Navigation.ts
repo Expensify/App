@@ -35,6 +35,7 @@ import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
+// eslint-disable-next-line unicorn/prefer-set-has
 const SET_UP_2FA_ROUTES: Route[] = [
     ROUTES.REQUIRE_TWO_FACTOR_AUTH,
     ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),

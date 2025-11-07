@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -10,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -17,35 +19,43 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
+
+    const doesDomainExist = !!domain;
 
     useEffect(() => {
-        if (domain?.validated) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES[redirectTo].getRoute(accountID), {forceReplace: true}));
-    }, [accountID, domain?.validated, redirectTo]);
+    }, [accountID, domain?.validated, doesDomainExist, redirectTo]);
+
+    if (domainMetadata.status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    if (!domain) {
+        return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
             testID={DomainVerifiedPage.displayName}
+            shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
             <ConfirmationPage
                 illustration={LottieAnimations.Fireworks}
                 heading={translate('domain.domainVerified.header')}
                 descriptionComponent={
-                    <View style={styles.w100}>
-                        <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain?.email ?? '')})} />
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
                     </View>
                 }
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
                 onButtonPress={() => Navigation.dismissModal()}
-                footerStyle={styles.mb5}
             />
         </ScreenWrapper>
     );

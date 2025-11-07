@@ -14,18 +14,13 @@ type CopyableTextFieldProps = {
     isLoading?: boolean;
 };
 
-const ACTIVITY_INDICATOR_SIZE = 24;
-
 function CopyableTextField({value, isLoading = false}: CopyableTextFieldProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     return (
         <View style={[styles.qbdSetupLinkBox, styles.border, styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignItemsCenter]}>
             {isLoading ? (
-                <ActivityIndicator
-                    color={theme.text}
-                    size={ACTIVITY_INDICATOR_SIZE}
-                />
+                <ActivityIndicator color={theme.text} />
             ) : (
                 <>
                     <Text style={styles.copyableTextField}>{value ?? ''}</Text>
@@ -38,4 +33,5 @@ function CopyableTextField({value, isLoading = false}: CopyableTextFieldProps) {
     );
 }
 
+CopyableTextField.displayName = 'CopyableTextField';
 export default CopyableTextField;

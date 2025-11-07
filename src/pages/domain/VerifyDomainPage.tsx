@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Exclamation} from '@components/Icon/Expensicons';
@@ -18,9 +19,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainValidationCode, validateDomain} from '@libs/actions/Domain';
+import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -39,9 +41,11 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
+
+    const doesDomainExist = !!domain;
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -51,19 +55,32 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
     }, [accountID, domain?.validated, forwardTo]);
 
     useEffect(() => {
-        if (!accountID) {
+        if (!doesDomainExist) {
             return;
         }
         getDomainValidationCode(accountID, domainName);
-    }, [accountID, domainName]);
+    }, [accountID, domainName, doesDomainExist]);
+
+    useEffect(() => {
+        if (!doesDomainExist) {
+            return;
+        }
+        resetDomainValidationError(accountID);
+    }, [accountID, doesDomainExist]);
+
+    if (domainMetadata.status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    if (!domain) {
+        return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
 
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
             testID={VerifyDomainPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
                 title={translate('domain.verifyDomain.title')}
@@ -90,16 +107,16 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
                                 <View style={styles.flex1}>
                                     <Text style={[styles.webViewStyles.baseFontStyle, styles.pb3]}>{translate('domain.verifyDomain.addTXTRecord')}</Text>
 
-                                    {!domain?.validateCodeError && (
+                                    {!domain.validateCodeError && (
                                         <CopyableTextField
-                                            value={domain?.validateCode}
-                                            isLoading={domain?.isValidateCodeLoading}
+                                            value={domain.validateCode}
+                                            isLoading={domain.isValidateCodeLoading}
                                         />
                                     )}
                                 </View>
                             </OrderedListRow>
 
-                            {!!domain?.validateCodeError && (
+                            {!!domain.validateCodeError && (
                                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                     <FormHelpMessage
                                         message={getLatestErrorMessage({errors: domain.validateCodeError})}
@@ -135,10 +152,10 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(accountID, domainName)}
-                    message={getLatestErrorMessage({errors: domain?.domainValidationError})}
-                    isAlertVisible={!!domain?.domainValidationError}
+                    message={getLatestErrorMessage({errors: domain.domainValidationError})}
+                    isAlertVisible={!!domain.domainValidationError}
                     containerStyles={styles.mb5}
-                    isLoading={domain?.isValidationPending}
+                    isLoading={domain.isValidationPending}
                 />
             </View>
         </ScreenWrapper>
