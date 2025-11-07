@@ -29,6 +29,7 @@ import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -49,7 +50,7 @@ type VerifiedBankAccountFlowEntryPointProps = {
     policyID?: string;
 
     /** Back to url passed from page */
-    backTo?: string;
+    backTo?: Route;
 
     /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
