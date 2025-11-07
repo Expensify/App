@@ -1,5 +1,6 @@
 import reportsSelector from '@selectors/Attributes';
 import {emailSelector} from '@selectors/Session';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
@@ -130,6 +131,7 @@ function MoneyRequestParticipantsSelector({
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -142,7 +144,7 @@ function MoneyRequestParticipantsSelector({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
 
@@ -177,6 +179,7 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: options.personalDetails.concat(contacts),
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -225,6 +228,7 @@ function MoneyRequestParticipantsSelector({
         canShowManagerMcTest,
         countryCode,
         isCorporateCardTransaction,
+        nvpDismissedProductTraining,
     ]);
 
     const chatOptions = useMemo(() => {
