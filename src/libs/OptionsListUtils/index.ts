@@ -317,12 +317,6 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
 /**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
@@ -2023,7 +2017,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
 /**
  * Whether user submitted already an expense or scanned receipt
  */
-function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
+function getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 }
 
@@ -2039,12 +2033,17 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(
+    config: GetOptionsConfig,
+    options: OptionList,
+    canShowManagerMcTest: boolean,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     return {
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            (getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isCurrentUserMemberOfAnyPolicy(),
     };
@@ -2056,6 +2055,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
 function getValidOptions(
     options: OptionList,
     draftComments: OnyxCollection<string> | undefined,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -2074,7 +2074,7 @@ function getValidOptions(
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
@@ -2268,6 +2268,7 @@ function getValidOptions(
 
 type SearchOptionsConfig = {
     options: OptionList;
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     draftComments: OnyxCollection<string>;
     betas?: Beta[];
     isUsedInChatFinder?: boolean;
@@ -2287,6 +2288,7 @@ type SearchOptionsConfig = {
 function getSearchOptions({
     options,
     draftComments,
+    nvpDismissedProductTraining,
     betas,
     isUsedInChatFinder = true,
     includeReadOnly = true,
@@ -2304,6 +2306,7 @@ function getSearchOptions({
     const optionList = getValidOptions(
         options,
         draftComments,
+        nvpDismissedProductTraining,
         {
             betas,
             includeRecentReports,
@@ -2364,6 +2367,7 @@ type GetAttendeeOptionsParams = {
     attendees: Attendee[];
     recentAttendees: Attendee[];
     draftComments: OnyxCollection<string>;
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     includeOwnedWorkspaceChats: boolean;
     includeP2P: boolean;
     includeInvoiceRooms: boolean;
@@ -2378,6 +2382,7 @@ function getAttendeeOptions({
     attendees,
     recentAttendees,
     draftComments,
+    nvpDismissedProductTraining,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2415,6 +2420,7 @@ function getAttendeeOptions({
     return getValidOptions(
         {reports, personalDetails},
         draftComments,
+        nvpDismissedProductTraining,
         {
             betas,
             selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
@@ -2464,6 +2470,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2472,6 +2479,7 @@ function getMemberInviteOptions(
     return getValidOptions(
         {personalDetails, reports: []},
         undefined,
+        nvpDismissedProductTraining,
         {
             betas,
             includeP2P: true,
