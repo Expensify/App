@@ -12,6 +12,7 @@ import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, Val
 
 type TextInputBasedComponents = [ComponentType<BaseTextInputProps>, ComponentType<RoomNameInputProps>];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const textInputBasedComponents: TextInputBasedComponents = [TextInput, RoomNameInput];
 
 type ComputedComponentSpecificRegistrationParams = {

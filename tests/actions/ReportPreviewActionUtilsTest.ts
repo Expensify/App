@@ -306,6 +306,32 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    it('canPay should return false for Expense report with zero total amount', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            total: 0,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        await waitForBatchedUpdatesWithAct();
+        // Should not show PAY button for zero amount Expenses
+        expect(getReportPreviewAction(VIOLATIONS, false, CURRENT_USER_EMAIL, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
     it('canPay should return true for submitted invoice', async () => {
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
