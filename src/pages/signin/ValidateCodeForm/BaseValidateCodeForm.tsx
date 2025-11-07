@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -60,6 +61,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
+    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
+    const StyleUtils = useStyleUtils();
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
@@ -84,6 +87,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
+        setIsCountdownRunning(true);
         countdownRef.current?.resetCountdown();
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
@@ -145,6 +149,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         countdownRef.current?.resetCountdown();
+        setIsCountdownRunning(true);
     };
 
     /**
@@ -197,6 +202,14 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             clearAccountMessages();
         }
     };
+
+    useEffect(() => {
+        if (!isCountdownRunning) {
+            return;
+        }
+
+        countdownRef.current?.resetCountdown();
+    }, [isCountdownRunning]);
 
     useEffect(() => {
         if (!isLoadingResendValidationForm) {
@@ -360,13 +373,30 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         testID="validateCode"
                     />
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                    <ValidateCodeCountdown
-                        ref={countdownRef}
-                        shouldDisableResendValidateCode={shouldDisableResendValidateCode}
-                        hasError={hasError}
-                        isOffline={isOffline}
-                        onResendValidateCode={resendValidateCode}
-                    />
+                    <View style={[styles.alignItemsStart]}>
+                        {isCountdownRunning && !isOffline ? (
+                            <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
+                                <ValidateCodeCountdown
+                                    ref={countdownRef}
+                                    onCountdownFinish={() => setIsCountdownRunning(false)}
+                                />
+                            </View>
+                        ) : (
+                            <PressableWithFeedback
+                                style={[styles.mt2]}
+                                onPress={resendValidateCode}
+                                disabled={shouldDisableResendValidateCode}
+                                hoverDimmingValue={1}
+                                pressDimmingValue={0.2}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            >
+                                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
+                                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
+                                </Text>
+                            </PressableWithFeedback>
+                        )}
+                    </View>
                 </View>
             )}
             <View>

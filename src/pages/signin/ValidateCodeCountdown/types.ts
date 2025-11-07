@@ -1,8 +1,5 @@
 type ValidateCodeCountdownProps = {
-    shouldDisableResendValidateCode: boolean;
-    hasError: boolean;
-    isOffline: boolean;
-    onResendValidateCode: () => void;
+    onCountdownFinish: () => void;
 };
 
 type ValidateCodeCountdownHandle = {
