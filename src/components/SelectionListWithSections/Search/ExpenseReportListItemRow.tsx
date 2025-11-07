@@ -7,6 +7,7 @@ import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ActionCell from './ActionCell';
@@ -29,6 +30,8 @@ type ExpenseReportListItemRowProps = {
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabled?: boolean;
+    isHovered?: boolean;
+    isFocused?: boolean;
 };
 
 function ExpenseReportListItemRow({
@@ -43,9 +46,12 @@ function ExpenseReportListItemRow({
     isSelectAllChecked,
     isIndeterminate,
     isDisabled,
+    isHovered = false,
+    isFocused = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {total, currency} = useMemo(() => {
@@ -66,6 +72,9 @@ function ExpenseReportListItemRow({
 
     const thereIsFromAndTo = !!item?.from && !!item?.to;
     const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
+
+    // Calculate the correct border color for avatars based on hover and focus states
+    const finalAvatarBorderColor = isHovered && !isFocused ? theme.border : avatarBorderColor;
 
     if (!isLargeScreenWidth) {
         return (
@@ -95,7 +104,7 @@ function ExpenseReportListItemRow({
                                 report={item}
                                 style={[{maxWidth: 700}]}
                                 transactions={item.transactions}
-                                avatarBorderColor={avatarBorderColor}
+                                avatarBorderColor={finalAvatarBorderColor}
                             />
                         </View>
                     </View>
@@ -129,6 +138,7 @@ function ExpenseReportListItemRow({
                     <ReportActionAvatars
                         reportID={item.reportID}
                         shouldShowTooltip={showTooltip}
+                        subscriptAvatarBorderColor={finalAvatarBorderColor}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>

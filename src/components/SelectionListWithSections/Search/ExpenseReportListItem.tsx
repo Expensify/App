@@ -104,18 +104,22 @@ function ExpenseReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             shouldShowRightCaret={isLargeScreenWidth}
         >
-            <ExpenseReportListItemRow
-                item={reportItem}
-                isActionLoading={isLoading ?? reportItem.isActionLoading}
-                showTooltip={showTooltip}
-                canSelectMultiple={canSelectMultiple}
-                onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
-                onButtonPress={handleOnButtonPress}
-                avatarBorderColor={theme.highlightBG}
-                isSelectAllChecked={!!reportItem.isSelected}
-                isIndeterminate={false}
-                isDisabled={!!isDisabled}
-            />
+            {(hovered) => (
+                <ExpenseReportListItemRow
+                    item={reportItem}
+                    isActionLoading={isLoading ?? reportItem.isActionLoading}
+                    showTooltip={showTooltip}
+                    canSelectMultiple={canSelectMultiple}
+                    onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                    onButtonPress={handleOnButtonPress}
+                    avatarBorderColor={theme.highlightBG}
+                    isSelectAllChecked={!!reportItem.isSelected}
+                    isIndeterminate={false}
+                    isDisabled={!!isDisabled}
+                    isHovered={hovered}
+                    isFocused={isFocused}
+                />
+            )}
         </BaseListItem>
     );
 }
