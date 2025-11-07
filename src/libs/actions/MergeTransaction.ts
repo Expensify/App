@@ -163,9 +163,6 @@ function getOnyxTargetTransactionData(
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
     policyCategories: OnyxEntry<PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
 ) {
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -200,9 +197,6 @@ function getOnyxTargetTransactionData(
             policyCategories,
             violations,
             shouldBuildOptimisticModifiedExpenseReportAction,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
         });
     }
 
@@ -217,25 +211,11 @@ type MergeTransactionRequestParams = {
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
-function mergeTransactionRequest({
-    mergeTransactionID,
-    mergeTransaction,
-    targetTransaction,
-    sourceTransaction,
-    policy,
-    policyTags,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-}: MergeTransactionRequestParams) {
+function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories}: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
     const finalAmount = -mergeTransaction.amount;
@@ -261,16 +241,7 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
 
-    const onyxTargetTransactionData = getOnyxTargetTransactionData(
-        targetTransaction,
-        mergeTransaction,
-        policy,
-        policyTags,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-    );
+    const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories);
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const optimisticSourceTransactionData: OnyxUpdate = {

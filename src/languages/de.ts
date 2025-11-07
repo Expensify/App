@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Zählen',
         cancel: 'Abbrechen',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Senden',
         na: 'N/A',
         noResultsFound: 'Keine Ergebnisse gefunden',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Keine Ergebnisse gefunden, die mit "${searchString}" übereinstimmen.`,
+        noResultsFoundMatching: (searchString: string) => `Keine Ergebnisse gefunden, die mit "${searchString}" übereinstimmen.`,
         recentDestinations: 'Letzte Ziele',
         timePrefix: 'Es ist',
         conjunctionFor: 'für',
@@ -678,8 +678,6 @@ const translations = {
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Arbeitsbereiche',
-        getTheApp: 'App herunterladen',
-        scanReceiptsOnTheGo: 'Scannen Sie Belege mit Ihrem Telefon',
         headsUp: 'Achtung!',
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
@@ -861,9 +859,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Möchten Sie sich nicht mit ${provider} anmelden?`,
         continueWithMyCurrentSession: 'Mit meiner aktuellen Sitzung fortfahren',
         redirectToDesktopMessage: 'Wir leiten Sie zur Desktop-App weiter, sobald Sie sich angemeldet haben.',
-        signInAgreementMessage: 'Mit der Anmeldung stimmen Sie den',
-        termsOfService: 'Nutzungsbedingungen',
-        privacy: 'Datenschutz',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Weiter mit Single Sign-On anmelden:',
@@ -1075,10 +1070,6 @@ const translations = {
     receipt: {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
-        dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
-        dragReceiptsBeforeEmail: 'Ziehen Sie Belege auf diese Seite oder leiten Sie Belege weiter an',
-        dragReceiptAfterEmail: 'oder wählen Sie eine Datei zum Hochladen aus.',
-        dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
         desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
         desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
         alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
@@ -1351,11 +1342,9 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Halten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericUnholdExpenseFailureMessage: 'Unerwarteter Fehler beim Entfernen dieser Ausgabe von der Warteschleife. Bitte versuchen Sie es später erneut.',
             receiptDeleteFailureError: 'Unerwarteter Fehler beim Löschen dieser Quittung. Bitte versuchen Sie es später erneut.',
-            receiptFailureMessage: 'Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte',
+            receiptFailureMessage:
+                '<rbr>Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte <a href="download">den Beleg speichern</a> und <a href="retry">es erneut versuchen</a> später.</rbr>',
             receiptFailureMessageShort: 'Beim Hochladen Ihres Belegs ist ein Fehler aufgetreten.',
-            tryAgainMessage: 'nochmals versuchen',
-            saveFileMessage: 'Beleg speichern',
-            uploadLaterMessage: 'später hochladen.',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericSmartscanFailureMessage: 'Transaktion fehlt Felder',
@@ -1377,7 +1366,10 @@ const translations = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Halten',
         unhold: 'Halten entfernen',
-        holdExpense: 'Ausgabe zurückhalten',
+        holdExpense: () => ({
+            one: 'Ausgabe zurückhalten',
+            other: 'Ausgaben zurückhalten',
+        }),
         unholdExpense: 'Ausgabe freigeben',
         heldExpense: 'diese Ausgabe zurückgehalten',
         unheldExpense: 'diese Ausgabe freigegeben',
@@ -1388,7 +1380,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
         newReport: 'Neuer Bericht',
-        explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
+        explainHold: () => ({
+            one: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
+            other: 'Erklären Sie, warum Sie diese Ausgaben zurückhalten.',
+        }),
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
         reopened: 'wieder geöffnet',
@@ -2076,8 +2071,6 @@ ${amount} für ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
-        delaySubmissionTitle: 'Einreichungen verzögern',
-        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies aus, um Echtzeit-Updates über Ausgaben zu erhalten.',
         submissionFrequency: 'Einreichungshäufigkeit',
         submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
@@ -2132,7 +2125,6 @@ ${amount} für ${merchant} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Die verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         autoReportingFrequencyErrorMessage: 'Die Einreichungshäufigkeit konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Frequenz konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
     },
@@ -4937,6 +4929,7 @@ ${amount} für ${merchant} - ${date}`,
             existingReportFieldNameError: 'Ein Berichtsfeld mit diesem Namen existiert bereits.',
             reportFieldNameRequiredError: 'Bitte geben Sie einen Berichtsfeldnamen ein',
             reportFieldTypeRequiredError: 'Bitte wählen Sie einen Berichtsfeldtyp aus',
+            circularReferenceError: 'Dieses Feld kann nicht auf sich selbst verweisen. Bitte aktualisieren Sie es.',
             reportFieldInitialValueRequiredError: 'Bitte wählen Sie einen Anfangswert für das Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtsfeldes ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         },
@@ -5499,8 +5492,8 @@ ${amount} für ${merchant} - ${date}`,
             enableRate: 'Rate aktivieren',
             status: 'Status',
             unit: 'Einheit',
-            taxFeatureNotEnabledMessage: 'Steuern müssen im Arbeitsbereich aktiviert sein, um diese Funktion zu nutzen. Gehen Sie zu',
-            changePromptMessage: 'um diese Änderung vorzunehmen.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Steuern müssen im Arbeitsbereich aktiviert sein, um diese Funktion zu nutzen. Gehen Sie zu <a href="#">Mehr Funktionen</a> um diese Änderung vorzunehmen.</muted-text>',
             deleteDistanceRate: 'Entfernen Sie den Distanzsatz',
             areYouSureDelete: () => ({
                 one: 'Möchten Sie diesen Satz wirklich löschen?',
@@ -7401,7 +7394,7 @@ ${amount} für ${merchant} - ${date}`,
         upload: 'Hochladen',
         uploadPhoto: 'Foto hochladen',
         selectAvatar: 'Avatar auswählen',
-        chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
+        choosePresetAvatar: 'Oder wählen Sie einen eigenen Avatar',
     },
     openAppFailureModal: {
         title: 'Etwas ist schiefgelaufen...',
@@ -7433,4 +7426,4 @@ ${amount} für ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
