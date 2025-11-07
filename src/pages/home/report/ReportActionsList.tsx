@@ -774,10 +774,15 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                requestAnimationFrame(() => {
-                    reportScrollManager.scrollToEnd();
-                });
+
+            if (shouldScrollToEndAfterLayout) {
+                if (!hasCreatedActionAdded || isOffline) {
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToEnd();
+                    });
+                } else {
+                    setShouldScrollToEndAfterLayout(false);
+                }
             }
         },
         [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
